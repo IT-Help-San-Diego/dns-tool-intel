@@ -748,6 +748,10 @@ func registerAdminRoutes(d routeDeps) {
         d.Router.GET("/ops/operations", middleware.RequireAdmin(), adminHandler.OperationsPage)
         d.Router.POST("/ops/run/:task", middleware.RequireAdmin(), adminHandler.RunOperation)
 
+        confidenceBackfillHandler := handlers.NewConfidenceBackfillHandler(d.DB)
+        d.Router.POST("/ops/confidence-backfill", middleware.RequireAdmin(), confidenceBackfillHandler.Start)
+        d.Router.GET("/ops/confidence-backfill/status", middleware.RequireAdmin(), confidenceBackfillHandler.Status)
+
         probeAdminHandler := adminpkg.NewProbeAdminHandler(d.DB, d.Cfg, handlers.NewTemplateData)
         d.Router.GET("/ops/probes", middleware.RequireAdmin(), probeAdminHandler.ProbeDashboard)
         d.Router.POST("/ops/probes/:id/:action", middleware.RequireAdmin(), probeAdminHandler.RunProbeAction)

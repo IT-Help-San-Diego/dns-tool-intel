@@ -126,6 +126,24 @@
             {{end}}
         </div>
 
+        <h2 class="h5 mb-3">{{icon "database" "me-2 text-info"}}Data Intelligence</h2>
+        <div class="ops-grid mb-4">
+            <div class="ops-card">
+                <div class="ops-card-header">
+                    {{icon "chart-line" "ops-card-icon"}}
+                    <span class="ops-card-label">Confidence Scores Backfill</span>
+                </div>
+                <div class="ops-card-cmd">Replay historical scans into confidence_scores (idempotent, source='import')</div>
+                <form id="confidenceBackfillForm" method="POST" action="/ops/confidence-backfill">
+                    <input type="hidden" name="csrf_token" value="{{$.CsrfToken}}">
+                    <button type="submit" class="btn btn-outline-info btn-sm text-nowrap">
+                        {{icon "play" "me-1"}}Run Backfill
+                    </button>
+                </form>
+                <div id="confidenceBackfillStatus" class="text-muted small mt-2"></div>
+            </div>
+        </div>
+
         <h2 class="h5 mb-3">{{icon "file-pdf" "me-2 text-info"}}Exports</h2>
         <div class="ops-grid mb-4">
             <div class="ops-card">
@@ -148,5 +166,54 @@
 
     {{template "footer" .}}
     {{template "scripts" .}}
+    <script nonce="{{.CspNonce}}">
+    (function () {
+        var form = document.getElementById('confidenceBackfillForm');
+        var statusEl = document.getElementById('confidenceBackfillStatus');
+        if (!form || !statusEl) { return; }
+
+        function renderStatus(st) {
+            var parts = [];
+            parts.push(st.running ? 'Running' : 'Idle');
+            if (st.candidates) { parts.push('candidates: ' + st.candidates); }
+            parts.push('processed: ' + (st.processed || 0));
+            parts.push('inserted: ' + (st.inserted || 0));
+            parts.push('skipped: ' + (st.skipped || 0));
+            if (typeof st.total_rows_in_table !== 'undefined') { parts.push('rows in table: ' + st.total_rows_in_table); }
+            if (st.error) { parts.push('error: ' + st.error); }
+            statusEl.textContent = parts.join(' \u00b7 ');
+        }
+
+        var pollTimer = null;
+        function poll() {
+            fetch('/ops/confidence-backfill/status', { headers: { 'Accept': 'application/json' } })
+                .then(function (r) { return r.json(); })
+                .then(function (st) {
+                    renderStatus(st);
+                    if (st.running) { pollTimer = setTimeout(poll, 2000); }
+                })
+                .catch(function () { statusEl.textContent = 'Status unavailable'; });
+        }
+
+        form.addEventListener('submit', function (ev) {
+            ev.preventDefault();
+            var token = form.querySelector('input[name="csrf_token"]').value;
+            statusEl.textContent = 'Starting\u2026';
+            fetch(form.action, {
+                method: 'POST',
+                headers: { 'X-CSRF-Token': token, 'Accept': 'application/json' }
+            })
+                .then(function (r) { return r.json(); })
+                .then(function (st) {
+                    renderStatus(st);
+                    if (pollTimer) { clearTimeout(pollTimer); }
+                    pollTimer = setTimeout(poll, 1500);
+                })
+                .catch(function () { statusEl.textContent = 'Request failed'; });
+        });
+
+        poll();
+    })();
+    </script>
 </body>
 </html>
