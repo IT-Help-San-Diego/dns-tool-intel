@@ -42,19 +42,16 @@ func (h *ConfidenceHandler) Confidence(c *gin.Context) {
         data := NewTemplateData(c, h.Config, "confidence")
         data["IsDev"] = h.Config.IsDevEnvironment
 
-        if h.DB != nil {
-                if metrics := icae.LoadReportMetrics(c.Request.Context(), h.DB.Queries); metrics != nil {
-                        metrics.HashAudit = icae.AuditHashIntegrity(c.Request.Context(), h.DB.Queries, 100)
-                        if metrics.HashAudit != nil {
-                                if totalHashed, err := h.DB.Queries.CountHashedAnalyses(c.Request.Context()); err == nil {
-                                        metrics.HashAudit.TotalHashedInDB = int(totalHashed)
-                                }
-                        }
-                        ce := icae.NewCalibrationEngine()
-                        ce.ApplyEvidence(metrics, icae.DefaultEvidenceCap)
-                        calResult := icae.RunDegradedCalibration(ce)
-                        metrics.Calibration = &calResult
+        if h.DB != nil && h.DB.Queries != nil {
+                metrics, recent, computedAt, fromCache := h.confidenceBundleFor(c.Request.Context())
+                if metrics != nil {
                         data["ICAEMetrics"] = metrics
+                        if recent != nil {
+                                data["RecentHashes"] = recent
+                        }
+                        data["AuditComputedUTC"] = computedAt.Format("2006-01-02T15:04:05Z")
+                        data["AuditComputedDisplay"] = computedAt.Format("2 Jan 2006 15:04:05 UTC")
+                        data["AuditFromCache"] = fromCache
                 }
         }
 

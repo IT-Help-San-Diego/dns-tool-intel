@@ -196,17 +196,18 @@ if (mainJs) {
   check('Toast fires in covert mode only', mainJs.includes('covert-mode') && mainJs.includes('isBareTopLevelDomain'),
     'Toast must be gated by covert-mode class check');
 }
-const analysisHandler = read('go-server/internal/handlers/analysis.go');
-if (analysisHandler) {
-  check('SHA3 sidecar includes analysis ID', analysisHandler.includes('Analysis ID:'),
+const analysisView = read('go-server/internal/handlers/analysis_view.go');
+const analysisAPI = read('go-server/internal/handlers/analysis_api.go');
+if (analysisView && analysisAPI) {
+  check('SHA3 sidecar includes analysis ID', analysisAPI.includes('Analysis ID:'),
     'Checksum .sha3 file must include analysis ID');
-  check('SHA3 sidecar includes report URL', analysisHandler.includes('Report URL:'),
+  check('SHA3 sidecar includes report URL', analysisAPI.includes('Report URL:'),
     'Checksum .sha3 file must include permalink back to report');
-  check('Unified mode handler exists', analysisHandler.includes('viewAnalysisWithMode'),
+  check('Unified mode handler exists', analysisView.includes('viewAnalysisWithMode'),
     'Handler must dispatch E/C/B via viewAnalysisWithMode');
-  check('Mode resolver function exists', analysisHandler.includes('resolveReportMode'),
+  check('Mode resolver function exists', analysisView.includes('resolveReportMode'),
     'Route mode param resolver must exist');
-  check('ReportMode passed to template', analysisHandler.includes('"ReportMode"'),
+  check('ReportMode passed to template', analysisView.includes('"ReportMode"'),
     'Template data must include ReportMode for URL canonicalization');
 }
 const mainGoServer = read('go-server/cmd/server/main.go');

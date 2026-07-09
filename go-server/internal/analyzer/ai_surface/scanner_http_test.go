@@ -59,6 +59,72 @@ func TestTryFetchLLMSTxt_NotFound(t *testing.T) {
         }
 }
 
+func TestTryFetchLLMSTxt_HTMLSoft404(t *testing.T) {
+        scanner, ts := newTestScanner(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+                w.Header().Set("Content-Type", "text/html")
+                w.WriteHeader(http.StatusOK)
+                w.Write([]byte("<!DOCTYPE html>\n<html><head><title>Home</title></head><body>Welcome to my site — this is an ordinary web page, not an llms.txt file.</body></html>"))
+        }))
+        defer ts.Close()
+
+        _, ok := scanner.tryFetchLLMSTxt(context.Background(), ts.URL+"/llms.txt")
+        if ok {
+                t.Error("tryFetchLLMSTxt should return false for a soft-404 HTML page (site homepage served for an unknown path)")
+        }
+}
+
+func TestTryFetchLLMSTxt_HTMLBodyNoContentType(t *testing.T) {
+        scanner, ts := newTestScanner(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+                w.Header().Set("Content-Type", "application/octet-stream")
+                w.WriteHeader(http.StatusOK)
+                w.Write([]byte("<!doctype html><html><body>homepage catch-all with more than ten bytes of content</body></html>"))
+        }))
+        defer ts.Close()
+
+        _, ok := scanner.tryFetchLLMSTxt(context.Background(), ts.URL+"/llms.txt")
+        if ok {
+                t.Error("tryFetchLLMSTxt should reject an HTML body even when Content-Type is not text/html")
+        }
+}
+
+func TestTryFetchLLMSFullTxt_HTMLSoft404(t *testing.T) {
+        scanner, ts := newTestScanner(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+                w.Header().Set("Content-Type", "text/html; charset=utf-8")
+                w.WriteHeader(http.StatusOK)
+                w.Write([]byte("<!DOCTYPE html>\n<html><head></head><body>full page served as a soft-404, definitely not Markdown</body></html>"))
+        }))
+        defer ts.Close()
+
+        _, ok := scanner.tryFetchLLMSFullTxt(context.Background(), ts.URL+"/llms-full.txt")
+        if ok {
+                t.Error("tryFetchLLMSFullTxt should return false for a soft-404 HTML page")
+        }
+}
+
+func TestIsHTMLResponse(t *testing.T) {
+        cases := []struct {
+                name        string
+                contentType string
+                body        string
+                wantHTML    bool
+        }{
+                {"html content-type", "text/html; charset=utf-8", "anything at all in the body", true},
+                {"doctype prefix", "application/octet-stream", "<!DOCTYPE html><html></html>", true},
+                {"html tag prefix", "", "<html><body>x</body></html>", true},
+                {"head tag prefix", "", "<head><title>x</title></head>", true},
+                {"leading whitespace then doctype", "", "\n\n  <!doctype html>", true},
+                {"valid markdown llms.txt", "text/plain; charset=utf-8", "# My Site\n\n> Summary of the site\n", false},
+                {"plain key-value", "text/plain", "Title: My Site\nDescription: hello", false},
+        }
+        for _, tc := range cases {
+                t.Run(tc.name, func(t *testing.T) {
+                        if got := isHTMLResponse(tc.contentType, tc.body); got != tc.wantHTML {
+                                t.Errorf("isHTMLResponse(%q, %q) = %v, want %v", tc.contentType, tc.body, got, tc.wantHTML)
+                        }
+                })
+        }
+}
+
 func TestTryFetchLLMSFullTxt_Success(t *testing.T) {
         scanner, ts := newTestScanner(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
                 w.WriteHeader(http.StatusOK)

@@ -232,9 +232,9 @@
         <div class="card bg-dark border-secondary mb-4">
             <div class="card-body">
                 <h2 class="h5 fw-bold mb-3">{{icon "fingerprint" "me-2 text-accent-gold"}}Hash Integrity Audit</h2>
-                <p class="text-muted small mb-3">Every analysis result is SHA-3-512 (Keccak, NIST FIPS 202) hashed at creation using a canonical, deterministic serialization of all protocol findings. This audit recomputes hashes from stored results and compares against the retained posture hash to verify no data has been altered post-analysis.</p>
+                <p class="text-muted small mb-3">Every analysis result is SHA-3-512 (Keccak, NIST FIPS 202) hashed at creation using a canonical, deterministic serialization of all protocol findings. This is a continuous rolling audit keyed to the evidence ledger itself: the moment the ledger head moves &mdash; any new analysis &mdash; the audit window&rsquo;s hashes are re-derived from the stored results and compared against the retained posture hashes to verify no data has been altered post-analysis. Between ledger movements the verified result is served unchanged, because identical inputs yield an identical audit.{{if .AuditComputedDisplay}} This audit was computed at <strong>{{.AuditComputedDisplay}}</strong> against the ledger head shown below.{{end}}</p>
                 {{if gt .ICAEMetrics.HashAudit.TotalHashedInDB 0}}
-                <p class="text-muted small mb-3">{{icon "database" "me-1"}}Audit window: <strong>{{.ICAEMetrics.HashAudit.TotalAudited}}</strong> of <strong>{{.ICAEMetrics.HashAudit.TotalHashedInDB}}</strong> hashed analyses (most recent 100, ordered by creation date)</p>
+                <p class="text-muted small mb-3">{{icon "database" "me-1"}}Rolling audit window: <strong>{{.ICAEMetrics.HashAudit.TotalAudited}}</strong> of <strong>{{.ICAEMetrics.HashAudit.TotalHashedInDB}}</strong> hashed analyses (most recent 100, ordered by creation date){{if .ICAEMetrics.HashAudit.LastVerifiedAt}} &middot; newest verified entry: <strong>{{.ICAEMetrics.HashAudit.LastVerifiedAt}}</strong>{{end}}</p>
                 {{end}}
                 <div class="d-flex flex-wrap gap-3 mb-2">
                     <div class="icae-hash-stat">
@@ -262,6 +262,16 @@
                 <p class="text-success small mb-0">{{icon "check-circle" "me-1"}}All {{.ICAEMetrics.HashAudit.TotalVerified}} of {{.ICAEMetrics.HashAudit.TotalAudited}} audited results verified &mdash; no posture hash mismatches detected. Tamper-evident audit trail intact.</p>
                 {{else if gt .ICAEMetrics.HashAudit.TotalFailed 0}}
                 <p class="text-danger small mb-0">{{icon "exclamation-triangle" "me-1"}}{{.ICAEMetrics.HashAudit.TotalFailed}} hash mismatch(es) detected. Investigate immediately.</p>
+                {{end}}
+                {{if .RecentHashes}}
+                <div class="mt-3 pt-2 border-top border-secondary">
+                    <p class="text-muted small mb-2 fw-semibold">{{icon "clock" "me-1"}}Newest Ledger Entries</p>
+                    <ul class="list-unstyled mb-0 small">
+                    {{range .RecentHashes}}
+                        <li class="text-muted mb-1"><code class="text-info">{{printf "%.20s" .Hash}}&hellip;</code> &mdash; {{.Domain}} &mdash; {{.Timestamp}}</li>
+                    {{end}}
+                    </ul>
+                </div>
                 {{end}}
                 <div class="mt-3 pt-2 border-top border-secondary">
                     <a href="/confidence/audit-log" class="text-info text-decoration-none small">{{icon "clipboard-list" "me-1"}}Open Accountability Log &mdash; full hash ledger with timestamps</a>
@@ -632,7 +642,7 @@
                         <div class="card bg-dark border-secondary h-100">
                             <div class="card-body py-2 px-3">
                                 <h3 class="h6 fw-bold mb-1">Remote Probe Failover</h3>
-                                <p class="text-muted small mb-0">SMTP probing uses dedicated remote infrastructure (US region) for reliable port 25/465/587 access. If the remote probe is unavailable (network, auth, rate limit), the system falls back to local direct probing. Rate limiting: 30 requests per 60 seconds per client.</p>
+                                <p class="text-muted small mb-0">SMTP probing uses dedicated remote infrastructure (US region) for reliable port 25/465/587 access. If the remote probe is unavailable (network, auth, rate limit), the system falls back to local direct probing. The probe API is shared-secret authenticated and rate-limited server-side; when rate limiting (HTTP 429) prevents probing, the report says so.</p>
                             </div>
                         </div>
                     </div>
@@ -665,7 +675,7 @@
                         <div class="card bg-dark border-secondary h-100">
                             <div class="card-body py-2 px-3">
                                 <h3 class="h6 fw-bold mb-1">{{icon "tachometer-alt" "me-1 text-success"}} Adaptive Rate Awareness</h3>
-                                <p class="text-muted small mb-0">Third-party services (certificate transparency logs, RDAP registries) are monitored with telemetry-based exponential backoff &mdash; automatic cooldown from 5 seconds to 5 minutes when services signal degradation. When a source is unavailable or rate-limited, DNS Tool says so honestly rather than hiding the gap.</p>
+                                <p class="text-muted small mb-0">Third-party services (certificate transparency logs, RDAP registries) are monitored with telemetry-based exponential backoff &mdash; automatic cooldown from 5 seconds to 2 minutes when services signal degradation. When a source is unavailable or rate-limited, DNS Tool says so honestly rather than hiding the gap.</p>
                             </div>
                         </div>
                     </div>

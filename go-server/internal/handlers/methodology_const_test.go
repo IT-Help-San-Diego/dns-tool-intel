@@ -74,16 +74,16 @@ var forbiddenPhrases = []forbiddenEntry{
                         if icd203TemplateFiles[rel] {
                                 return true
                         }
-                        if rel == "internal/handlers/analysis.go" &&
+                        if rel == "internal/handlers/analysis_api.go" &&
                                 (strings.Contains(trimmed, "mapKeyStandard:") ||
                                         strings.Contains(trimmed, `"standards":`)) {
                                 return true
                         }
-                        if rel == "internal/handlers/analysis.go" &&
+                        if rel == "internal/handlers/analysis_api.go" &&
                                 strings.Contains(trimmed, `sb.WriteString("#   Standards:`) {
                                 return true
                         }
-                        if rel == "internal/handlers/changelog.go" &&
+                        if rel == "internal/handlers/changelog_data.go" &&
                                 strings.HasPrefix(trimmed, "Description:") {
                                 return true
                         }
