@@ -36,7 +36,7 @@ The agent will launch parallel architect calls, one per persona, and compile res
 **Role**: Experienced penetration tester trying to break the application.
 **Concerns**: Security vulnerabilities, information leakage, attack surfaces.
 
-**Audit files**: `go-server/internal/middleware/middleware.go`, `go-server/internal/middleware/csrf.go`, `go-server/internal/middleware/ratelimit.go`, `go-server/cmd/server/main.go`, `go-server/internal/handlers/analysis.go`, `go-server/internal/handlers/proxy.go`, `go-server/internal/handlers/investigate.go`, `go-server/internal/handlers/email_header.go`, `go-server/internal/handlers/export.go`
+**Audit files**: `go-server/internal/middleware/middleware.go`, `go-server/internal/middleware/csrf.go`, `go-server/internal/middleware/ratelimit.go`, `go-server/cmd/server/main.go`, `go-server/internal/handlers/analysis_scanflow.go`, `go-server/internal/handlers/analysis_api.go`, `go-server/internal/handlers/proxy.go`, `go-server/internal/handlers/investigate.go`, `go-server/internal/handlers/email_header.go`, `go-server/internal/handlers/export.go`
 
 **Questions**:
 1. CSP policy — tight enough? Bypasses possible? Nonces properly propagated?
@@ -57,7 +57,7 @@ The agent will launch parallel architect calls, one per persona, and compile res
 **Role**: Senior Go engineer doing a thorough code review.
 **Concerns**: Clean architecture, error handling, resource usage, logging, testability, maintainability.
 
-**Audit files**: `go-server/cmd/server/main.go`, `go-server/internal/config/config.go`, `go-server/internal/middleware/middleware.go`, `go-server/internal/middleware/ratelimit.go`, `go-server/internal/handlers/helpers.go`, `go-server/internal/handlers/analysis.go`
+**Audit files**: `go-server/cmd/server/main.go`, `go-server/internal/config/config.go`, `go-server/internal/middleware/middleware.go`, `go-server/internal/middleware/ratelimit.go`, `go-server/internal/handlers/normalize_results.go`, `go-server/internal/handlers/domain_scope.go`, `go-server/internal/handlers/analysis.go`, `go-server/internal/handlers/analysis_view.go`, `go-server/internal/handlers/analysis_scanflow.go`
 
 **Questions**:
 1. Middleware chain ordered correctly?
@@ -126,7 +126,7 @@ The agent will launch parallel architect calls, one per persona, and compile res
 
 **Concerns**: CFAA (Computer Fraud and Abuse Act) violations, unauthorized access claims, privacy law violations (GDPR, CCPA), export control (EAR/ITAR), wiretapping/interception laws, aiding and abetting unauthorized access, data broker regulations.
 
-**Audit files**: `go-server/templates/index.html`, `go-server/templates/sources.html`, `go-server/templates/security_policy.html`, `go-server/templates/investigate.html`, `go-server/internal/handlers/analysis.go`, `go-server/internal/handlers/investigate.go`, `go-server/internal/handlers/proxy.go`, `DOCS.md`, `PROJECT_CONTEXT.md`, `LICENSE`
+**Audit files**: `go-server/templates/index.html`, `go-server/templates/sources.html`, `go-server/templates/security_policy.html`, `go-server/templates/investigate.html`, `go-server/internal/handlers/analysis_scanflow.go`, `go-server/internal/handlers/investigate.go`, `go-server/internal/handlers/proxy.go`, `DOCS.md`, `PROJECT_CONTEXT.md`, `LICENSE`
 
 **Questions**:
 1. Does this tool access ANY non-public data? Could it be construed as "unauthorized access" under CFAA (18 U.S.C. § 1030)?
