@@ -6106,24 +6106,28 @@ footer a.text-muted:hover { text-decoration-color: rgba(173, 181, 189, 0.8); }
 
 /* ============================================
    SAFARI / iOS COMPATIBILITY OVERRIDES
-   Safari dark mode can shift btn-primary blue toward purple.
-   Explicit color overrides ensure consistent rendering.
+   Safari dark mode can shift btn-primary colors.
+   Explicit literal values pin rendering AND replace
+   Bootstrap's factory blue with the Emblem Gold family
+   (brand palette contains no blue). Bootstrap itself
+   stays stock — this block is the compatibility seam.
    ============================================ */
 .btn-primary,
 #reanalyzeBtn.btn-primary,
 .search-btn.btn-primary {
-    --bs-btn-bg: #0d6efd;
-    --bs-btn-border-color: #0d6efd;
-    --bs-btn-color: #fff;
-    --bs-btn-hover-bg: #0b5ed7;
-    --bs-btn-hover-border-color: #0a58ca;
-    --bs-btn-hover-color: #fff;
-    --bs-btn-active-bg: #0a58ca;
-    --bs-btn-active-border-color: #0a53be;
-    --bs-btn-active-color: #fff;
-    --bs-btn-disabled-bg: #0d6efd;
-    --bs-btn-disabled-border-color: #0d6efd;
-    --bs-btn-disabled-color: #fff;
+    --bs-btn-bg: rgba(212, 168, 83, 0.14);
+    --bs-btn-border-color: rgba(212, 168, 83, 0.55);
+    --bs-btn-color: #d4a853;
+    --bs-btn-hover-bg: rgba(212, 168, 83, 0.24);
+    --bs-btn-hover-border-color: #d4a853;
+    --bs-btn-hover-color: #e8d5a3;
+    --bs-btn-active-bg: rgba(212, 168, 83, 0.32);
+    --bs-btn-active-border-color: #e8b54a;
+    --bs-btn-active-color: #f0e2c0;
+    --bs-btn-disabled-bg: rgba(212, 168, 83, 0.08);
+    --bs-btn-disabled-border-color: rgba(212, 168, 83, 0.28);
+    --bs-btn-disabled-color: rgba(212, 168, 83, 0.45);
+    --bs-btn-focus-shadow-rgb: 212, 168, 83;
     background-color: var(--bs-btn-bg);
     border-color: var(--bs-btn-border-color);
     color: var(--bs-btn-color);
@@ -7460,12 +7464,12 @@ progress::-webkit-progress-bar {
 }
 
 progress::-webkit-progress-value {
-  background-color: #0d6efd;
+  background-color: #d4a853;
   border-radius: 0;
 }
 
 progress::-moz-progress-bar {
-  background-color: #0d6efd;
+  background-color: #d4a853;
   border-radius: 0;
 }
 
