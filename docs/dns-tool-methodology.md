@@ -318,5 +318,8 @@ If DNS Tool contributes to research or analysis, please cite:
 
 ---
 
-DNS Tool v10 · IT Help San Diego Inc. · Licensed under BUSL-1.1
+DNS Tool v10 · IT Help San Diego Inc.
+
+**This document is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)** — you may share, adapt, translate, and build upon it for any purpose, including commercially, with attribution (© 2024–2026 IT Help San Diego Inc. / Carey James Balboa). The DNS Tool software itself remains licensed under [BUSL-1.1](../LICENSE).
+
 DOI: [10.5281/zenodo.19468134](https://doi.org/10.5281/zenodo.19468134) · [dnstool.it-help.tech](https://dnstool.it-help.tech)

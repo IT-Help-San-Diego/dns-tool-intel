@@ -627,4 +627,5 @@ The deeper insight: the connection between O(2)'s continuous rotation group and 
 ---
 
 **© 2024–2026 IT Help San Diego Inc. — DNS Security Intelligence**
-License: BUSL-1.1
+
+**This document is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)** — you may share, adapt, translate, and build upon it for any purpose, including commercially, with attribution (© 2024–2026 IT Help San Diego Inc. / Carey James Balboa). The DNS Tool software itself remains licensed under [BUSL-1.1](../LICENSE).

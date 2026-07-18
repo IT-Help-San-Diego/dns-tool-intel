@@ -5,7 +5,7 @@ ORCID: [0009-0000-5237-9065](https://orcid.org/0009-0000-5237-9065)
 DOI: [10.5281/zenodo.19468134](https://doi.org/10.5281/zenodo.19468134)
 Project: [dnstool.it-help.tech](https://dnstool.it-help.tech)
 Source: [github.com/IT-Help-San-Diego/dns-tool-intel](https://github.com/IT-Help-San-Diego/dns-tool-intel)
-Version 26.46.14 · License BUSL-1.1
+Version 26.46.14 · This document: CC BY 4.0 · Software: BUSL-1.1
 
 *Companion artifact to "Confidence-Scored Analysis of Domain Security Infrastructure"*
 
@@ -314,5 +314,8 @@ Neither document modifies the other. Protocol science findings are determined by
 - [Founder's Manifesto](FOUNDERS_MANIFESTO.md) — Non-normative aspirational statement of design philosophy (the *why behind the why*)
 - [Communication Standards](COMMUNICATION_STANDARDS.md) — Measurable Clarity + Vision dual-gate quality enforcement
 
-DNS Tool · IT Help San Diego Inc. · Licensed under BUSL-1.1
+DNS Tool · IT Help San Diego Inc.
+
+**This document is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)** — you may share, adapt, translate, and build upon it for any purpose, including commercially, with attribution (© 2024–2026 IT Help San Diego Inc. / Carey James Balboa). The DNS Tool software itself remains licensed under [BUSL-1.1](../LICENSE).
+
 DOI: [10.5281/zenodo.19468134](https://doi.org/10.5281/zenodo.19468134) · [dnstool.it-help.tech](https://dnstool.it-help.tech)

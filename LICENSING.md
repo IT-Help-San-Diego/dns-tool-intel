@@ -33,6 +33,20 @@ Using DNS Tool to audit client domains as part of professional services (consult
 ### After the Change Date:
 Each version automatically converts to **Apache-2.0** — fully permissive, no restrictions — three years after it is first publicly distributed. For versions published before 2026-02-14, the Change Date is 2029-02-14.
 
+## The Science Is Free Now (CC BY 4.0)
+
+The scientific methodology is not time-locked. The following documents are licensed under [Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/), effective immediately — each carries its own license notice:
+
+- [`docs/dns-tool-methodology.md`](docs/dns-tool-methodology.md) — the confidence-scored analysis methodology (data collection, RFC-grounded protocol evaluation, calibration model)
+- [`docs/philosophical-foundations.md`](docs/philosophical-foundations.md) — the epistemic framework for security analysis communication
+- [`docs/owl-semaphore-mathematical-foundations.md`](docs/owl-semaphore-mathematical-foundations.md) — mathematical exploration of the Owl Semaphore state system (superseded exploratory draft; the authoritative Owl Semaphore specifications are published from the [owl-semaphore](https://github.com/IT-Help-San-Diego/owl-semaphore) repository, DOI [10.5281/zenodo.19473697](https://doi.org/10.5281/zenodo.19473697))
+
+You may copy, redistribute, translate, adapt, and build upon these documents for any purpose — including commercially — with attribution (© 2024–2026 IT Help San Diego Inc. / Carey James Balboa; cite the DOI shown in each document's header). No BUSL analysis is required to use the science.
+
+**For researchers, in plain English:** running DNS Tool, studying it, modifying it, and citing it for research, education, testing, or personal use is expressly permitted under the BUSL Additional Use Grant — those uses are never a "Competitive Offering." The methodology documents above are additionally yours to reuse under CC BY 4.0 today.
+
+The split is deliberate: **the knowledge is free today; the machine that automates it becomes free on a schedule.** The gap between those two clocks is what funds the research.
+
 ## What this repository contains
 
 This repository contains the complete DNS Tool platform:
