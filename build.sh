@@ -17,7 +17,7 @@ fi
 # toolchain itself. On a bump, update this literal + every workflow `go-version:` in
 # lockstep (scripts/check-workflow-pin-sync.sh) and reverify:
 #   GOSUMDB=sum.golang.org GOTOOLCHAIN=go1.25.X govulncheck ./go-server/...
-export GOTOOLCHAIN=go1.25.11
+export GOTOOLCHAIN=go1.25.12
 export GOSUMDB=sum.golang.org
 
 # Owl Semaphore derived display assets are PRE-RENDERED and committed. The canonical
