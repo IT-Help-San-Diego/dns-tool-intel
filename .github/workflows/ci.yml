@@ -37,7 +37,7 @@ jobs:
 
       - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
         with:
-          go-version: '1.25.11'
+          go-version: '1.25.12'
 
       - name: Drift guard — handlers/ shim files
         run: bash scripts/check-handlers-no-shims.sh
@@ -95,6 +95,17 @@ jobs:
         # cross-browser-tests are deliberately different, so do NOT
         # wire that up).
         run: bash scripts/check-workflow-pin-sync.sh go-version
+
+      - name: Drift guard — build.sh GOTOOLCHAIN vs workflow go-version
+        # check-workflow-pin-sync.sh only scans .github/workflows/*.yml,
+        # so it cannot see build.sh's own `export GOTOOLCHAIN=go1.25.X`
+        # literal — which is what the actually-shipped binary compiles
+        # with (release.yml's build step and the Replit dev/deploy
+        # builds all run `bash build.sh`). The GO-2026-5856 bump missed
+        # that literal while all five workflow pins were updated: the
+        # audit lane went green while shipped binaries kept the
+        # vulnerable stdlib. This sibling guard closes that blind spot.
+        run: bash scripts/check-buildsh-toolchain-sync.sh
 
       - name: Unit-test the silent-retry surfacing script
         # Wired in by task #111. The dbtest+integration lane uses
@@ -232,7 +243,7 @@ jobs:
 
       - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
         with:
-          go-version: '1.25.11'
+          go-version: '1.25.12'
 
       - name: Run dbtest + integration handler passes
         id: dbtest_integration
