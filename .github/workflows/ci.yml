@@ -35,7 +35,7 @@ jobs:
         with:
           fetch-depth: 1
 
-      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version: '1.25.12'
 
@@ -241,7 +241,7 @@ jobs:
         with:
           fetch-depth: 1
 
-      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version: '1.25.12'
 
@@ -276,7 +276,7 @@ jobs:
         # "Surface silent retry" step below can read the
         # `total_attempts` output and emit observability when the lane
         # was saved by retry (task #105).
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
         with:
           timeout_minutes: 15
           max_attempts: 2
