@@ -69,10 +69,10 @@ Large organizations running their own NS infrastructure are detected by multiple
 The workflow executes:
 
 ```bash
-gunicorn --bind 0.0.0.0:5000 --reuse-port --reload main:app
+bash build.sh && ./dns-tool-server
 ```
 
-This command imports `main.py`, which contains an `os.execvp` trampoline. The trampoline immediately replaces the gunicorn process image with the compiled Go binary (`./dns-tool-server`), so gunicorn never actually starts. The Go binary takes over and binds to port 5000.
+`build.sh` compiles the Go binary (injecting the git-derived version via `-ldflags`), then the binary binds to port 5000 directly. Deployment uses the same binary via `build.sh --deploy`. (Historical note: an earlier setup launched via gunicorn with an `os.execvp` trampoline in `main.py`; that path is retired — `main.py` is now an unused stub retained only for tooling compatibility.)
 
 ## Building
 
@@ -96,7 +96,7 @@ Tests include unit tests, integration tests, golden rules (golden_rules_test.go)
 ## Architecture
 
 ```
-main.py                    # Process trampoline (execs Go binary)
+main.py                    # Legacy stub (unused; retained for tooling compatibility)
 dns-tool-server            # Compiled Go binary
 go-server/
   cmd/server/main.go       # Entry point
