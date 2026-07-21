@@ -88,6 +88,14 @@ func safeClose(c io.Closer, label string) {
 	}
 }
 
+// MatchCISA reports the scanner source label ("CISA Cyber Hygiene") when ip
+// falls inside the refreshed CISA Cyber Hygiene ranges, or "" otherwise.
+// Exported for site-wide request attribution (middleware.ScannerWatch);
+// scan-submission classification continues to go through Classify.
+func MatchCISA(ip string) string {
+	return matchCISAIP(ip)
+}
+
 func CISAListSize() int {
 	cisaListMu.RLock()
 	defer cisaListMu.RUnlock()
