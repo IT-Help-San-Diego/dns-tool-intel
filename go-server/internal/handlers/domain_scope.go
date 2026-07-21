@@ -83,6 +83,24 @@ func parseOrgDMARC(records []string) (bool, string) {
 	return false, ""
 }
 
+func inheritedDMARCScopeFromFallback(dmarc map[string]any, rootDomain string) (string, string) {
+	orgDomain, _ := dmarc["org_domain"].(string)
+	if orgDomain == "" {
+		orgDomain = rootDomain
+	}
+	policy, _ := dmarc["policy"].(string)
+	source, _ := dmarc["effective_policy_source"].(string)
+	policyNote := ""
+	if policy != "" {
+		tag := "p"
+		if source == "sp" {
+			tag = "sp"
+		}
+		policyNote = fmt.Sprintf(" (%s=%s)", tag, policy)
+	}
+	return "inherited", fmt.Sprintf("No subdomain DMARC record — organizational domain policy from %s%s applies per RFC 7489 §6.6.3", orgDomain, policyNote)
+}
+
 func determineDMARCScope(subHasDMARC, orgHasDMARC bool, orgDMARCPolicy, rootDomain string) (string, string) {
 	if subHasDMARC {
 		return "local", "DMARC record published at this subdomain"
@@ -127,9 +145,18 @@ func computeSubdomainEmailScope(ctx context.Context, dns dnsQuerier, domain, roo
 
 	scope.SPFScope, scope.SPFNote = determineSPFScope(isActiveStatus(spfStatus))
 
-	orgDMARCRecords := dns.QueryDNS(ctx, "TXT", fmt.Sprintf("_dmarc.%s", rootDomain))
-	orgHasDMARC, orgDMARCPolicy := parseOrgDMARC(orgDMARCRecords)
-	scope.DMARCScope, scope.DMARCNote = determineDMARCScope(isActiveStatus(dmarcStatus), orgHasDMARC, orgDMARCPolicy, rootDomain)
+	if orgFallback, _ := dmarc["org_domain_fallback"].(bool); orgFallback {
+		// The analyzer already confirmed authoritative absence at the
+		// subdomain and resolved the organizational-domain policy per
+		// RFC 7489 §6.6.3 — reuse its provenance instead of re-querying,
+		// and never render this as a "Local" record (nothing is
+		// published at the subdomain name).
+		scope.DMARCScope, scope.DMARCNote = inheritedDMARCScopeFromFallback(dmarc, rootDomain)
+	} else {
+		orgDMARCRecords := dns.QueryDNS(ctx, "TXT", fmt.Sprintf("_dmarc.%s", rootDomain))
+		orgHasDMARC, orgDMARCPolicy := parseOrgDMARC(orgDMARCRecords)
+		scope.DMARCScope, scope.DMARCNote = determineDMARCScope(isActiveStatus(dmarcStatus), orgHasDMARC, orgDMARCPolicy, rootDomain)
+	}
 
 	scope.HasLocalEmail = hasLocalMXRecords(results)
 

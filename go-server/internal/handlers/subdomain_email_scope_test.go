@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"strings"
 	"testing"
 )
 
@@ -101,6 +102,30 @@ func TestCoverageBoost17_ComputeSubdomainEmailScope_StatusNotString(t *testing.T
 	scope := computeSubdomainEmailScope(context.Background(), dns, "sub.example.com", "example.com", results)
 	if scope.SPFScope != "none" {
 		t.Errorf("SPFScope = %q, want none", scope.SPFScope)
+	}
+}
+
+// When the analyzer applied the RFC 7489 §6.6.3 org-domain fallback, the DMARC
+// status is success/warning even though NOTHING is published at the subdomain
+// name — the scope badge must say "Inherited", never "Local".
+func TestComputeSubdomainEmailScope_OrgFallbackIsInheritedNotLocal(t *testing.T) {
+	dns := &mockDNSQuerier{responses: map[string][]string{}}
+	results := map[string]any{
+		mapKeySpfAnalysis: map[string]any{mapKeyStatus: mapKeySuccess},
+		mapKeyDmarcAnalysis: map[string]any{
+			mapKeyStatus:              mapKeySuccess,
+			"org_domain_fallback":     true,
+			"org_domain":              "example.com",
+			"policy":                  "reject",
+			"effective_policy_source": "sp",
+		},
+	}
+	scope := computeSubdomainEmailScope(context.Background(), dns, "sub.example.com", "example.com", results)
+	if scope.DMARCScope != "inherited" {
+		t.Errorf("DMARCScope = %q, want inherited (nothing published at subdomain)", scope.DMARCScope)
+	}
+	if !strings.Contains(scope.DMARCNote, "example.com") || !strings.Contains(scope.DMARCNote, "sp=reject") || !strings.Contains(scope.DMARCNote, "6.6.3") {
+		t.Errorf("DMARCNote should cite org domain, sp=reject and §6.6.3, got %q", scope.DMARCNote)
 	}
 }
 
