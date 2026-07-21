@@ -38,7 +38,20 @@ func (a *Analyzer) ValidateDMARCExternalAuth(ctx context.Context, domain string,
         ruaStr := getStr(dmarcData, "rua")
         rufStr := getStr(dmarcData, "ruf")
 
-        externalDomains := collectExternalDomains(domain, ruaStr, rufStr)
+        // RFC 7489 §7.1: the external-authorization record is named after the
+        // domain that PUBLISHES the DMARC record. When coverage is inherited via
+        // §6.6.3 organizational-domain fallback, the rua/ruf addresses come from
+        // the org record, so external receivers authorize the org domain — not
+        // the scanned subdomain. Checking <subdomain>._report._dmarc.<external>
+        // here would fabricate a false "unauthorized" finding.
+        reportingDomain := domain
+        if fallback, _ := dmarcData["org_domain_fallback"].(bool); fallback {
+                if od := getStr(dmarcData, "org_domain"); od != "" {
+                        reportingDomain = od
+                }
+        }
+
+        externalDomains := collectExternalDomains(reportingDomain, ruaStr, rufStr)
         if len(externalDomains) == 0 {
                 result[mapKeyMessage] = "No external reporting domains detected"
                 return result
@@ -51,15 +64,15 @@ func (a *Analyzer) ValidateDMARCExternalAuth(ctx context.Context, domain string,
         var unauthorized, indeterminate int
 
         for extDomain, sources := range externalDomains {
-                dr := a.checkExternalAuth(ctx, domain, extDomain, sources)
+                dr := a.checkExternalAuth(ctx, reportingDomain, extDomain, sources)
                 domainResults = append(domainResults, dr)
                 switch dr["auth_state"] {
                 case reportAuthUnauthorized:
                         unauthorized++
-                        issues = append(issues, fmt.Sprintf("External domain %s has not authorized %s to send DMARC reports (missing %s._report._dmarc.%s TXT record)", extDomain, domain, domain, extDomain))
+                        issues = append(issues, fmt.Sprintf("External domain %s has not authorized %s to send DMARC reports (missing %s._report._dmarc.%s TXT record)", extDomain, reportingDomain, reportingDomain, extDomain))
                 case reportAuthIndeterminate:
                         indeterminate++
-                        notices = append(notices, fmt.Sprintf("Could not verify external reporting authorization for %s — the DNS lookup for %s._report._dmarc.%s did not complete. Treated as unverified, not a finding; re-run to confirm.", extDomain, domain, extDomain))
+                        notices = append(notices, fmt.Sprintf("Could not verify external reporting authorization for %s — the DNS lookup for %s._report._dmarc.%s did not complete. Treated as unverified, not a finding; re-run to confirm.", extDomain, reportingDomain, extDomain))
                 }
         }
 
