@@ -359,6 +359,9 @@ func (a *Analyzer) AnalyzeDMARC(ctx context.Context, domain string) map[string]a
                 "unknown_tags":     []string(nil),
                 mapKeyIssues:       []string{},
                 mapKeyDmarcState:   dmarcStateAbsentConf,
+                "org_domain_fallback":     false,
+                "org_domain":              "",
+                "effective_policy_source": "",
         }
 
         if len(dmarcRecords) == 0 {
@@ -373,8 +376,13 @@ func (a *Analyzer) AnalyzeDMARC(ctx context.Context, domain string) map[string]a
                         if lookupStatus == dnsclient.LookupConflict {
                                 baseResult[mapKeyMessage] = "DMARC could not be confirmed: public resolvers returned different records with no majority winner (DNS in flux / mid-propagation). This is not a finding that DMARC is absent; re-run once the change has propagated."
                         }
+                        return baseResult
                 }
-                return baseResult
+                // Authoritative absence at the exact name. Before asserting
+                // "missing", complete RFC 7489 §6.6.3 policy discovery: Mail
+                // Receivers fall back to the organizational domain's record and
+                // apply its sp= (or p= when sp is absent) to subdomain mail.
+                return a.applyOrgDomainDMARCFallback(ctx, domain, baseResult)
         }
 
         validDMARC, dmarcLike := classifyDMARCRecords(dmarcRecords)
@@ -406,6 +414,96 @@ func (a *Analyzer) AnalyzeDMARC(ctx context.Context, domain string) map[string]a
         ensureStringSlices(result, mapKeyValidRecords, mapKeyDmarcLike, mapKeyIssues)
 
         return result
+}
+
+// applyOrgDomainDMARCFallback implements step 3 of RFC 7489 §6.6.3 policy
+// discovery: when no DMARC record exists at the exact (sub)domain name, Mail
+// Receivers query _dmarc.<organizational domain> and apply its sp= tag (or p=
+// when sp is absent) to subdomain mail. Reporting a subdomain as "missing
+// DMARC" while the organizational domain enforces sp=reject is a false
+// finding — the subdomain IS covered. Honesty constraints:
+//   - records/valid_records stay EMPTY (nothing is published at the subdomain
+//     name); inherited coverage is disclosed via org_domain_fallback,
+//     org_domain, org_records and the message text.
+//   - If the org-domain lookup does not complete, the result is indeterminate,
+//     never absent (a TempError is not an absence of policy).
+//   - Multiple valid records at the org domain mean receivers treat it as no
+//     DMARC (RFC 7489 §6.6.3), so absence stands.
+func (a *Analyzer) applyOrgDomainDMARCFallback(ctx context.Context, domain string, baseResult map[string]any) map[string]any {
+        org := orgDomain(domain)
+        if strings.EqualFold(org, strings.TrimRight(domain, ".")) {
+                // Apex (or public-suffix parse failure, where orgDomain returns the
+                // input): there is no higher organizational domain to fall back to.
+                return baseResult
+        }
+
+        orgRecords, orgStatus := a.resolveWithStatus(ctx, "TXT", fmt.Sprintf("_dmarc.%s", org))
+        if orgStatus == dnsclient.LookupError || orgStatus == dnsclient.LookupConflict {
+                // Tri-state honesty: without a completed org-domain lookup we cannot
+                // distinguish "no coverage" from "inherited coverage".
+                baseResult[mapKeyStatus] = statusIndeterminate
+                baseResult[mapKeyDmarcState] = dmarcStateIndeterminate
+                baseResult[mapKeyMessage] = fmt.Sprintf("No DMARC record at _dmarc.%s, and the organizational-domain lookup (_dmarc.%s) did not complete — subdomain coverage per RFC 7489 §6.6.3 could not be verified. This is not a finding that DMARC is absent; re-run before drawing a conclusion.", domain, org)
+                return baseResult
+        }
+
+        validDMARC, _ := classifyDMARCRecords(orgRecords)
+        if len(validDMARC) == 0 {
+                // The organizational domain publishes no DMARC either — the
+                // confirmed absence stands.
+                return baseResult
+        }
+        if len(validDMARC) > 1 {
+                baseResult[mapKeyMessage] = fmt.Sprintf("No DMARC record at _dmarc.%s; the organizational domain %s publishes multiple DMARC records, which receivers must treat as no DMARC (RFC 7489 §6.6.3) — no inherited coverage", domain, org)
+                return baseResult
+        }
+
+        tags := parseDMARCTags(validDMARC[0])
+        effective := ""
+        source := "p"
+        if tags.policy != nil {
+                effective = *tags.policy
+        }
+        if tags.subdomainPolicy != nil {
+                effective = *tags.subdomainPolicy
+                source = "sp"
+        }
+
+        // classifyDMARCPolicyVerdict (not evaluateDMARCPolicy) on purpose: the
+        // org-record-scoped advisories (sp=none-while-p=reject, np= advice, rua
+        // reporting) belong to the org domain's own report, not the subdomain's.
+        status, _, issues := classifyDMARCPolicyVerdict(effective, tags.pct)
+        message := fmt.Sprintf("Covered by organizational-domain DMARC (RFC 7489 §6.6.3): _dmarc.%s applies %s=%s to this subdomain's mail; no subdomain-specific record is published", org, source, effective)
+        if effective == "" {
+                message = fmt.Sprintf("Organizational-domain DMARC record at _dmarc.%s found (RFC 7489 §6.6.3 fallback) but its policy is unclear; no subdomain-specific record is published", org)
+        }
+
+        baseResult[mapKeyStatus] = status
+        baseResult[mapKeyMessage] = message
+        baseResult["policy"] = effective
+        baseResult["subdomain_policy"] = derefStr(tags.subdomainPolicy)
+        baseResult["pct"] = tags.pct
+        baseResult["aspf"] = tags.aspf
+        baseResult["adkim"] = tags.adkim
+        baseResult["rua"] = derefStr(tags.rua)
+        baseResult["ruf"] = derefStr(tags.ruf)
+        baseResult["ruf_note"] = buildRUFNote(tags)
+        baseResult["np_policy"] = derefStr(tags.npPolicy)
+        baseResult["t_testing"] = derefStr(tags.tTesting)
+        baseResult["psd_flag"] = derefStr(tags.psdFlag)
+        baseResult["dmarcbis_tags"] = buildDMARCbisTags(tags)
+        baseResult["unknown_tags"] = tags.unknownTags
+        baseResult[mapKeyIssues] = issues
+        baseResult[mapKeyDmarcState] = dmarcStatePresent
+        baseResult["org_domain_fallback"] = true
+        baseResult["org_domain"] = org
+        baseResult["org_records"] = orgRecords
+        baseResult["org_valid_records"] = validDMARC
+        baseResult["effective_policy_source"] = source
+
+        ensureStringSlices(baseResult, mapKeyIssues)
+
+        return baseResult
 }
 
 func DetectMisplacedDMARC(rootTXTRecords []string) map[string]any {
