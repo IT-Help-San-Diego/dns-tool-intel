@@ -1,6 +1,6 @@
 module dnstool
 
-go 1.25.5
+go 1.25.12
 
 require (
 	codeberg.org/miekg/dns v0.6.84
