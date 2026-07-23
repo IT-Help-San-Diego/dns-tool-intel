@@ -60,6 +60,7 @@ GOCACHE = "/home/runner/workspace/.go-build-cache"
 GOMODCACHE = "/home/runner/workspace/.go-mod-cache"
 GOTMPDIR = "/home/runner/workspace/.go-tmp"
 ORIGIN_TRIAL_TOKEN = "AheZrlSzMzpWPKWmFYwhFL6wbHVoEmug2bvvGHnMaGcUTS9MYGVJxVmhU3G9yFLNQeApwoOinZRZcV2ceWmSHg0AAABUeyJvcmlnaW4iOiJodHRwczovL2Ruc3Rvb2wuaXQtaGVscC50ZWNoOjQ0MyIsImZlYXR1cmUiOiJXZWJNQ1AiLCJleHBpcnkiOjE3OTQ4NzM2MDB9"
+GOSUMDB = "sum.golang.org"
 
 [userenv.development]
 BASE_URL = "https://f2c73519-b3f3-4c33-90b1-699f833acae8-00-2qa7mtebx8ii8.picard.replit.dev"

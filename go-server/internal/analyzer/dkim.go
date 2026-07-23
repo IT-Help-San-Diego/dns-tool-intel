@@ -837,6 +837,96 @@ func buildDKIMVerdict(foundSelectors map[string]map[string]any, keyIssues, keySt
         return "success", fmt.Sprintf("Found DKIM records for %d selector(s)", len(foundSelectors))
 }
 
+// dkimWildcardProbe is a selector no provider uses. If it resolves, the zone
+// publishes a wildcard *._domainkey record, so every selector "found" during
+// the scan is a wildcard artifact rather than a provider-specific key.
+const dkimWildcardProbe = "dnstool-wildcard-probe" + domainkeySuffix
+
+// allDKIMKeysRevoked reports whether every discovered key across every
+// selector is revoked (empty p= tag, RFC 6376 §3.6.1). Selectors without
+// key_info are indeterminate and therefore never counted as revoked.
+func allDKIMKeysRevoked(foundSelectors map[string]map[string]any) bool {
+        if len(foundSelectors) == 0 {
+                return false
+        }
+        for _, selData := range foundSelectors {
+                keys := extractKeyInfoList(selData["key_info"])
+                if len(keys) == 0 {
+                        return false
+                }
+                for _, ki := range keys {
+                        revoked, _ := ki[mapKeyRevoked].(bool)
+                        if !revoked {
+                                return false
+                        }
+                }
+        }
+        return true
+}
+
+// extractKeyInfoList tolerates both the live []map[string]any shape and the
+// JSON round-trip []any shape.
+func extractKeyInfoList(v any) []map[string]any {
+        switch list := v.(type) {
+        case []map[string]any:
+                return list
+        case []any:
+                out := make([]map[string]any, 0, len(list))
+                for _, item := range list {
+                        if m, ok := item.(map[string]any); ok {
+                                out = append(out, m)
+                        }
+                }
+                return out
+        }
+        return nil
+}
+
+// hasNullMXRecords reports whether the MX record set includes a null MX
+// (RFC 7505: exchange of "."), the explicit declaration that a domain
+// accepts no mail.
+func hasNullMXRecords(mxRecords []string) bool {
+        for _, mx := range mxRecords {
+                fields := strings.Fields(mx)
+                if len(fields) == 0 {
+                        continue
+                }
+                if fields[len(fields)-1] == "." {
+                        return true
+                }
+        }
+        return false
+}
+
+// isSPFHardFailOnly reports whether the SPF record is exactly "v=spf1 -all" —
+// the bare hard-fail form that declares the domain sends no mail (RFC 7208
+// §8.4 fail qualifier with no authorized senders).
+func isSPFHardFailOnly(spfRecord string) bool {
+        fields := strings.Fields(strings.ToLower(strings.TrimSpace(spfRecord)))
+        return len(fields) == 2 && fields[0] == "v=spf1" && fields[1] == "-all"
+}
+
+// applyDKIMLockdownVerdict upgrades or sharpens the DKIM verdict when every
+// discovered key is revoked. A revoked key (v=DKIM1; p=) on a no-mail domain
+// is the RFC 6376 §3.6.1 declaration that the domain signs nothing —
+// best-practice lockdown, not a misconfiguration. On a mail-sending domain
+// the same signal is a genuine problem.
+func applyDKIMLockdownVerdict(status, message string, allRevoked, wildcard, noMail bool, selectorCount int) (string, string) {
+        if !allRevoked {
+                return status, message
+        }
+        if noMail {
+                if wildcard {
+                        return "success", "DKIM locked down: a wildcard revoked key (v=DKIM1; p=) answers every selector — RFC 6376 §3.6.1 declares all signing keys revoked. Best practice for a domain that sends no mail."
+                }
+                return "success", fmt.Sprintf("DKIM locked down: all %d published key(s) are revoked (v=DKIM1; p=) per RFC 6376 §3.6.1 — consistent with this domain's no-mail declaration.", selectorCount)
+        }
+        if wildcard {
+                return "warning", "A wildcard revoked DKIM key (v=DKIM1; p=, RFC 6376 §3.6.1) answers every selector — outbound mail cannot be DKIM-verified. If this domain sends no mail, add a null MX (RFC 7505) and SPF \"v=spf1 -all\" to complete the lockdown."
+        }
+        return "warning", fmt.Sprintf("All %d discovered DKIM key(s) are revoked (v=DKIM1; p=, RFC 6376 §3.6.1) — outbound mail cannot be DKIM-verified.", selectorCount)
+}
+
 func isCustomSelector(selectorName string, customSelectors []string) bool {
         for _, cs := range customSelectors {
                 csNorm := cs
@@ -1072,6 +1162,27 @@ func (a *Analyzer) AnalyzeDKIM(ctx context.Context, domain string, mxRecords, cu
 
         status, message := buildDKIMVerdict(foundSelectors, keyIssues, keyStrengths, res.Primary, primaryHasDKIM, thirdPartyOnly)
 
+        allRevoked := allDKIMKeysRevoked(foundSelectors)
+        wildcardDKIM := false
+        if allRevoked {
+                if probeName, _ := checkDKIMSelector(ctx, a.DNS, dkimWildcardProbe, domain); probeName != "" {
+                        wildcardDKIM = true
+                }
+        }
+        noMail := hasNullMXRecords(mxRecords) || isSPFHardFailOnly(spfRecord)
+        status, message = applyDKIMLockdownVerdict(status, message, allRevoked, wildcardDKIM, noMail, len(foundSelectors))
+        if allRevoked {
+                // One revocation signal repeated per selector is noise —
+                // collapse to the unique issue set.
+                keyIssues = uniqueStrings(keyIssues)
+        }
+        if wildcardDKIM && allRevoked {
+                // Every selector hit is a wildcard artifact — the per-provider
+                // attribution is phantom, so suppress it rather than report
+                // providers that were never configured.
+                foundProviders = map[string]bool{}
+        }
+
         var sortedProviders []string
         for p := range foundProviders {
                 sortedProviders = append(sortedProviders, p)
@@ -1104,6 +1215,7 @@ func (a *Analyzer) AnalyzeDKIM(ctx context.Context, domain string, mxRecords, cu
                 "third_party_only":     thirdPartyOnly,
                 "primary_dkim_note":    primaryDKIMNote,
                 "found_providers":      sortedProviders,
+                "wildcard_dkim":        wildcardDKIM,
                 "spf_ancillary_note":   res.SPFAncillaryNote,
                 "mx_legacy_note":       res.MXLegacyNote,
                 "domainkey_delegation": delegationMap,
