@@ -1164,9 +1164,11 @@ func (a *Analyzer) AnalyzeDKIM(ctx context.Context, domain string, mxRecords, cu
 
         allRevoked := allDKIMKeysRevoked(foundSelectors)
         wildcardDKIM := false
+        var wildcardRecords []string
         if allRevoked {
-                if probeName, _ := checkDKIMSelector(ctx, a.DNS, dkimWildcardProbe, domain); probeName != "" {
+                if probeName, probeRecords := checkDKIMSelector(ctx, a.DNS, dkimWildcardProbe, domain); probeName != "" {
                         wildcardDKIM = true
+                        wildcardRecords = probeRecords
                 }
         }
         noMail := hasNullMXRecords(mxRecords) || isSPFHardFailOnly(spfRecord)
@@ -1190,8 +1192,24 @@ func (a *Analyzer) AnalyzeDKIM(ctx context.Context, domain string, mxRecords, cu
         sort.Strings(sortedProviders)
 
         selectorMap := make(map[string]any, len(foundSelectors))
-        for k, v := range foundSelectors {
-                selectorMap[k] = v
+        if wildcardDKIM && allRevoked {
+                // The zone holds ONE wildcard record that answers every
+                // selector probe. Persisting each probed name as a "found"
+                // selector with provider attribution would fabricate
+                // infrastructure that was never configured (Zero Fabrication
+                // Rule) — collapse to the single record the zone publishes.
+                wildcardKeyInfo, _, _ := analyzeRecordKeys(wildcardRecords)
+                selectorMap["*._domainkey"] = map[string]any{
+                        "records":      wildcardRecords,
+                        "key_info":     wildcardKeyInfo,
+                        mapKeyProvider: "",
+                        "user_hint":    false,
+                        "wildcard":     true,
+                }
+        } else {
+                for k, v := range foundSelectors {
+                        selectorMap[k] = v
+                }
         }
 
         var delegationMap map[string]any
