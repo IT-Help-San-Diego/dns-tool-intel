@@ -89,8 +89,26 @@ func (h *DriftHandler) Timeline(c *gin.Context) {
                 return
         }
 
-        timeline := convertDriftEvents(driftEvents)
-        hashHistory := buildHashHistory(analyses)
+        publicAnalyses := make([]dbq.DomainAnalysis, 0, len(analyses))
+        publicIDSet := make(map[int32]struct{}, len(analyses))
+        for _, a := range analyses {
+                if !a.Private {
+                        publicAnalyses = append(publicAnalyses, a)
+                        publicIDSet[a.ID] = struct{}{}
+                }
+        }
+
+        publicDriftEvents := make([]dbq.DriftEvent, 0, len(driftEvents))
+        for _, ev := range driftEvents {
+                _, aOK := publicIDSet[ev.AnalysisID]
+                _, bOK := publicIDSet[ev.PrevAnalysisID]
+                if aOK && bOK {
+                        publicDriftEvents = append(publicDriftEvents, ev)
+                }
+        }
+
+        timeline := convertDriftEvents(publicDriftEvents)
+        hashHistory := buildHashHistory(publicAnalyses)
 
         data := h.driftBaseData(c, domain)
         data["DriftEvents"] = timeline
