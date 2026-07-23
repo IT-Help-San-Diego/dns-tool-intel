@@ -116,6 +116,26 @@ func buildDiffItems(diffs []SectionDiff) ([]DiffItem, int) {
         return items, changes
 }
 
+func (h *CompareHandler) checkPrivateAccess(c *gin.Context, analysisID int32) bool {
+        auth, exists := c.Get(mapKeyAuthenticated)
+        if !exists || auth != true {
+                return false
+        }
+        uid, ok := c.Get(mapKeyUserId)
+        if !ok {
+                return false
+        }
+        userID, ok := uid.(int32)
+        if !ok {
+                return false
+        }
+        isOwner, err := h.DB.Queries.CheckAnalysisOwnership(c.Request.Context(), dbq.CheckAnalysisOwnershipParams{
+                AnalysisID: analysisID,
+                UserID:     userID,
+        })
+        return err == nil && isOwner
+}
+
 func (h *CompareHandler) Compare(c *gin.Context) {
         domain := c.Query("domain")
         idAStr := c.Query("a")
@@ -137,9 +157,19 @@ func (h *CompareHandler) Compare(c *gin.Context) {
                 return
         }
 
+        if analysisA.Private && !h.checkPrivateAccess(c, analysisA.ID) {
+                renderCompareError(c, compareErrorParams{handler: h, tmpl: templateCompare, statusCode: http.StatusForbidden, message: "Access denied"})
+                return
+        }
+
         analysisB, err := h.DB.Queries.GetAnalysisByID(ctx, int32(idB))
         if err != nil {
                 renderCompareError(c, compareErrorParams{handler: h, tmpl: templateCompare, statusCode: http.StatusNotFound, message: "Analysis B not found"})
+                return
+        }
+
+        if analysisB.Private && !h.checkPrivateAccess(c, analysisB.ID) {
+                renderCompareError(c, compareErrorParams{handler: h, tmpl: templateCompare, statusCode: http.StatusForbidden, message: "Access denied"})
                 return
         }
 
@@ -196,7 +226,15 @@ func (h *CompareHandler) selectDomain(c *gin.Context, domain string) {
                 return
         }
 
-        if len(analyses) == 0 {
+        items := make([]AnalysisItem, 0, len(analyses))
+        for _, a := range analyses {
+                if a.Private {
+                        continue
+                }
+                items = append(items, buildSelectAnalysisItem(a))
+        }
+
+        if len(items) == 0 {
                 noData := NewTemplateData(c, h.Config, mapKeyCompare)
                 noData[strDomain] = domain
                 noData["AnalysisCount"] = 0
@@ -204,16 +242,11 @@ func (h *CompareHandler) selectDomain(c *gin.Context, domain string) {
                 return
         }
 
-        items := make([]AnalysisItem, 0, len(analyses))
-        for _, a := range analyses {
-                items = append(items, buildSelectAnalysisItem(a))
-        }
-
-        if len(analyses) < 2 {
+        if len(items) < 2 {
                 fewData := NewTemplateData(c, h.Config, mapKeyCompare)
                 fewData[strDomain] = domain
                 fewData["Analyses"] = items
-                fewData["AnalysisCount"] = len(analyses)
+                fewData["AnalysisCount"] = len(items)
                 c.HTML(http.StatusOK, templateCompareSelect, fewData)
                 return
         }

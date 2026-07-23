@@ -295,6 +295,11 @@ func (h *WatchlistHandler) AddEndpoint(c *gin.Context) {
                 c.Redirect(http.StatusSeeOther, pathWatchlist)
                 return
         }
+        if err := notifier.ValidateWebhookURL(url); err != nil {
+                slog.Warn("Rejected webhook URL for SSRF", "url", url, mapKeyError, err)
+                c.Redirect(http.StatusSeeOther, pathWatchlist)
+                return
+        }
 
         var secretPtr *string
         if secret != "" {
