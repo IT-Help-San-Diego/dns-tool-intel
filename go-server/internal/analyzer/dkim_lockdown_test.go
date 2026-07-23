@@ -194,6 +194,24 @@ func TestAnalyzeDKIM_WildcardRevokedNoMailLockdown(t *testing.T) {
         if len(issues) != 1 {
                 t.Errorf("key_issues should be deduplicated under wildcard, got %d entries", len(issues))
         }
+        selectors, _ := result["selectors"].(map[string]any)
+        if len(selectors) != 1 {
+                t.Fatalf("selectors should collapse to the single wildcard entry, got %d: %v", len(selectors), selectors)
+        }
+        entry, ok := selectors["*._domainkey"].(map[string]any)
+        if !ok {
+                t.Fatalf("collapsed selector key should be *._domainkey, got %v", selectors)
+        }
+        if entry["wildcard"] != true {
+                t.Errorf("collapsed entry should be flagged wildcard, got %v", entry["wildcard"])
+        }
+        if entry[mapKeyProvider] != "" {
+                t.Errorf("collapsed entry must carry no provider attribution, got %v", entry[mapKeyProvider])
+        }
+        records, _ := entry["records"].([]string)
+        if len(records) != 1 || records[0] != "v=DKIM1; p=" {
+                t.Errorf("collapsed entry should carry the wildcard record, got %v", records)
+        }
 }
 
 func TestAnalyzeDKIM_ProbeMissNoMailStillDedupesIssues(t *testing.T) {
@@ -220,6 +238,10 @@ func TestAnalyzeDKIM_ProbeMissNoMailStillDedupesIssues(t *testing.T) {
         providers, _ := result["found_providers"].([]string)
         if len(providers) == 0 {
                 t.Errorf("found_providers should be retained without wildcard proof, got %v", providers)
+        }
+        selectors, _ := result["selectors"].(map[string]any)
+        if len(selectors) != 2 {
+                t.Errorf("selectors must NOT collapse without wildcard proof, got %d entries", len(selectors))
         }
 }
 
