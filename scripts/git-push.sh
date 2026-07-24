@@ -21,7 +21,8 @@
 # NOTE: .git/objects/maintenance.lock is EXPECTED to be present — it's
 # Replit's background git maintenance, not a stale lock. It does NOT block push.
 
-cd /home/runner/workspace
+# Repo root, wherever the checkout lives (Replit: /home/runner/workspace).
+cd "$(dirname "$0")/.."
 
 REPO="IT-Help-San-Diego/dns-tool-intel"
 LOCAL_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "replit-agent")

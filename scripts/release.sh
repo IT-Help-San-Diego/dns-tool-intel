@@ -13,6 +13,8 @@
 #   4. Creates annotated tag vX.Y.Z
 #   5. GitHub Actions creates the Release with SHA256SUMS (automatic)
 #   6. Zenodo auto-archives via GitHub integration (automatic)
+#   7. Verifies the Zenodo version record exists and matches the tag
+#      (scripts/verify-zenodo-release.sh)
 #
 # Architecture:
 #   Single-repo: IT-Help-San-Diego/dns-tool-intel (BUSL-1.1 licensed).
@@ -84,10 +86,18 @@ bash scripts/git-push.sh
 pass "${REPO} synced"
 
 echo ""
-echo -e "${YELLOW}Step 4/4${NC}: Creating tag ${TAG}..."
+echo -e "${YELLOW}Step 4/5${NC}: Creating tag ${TAG}..."
 git tag -a "${TAG}" -m "${TAG}"
 git push origin "${TAG}"
 pass "Tag ${TAG} created and pushed"
+
+echo ""
+echo -e "${YELLOW}Step 5/5${NC}: Verifying Zenodo ingestion (async; polling up to ~15 min)..."
+if bash scripts/verify-zenodo-release.sh "$VER" --wait; then
+  pass "Zenodo version record verified for ${TAG}"
+else
+  echo -e "  ${YELLOW}▸${NC} Not confirmed — re-run later: bash scripts/verify-zenodo-release.sh ${VER} --wait"
+fi
 
 echo ""
 echo -e "${GREEN}═══════════════════════════════════════════════════${NC}"
@@ -108,5 +118,6 @@ echo "  2. Zenodo auto-archives the GitHub Release"
 echo ""
 echo "Verify:"
 echo "  - GitHub: https://github.com/${REPO}/releases/tag/${TAG}"
-echo "  - Zenodo: https://zenodo.org/doi/10.5281/zenodo.19468134"
+echo "  - Zenodo: bash scripts/verify-zenodo-release.sh ${VER} --wait"
+echo "            https://zenodo.org/doi/10.5281/zenodo.19468134"
 echo ""

@@ -24,6 +24,9 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+# Version bumps below use GNU sed -i; resolves $SED (sed or gsed) or exits.
+source scripts/lib/require-gnu-sed.sh
+
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -68,24 +71,24 @@ grep -q '^doi:' CITATION.cff || fail "CITATION.cff missing DOI"
 pass "CITATION.cff has all required fields"
 
 info "Gate 3: Version bump — CITATION.cff"
-sed -i "s/^version: .*/version: \"${VERSION}\"/" CITATION.cff
+"$SED" -i "s/^version: .*/version: \"${VERSION}\"/" CITATION.cff
 DATE_TODAY=$(date +%Y-%m-%d)
-sed -i "s/^date-released: .*/date-released: ${DATE_TODAY}/" CITATION.cff
+"$SED" -i "s/^date-released: .*/date-released: ${DATE_TODAY}/" CITATION.cff
 pass "CITATION.cff version → ${VERSION}, date → ${DATE_TODAY}"
 
 info "Gate 4: Version bump — codemeta.json"
 if [ -f codemeta.json ]; then
-  sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"${VERSION}\"/" codemeta.json
-  sed -i "s/\"softwareVersion\": \"[^\"]*\"/\"softwareVersion\": \"${VERSION}\"/" codemeta.json
-  sed -i "s/\"dateModified\": \"[^\"]*\"/\"dateModified\": \"${DATE_TODAY}\"/" codemeta.json
-  sed -i "s/\"datePublished\": \"[^\"]*\"/\"datePublished\": \"${DATE_TODAY}\"/" codemeta.json
+  "$SED" -i "s/\"version\": \"[^\"]*\"/\"version\": \"${VERSION}\"/" codemeta.json
+  "$SED" -i "s/\"softwareVersion\": \"[^\"]*\"/\"softwareVersion\": \"${VERSION}\"/" codemeta.json
+  "$SED" -i "s/\"dateModified\": \"[^\"]*\"/\"dateModified\": \"${DATE_TODAY}\"/" codemeta.json
+  "$SED" -i "s/\"datePublished\": \"[^\"]*\"/\"datePublished\": \"${DATE_TODAY}\"/" codemeta.json
   pass "codemeta.json version → ${VERSION}"
 fi
 
 info "Gate 4b: Version bump — .zenodo.json"
 if [ -f .zenodo.json ]; then
-  sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"${VERSION}\"/" .zenodo.json
-  sed -i "s/\"publication_date\": \"[^\"]*\"/\"publication_date\": \"${DATE_TODAY}\"/" .zenodo.json
+  "$SED" -i "s/\"version\": \"[^\"]*\"/\"version\": \"${VERSION}\"/" .zenodo.json
+  "$SED" -i "s/\"publication_date\": \"[^\"]*\"/\"publication_date\": \"${DATE_TODAY}\"/" .zenodo.json
   grep -q "\"version\": \"${VERSION}\"" .zenodo.json \
     || fail ".zenodo.json version was not updated (sed did not match)"
   pass ".zenodo.json version → ${VERSION}, publication_date → ${DATE_TODAY}"
@@ -107,7 +110,7 @@ info "Gate 6: Version bump — sonar-project.properties (DORMANT)"
 # SonarCloud SaaS decoupled April 2026; properties file is dormant but
 # we still bump the version field so it stays accurate when local
 # SonarQube CE is brought online and reads the file as-is.
-sed -i "s/^sonar.projectVersion=.*/sonar.projectVersion=${VERSION}/" sonar-project.properties
+"$SED" -i "s/^sonar.projectVersion=.*/sonar.projectVersion=${VERSION}/" sonar-project.properties
 pass "sonar-project.properties → ${VERSION} (dormant, no upload)"
 
 info "Gate 7: Methodology PDF regeneration"
@@ -235,4 +238,4 @@ echo "Next steps:"
 echo "  1. git add -A && git commit -m 'Release v${VERSION}'"
 echo "  2. Push branch → PR → merge to main"
 echo "  3. git tag v${VERSION} && git push origin v${VERSION}"
-echo "  4. Verify Zenodo ingestion succeeded"
+echo "  4. Verify Zenodo: bash scripts/verify-zenodo-release.sh ${VERSION} --wait"
