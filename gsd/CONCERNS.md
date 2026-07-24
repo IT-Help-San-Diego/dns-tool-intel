@@ -13,7 +13,6 @@
 - **Coverage Boost File Sprawl**: 27 files named `coverage_boost*.go` across handlers/ and analyzer/. These were added to hit coverage metrics but create directory clutter. Should be consolidated into primary `_test.go` files.
 
 ## Medium Priority
-- **Temporary Artifacts**: Files like `sedtgBx90`, `sedu0Dj8L` in root are `sed` artifacts that should be cleaned up.
 - **IP-audit-log.txt**: Exists in root — should be in a dedicated logs directory or gitignored.
 - **Error Handling Gaps**:
   - `handlers/history.go:72` — JSON unmarshal error not logged
