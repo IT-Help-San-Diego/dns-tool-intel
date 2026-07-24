@@ -20,9 +20,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// resolveReportMode returns the report mode for the request, or "" when an
+// explicit :mode param is not a known mode. Unknown modes must not render
+// (the pre-2026-07-24 fallback to "E" made every junk suffix like
+// /view/null a distinct 200 page, multiplying the crawlable URL space).
 func resolveReportMode(c *gin.Context) string {
 	if mode := c.Param("mode"); mode != "" {
 		switch strings.ToUpper(mode) {
+		case "E":
+			return "E"
 		case "C":
 			return "C"
 		case "CZ":
@@ -34,7 +40,7 @@ func resolveReportMode(c *gin.Context) string {
 		case "B":
 			return "B"
 		default:
-			return "E"
+			return ""
 		}
 	}
 	if c.Query(mapKeyCovert) == "1" {
@@ -59,7 +65,15 @@ func isCovertMode(mode string) bool {
 }
 
 func (h *AnalysisHandler) ViewAnalysisStatic(c *gin.Context) {
-	h.viewAnalysisWithMode(c, resolveReportMode(c))
+	mode := resolveReportMode(c)
+	if mode == "" {
+		if id, err := strconv.ParseInt(c.Param("id"), 10, 32); err == nil {
+			c.Redirect(http.StatusMovedPermanently, "/analysis/"+strconv.FormatInt(id, 10)+"/view")
+			return
+		}
+		mode = "E"
+	}
+	h.viewAnalysisWithMode(c, mode)
 }
 
 func (h *AnalysisHandler) ViewAnalysis(c *gin.Context) {
