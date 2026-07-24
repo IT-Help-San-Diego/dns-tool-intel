@@ -484,3 +484,34 @@ func TestViewAnalysisExecutive_VM(t *testing.T) {
                 t.Fatalf("expected 200, got %d", w.Code)
         }
 }
+
+func TestViewAnalysisStatic_UnknownModeRedirects(t *testing.T) {
+        h := newViewModeHandler(nil)
+        r := viewModeRouter(h)
+        r.GET("/analysis/:id/view/:mode", h.ViewAnalysisStatic)
+
+        w := httptest.NewRecorder()
+        req := httptest.NewRequest("GET", "/analysis/123/view/null", nil)
+        r.ServeHTTP(w, req)
+
+        if w.Code != http.StatusMovedPermanently {
+                t.Fatalf("unknown mode: expected 301, got %d", w.Code)
+        }
+        if loc := w.Header().Get("Location"); loc != "/analysis/123/view" {
+                t.Fatalf("unknown mode: Location = %q, want %q", loc, "/analysis/123/view")
+        }
+}
+
+func TestViewAnalysisStatic_UnknownModeBadIDFallsThrough(t *testing.T) {
+        h := newViewModeHandler(nil)
+        r := viewModeRouter(h)
+        r.GET("/analysis/:id/view/:mode", h.ViewAnalysisStatic)
+
+        w := httptest.NewRecorder()
+        req := httptest.NewRequest("GET", "/analysis/notanid/view/null", nil)
+        r.ServeHTTP(w, req)
+
+        if w.Code != http.StatusBadRequest {
+                t.Fatalf("bad id + unknown mode: expected 400, got %d", w.Code)
+        }
+}

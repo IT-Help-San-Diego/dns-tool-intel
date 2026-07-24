@@ -23,8 +23,12 @@ type Database struct {
 
 type ConnectorFunc func(databaseURL string) (*Database, error)
 
+// MaxConns 20: sized so the heavy-route load shedder (cap 14) plus
+// background writers (analytics flush, DB log sink) and the homepage
+// metrics refresh never contend for the last connection. Raised from 10
+// after the 2026-07-24 pool-saturation outage.
 var defaultConnector ConnectorFunc = func(databaseURL string) (*Database, error) {
-        return connectWithPoolSize(databaseURL, 10, 2)
+        return connectWithPoolSize(databaseURL, 20, 2)
 }
 
 func Connect(databaseURL string) (*Database, error) {
