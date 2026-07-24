@@ -1,5 +1,5 @@
 # DNS Tool — Domain Security Intelligence Platform
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18854899.svg)](https://doi.org/10.5281/zenodo.18854899)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19468134.svg)](https://doi.org/10.5281/zenodo.19468134)
 [![License: BUSL-1.1](https://img.shields.io/badge/License-BUSL--1.1-blue.svg)](LICENSE)
 [![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=ithelpsandiego_dns-tool-full&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=ithelpsandiego_dns-tool-full)
 [![AI Code Assurance](https://sonarcloud.io/api/project_badges/ai_code_assurance?project=ithelpsandiego_dns-tool-full)](https://sonarcloud.io/summary/new_code?id=ithelpsandiego_dns-tool-full)

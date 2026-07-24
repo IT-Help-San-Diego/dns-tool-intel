@@ -16,10 +16,11 @@ cd "$(dirname "$0")/.."
 VERSION="${1:-}"
 
 if [ -n "$VERSION" ]; then
+  source scripts/lib/require-gnu-sed.sh
   echo "Updating manifesto version to ${VERSION}..."
 
-  sed -i -E "s/Version<\/span>\&ensp;[0-9]+\.[0-9]+\.[0-9]+/Version<\/span>\&ensp;${VERSION}/" docs/founders-manifesto.html
-  sed -i -E "s/Version [0-9]+\.[0-9]+\.[0-9]+/Version ${VERSION}/" docs/FOUNDERS_MANIFESTO.md
+  "$SED" -i -E "s/Version<\/span>\&ensp;[0-9]+\.[0-9]+\.[0-9]+/Version<\/span>\&ensp;${VERSION}/" docs/founders-manifesto.html
+  "$SED" -i -E "s/Version [0-9]+\.[0-9]+\.[0-9]+/Version ${VERSION}/" docs/FOUNDERS_MANIFESTO.md
 
   echo "Version updated in .html and .md"
 fi

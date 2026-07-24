@@ -38,7 +38,7 @@ After building, verify the binary works:
 ## Reproducibility
 
 Each tagged release on GitHub corresponds to a Zenodo archive
-(DOI: [10.5281/zenodo.18854899](https://doi.org/10.5281/zenodo.18854899)).
+(DOI: [10.5281/zenodo.19468134](https://doi.org/10.5281/zenodo.19468134)).
 
 The Zenodo archive contains the complete source code.
 Scientists can reproduce builds from any archived version.

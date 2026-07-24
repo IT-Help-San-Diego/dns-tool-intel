@@ -17,15 +17,16 @@ cd "$(dirname "$0")/.."
 VERSION="${1:-}"
 
 if [ -n "$VERSION" ]; then
+  source scripts/lib/require-gnu-sed.sh
   echo "Updating methodology version to ${VERSION}..."
 
-  sed -i -E "s/Version [0-9]+\.[0-9]+\.[0-9]+/Version ${VERSION}/" docs/dns-tool-methodology.md
-  sed -i -E "s/version      = \{[0-9]+\.[0-9]+\.[0-9]+\}/version      = {${VERSION}}/" docs/dns-tool-methodology.md
-  sed -i -E "s/DNS Tool v[0-9]+\.[0-9]+\.[0-9]+/DNS Tool v${VERSION}/" docs/dns-tool-methodology.md
+  "$SED" -i -E "s/Version [0-9]+\.[0-9]+\.[0-9]+/Version ${VERSION}/" docs/dns-tool-methodology.md
+  "$SED" -i -E "s/version      = \{[0-9]+\.[0-9]+\.[0-9]+\}/version      = {${VERSION}}/" docs/dns-tool-methodology.md
+  "$SED" -i -E "s/DNS Tool v[0-9]+\.[0-9]+\.[0-9]+/DNS Tool v${VERSION}/" docs/dns-tool-methodology.md
 
-  sed -i -E "s/Version<\/span>\&ensp;[0-9]+\.[0-9]+\.[0-9]+/Version<\/span>\&ensp;${VERSION}/" docs/dns-tool-methodology.html
-  sed -i -E "s/version\&nbsp;\&nbsp;\&nbsp;\&nbsp;\&nbsp;\&nbsp;= \{[0-9]+\.[0-9]+\.[0-9]+\}/version\&nbsp;\&nbsp;\&nbsp;\&nbsp;\&nbsp;\&nbsp;= {${VERSION}}/" docs/dns-tool-methodology.html
-  sed -i -E "s/DNS Tool v[0-9]+\.[0-9]+\.[0-9]+/DNS Tool v${VERSION}/" docs/dns-tool-methodology.html
+  "$SED" -i -E "s/Version<\/span>\&ensp;[0-9]+\.[0-9]+\.[0-9]+/Version<\/span>\&ensp;${VERSION}/" docs/dns-tool-methodology.html
+  "$SED" -i -E "s/version\&nbsp;\&nbsp;\&nbsp;\&nbsp;\&nbsp;\&nbsp;= \{[0-9]+\.[0-9]+\.[0-9]+\}/version\&nbsp;\&nbsp;\&nbsp;\&nbsp;\&nbsp;\&nbsp;= {${VERSION}}/" docs/dns-tool-methodology.html
+  "$SED" -i -E "s/DNS Tool v[0-9]+\.[0-9]+\.[0-9]+/DNS Tool v${VERSION}/" docs/dns-tool-methodology.html
 
   echo "Version updated in .md and .html"
 fi
@@ -38,10 +39,12 @@ html.write_pdf('docs/dns-tool-methodology.pdf')
 "
 
 cp docs/dns-tool-methodology.pdf static/docs/dns-tool-methodology.pdf
+cp docs/dns-tool-methodology.pdf go-server/static/docs/dns-tool-methodology.pdf
 
 SIZE=$(stat -f%z docs/dns-tool-methodology.pdf 2>/dev/null || stat -c%s docs/dns-tool-methodology.pdf 2>/dev/null)
 echo "PDF generated: docs/dns-tool-methodology.pdf (${SIZE} bytes)"
 echo "Copied to:     static/docs/dns-tool-methodology.pdf"
+echo "Copied to:     go-server/static/docs/dns-tool-methodology.pdf"
 
 if [ ! -s docs/dns-tool-methodology.pdf ]; then
   echo "ERROR: docs/dns-tool-methodology.pdf is empty or missing"
@@ -49,6 +52,10 @@ if [ ! -s docs/dns-tool-methodology.pdf ]; then
 fi
 if [ ! -s static/docs/dns-tool-methodology.pdf ]; then
   echo "ERROR: static/docs/dns-tool-methodology.pdf is empty or missing"
+  exit 1
+fi
+if [ ! -s go-server/static/docs/dns-tool-methodology.pdf ]; then
+  echo "ERROR: go-server/static/docs/dns-tool-methodology.pdf is empty or missing"
   exit 1
 fi
 

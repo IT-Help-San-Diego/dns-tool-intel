@@ -16,12 +16,13 @@ cd "$(dirname "$0")/.."
 VERSION="${1:-}"
 
 if [ -n "$VERSION" ]; then
+  source scripts/lib/require-gnu-sed.sh
   echo "Updating foundations version to ${VERSION}..."
 
-  sed -i -E "s/Version<\/span>\&ensp;[0-9]+\.[0-9]+\.[0-9]+/Version<\/span>\&ensp;${VERSION}/" docs/philosophical-foundations.html
-  sed -i -E "s/DNS Tool v[0-9]+\.[0-9]+\.[0-9]+/DNS Tool v${VERSION}/" docs/philosophical-foundations.html
-  sed -i -E "s/Version [0-9]+\.[0-9]+\.[0-9]+/Version ${VERSION}/" docs/philosophical-foundations.md
-  sed -i -E "s/DNS Tool v[0-9]+\.[0-9]+\.[0-9]+/DNS Tool v${VERSION}/" docs/philosophical-foundations.md
+  "$SED" -i -E "s/Version<\/span>\&ensp;[0-9]+\.[0-9]+\.[0-9]+/Version<\/span>\&ensp;${VERSION}/" docs/philosophical-foundations.html
+  "$SED" -i -E "s/DNS Tool v[0-9]+\.[0-9]+\.[0-9]+/DNS Tool v${VERSION}/" docs/philosophical-foundations.html
+  "$SED" -i -E "s/Version [0-9]+\.[0-9]+\.[0-9]+/Version ${VERSION}/" docs/philosophical-foundations.md
+  "$SED" -i -E "s/DNS Tool v[0-9]+\.[0-9]+\.[0-9]+/DNS Tool v${VERSION}/" docs/philosophical-foundations.md
 
   echo "Version updated in .html and .md"
 fi
@@ -34,10 +35,12 @@ html.write_pdf('docs/philosophical-foundations.pdf')
 "
 
 cp docs/philosophical-foundations.pdf static/docs/philosophical-foundations.pdf
+cp docs/philosophical-foundations.pdf go-server/static/docs/philosophical-foundations.pdf
 
 SIZE=$(stat -f%z docs/philosophical-foundations.pdf 2>/dev/null || stat -c%s docs/philosophical-foundations.pdf 2>/dev/null)
 echo "PDF generated: docs/philosophical-foundations.pdf (${SIZE} bytes)"
 echo "Copied to:     static/docs/philosophical-foundations.pdf"
+echo "Copied to:     go-server/static/docs/philosophical-foundations.pdf"
 
 if [ ! -s docs/philosophical-foundations.pdf ]; then
   echo "ERROR: docs/philosophical-foundations.pdf is empty or missing"
@@ -45,6 +48,10 @@ if [ ! -s docs/philosophical-foundations.pdf ]; then
 fi
 if [ ! -s static/docs/philosophical-foundations.pdf ]; then
   echo "ERROR: static/docs/philosophical-foundations.pdf is empty or missing"
+  exit 1
+fi
+if [ ! -s go-server/static/docs/philosophical-foundations.pdf ]; then
+  echo "ERROR: go-server/static/docs/philosophical-foundations.pdf is empty or missing"
   exit 1
 fi
 

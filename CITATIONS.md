@@ -187,7 +187,7 @@
   Pages: approach
 - https://doi.org/10.1109/WICSA.2005.61
   Pages: manifesto
-- https://doi.org/10.5281/zenodo.18854899
+- https://doi.org/10.5281/zenodo.19468134
   Pages: cite, publications, signature_raw
 - https://ieee-dataport.org/sites/default/files/analysis/27/IEEE%20Citation%20Guidelines.pdf
   Pages: brand_colors
