@@ -7,6 +7,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -173,4 +174,55 @@ func TestLoadShedderAbortsOnClientCancel(t *testing.T) {
 		t.Fatal("cancelled waiter did not return promptly")
 	}
 	close(release)
+}
+
+func TestLoadShedderClampsNonPositiveCapacity(t *testing.T) {
+	for _, capacity := range []int{0, -3} {
+		r := newLoadShedRouter(capacity, 50*time.Millisecond, func(c *gin.Context) {
+			c.String(http.StatusOK, "ok")
+		})
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/heavy", nil))
+		if w.Code != http.StatusOK {
+			t.Fatalf("capacity %d: status = %d, want %d (floor of one slot)", capacity, w.Code, http.StatusOK)
+		}
+	}
+}
+
+func TestLoadShedderShedsJSONForAPIRoutes(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	r := gin.New()
+	occupied := make(chan struct{})
+	release := make(chan struct{})
+	defer close(release)
+	r.GET("/api/heavy", LoadShedder(1, 30*time.Millisecond), func(c *gin.Context) {
+		close(occupied)
+		<-release
+		c.String(http.StatusOK, "ok")
+	})
+
+	go func() {
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/api/heavy", nil))
+	}()
+	select {
+	case <-occupied:
+	case <-time.After(2 * time.Second):
+		t.Fatal("first request never reached handler")
+	}
+
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/api/heavy", nil))
+	if w.Code != http.StatusServiceUnavailable {
+		t.Fatalf("saturated status = %d, want %d", w.Code, http.StatusServiceUnavailable)
+	}
+	if ct := w.Header().Get("Content-Type"); !strings.HasPrefix(ct, "application/json") {
+		t.Fatalf("Content-Type = %q, want application/json for /api/ shed", ct)
+	}
+	if !strings.Contains(w.Body.String(), `"error"`) {
+		t.Fatalf("body = %q, want JSON error object", w.Body.String())
+	}
+	if got := w.Header().Get("Retry-After"); got != heavyRouteRetryAfter {
+		t.Fatalf("Retry-After = %q, want %q", got, heavyRouteRetryAfter)
+	}
 }

@@ -1,9 +1,15 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
+
+	"dnstool/go-server/internal/db"
+	"dnstool/go-server/internal/icae"
+	"dnstool/go-server/internal/icuae"
 
 	"github.com/gin-gonic/gin"
 )
@@ -190,5 +196,125 @@ func TestNewHomeHandler(t *testing.T) {
 	h := NewHomeHandler(nil, nil)
 	if h == nil {
 		t.Fatal("expected non-nil handler")
+	}
+}
+
+// swapMetricsLoaders replaces the metrics loader seams for a test and
+// restores them on cleanup.
+func swapMetricsLoaders(t *testing.T, icaeFn func(context.Context, icae.MaturityQuerier) *icae.ReportMetrics, icuaeFn func(context.Context, icuae.DBTX) *icuae.RuntimeMetrics) {
+	t.Helper()
+	origICAE, origICUAE := loadReportMetricsFn, loadRuntimeMetricsFn
+	loadReportMetricsFn, loadRuntimeMetricsFn = icaeFn, icuaeFn
+	t.Cleanup(func() { loadReportMetricsFn, loadRuntimeMetricsFn = origICAE, origICUAE })
+}
+
+func TestCachedMetricsColdLoadThenTTLCache(t *testing.T) {
+	calls := 0
+	swapMetricsLoaders(t,
+		func(context.Context, icae.MaturityQuerier) *icae.ReportMetrics {
+			calls++
+			return &icae.ReportMetrics{}
+		},
+		func(context.Context, icuae.DBTX) *icuae.RuntimeMetrics {
+			return &icuae.RuntimeMetrics{}
+		})
+
+	h := &HomeHandler{DB: &db.Database{}}
+	icaeM, icuaeM := h.cachedMetrics()
+	if icaeM == nil || icuaeM == nil {
+		t.Fatal("cold load returned nil metrics")
+	}
+	if calls != 1 {
+		t.Fatalf("loader calls after cold load = %d, want 1", calls)
+	}
+	if icaeM2, _ := h.cachedMetrics(); icaeM2 != icaeM {
+		t.Fatal("within-TTL call did not return cached pointer")
+	}
+	if calls != 1 {
+		t.Fatalf("loader calls within TTL = %d, want 1 (no synchronous reload)", calls)
+	}
+}
+
+func TestCachedMetricsServesStaleWhileRevalidating(t *testing.T) {
+	fresh := &icae.ReportMetrics{}
+	done := make(chan struct{})
+	swapMetricsLoaders(t,
+		func(context.Context, icae.MaturityQuerier) *icae.ReportMetrics {
+			return fresh
+		},
+		func(context.Context, icuae.DBTX) *icuae.RuntimeMetrics {
+			defer close(done)
+			return &icuae.RuntimeMetrics{}
+		})
+
+	stale := &icae.ReportMetrics{}
+	h := &HomeHandler{DB: &db.Database{}}
+	h.icaeCache = stale
+	h.icuaeCache = &icuae.RuntimeMetrics{}
+	h.loaded = true
+	h.cacheExpiry = time.Now().Add(-time.Second)
+
+	if got, _ := h.cachedMetrics(); got != stale {
+		t.Fatal("expired cache did not serve stale value immediately")
+	}
+	select {
+	case <-done:
+	case <-time.After(2 * time.Second):
+		t.Fatal("background refresh never ran")
+	}
+	for i := 0; i < 200; i++ {
+		h.mu.Lock()
+		updated := h.icaeCache == fresh && !h.refreshing
+		h.mu.Unlock()
+		if updated {
+			return
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	t.Fatal("background refresh never installed fresh metrics / cleared refreshing")
+}
+
+func TestRefreshMetricsFailureKeepsStaleAndRetriesSoon(t *testing.T) {
+	swapMetricsLoaders(t,
+		func(context.Context, icae.MaturityQuerier) *icae.ReportMetrics { return nil },
+		func(context.Context, icuae.DBTX) *icuae.RuntimeMetrics { return nil })
+
+	stale := &icae.ReportMetrics{}
+	h := &HomeHandler{DB: &db.Database{}}
+	h.icaeCache = stale
+	h.loaded = true
+	h.refreshing = true
+
+	before := time.Now()
+	icaeM, _ := h.refreshMetrics(time.Second)
+	if icaeM != stale {
+		t.Fatal("failed refresh dropped last good metrics")
+	}
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	if h.refreshing {
+		t.Fatal("refreshing flag stuck after failed refresh")
+	}
+	if h.cacheExpiry.After(before.Add(metricsCacheTTL)) {
+		t.Fatalf("failure cached for full TTL; expiry = %v, want short retry delay", h.cacheExpiry)
+	}
+}
+
+func TestRefreshMetricsRecoversFromLoaderPanic(t *testing.T) {
+	swapMetricsLoaders(t,
+		func(context.Context, icae.MaturityQuerier) *icae.ReportMetrics { panic("loader boom") },
+		func(context.Context, icuae.DBTX) *icuae.RuntimeMetrics { return nil })
+
+	h := &HomeHandler{DB: &db.Database{}}
+	h.refreshing = true
+	h.refreshMetrics(time.Second)
+
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	if h.refreshing {
+		t.Fatal("refreshing flag stuck after loader panic — cache can never refresh again")
+	}
+	if h.cacheExpiry.IsZero() {
+		t.Fatal("panic path did not schedule a retry")
 	}
 }

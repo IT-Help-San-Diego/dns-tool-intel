@@ -5,6 +5,7 @@ package handlers
 
 import (
         "context"
+        "log/slog"
         "net/http"
         "sync"
         "time"
@@ -34,6 +35,13 @@ const (
         metricsRefreshTimeout    = 5 * time.Second
         metricsColdLoadTimeout   = 3 * time.Second
         metricsFailureRetryDelay = 5 * time.Second
+)
+
+// Injection seams so the stale-while-revalidate cache logic can be tested
+// without a live database. Production always uses the real loaders.
+var (
+        loadReportMetricsFn  = icae.LoadReportMetrics
+        loadRuntimeMetricsFn = icuae.LoadRuntimeMetrics
 )
 
 func NewHomeHandler(cfg *config.Config, database *db.Database) *HomeHandler {
@@ -76,10 +84,15 @@ func (h *HomeHandler) cachedMetrics() (*icae.ReportMetrics, *icuae.RuntimeMetric
 // last good values are kept and the next retry is delayed briefly instead
 // of caching nil for a full TTL.
 func (h *HomeHandler) refreshMetrics(timeout time.Duration) (*icae.ReportMetrics, *icuae.RuntimeMetrics) {
-        // Insurance against a loader panic: without this the refreshing flag
-        // would stay true forever and the cache could never refresh again.
+        // Insurance against a loader panic: recover so a background refresh
+        // goroutine cannot crash the process, and clear the refreshing flag
+        // so the cache can refresh again. A recovered panic is treated as a
+        // failed refresh (stale values kept, short retry delay).
         completed := false
         defer func() {
+                if r := recover(); r != nil {
+                        slog.Error("Homepage metrics refresh panicked; serving stale values", "panic", r)
+                }
                 if !completed {
                         h.mu.Lock()
                         h.refreshing = false
@@ -91,8 +104,8 @@ func (h *HomeHandler) refreshMetrics(timeout time.Duration) (*icae.ReportMetrics
         ctx, cancel := context.WithTimeout(context.Background(), timeout)
         defer cancel()
 
-        icaeM := icae.LoadReportMetrics(ctx, h.DB.Queries)
-        icuaeM := icuae.LoadRuntimeMetrics(ctx, h.DB.Queries)
+        icaeM := loadReportMetricsFn(ctx, h.DB.Queries)
+        icuaeM := loadRuntimeMetricsFn(ctx, h.DB.Queries)
 
         h.mu.Lock()
         defer h.mu.Unlock()

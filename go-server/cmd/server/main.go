@@ -373,18 +373,22 @@ func mountStaticFiles(router *gin.Engine) {
 			//
 			// Path safety: TrimPrefix the leading slash so filepath.Join
 			// semantics are unambiguous across OSes and any future router
-			// change to .Param shape. filepath.Clean strips ".." traversal
-			// attempts. The resulting absPath stays anchored under staticDir.
+			// change to .Param shape. filepath.IsLocal rejects empty,
+			// absolute, and root-escaping ("..") paths BEFORE any join —
+			// the CodeQL-recognized path-injection (CWE-22) sanitizer for
+			// this flow. (The empty path was previously rejected by the
+			// IsDir check below; IsLocal 404s it one step earlier.)
 			rel := strings.TrimPrefix(fp, "/")
+			if !filepath.IsLocal(rel) {
+				c.Status(http.StatusNotFound)
+				return
+			}
 			absPath := filepath.Join(staticDir, filepath.Clean(rel))
-			// Containment guard: filepath.Clean does NOT strip a
-			// leading "../" that escapes the root, so explicitly
-			// confirm the joined path stays under staticDir before
-			// touching the filesystem. This hardens the os.Stat
-			// below and is the CodeQL path-injection (CWE-22)
-			// sanitizer for this flow. (Actual file bytes are served
-			// by http.FileServer, which is independently rooted at
-			// staticDir and rejects traversal.)
+			// Containment guard (defense-in-depth behind IsLocal):
+			// explicitly confirm the joined path stays under staticDir
+			// before touching the filesystem. (Actual file bytes are
+			// served by http.FileServer, which is independently rooted
+			// at staticDir and rejects traversal.)
 			if absPath != staticRoot && !strings.HasPrefix(absPath, staticRoot+string(os.PathSeparator)) {
 				c.Status(http.StatusNotFound)
 				return

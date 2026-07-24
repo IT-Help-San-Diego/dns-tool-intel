@@ -6,6 +6,7 @@ package middleware
 import (
 	"log/slog"
 	"net/http"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -41,6 +42,13 @@ const (
 // wrap "/", "/healthz", or static assets — the deployment health check and
 // uptime probes must stay unthrottled.
 func LoadShedder(capacity int, maxWait time.Duration) gin.HandlerFunc {
+	// Fail safe on misconfiguration: a capacity below 1 would make the
+	// semaphore unbuffered (or panic outright for negative values),
+	// shedding every request after maxWait. Clamp to a floor of 1 so a
+	// bad constant degrades to serialized requests, not a total outage.
+	if capacity < 1 {
+		capacity = 1
+	}
 	sem := make(chan struct{}, capacity)
 	var shedTotal atomic.Uint64
 	return func(c *gin.Context) {
@@ -74,6 +82,12 @@ func shedOverCapacity(c *gin.Context, shedCount uint64) {
 	}
 	c.Header("Retry-After", heavyRouteRetryAfter)
 	c.Header("Cache-Control", "no-store")
-	c.String(http.StatusServiceUnavailable, "Server is briefly at capacity. Please retry in a few seconds.")
+	const shedMsg = "Server is briefly at capacity. Please retry in a few seconds."
+	if strings.HasPrefix(c.Request.URL.Path, "/api/") {
+		// JSON API clients must not receive a text/plain 503 body.
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": shedMsg})
+	} else {
+		c.String(http.StatusServiceUnavailable, shedMsg)
+	}
 	c.Abort()
 }
