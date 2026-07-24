@@ -374,7 +374,7 @@ func TestResolveReportMode_Defaults_B10(t *testing.T) {
                 {"Z_mode", "Z", "", "Z"},
                 {"B_mode", "B", "", "B"},
                 {"EC_mode", "EC", "", "EC"},
-                {"invalid", "INVALID", "", "E"},
+                {"invalid", "INVALID", "", ""},
                 {"covert_query", "", "1", "C"},
         }
         for _, tt := range tests {

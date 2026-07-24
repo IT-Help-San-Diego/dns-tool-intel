@@ -28,7 +28,8 @@ func TestSprint_resolveReportMode_Params(t *testing.T) {
 		{"EC", "EC", "EC"},
 		{"B", "B", "B"},
 		{"lowercase c", "c", "C"},
-		{"unknown param", "X", "E"},
+		{"explicit E", "E", "E"},
+		{"unknown param", "X", ""},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

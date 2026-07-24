@@ -69,27 +69,46 @@ echo -e "${YELLOW}  repo: ${REPO}${NC}"
 echo -e "${YELLOW}═══════════════════════════════════════════════════${NC}"
 echo ""
 
-echo -e "${YELLOW}Step 1/4${NC}: Running release gate (version bump + validation)..."
+echo -e "${YELLOW}Step 1/5${NC}: Running release gate (version bump + validation)..."
 echo ""
 bash scripts/release-gate.sh "$VER"
 
 echo ""
-echo -e "${YELLOW}Step 2/4${NC}: Committing release locally..."
+echo -e "${YELLOW}Step 2/5${NC}: Committing release locally..."
 git add -A
 git status --short
 git commit -m "Release ${TAG}"
 pass "Committed: Release ${TAG}"
 
 echo ""
-echo -e "${YELLOW}Step 3/4${NC}: Syncing to ${REPO}..."
+echo -e "${YELLOW}Step 3/5${NC}: Syncing to ${REPO}..."
 bash scripts/git-push.sh
 pass "${REPO} synced"
 
 echo ""
-echo -e "${YELLOW}Step 4/5${NC}: Creating tag ${TAG}..."
-git tag -a "${TAG}" -m "${TAG}"
-git push origin "${TAG}"
-pass "Tag ${TAG} created and pushed"
+echo -e "${YELLOW}Step 4/5${NC}: Creating tag ${TAG} on origin/main's tip..."
+# Version Law: the tag goes on origin/main's tip — NEVER local HEAD.
+# The squash-merge flow means local HEAD is never on main's lineage, so a
+# tag on local HEAD reads clean locally but is invisible to production.
+git fetch origin main
+git tag -a "${TAG}" origin/main -m "Release ${TAG}"
+# Push via PAT-embedded URL — the workspace origin remote has no push
+# credentials (same reason git-push.sh pushes this way).
+git push "https://${TOKEN}@github.com/${REPO}.git" "${TAG}"
+TAG_STATUS="unknown"
+for attempt in 1 2; do
+  TAG_STATUS=$(GH_TOKEN="${ALL_GH:-${GH_TOKEN:-$TOKEN}}" gh api "repos/${REPO}/compare/main...${TAG}" --jq '.status' 2>/dev/null || echo "unknown")
+  case "$TAG_STATUS" in identical|behind) break ;; esac
+  [ "$attempt" -eq 1 ] && sleep 5
+done
+case "$TAG_STATUS" in
+  identical|behind)
+    pass "Tag ${TAG} pushed — reachable from main (compare: ${TAG_STATUS})"
+    ;;
+  *)
+    fail "Tag ${TAG} NOT confirmed reachable from main (compare: ${TAG_STATUS}). Verify manually before deleting: gh api repos/${REPO}/compare/main...${TAG} --jq .status — expect identical/behind. If truly mis-placed: git push origin :refs/tags/${TAG} && git tag -d ${TAG}, then re-tag origin/main."
+    ;;
+esac
 
 echo ""
 echo -e "${YELLOW}Step 5/5${NC}: Verifying Zenodo ingestion (async; polling up to ~15 min)..."

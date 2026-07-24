@@ -462,10 +462,17 @@ type routeDeps struct {
 	HistoryCache *analyzer.DNSHistoryCache
 	RateLimiter  *middleware.InMemoryRateLimiter
 	ScannerWatch *middleware.ScannerWatch
+	HeavyShed    gin.HandlerFunc
 }
 
 func registerRoutes(d routeDeps) {
 	staticDir := findStaticDir()
+
+	// Shared concurrency cap for DB-heavy report routes; sheds excess
+	// load with 503 + Retry-After instead of queuing behind a saturated
+	// connection pool (2026-07-24 outage). Never applied to "/",
+	// "/healthz", or static assets.
+	d.HeavyShed = middleware.LoadShedder(middleware.HeavyRouteMaxConcurrent, middleware.HeavyRouteMaxWait)
 
 	homeHandler := handlers.NewHomeHandler(d.Cfg, d.DB)
 	healthHandler := handlers.NewHealthHandler(d.DB, d.Analyzer)
@@ -518,21 +525,21 @@ func registerAnalysisRoutes(d routeDeps, analysis *handlers.AnalysisHandler, his
 	d.Router.HEAD("/analyze", analysis.Analyze)
 	d.Router.POST("/analyze", middleware.AnalyzeRateLimit(d.RateLimiter), analysis.Analyze)
 	d.Router.GET("/api/scan/progress/:token", handlers.ScanProgressHandler(analysis.ProgressStore))
-	d.Router.GET("/history", history.History)
-	d.Router.GET("/analysis/:id", analysis.ViewAnalysis)
-	d.Router.GET("/analysis/:id/view", analysis.ViewAnalysisStatic)
-	d.Router.GET("/analysis/:id/view/:mode", analysis.ViewAnalysisStatic)
-	d.Router.GET("/analysis/:id/executive", analysis.ViewAnalysisExecutive)
+	d.Router.GET("/history", d.HeavyShed, history.History)
+	d.Router.GET("/analysis/:id", d.HeavyShed, analysis.ViewAnalysis)
+	d.Router.GET("/analysis/:id/view", d.HeavyShed, analysis.ViewAnalysisStatic)
+	d.Router.GET("/analysis/:id/view/:mode", d.HeavyShed, analysis.ViewAnalysisStatic)
+	d.Router.GET("/analysis/:id/executive", d.HeavyShed, analysis.ViewAnalysisExecutive)
 	d.Router.GET("/stats", stats.Stats)
 	d.Router.GET("/statistics", stats.StatisticsRedirect)
 	d.Router.GET("/compare", compare.Compare)
 	d.Router.GET("/snapshot/:domain", snapshot.Snapshot)
 	d.Router.GET("/export/json", middleware.RequireAdmin(), export.ExportJSON)
 	d.Router.GET("/export/subdomains", analysis.ExportSubdomainsCSV)
-	d.Router.GET("/analysis/:id/crossref", analysis.ViewCrossReference)
+	d.Router.GET("/analysis/:id/crossref", d.HeavyShed, analysis.ViewCrossReference)
 	d.Router.GET("/api/analysis/:id", analysis.APIAnalysis)
 	d.Router.GET("/api/analysis/:id/checksum", analysis.APIAnalysisChecksum)
-	d.Router.GET("/api/analysis/:id/crossref", analysis.APICrossReference)
+	d.Router.GET("/api/analysis/:id/crossref", d.HeavyShed, analysis.APICrossReference)
 	d.Router.GET("/api/subdomains/*domain", analysis.APISubdomains)
 	d.Router.GET("/api/dns-history", analysis.APIDNSHistory)
 }
@@ -558,7 +565,7 @@ func registerFeatureRoutes(d routeDeps, analysis *handlers.AnalysisHandler, prox
 	d.Router.GET("/failures", failuresHandler.Failures)
 
 	remediationHandler := handlers.NewRemediationHandler(d.DB, d.Cfg)
-	d.Router.GET("/remediation", remediationHandler.RemediationPage)
+	d.Router.GET("/remediation", d.HeavyShed, remediationHandler.RemediationPage)
 	d.Router.POST("/remediation", remediationHandler.RemediationSubmit)
 
 	investigateHandler := handlers.NewInvestigateHandler(d.Cfg, d.Analyzer)

@@ -920,6 +920,9 @@ func probeSingleSMTPServer(ctx context.Context, host string) map[string]any {
                 mapKeyTlsVersion:        nil,
                 mapKeyCipher:            nil,
                 mapKeyCipherBits:        nil,
+                mapKeyKeyExchange:       nil,
+                mapKeyPqcKexState:       nil,
+                mapKeyPqcKexDetail:      nil,
                 mapKeyCertValid:         false,
                 mapKeyCertExpiry:        nil,
                 mapKeyCertDaysRemaining: nil,
@@ -992,6 +995,9 @@ func negotiateTLS(ctx context.Context, conn net.Conn, host string, result map[st
 
         if err := tlsConn.Handshake(); err != nil {
                 result[mapKeyError] = fmt.Sprintf("TLS handshake failed: %s", truncate(err.Error(), 80))
+                pqcState, pqcDetail := classifyPQCKex(false, 0, 0)
+                result[mapKeyPqcKexState] = pqcState
+                result[mapKeyPqcKexDetail] = pqcDetail
                 return
         }
 
@@ -999,6 +1005,10 @@ func negotiateTLS(ctx context.Context, conn net.Conn, host string, result map[st
         result[mapKeyTlsVersion] = tlsVersionString(state.Version)
         result[mapKeyCipher] = tls.CipherSuiteName(state.CipherSuite)
         result[mapKeyCipherBits] = cipherBits(state.CipherSuite)
+        result[mapKeyKeyExchange] = keyExchangeLabel(state.CurveID)
+        pqcState, pqcDetail := classifyPQCKex(true, state.Version, state.CurveID)
+        result[mapKeyPqcKexState] = pqcState
+        result[mapKeyPqcKexDetail] = pqcDetail
 
         verifyCert(ctx, host, result)
 }

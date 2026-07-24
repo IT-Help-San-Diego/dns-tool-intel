@@ -38,7 +38,7 @@ func TestResolveReportMode(t *testing.T) {
 		{"param Z", "Z", "", "Z"},
 		{"param EC", "EC", "", "EC"},
 		{"param B", "B", "", "B"},
-		{"param unknown", "X", "", "E"},
+		{"param unknown", "X", "", ""},
 		{"covert query", "", "1", "C"},
 		{"covert query 0", "", "0", "E"},
 		{"param overrides query", "B", "1", "B"},
