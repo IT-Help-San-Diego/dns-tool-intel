@@ -1773,6 +1773,8 @@
             PROTOCOLS.forEach(function(p) { drawProtocolNode(p); });
             OUTPUTS.forEach(function(o) { drawOutputNode(o); });
 
+            drawScanRings();
+
             if (debugBounds) {
                 allLayoutNodes.forEach(function(nd) {
                     if (!nd._boxW) measureNodeBox(nd);
@@ -1787,6 +1789,378 @@
             }
 
             drawPopTooltip();
+        }
+
+        /* ---- Live scan console ------------------------------------------
+           Drives the topology canvas from a real scan: POST /analyze with
+           Accept: application/json (202 + progress token), then polls
+           /api/scan/progress/:token every 500ms. Phase groups from the
+           server's phase telemetry map onto canvas nodes; verdict chips are
+           read from the saved analysis via /api/analysis/:id on completion.
+           No navigation ever occurs (Safari-safe); links are plain anchors. */
+
+        let scanEls = {
+            form: document.getElementById('topoScanForm'),
+            domain: document.getElementById('topoScanDomain'),
+            run: document.getElementById('topoScanRun'),
+            advBtn: document.getElementById('topoScanAdvBtn'),
+            adv: document.getElementById('topoScanAdv'),
+            hud: document.getElementById('topoScanHud'),
+            status: document.getElementById('topoScanStatus'),
+            target: document.getElementById('topoScanTarget'),
+            elapsed: document.getElementById('topoScanElapsed'),
+            cancel: document.getElementById('topoScanCancel'),
+            phases: document.getElementById('topoScanPhases'),
+            error: document.getElementById('topoScanError'),
+            verdict: document.getElementById('topoScanVerdict'),
+            chips: document.getElementById('topoScanChips'),
+            links: document.getElementById('topoScanLinks'),
+            note: document.getElementById('topoScanNote'),
+            exposure: document.getElementById('topoExposure'),
+            devnull: document.getElementById('topoDevnull')
+        };
+
+        let GROUP_NODES = {
+            dns_records: ['hub'],
+            email_auth: ['spf', 'dkim', 'dmarc'],
+            dnssec_dane: ['dnssec', 'dane'],
+            ct_subdomains: ['ct'],
+            smtp_transport: ['probes'],
+            policy_records: ['mtasts', 'tlsrpt', 'bimi', 'caa'],
+            registrar_infra: ['root', 'rdap'],
+            analysis_engine: ['engine']
+        };
+
+        let VERDICT_PROTOCOLS = [
+            { node: 'spf',    label: 'SPF',     key: 'spf_analysis' },
+            { node: 'dkim',   label: 'DKIM',    key: 'dkim_analysis' },
+            { node: 'dmarc',  label: 'DMARC',   key: 'dmarc_analysis' },
+            { node: 'dnssec', label: 'DNSSEC',  key: 'dnssec_analysis' },
+            { node: 'dane',   label: 'DANE',    key: 'dane_analysis' },
+            { node: 'mtasts', label: 'MTA-STS', key: 'mta_sts_analysis' },
+            { node: 'tlsrpt', label: 'TLS-RPT', key: 'tlsrpt_analysis' },
+            { node: 'bimi',   label: 'BIMI',    key: 'bimi_analysis' },
+            { node: 'caa',    label: 'CAA',     key: 'caa_analysis' }
+        ];
+
+        let VERDICT_RING_COLORS = {
+            success: 'rgba(129,199,132,0.85)',
+            warning: 'rgba(255,183,77,0.85)',
+            indeterminate: 'rgba(159,176,192,0.7)',
+            info: 'rgba(159,176,192,0.7)'
+        };
+
+        let scanState = {
+            active: false,
+            ringsOn: false,
+            token: null,
+            pollId: 0,
+            failures: 0,
+            startedAt: 0,
+            gen: 0,
+            groups: {},
+            verdicts: null
+        };
+
+        function drawRingCircle(n, color, width) {
+            ctx.beginPath();
+            ctx.arc(n.x, n.y, effRadius(n) + 5, 0, Math.PI * 2);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = width;
+            ctx.stroke();
+        }
+
+        function drawRunningRing(n) {
+            let r = effRadius(n) + 5;
+            let a0 = (time * 1.8) % (Math.PI * 2);
+            ctx.beginPath();
+            ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(255,193,7,0.16)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(n.x, n.y, r, a0, a0 + Math.PI * 1.3);
+            ctx.strokeStyle = 'rgba(255,193,7,0.9)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        function scanRingColor(status) {
+            if (status === 'done' || status === 'complete') return 'rgba(129,199,132,0.7)';
+            if (status === 'failed' || status === 'error') return 'rgba(239,83,80,0.85)';
+            return null;
+        }
+
+        function drawScanRings() {
+            if (!scanState.ringsOn) return;
+            for (let g in GROUP_NODES) {
+                let ph = scanState.groups[g];
+                if (!ph) continue;
+                let ids = GROUP_NODES[g];
+                for (let i = 0; i < ids.length; i++) {
+                    let n = allNodes[ids[i]];
+                    if (!n) continue;
+                    if (scanState.verdicts && scanState.verdicts[ids[i]]) {
+                        let vc = VERDICT_RING_COLORS[scanState.verdicts[ids[i]]] || 'rgba(239,83,80,0.85)';
+                        drawRingCircle(n, vc, 2);
+                        continue;
+                    }
+                    if (ph.status === 'running' || ph.status === 'started') {
+                        drawRunningRing(n);
+                    } else {
+                        let c = scanRingColor(ph.status);
+                        if (c) drawRingCircle(n, c, 1.6);
+                    }
+                }
+            }
+        }
+
+        function setHidden(el, hide) { if (el) el.hidden = hide; }
+
+        function scanReset() {
+            if (scanState.pollId) clearInterval(scanState.pollId);
+            scanState.gen++;
+            scanState.active = false;
+            scanState.ringsOn = false;
+            scanState.token = null;
+            scanState.pollId = 0;
+            scanState.failures = 0;
+            scanState.groups = {};
+            scanState.verdicts = null;
+            setHidden(scanEls.hud, true);
+            setHidden(scanEls.error, true);
+            setHidden(scanEls.verdict, true);
+            setHidden(scanEls.note, true);
+            if (scanEls.chips) scanEls.chips.textContent = '';
+            if (scanEls.links) scanEls.links.textContent = '';
+            if (scanEls.run) scanEls.run.disabled = false;
+            if (scanEls.status) {
+                scanEls.status.textContent = 'Scanning';
+                scanEls.status.classList.remove('is-complete', 'is-failed');
+            }
+            if (scanEls.cancel) scanEls.cancel.textContent = 'Cancel';
+        }
+
+        function scanShowError(msg) {
+            scanEls.error.textContent = msg;
+            setHidden(scanEls.error, false);
+        }
+
+        function scanStopPolling() {
+            if (scanState.pollId) clearInterval(scanState.pollId);
+            scanState.pollId = 0;
+            scanState.active = false;
+        }
+
+        function scanFail(msg) {
+            scanStopPolling();
+            scanEls.status.textContent = 'Failed';
+            scanEls.status.classList.add('is-failed');
+            scanEls.cancel.textContent = 'Reset';
+            scanEls.run.disabled = false;
+            scanShowError(msg);
+        }
+
+        function scanUpdateHud(data) {
+            let phases = data.phases || {};
+            let total = 0;
+            let done = 0;
+            let tTotal = 0;
+            let tDone = 0;
+            for (let k in phases) {
+                total++;
+                if (phases[k].status === 'done' || phases[k].status === 'complete') done++;
+                tTotal += phases[k].tasks_total || 0;
+                tDone += phases[k].tasks_done || 0;
+            }
+            scanEls.phases.textContent = 'phases ' + done + '/' + total + ' \u00b7 tasks ' + tDone + '/' + tTotal;
+            if (typeof data.elapsed_ms === 'number') {
+                scanEls.elapsed.textContent = (data.elapsed_ms / 1000).toFixed(1) + 's';
+            }
+        }
+
+        function verdictClass(status) {
+            if (status === 'success') return 'topo-v-ok';
+            if (status === 'warning') return 'topo-v-warn';
+            if (status === 'indeterminate' || status === 'info') return 'topo-v-ind';
+            return 'topo-v-bad';
+        }
+
+        function scanBuildChips(fr) {
+            scanState.verdicts = {};
+            for (let i = 0; i < VERDICT_PROTOCOLS.length; i++) {
+                let vp = VERDICT_PROTOCOLS[i];
+                let section = fr[vp.key];
+                let chip = document.createElement('span');
+                if (section && typeof section.status === 'string') {
+                    chip.className = 'topo-vchip ' + verdictClass(section.status);
+                    chip.title = vp.label + ': ' + section.status;
+                    scanState.verdicts[vp.node] = section.status;
+                } else {
+                    chip.className = 'topo-vchip topo-v-ind';
+                    chip.title = vp.label + ': no data in stored analysis';
+                    scanState.verdicts[vp.node] = 'indeterminate';
+                }
+                chip.textContent = vp.label;
+                scanEls.chips.appendChild(chip);
+            }
+        }
+
+        function scanAddLink(href, text) {
+            let a = document.createElement('a');
+            a.href = href;
+            a.textContent = text;
+            scanEls.links.appendChild(a);
+        }
+
+        function scanLoadVerdicts(analysisID, redirectURL) {
+            let myGen = scanState.gen;
+            let base = redirectURL || ('/analysis/' + analysisID);
+            setHidden(scanEls.verdict, false);
+            scanAddLink(base, 'Engineer\u2019s Report');
+            scanAddLink('/analysis/' + analysisID + '/view/B', 'Executive Brief');
+            scanAddLink('/analysis/' + analysisID + '/view/C', 'Recon Report');
+            fetch('/api/analysis/' + analysisID, { headers: { 'Accept': 'application/json' } }).then(function(resp) {
+                return resp.ok ? resp.json() : null;
+            }).then(function(data) {
+                if (scanState.gen !== myGen) return;
+                let fr = data && data.full_results;
+                if (fr) {
+                    scanBuildChips(fr);
+                } else {
+                    scanEls.note.textContent = 'Verdict summary unavailable \u2014 open the full report for results.';
+                    setHidden(scanEls.note, false);
+                }
+            }).catch(function() {
+                if (scanState.gen !== myGen) return;
+                scanEls.note.textContent = 'Verdict summary unavailable \u2014 open the full report for results.';
+                setHidden(scanEls.note, false);
+            });
+        }
+
+        function scanComplete(data) {
+            scanStopPolling();
+            for (let g in scanState.groups) {
+                if (scanState.groups[g] && (scanState.groups[g].status === 'running' || scanState.groups[g].status === 'started')) {
+                    scanState.groups[g].status = 'done';
+                }
+            }
+            scanEls.status.textContent = 'Complete';
+            scanEls.status.classList.add('is-complete');
+            scanEls.cancel.textContent = 'Reset';
+            scanEls.run.disabled = false;
+            if (data.analysis_id) {
+                scanLoadVerdicts(data.analysis_id, data.redirect_url);
+            } else {
+                setHidden(scanEls.verdict, false);
+                scanEls.note.textContent = 'Scan complete \u2014 results were not persisted, so there is no stored report to link. /dev/null scans, unauthenticated custom-selector scans, and non-existent domains are analyzed without being written to the database.';
+                setHidden(scanEls.note, false);
+            }
+        }
+
+        function scanCheckFailures() {
+            if (scanState.failures >= 4) {
+                scanFail('Lost contact with the scan progress endpoint. The scan may still be running on the server.');
+            }
+        }
+
+        function scanHandlePoll(data) {
+            if (!scanState.active) return;
+            if (!data) { scanCheckFailures(); return; }
+            scanState.groups = data.phases || {};
+            scanUpdateHud(data);
+            if (data.status === 'failed') {
+                scanFail(data.error || 'Analysis failed. Please try again.');
+                return;
+            }
+            if (data.status === 'complete') {
+                scanComplete(data);
+            }
+        }
+
+        function scanPollOnce() {
+            fetch('/api/scan/progress/' + scanState.token).then(function(resp) {
+                if (!resp.ok) { scanState.failures++; return null; }
+                scanState.failures = 0;
+                return resp.json();
+            }).then(function(data) {
+                scanHandlePoll(data);
+            }).catch(function() {
+                scanState.failures++;
+                scanCheckFailures();
+            });
+        }
+
+        function scanStart() {
+            let domain = scanEls.domain.value.trim();
+            if (!domain) { scanEls.domain.focus(); return; }
+            scanReset();
+            let myGen = scanState.gen;
+            scanState.startedAt = Date.now();
+            scanEls.target.textContent = domain;
+            scanEls.elapsed.textContent = '0.0s';
+            scanEls.phases.textContent = 'phases 0/9 \u00b7 tasks 0/0';
+            setHidden(scanEls.hud, false);
+            scanEls.run.disabled = true;
+            let fd = new FormData(scanEls.form);
+            fetch('/analyze', {
+                method: 'POST',
+                body: fd,
+                headers: { 'X-Requested-With': 'fetch', 'Accept': 'application/json' },
+                redirect: 'follow'
+            }).then(function(resp) {
+                let ct = resp.headers.get('content-type') || '';
+                let isJSON = ct.indexOf('application/json') !== -1;
+                if (resp.status === 202 && isJSON) return resp.json();
+                if (resp.status === 429 && isJSON) {
+                    return resp.json().then(function(d) {
+                        throw new Error(d && d.error ? d.error : 'Rate limited \u2014 please wait and try again.');
+                    });
+                }
+                throw new Error('Scan did not start \u2014 the server declined the request (invalid domain, rate limit, or expired session). Reload the page if this persists.');
+            }).then(function(data) {
+                if (scanState.gen !== myGen) return;
+                if (!data || !data.token) {
+                    throw new Error('Scan did not start \u2014 no progress token returned.');
+                }
+                scanState.token = data.token;
+                scanState.active = true;
+                scanState.ringsOn = true;
+                scanState.pollId = setInterval(scanPollOnce, 500);
+            }).catch(function(err) {
+                if (scanState.gen !== myGen) return;
+                scanState.active = false;
+                scanState.ringsOn = false;
+                setHidden(scanEls.hud, true);
+                scanEls.run.disabled = false;
+                scanShowError(err && err.message ? err.message : 'Network error \u2014 please check your connection and try again.');
+            });
+        }
+
+        if (scanEls.form && scanEls.domain && scanEls.run && scanEls.hud) {
+            scanEls.form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                if (scanState.active) return;
+                scanStart();
+            });
+            scanEls.advBtn.addEventListener('click', function() {
+                let open = scanEls.adv.hidden;
+                scanEls.adv.hidden = !open;
+                scanEls.advBtn.setAttribute('aria-expanded', String(open));
+            });
+            scanEls.devnull.addEventListener('change', function() {
+                if (scanEls.devnull.checked) scanEls.exposure.checked = true;
+            });
+            scanEls.cancel.addEventListener('click', function() { scanReset(); });
+            document.addEventListener('keydown', function(e) {
+                if (e.key !== 'Escape') return;
+                if (!scanEls.adv.hidden && !scanState.active && !scanState.ringsOn) {
+                    scanEls.adv.hidden = true;
+                    scanEls.advBtn.setAttribute('aria-expanded', 'false');
+                    return;
+                }
+                if (scanState.active || scanState.ringsOn || !scanEls.error.hidden) scanReset();
+            });
         }
 
         let debugBounds = window.location.search.indexOf('debug=bounds') !== -1;
