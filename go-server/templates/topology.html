@@ -258,6 +258,31 @@
         }
         .topo-scan-cancel:hover { color: #e6edf3; border-color: rgba(255, 255, 255, 0.35); }
         .topo-scan-sub { margin-top: 4px; font-size: 0.68rem; color: #8b9aad; font-family: var(--bs-font-monospace, monospace); }
+        .topo-scan-meter { display: flex; align-items: center; gap: 6px; margin-top: 5px; }
+        .topo-scan-meter-label {
+            flex: 0 0 44px;
+            font-size: 0.58rem;
+            color: #8b9aad;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-family: var(--bs-font-monospace, monospace);
+        }
+        .topo-scan-meter-track {
+            flex: 1;
+            height: 4px;
+            background: rgba(139, 154, 173, 0.18);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .topo-scan-meter-bar {
+            display: block;
+            height: 100%;
+            width: 0;
+            background: #ffc107;
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+        .topo-scan-meter-bar--tasks { background: #4fc3f7; }
         .topo-scan-error { border-color: rgba(239, 83, 80, 0.4); color: #f0b4b2; }
         .topo-scan-chips { display: flex; flex-wrap: wrap; gap: 4px; }
         .topo-vchip {
@@ -354,6 +379,9 @@
                             <button type="button" class="topo-scan-cancel" id="topoScanCancel" title="Stops watching this scan. A scan already running on the server continues.">Cancel</button>
                         </div>
                         <div class="topo-scan-sub" id="topoScanPhases" aria-live="polite">phases 0/9 &middot; tasks 0/0</div>
+                        <div class="topo-scan-meter"><span class="topo-scan-meter-label">Phases</span><span class="topo-scan-meter-track"><span class="topo-scan-meter-bar" id="topoMeterPhaseBar"></span></span></div>
+                        <div class="topo-scan-meter"><span class="topo-scan-meter-label">Tasks</span><span class="topo-scan-meter-track"><span class="topo-scan-meter-bar topo-scan-meter-bar--tasks" id="topoMeterTaskBar"></span></span></div>
+                        <div class="topo-scan-sub" id="topoScanLatency">acquisition &mdash;</div>
                     </div>
                     <div class="topo-scan-card topo-scan-error" id="topoScanError" role="alert" hidden></div>
                     <div class="topo-scan-card" id="topoScanVerdict" hidden>

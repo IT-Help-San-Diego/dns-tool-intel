@@ -1811,6 +1811,9 @@
             elapsed: document.getElementById('topoScanElapsed'),
             cancel: document.getElementById('topoScanCancel'),
             phases: document.getElementById('topoScanPhases'),
+            phaseBar: document.getElementById('topoMeterPhaseBar'),
+            taskBar: document.getElementById('topoMeterTaskBar'),
+            latency: document.getElementById('topoScanLatency'),
             error: document.getElementById('topoScanError'),
             verdict: document.getElementById('topoScanVerdict'),
             chips: document.getElementById('topoScanChips'),
@@ -1858,9 +1861,36 @@
             failures: 0,
             startedAt: 0,
             gen: 0,
+            lastPollMs: 0,
             groups: {},
             verdicts: null
         };
+
+        function fmtScanDur(ms) {
+            if (ms >= 1000) return (ms / 1000).toFixed(1) + 's';
+            return Math.round(ms) + 'ms';
+        }
+
+        function drawScanNodeLabel(n, text, color) {
+            ctx.font = '600 ' + Math.round(9 * SCL) + 'px ' + 'ui-monospace, SFMono-Regular, Menlo, monospace';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            ctx.fillStyle = color;
+            ctx.fillText(text, n.x, n.y + effRadius(n) + 9);
+        }
+
+        function scanPhaseLabel(ph) {
+            if (ph.status === 'running' || ph.status === 'started') {
+                if (typeof ph.tasks_total === 'number' && ph.tasks_total > 0) {
+                    return { text: (ph.tasks_done || 0) + '/' + ph.tasks_total, color: 'rgba(255,193,7,0.85)' };
+                }
+                return { text: '\u2026', color: 'rgba(255,193,7,0.85)' };
+            }
+            if ((ph.status === 'done' || ph.status === 'complete') && typeof ph.duration_ms === 'number') {
+                return { text: fmtScanDur(ph.duration_ms), color: 'rgba(129,199,132,0.75)' };
+            }
+            return null;
+        }
 
         function drawRingCircle(n, color, width) {
             ctx.beginPath();
@@ -1900,6 +1930,10 @@
                 for (let i = 0; i < ids.length; i++) {
                     let n = allNodes[ids[i]];
                     if (!n) continue;
+                    if (i === 0) {
+                        let lbl = scanPhaseLabel(ph);
+                        if (lbl) drawScanNodeLabel(n, lbl.text, lbl.color);
+                    }
                     if (scanState.verdicts && scanState.verdicts[ids[i]]) {
                         let vc = VERDICT_RING_COLORS[scanState.verdicts[ids[i]]] || 'rgba(239,83,80,0.85)';
                         drawRingCircle(n, vc, 2);
@@ -1925,8 +1959,12 @@
             scanState.token = null;
             scanState.pollId = 0;
             scanState.failures = 0;
+            scanState.lastPollMs = 0;
             scanState.groups = {};
             scanState.verdicts = null;
+            if (scanEls.phaseBar) scanEls.phaseBar.style.width = '0%';
+            if (scanEls.taskBar) scanEls.taskBar.style.width = '0%';
+            if (scanEls.latency) scanEls.latency.textContent = 'acquisition \u2014';
             setHidden(scanEls.hud, true);
             setHidden(scanEls.error, true);
             setHidden(scanEls.verdict, true);
@@ -1967,13 +2005,32 @@
             let done = 0;
             let tTotal = 0;
             let tDone = 0;
+            let durSum = 0;
+            let durMax = 0;
+            let durN = 0;
             for (let k in phases) {
                 total++;
-                if (phases[k].status === 'done' || phases[k].status === 'complete') done++;
-                tTotal += phases[k].tasks_total || 0;
-                tDone += phases[k].tasks_done || 0;
+                let ph = phases[k];
+                if (ph.status === 'done' || ph.status === 'complete') {
+                    done++;
+                    if (typeof ph.duration_ms === 'number') {
+                        durSum += ph.duration_ms;
+                        durN++;
+                        if (ph.duration_ms > durMax) durMax = ph.duration_ms;
+                    }
+                }
+                tTotal += ph.tasks_total || 0;
+                tDone += ph.tasks_done || 0;
             }
             scanEls.phases.textContent = 'phases ' + done + '/' + total + ' \u00b7 tasks ' + tDone + '/' + tTotal;
+            if (scanEls.phaseBar) scanEls.phaseBar.style.width = (total > 0 ? Math.round((done / total) * 100) : 0) + '%';
+            if (scanEls.taskBar) scanEls.taskBar.style.width = (tTotal > 0 ? Math.round((tDone / tTotal) * 100) : 0) + '%';
+            if (scanEls.latency) {
+                let parts = [];
+                if (scanState.lastPollMs > 0) parts.push('poll ' + fmtScanDur(scanState.lastPollMs));
+                if (durN > 0) parts.push('phase avg ' + fmtScanDur(durSum / durN) + ' \u00b7 max ' + fmtScanDur(durMax));
+                scanEls.latency.textContent = parts.length ? 'acquisition ' + parts.join(' \u00b7 ') : 'acquisition \u2014';
+            }
             if (typeof data.elapsed_ms === 'number') {
                 scanEls.elapsed.textContent = (data.elapsed_ms / 1000).toFixed(1) + 's';
             }
@@ -2006,10 +2063,11 @@
             }
         }
 
-        function scanAddLink(href, text) {
+        function scanAddLink(href, text, title) {
             let a = document.createElement('a');
             a.href = href;
             a.textContent = text;
+            if (title) a.title = title;
             scanEls.links.appendChild(a);
         }
 
@@ -2017,9 +2075,9 @@
             let myGen = scanState.gen;
             let base = redirectURL || ('/analysis/' + analysisID);
             setHidden(scanEls.verdict, false);
-            scanAddLink(base, 'Engineer\u2019s Report');
-            scanAddLink('/analysis/' + analysisID + '/view/B', 'Executive Brief');
-            scanAddLink('/analysis/' + analysisID + '/view/C', 'Recon Report');
+            scanAddLink(base, 'Engineer\u2019s Report', 'Engineer\u2019s DNS Intelligence Report \u2014 full technical findings');
+            scanAddLink('/analysis/' + analysisID + '/view/B', 'Executive Brief', 'Executive\u2019s DNS Intelligence Brief \u2014 executive summary');
+            scanAddLink('/analysis/' + analysisID + '/view/C', 'Recon Report \u00b7 Red Team \u00b7 Scotopic', 'Covert Recon Report \u2014 red-team perspective in the scotopic-preserving covert interface');
             fetch('/api/analysis/' + analysisID, { headers: { 'Accept': 'application/json' } }).then(function(resp) {
                 return resp.ok ? resp.json() : null;
             }).then(function(data) {
@@ -2079,7 +2137,9 @@
         }
 
         function scanPollOnce() {
+            let t0 = performance.now();
             fetch('/api/scan/progress/' + scanState.token).then(function(resp) {
+                scanState.lastPollMs = performance.now() - t0;
                 if (!resp.ok) { scanState.failures++; return null; }
                 scanState.failures = 0;
                 return resp.json();
