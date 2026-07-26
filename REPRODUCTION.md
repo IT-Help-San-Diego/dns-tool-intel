@@ -139,6 +139,32 @@ The container-asset paths were correct: templates resolved from
    logger cannot create `/app/logs` and falls back to stderr. Harmless for
    evaluation; worth fixing so container logs are complete.
 
+### 2026-07-26, independent confirmation on a second daemon
+
+The Replit agent ran the same tests on its own machine (linux/amd64), with no
+knowledge of my results, and reproduced them:
+
+| Test | Result |
+|---|---|
+| `docker build` from the PR head | PASS, first attempt; asset paths correct |
+| `docker run --rm <image> --version` | PASS, exit 0, `go1.25.12 linux/amd64` |
+| Run with no `DATABASE_URL` | FAIL — exits 1 at `config.go:72` |
+| Run with `DATABASE_URL` only | exits 1 — `SESSION_SECRET environment variable is required` |
+| Both set, database unreachable | degraded mode engages after 5 retries (~15 s) |
+
+Two details this adds beyond my own run:
+
+1. **Degraded mode's timing is bounded.** `db.Connect` retries 5 times at 3 s
+   intervals (`connectWithRetry(databaseURL, defaultConnector, 5, 3*time.Second)`),
+   so the maintenance page appears roughly 15 s after start, not immediately.
+2. **Degraded mode serves the maintenance page on every route** — `/api/capacity`
+   returns the 503 HTML, not JSON. So even a reachable-then-failed database does
+   not yield a partially functional API.
+
+This is the first genuinely independent reproduction of this deposit: a
+different machine, a different architecture, a different operator, same result.
+The build is portable and the documentation defect was real.
+
 ### NOT verified in the 2026-07-26 build run
 
 Stated plainly, because a reproduction record that only lists successes is not
