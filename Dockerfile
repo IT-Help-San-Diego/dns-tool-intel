@@ -1,12 +1,19 @@
 # DNS Tool — container image
 #
-# Purpose: let a researcher run the platform in one command, with no Go
-# toolchain and no database:
+# Purpose: let a researcher run the platform without installing a Go toolchain.
 #
-#   docker run --rm -p 5000:5000 ghcr.io/it-help-san-diego/dns-tool:latest
+# This image alone is NOT enough to serve: config.Load() requires both
+# DATABASE_URL and SESSION_SECRET and exits 1 before any listener is usable, so
+# a bare `docker run` of this image cannot serve a page. Use Compose, which
+# provisions PostgreSQL, loads the schema, and supplies both variables:
 #
-# The server enters degraded mode when DATABASE_URL is absent, so live DNS
-# analysis works out of the box; supply DATABASE_URL to enable history.
+#   docker compose up          # then http://localhost:5055
+#
+# Host port 5055, not 5000: on macOS the AirPlay Receiver (ControlCe) binds 5000
+# and answers 403 for everything, so localhost:5000 never reaches the container.
+#
+# `docker run --rm <image> --version` DOES work standalone — it needs no
+# database and opens no port.
 
 # ---------- build ----------
 # Pinned to the go.mod minimum. Bump both together.
