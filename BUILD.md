@@ -182,6 +182,12 @@ Each tagged release corresponds to a Zenodo archive under concept DOI
 contains the complete public source, and any archived version can be rebuilt
 with the commands above.
 
-`REPRODUCTION.md` records an independent build of a published deposit —
-archive checksum, exact commands, timings, and results — so the claim on this
-page is backed by a dated test rather than an assertion.
+`REPRODUCTION.md` records actual build-and-run attempts against a published
+deposit — archive checksum, exact commands, timings, results, and an explicit
+list of what was *not* verified — so the claim on this page is backed by dated
+tests rather than an assertion.
+
+As of 2026-07-26 the chain is verified end to end: the archive downloads,
+compiles (10.8 s, exit 0), the engine test packages pass, the container builds
+on two architectures, the schema loads, and the application answers HTTP —
+`/api/capacity` returns JSON and `/` returns 200.
