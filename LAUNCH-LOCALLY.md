@@ -70,7 +70,7 @@ Run it. Both variables are mandatory — the process exits 1 without either:
 ```bash
 export DATABASE_URL='<your Neon connection string>'
 export SESSION_SECRET="$(openssl rand -hex 32)"
-PORT=5000 ./dns-tool-server
+PORT=5055 ./dns-tool-server        # 5055, not 5000 — AirPlay owns 5000 on macOS
 ```
 
 Against a fresh, empty database, load the base schema first — the server applies
@@ -80,7 +80,7 @@ only `*seed*` migrations, not `schema.sql`:
 export DATABASE_URL='postgres://user:pass@localhost:5432/dnstool?sslmode=disable'
 export SESSION_SECRET="$(openssl rand -hex 32)"
 psql "$DATABASE_URL" -f go-server/db/schema/schema.sql
-PORT=5000 ./dns-tool-server
+PORT=5055 ./dns-tool-server        # 5055, not 5000 — AirPlay owns 5000 on macOS
 ```
 
 Then <http://localhost:5055>.
