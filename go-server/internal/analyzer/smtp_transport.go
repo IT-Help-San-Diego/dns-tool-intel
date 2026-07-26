@@ -327,7 +327,7 @@ func buildProbeResult(a *Analyzer, ctx context.Context, domain string, mxHosts [
         }
 
         if a.SMTPProbeMode == "skip" || a.SMTPProbeMode == "" {
-                probe[mapKeyReason] = "SMTP probe skipped — outbound TCP port 25 is blocked by cloud hosting provider. This is standard for all major cloud platforms (AWS, GCP, Azure, Replit) as an anti-spam measure. Transport security is assessed via DNS policy records above, which is the standards-aligned primary method per NIST SP 800-177 Rev. 1."
+                probe[mapKeyReason] = "SMTP probe skipped — outbound TCP port 25 is blocked upstream. This is standard for all major cloud platforms (AWS, GCP, Azure, Replit) and most residential ISPs as an anti-spam measure. Transport security is assessed via DNS policy records above, which is the standards-aligned primary method per NIST SP 800-177 Rev. 1."
                 probe[mapKeyProbeMethod] = "skip"
                 slog.Info("SMTP probe skipped (mode=skip)", mapKeyDomain, domain)
                 return probe
