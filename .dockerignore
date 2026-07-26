@@ -1,0 +1,15 @@
+.git
+.github
+.claude
+*.dump
+node_modules
+.go-build-cache
+.go-mod-cache
+.go-tmp
+dns-tool-server
+server
+Research Artifacts
+__pycache__
+*.log
+.DS_Store
+pgdata
