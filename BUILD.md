@@ -8,7 +8,13 @@ The platform needs a PostgreSQL database. This brings up both with one command:
 docker compose up
 ```
 
-Open <http://localhost:5000> and analyze a domain. `docker-compose.yml`
+Open <http://localhost:5055> and analyze a domain.
+
+**Why 5055 and not 5000:** on macOS the AirPlay Receiver service binds port 5000
+and answers every request with `403 Forbidden` (`Server: AirTunes`), so a request
+to `localhost:5000` never reaches the container. Compose publishes on 5055 to
+avoid the collision. On Linux either port works; check with
+`lsof -iTCP:5000 -sTCP:LISTEN` (macOS) or `ss -ltnp | grep 5000` (Linux). `docker-compose.yml`
 provisions PostgreSQL 16, generates a throwaway `SESSION_SECRET`, applies the
 schema, and starts the server.
 
@@ -22,6 +28,8 @@ docker run --rm -p 5000:5000 \
   -e SESSION_SECRET="$(openssl rand -hex 32)" \
   dns-tool
 ```
+
+(Adjust `-p` if port 5000 is taken on your host — see the AirPlay note above.)
 
 ### Required environment
 
