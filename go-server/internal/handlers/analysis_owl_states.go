@@ -52,7 +52,7 @@ var owlProtocolOrder = []struct {
 // owlLowConfidenceThreshold mirrors unified.ThresholdModerate (50.0) on the
 // 0-1 calibrated_confidence scale. Below it, the evidence for a protocol did
 // not reach moderate confidence — a metacognitive (know-what-we-don't-know)
-// signal, per the ICD 203-inspired calibration pipeline.
+// signal from the calibrated-confidence pipeline.
 const owlLowConfidenceThreshold = 0.50
 
 // owlSliceLen tolerates live []string values and JSON round-tripped []any —
