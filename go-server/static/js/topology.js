@@ -1822,6 +1822,9 @@
             chips: document.getElementById('topoScanChips'),
             links: document.getElementById('topoScanLinks'),
             note: document.getElementById('topoScanNote'),
+            ticker: document.getElementById('topoScanTicker'),
+            owls: document.getElementById('topoScanOwls'),
+            owlNote: document.getElementById('topoScanOwlNote'),
             exposure: document.getElementById('topoExposure'),
             devnull: document.getElementById('topoDevnull')
         };
@@ -1894,6 +1897,207 @@
         function fmtScanDur(ms) {
             if (ms >= 1000) return (ms / 1000).toFixed(1) + 's';
             return Math.round(ms) + 'ms';
+        }
+
+        /* ---- Epistemic ticker -------------------------------------------
+           Rolls real pipeline events only: live scans diff successive
+           progress polls (phase started / task counts / phase complete);
+           replays emit the recorded telemetry events as the timeline
+           passes each event's end offset. Nothing is synthesized. */
+
+        /* Mirrors analyzer.PhaseGroupLabels (phase_telemetry.go). */
+        let PHASE_LABELS = {
+            dns_records: 'DNS Records',
+            email_auth: 'Email Authentication',
+            dnssec_dane: 'DNSSEC & DANE',
+            ct_subdomains: 'Certificate Transparency',
+            smtp_transport: 'SMTP Transport',
+            policy_records: 'Policy Records',
+            registrar_infra: 'Registrar & Infrastructure',
+            analysis_engine: 'Analysis Engine',
+            web3_analysis: 'Web3 Analysis'
+        };
+
+        let TICKER_MAX_LINES = 40;
+        let tickerState = { prev: {}, lines: 0, emitted: null };
+
+        function phaseDisplay(g) { return PHASE_LABELS[g] || g; }
+
+        function fmtTickStamp(ms) { return (ms / 1000).toFixed(1) + 's'; }
+
+        function tickerReset() {
+            tickerState.prev = {};
+            tickerState.lines = 0;
+            tickerState.emitted = null;
+            if (scanEls.ticker) {
+                scanEls.ticker.textContent = '';
+                setHidden(scanEls.ticker, true);
+            }
+        }
+
+        function tickerLine(stamp, text, cls) {
+            let div = document.createElement('div');
+            div.className = 'topo-tick-line' + (cls ? ' ' + cls : '');
+            if (stamp) {
+                let t = document.createElement('span');
+                t.className = 'topo-tick-time';
+                t.textContent = stamp;
+                div.appendChild(t);
+            }
+            div.appendChild(document.createTextNode(text));
+            return div;
+        }
+
+        function tickerPush(frag, count) {
+            if (!scanEls.ticker || !count) return;
+            scanEls.ticker.appendChild(frag);
+            tickerState.lines += count;
+            while (tickerState.lines > TICKER_MAX_LINES && scanEls.ticker.firstChild) {
+                scanEls.ticker.removeChild(scanEls.ticker.firstChild);
+                tickerState.lines--;
+            }
+            setHidden(scanEls.ticker, false);
+            scanEls.ticker.scrollTop = scanEls.ticker.scrollHeight;
+        }
+
+        function tickerDiffLive(data) {
+            if (!scanEls.ticker) return;
+            let phases = data.phases || {};
+            let now = typeof data.elapsed_ms === 'number' ? fmtTickStamp(data.elapsed_ms) : '';
+            let frag = document.createDocumentFragment();
+            let count = 0;
+            for (let g in phases) {
+                let ph = phases[g];
+                let prev = tickerState.prev[g] || { status: 'pending', tasks_done: 0 };
+                let done = ph.status === 'done' || ph.status === 'complete';
+                let running = ph.status === 'running' || ph.status === 'started';
+                let prevDone = prev.status === 'done' || prev.status === 'complete';
+                let prevRunning = prev.status === 'running' || prev.status === 'started';
+                if (running && !prevRunning && !prevDone) {
+                    frag.appendChild(tickerLine(now, phaseDisplay(g) + ' \u2014 phase started', 'topo-tick-start'));
+                    count++;
+                }
+                let td = ph.tasks_done || 0;
+                if (!done && td > (prev.tasks_done || 0) && (ph.tasks_total || 0) > 0) {
+                    frag.appendChild(tickerLine(now, phaseDisplay(g) + ' \u2014 ' + td + '/' + ph.tasks_total + ' tasks', 'topo-tick-task'));
+                    count++;
+                }
+                if (done && !prevDone) {
+                    let durTxt = typeof ph.duration_ms === 'number' ? ' in ' + fmtScanDur(ph.duration_ms) : '';
+                    frag.appendChild(tickerLine(now, phaseDisplay(g) + ' \u2014 complete' + durTxt, 'topo-tick-done'));
+                    count++;
+                }
+                tickerState.prev[g] = { status: ph.status, tasks_done: td };
+            }
+            tickerPush(frag, count);
+        }
+
+        function tickerFail(msg) {
+            if (!scanEls.ticker) return;
+            let frag = document.createDocumentFragment();
+            frag.appendChild(tickerLine('', 'scan failed' + (msg ? ' \u2014 ' + msg : ''), 'topo-tick-fail'));
+            tickerPush(frag, 1);
+        }
+
+        function tickerReplayFrame(events, T) {
+            if (!scanEls.ticker) return;
+            if (!tickerState.emitted || tickerState.emitted.length !== events.length) {
+                tickerState.emitted = new Array(events.length);
+            }
+            let frag = document.createDocumentFragment();
+            let count = 0;
+            for (let i = 0; i < events.length; i++) {
+                if (tickerState.emitted[i]) continue;
+                let ev = events[i];
+                let end = ev.t + (ev.dur || 0);
+                if (end > T) continue;
+                tickerState.emitted[i] = true;
+                let name = (ev.task || 'task') + ' (' + phaseDisplay(ev.group) + ')';
+                if (ev.err) {
+                    frag.appendChild(tickerLine(fmtTickStamp(end), name + ' \u2014 ' + ev.err, 'topo-tick-fail'));
+                } else {
+                    let txt = name + ' \u2014 ' + fmtScanDur(ev.dur || 0);
+                    if (typeof ev.rc === 'number' && ev.rc > 0) {
+                        txt += ' \u00b7 ' + ev.rc + (ev.rc === 1 ? ' record' : ' records');
+                    }
+                    frag.appendChild(tickerLine(fmtTickStamp(end), txt, 'topo-tick-task'));
+                }
+                count++;
+            }
+            tickerPush(frag, count);
+        }
+
+        /* ---- Owl semaphore ----------------------------------------------
+           Renders the additive owl_semaphore key from /api/analysis/:id.
+           States are computed server-side from stored analysis data; the
+           client only displays them. Absent key = no owls (older scans). */
+
+        let OWL_DEFS = [
+            { key: 'normative', label: 'Normative', asset: 'NORM' },
+            { key: 'non_normative', label: 'Non-Normative', asset: 'NONNORM' },
+            { key: 'critical', label: 'Critical', asset: 'CRIT' },
+            { key: 'metacognitive', label: 'Metacognitive', asset: 'META' }
+        ];
+
+        function owlAssetURL(asset, w) {
+            return '/static/exports/owl-semaphore/derived/' + asset + '-composite-transparent-w' + w + '.webp';
+        }
+
+        function owlsReset() {
+            if (scanEls.owls) {
+                scanEls.owls.textContent = '';
+                setHidden(scanEls.owls, true);
+            }
+            if (scanEls.owlNote) {
+                scanEls.owlNote.textContent = '';
+                setHidden(scanEls.owlNote, true);
+            }
+        }
+
+        function owlToggleNote(label, reason) {
+            if (!scanEls.owlNote) return;
+            let open = !scanEls.owlNote.hidden && scanEls.owlNote.getAttribute('data-owl') === label;
+            if (open) {
+                setHidden(scanEls.owlNote, true);
+                return;
+            }
+            scanEls.owlNote.setAttribute('data-owl', label);
+            scanEls.owlNote.textContent = label + ': ' + reason;
+            setHidden(scanEls.owlNote, false);
+        }
+
+        function scanBuildOwls(sem) {
+            if (!scanEls.owls || !sem) return;
+            owlsReset();
+            let shown = 0;
+            for (let i = 0; i < OWL_DEFS.length; i++) {
+                let def = OWL_DEFS[i];
+                let st = sem[def.key];
+                if (!st || typeof st.lit !== 'boolean') continue;
+                let btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'topo-owl' + (st.lit ? ' is-lit' : '');
+                btn.title = (st.reason && typeof st.reason === 'string') ? st.reason : def.label;
+                let img = document.createElement('img');
+                img.src = owlAssetURL(def.asset, 40);
+                img.srcset = owlAssetURL(def.asset, 40) + ' 1x, ' + owlAssetURL(def.asset, 96) + ' 2x';
+                img.width = 40;
+                img.height = 40;
+                img.alt = def.label + ' owl \u2014 ' + (st.lit ? 'lit' : 'dark');
+                img.loading = 'lazy';
+                img.decoding = 'async';
+                btn.appendChild(img);
+                let cap = document.createElement('span');
+                cap.className = 'topo-owl-label';
+                cap.textContent = def.label;
+                btn.appendChild(cap);
+                (function(label, reason) {
+                    btn.addEventListener('click', function() { owlToggleNote(label, reason); });
+                })(def.label, (st.reason && typeof st.reason === 'string') ? st.reason : '');
+                scanEls.owls.appendChild(btn);
+                shown++;
+            }
+            setHidden(scanEls.owls, shown === 0);
         }
 
         function drawScanNodeLabel(n, text, color) {
@@ -2100,6 +2304,8 @@
             setHidden(scanEls.note, true);
             if (scanEls.chips) scanEls.chips.textContent = '';
             if (scanEls.links) scanEls.links.textContent = '';
+            tickerReset();
+            owlsReset();
             if (scanEls.run) scanEls.run.disabled = false;
             if (scanEls.status) {
                 scanEls.status.textContent = 'Scanning';
@@ -2217,6 +2423,7 @@
             }).then(function(data) {
                 if (scanState.gen !== myGen) return;
                 let fr = data && data.full_results;
+                if (data && data.owl_semaphore) scanBuildOwls(data.owl_semaphore);
                 if (fr) {
                     scanBuildChips(fr);
                 } else {
@@ -2261,7 +2468,9 @@
             if (!data) { scanCheckFailures(); return; }
             scanState.groups = data.phases || {};
             scanUpdateHud(data);
+            tickerDiffLive(data);
             if (data.status === 'failed') {
+                tickerFail(data.error || '');
                 scanFail(data.error || 'Analysis failed. Please try again.');
                 return;
             }
@@ -2402,6 +2611,7 @@
             let fr = replayFrame(d.events, replayState.T, d.total_ms);
             scanState.groups = fr.phases;
             scanUpdateHud(fr);
+            tickerReplayFrame(d.events, replayState.T);
             if (scanEls.latency) {
                 scanEls.latency.textContent = 'replay ' + replayState.speed + '\u00d7 \u00b7 recorded ' + fmtScanDur(d.total_ms);
             }
@@ -2432,6 +2642,8 @@
             scanState.ringsOn = true;
             if (scanEls.chips) scanEls.chips.textContent = '';
             if (scanEls.links) scanEls.links.textContent = '';
+            tickerReset();
+            owlsReset();
             setHidden(scanEls.verdict, true);
             setHidden(scanEls.note, true);
             setHidden(scanEls.error, true);
