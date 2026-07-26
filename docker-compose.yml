@@ -46,8 +46,13 @@ services:
       # if you want a different one; never reuse this value anywhere real.
       SESSION_SECRET: "${SESSION_SECRET:-local-evaluation-only-not-a-real-secret}"
       PORT: "5000"
+    # Host side is 5055, NOT 5000: on macOS the AirPlay Receiver service
+    # (ControlCe) binds 5000 and answers every request with 403 Forbidden and a
+    # `Server: AirTunes` header, so localhost:5000 never reaches this container.
+    # Verified 2026-07-26 via `lsof -iTCP:5000 -sTCP:LISTEN`.
+    # Container side stays 5000 (PORT default).
     ports:
-      - "5000:5000"
+      - "5055:5000"
 
 volumes:
   dnstool-pgdata:
