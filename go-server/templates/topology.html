@@ -3,6 +3,25 @@
 <head>
     {{template "head" .}}
     {{template "head_css" .}}
+    {{if .ReplayID}}
+    <title>Scan Replay — {{.ReplayDomain}} — DNS Tool</title>
+    <meta name="description" content="Timeline replay of a recorded DNS security scan of {{.ReplayDomain}}. Every event is a real recorded pipeline measurement — {{.ReplaySeconds}}s of analysis across 9 protocols, tamper-evident via SHA3-512.">
+    <meta name="robots" content="index, follow">
+    <meta property="og:url" content="https://dnstool.it-help.tech/replay/{{.ReplayID}}">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Scan Replay — {{.ReplayDomain}} — DNS Tool">
+    <meta property="og:description" content="Watch the recorded {{.ReplaySeconds}}s security scan of {{.ReplayDomain}} replay on the live pipeline topology.">
+    <meta property="og:image" content="https://dnstool.it-help.tech/static/images/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:alt" content="DNS Tool - Scan Replay">
+    <meta property="og:site_name" content="DNS Tool">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Scan Replay — {{.ReplayDomain}} — DNS Tool">
+    <meta name="twitter:description" content="Watch the recorded {{.ReplaySeconds}}s security scan of {{.ReplayDomain}} replay on the live pipeline topology.">
+    <meta name="twitter:image" content="https://dnstool.it-help.tech/static/images/og-image.png">
+    {{else}}
     <title>Protocol Topology — Analysis Pipeline Map — DNS Tool</title>
     <meta name="description" content="Interactive topology map of DNS Tool protocol analysis pipeline. Visualize resolver paths, dependency graphs, and security protocol coverage.">
     <meta name="robots" content="index, follow">
@@ -22,6 +41,7 @@
     <meta name="twitter:title" content="Protocol Topology — Analysis Pipeline Map — DNS Tool">
     <meta name="twitter:description" content="Interactive system architecture diagram showing DNS Tool protocol analysis topology.">
     <meta name="twitter:image" content="https://dnstool.it-help.tech/static/images/og-image.png">
+    {{end}}
     <style nonce="{{.CspNonce}}">
         .topo-canvas-wrap {
             position: relative;
@@ -422,6 +442,7 @@
     {{template "footer" .}}
     {{template "scripts" .}}
     <script nonce="{{.CspNonce}}">window.__TOPO_SOLVER={{.SolverLayouts}};</script>
+    {{if .ReplayID}}<script nonce="{{.CspNonce}}">window.__TOPO_REPLAY={id:{{.ReplayID}},domain:{{.ReplayDomain}},totalMs:{{.ReplayTotalMs}}};</script>{{end}}
     <script nonce="{{.CspNonce}}" src="{{staticVersionURL "js/topology.min.js" .AppVersion}}" defer {{staticSRI "js/topology.min.js"}}></script>
 </body>
 </html>
