@@ -194,6 +194,49 @@ verified end to end, each link by execution rather than by reading source:
 limiter initialised, i.e. the analysis pipeline is live rather than merely the
 router.
 
+### 2026-07-26, fifth run — the UI renders, but analysis was broken
+
+Opening `http://localhost:5055/` in a browser rendered the full interface. Every
+attempt to analyze a domain failed with a generic banner: "Network error — please
+check your connection and try again."
+
+The server log gave the real reason:
+
+```
+WARN  CSRF validation failed  event=csrf_reject  reason="missing CSRF cookie"
+      method=POST  path=/analyze  remote_addr=172.19.0.1
+INFO  Request completed  method=POST  path=/analyze  status=303
+```
+
+**Defect 7 — `Secure` cookies are discarded over plain HTTP.** `csrf.go` set
+`Secure: true` unconditionally on the `_csrf` cookie (and `ratelimit.go` did the
+same for the two flash cookies). A browser silently refuses to store a `Secure`
+cookie delivered over `http://`, so the double-submit check had no cookie to
+compare against and every POST was rejected with a 303 back to the form. The
+frontend's `.catch()` in `main.js` reports any non-2xx as "Network error", which
+is why the cause was invisible from the UI.
+
+This is the defect that most directly answers "can a researcher use this?" —
+the container serves, the interface renders, and **the primary function silently
+does not work.** A researcher would reasonably conclude the tool was broken.
+
+**Fix:** a new `CookieSecure(c)` helper returns `true` for every request that is
+not provably a plaintext loopback request. Both conditions must hold to drop
+`Secure`: no TLS (directly or via `X-Forwarded-Proto`, the same test the CSP
+`upgrade-insecure-requests` directive already used) *and* a loopback `Host`.
+Production traffic fails both tests, so a deployed cookie cannot be downgraded.
+
+**Verification:** `go test ./go-server/internal/middleware/` — 13 table cases
+plus two end-to-end handler tests, all passing, and the full existing middleware
+suite still `ok`. The cases that matter are the ones asserting `Secure` is
+*kept*: canonical host behind a TLS-terminating proxy, canonical host with direct
+TLS, canonical host over plaintext, a loopback host that is nonetheless
+TLS-terminated upstream, a LAN address, a hostname merely containing
+"localhost", `evil.localhost`, and an empty `Host`.
+
+Not yet confirmed in a browser — the fix is committed but the container has not
+been rebuilt against it.
+
 ### Remaining open items
 
 Stated plainly, because a reproduction record that only lists successes is not
@@ -212,9 +255,10 @@ evidence:
   third-run entry above.
 - ~~**An HTTP 200 from the application has still not been captured.**~~
   **Closed** — see the fourth-run entry above.
-- **No analysis has been run through the container.** Serving is confirmed; a
-  full domain analysis (which makes live outbound DNS queries from inside the
-  container) has not been exercised.
+- **No analysis has completed through the container.** Serving is confirmed and
+  the cookie defect that blocked submission is fixed and unit-tested, but no
+  domain analysis has yet run end to end — so live outbound DNS from inside the
+  container remains unverified.
 - **Linux/amd64 serving is unconfirmed.** The Replit agent verified the build and
   `--version` on amd64 but did not bring up Compose there; the HTTP 200 above is
   from darwin/arm64.
