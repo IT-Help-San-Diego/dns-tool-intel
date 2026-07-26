@@ -2,33 +2,37 @@
 
 ## Fastest path — Docker, no toolchain required
 
-If you just want to see it run, this is the whole thing. No Go, no PostgreSQL,
-no configuration:
+The platform needs a PostgreSQL database. This brings up both with one command:
 
 ```bash
-docker run --rm -p 5000:5000 ghcr.io/it-help-san-diego/dns-tool:latest
+docker compose up
 ```
 
-Open <http://localhost:5000> and analyze a domain.
+Open <http://localhost:5000> and analyze a domain. `docker-compose.yml`
+provisions PostgreSQL 16, generates a throwaway `SESSION_SECRET`, applies the
+schema, and starts the server.
 
-This starts in **degraded mode** — no database, so analysis history and
-saved reports are unavailable, but live DNS analysis works. That is the
-intended way to evaluate the tool.
-
-To keep history across restarts, supply a PostgreSQL connection:
-
-```bash
-docker run --rm -p 5000:5000 \
-  -e DATABASE_URL="postgres://user:pass@host:5432/dbname?sslmode=require" \
-  ghcr.io/it-help-san-diego/dns-tool:latest
-```
-
-Build the image yourself instead of pulling it:
+Without Compose you must supply both required variables yourself — the server
+**exits immediately** if either is missing:
 
 ```bash
 docker build -t dns-tool .
-docker run --rm -p 5000:5000 dns-tool
+docker run --rm -p 5000:5000 \
+  -e DATABASE_URL="postgres://user:pass@host:5432/dbname?sslmode=require" \
+  -e SESSION_SECRET="$(openssl rand -hex 32)" \
+  dns-tool
 ```
+
+### Required environment
+
+| Variable | Required | Notes |
+|---|---|---|
+| `DATABASE_URL` | **yes** | `config.Load()` returns an error without it and the process exits 1 |
+| `SESSION_SECRET` | **yes** | same — any random string works for local evaluation |
+| `PORT` | no | defaults to 5000 |
+
+There is no run-without-a-database mode. See *Degraded mode* below for what
+that term actually means in this codebase.
 
 ## Building from source
 
@@ -91,15 +95,23 @@ export PORT=5000        # optional, 5000 is the default
 
 The server is then available at <http://localhost:5000>.
 
-### Running without a database
+### Degraded mode — what it is, and what it is not
 
-**DNS Tool runs without PostgreSQL.** If `DATABASE_URL` is unset or the
-database is unreachable, the server logs the failure and enters **degraded
-mode** rather than exiting: pages that need no persistence still render and
-live DNS analysis still works. What you lose is anything requiring storage —
-analysis history, saved reports, statistics, and the confidence trend pages.
+`main.go` has a `runDegradedMode` path, but it does **not** mean the server runs
+without a database. The distinction matters:
 
-This is the recommended way to try the tool for the first time.
+- **`DATABASE_URL` absent** → `config.Load()` returns
+  `"DATABASE_URL environment variable is required"` and the process **exits 1**.
+  Degraded mode is never reached, because config loading happens first.
+- **`DATABASE_URL` present but the database is unreachable** → `db.Connect`
+  fails, `runDegradedMode` takes over, and the server serves a maintenance page
+  (HTTP 503) plus `/healthz` returning
+  `{"status":"degraded","reason":"database_unavailable"}`. It retries the
+  connection every 15 s.
+
+Degraded mode is a resilience feature for a database outage in production. It is
+not an evaluation mode: no DNS analysis is available while it is active, only
+the maintenance page. Use `docker compose up` to evaluate the tool.
 
 ### Running with a database
 
@@ -109,8 +121,19 @@ export PORT=5000
 ./server
 ```
 
-Schema migrations under `go-server/db/migrations` are applied automatically at
-startup. PostgreSQL 16 or newer is expected.
+PostgreSQL 16 or newer is expected.
+
+**Schema initialisation caveat.** `RunSeedMigrations` runs at startup but only
+applies files whose names contain `seed` — currently
+`013_seed_findings_and_ede.sql` and `015_confidence_scores_link_seed.sql`. The
+base schema is **not** auto-applied. Against a fresh, empty database, load it
+first:
+
+```bash
+psql "$DATABASE_URL" -f go-server/db/schema/schema.sql
+```
+
+`docker compose up` does this for you.
 
 ## Running the tests
 
