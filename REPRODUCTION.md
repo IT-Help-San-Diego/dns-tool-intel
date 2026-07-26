@@ -61,7 +61,49 @@ exit 0
 Confirmed to require no database, no environment variables, and no bindable
 port. `--help`, `-v`, and bare `version` behave equivalently.
 
-### NOT verified in this run
+### 2026-07-26, later the same day — container verified by the author
+
+The `Dockerfile` was built and run on the author's machine (Docker legacy
+builder, darwin/arm64). **All 23 steps succeeded**, image tagged
+`dns-tool-test:latest`. This closes the container item below.
+
+The run then produced a result that contradicted this project's own
+documentation, which is the more valuable outcome:
+
+```
+INFO  Citation registry loaded entries=62
+INFO  Early listener started — accepting healthchecks  address=0.0.0.0:5000
+ERROR Failed to load config  error="DATABASE_URL environment variable is required"
+[exit 1]
+```
+
+**The server does not run without a database.** `BUILD.md` had claimed it did,
+on the strength of reading `runDegradedMode` in `main.go` without executing it.
+Tracing the actual order of operations:
+
+1. `config.Load()` runs **before** `db.Connect`, and returns an error when
+   `DATABASE_URL` is unset — `main.go` then calls `os.Exit(1)`.
+2. `SESSION_SECRET` is required by the same function, so it is a second hard
+   dependency that was undocumented.
+3. `runDegradedMode` is only reachable when `DATABASE_URL` **is** set but the
+   database is unreachable. It serves a 503 maintenance page and retries every
+   15 s. It is a production-outage resilience path, not an evaluation mode — no
+   DNS analysis is available while it is active.
+
+A third defect surfaced from the same trace: `RunSeedMigrations` only applies
+migration files whose names contain `seed` (two of fifteen), so the base schema
+is **not** created automatically on a fresh database.
+
+Fixes: `BUILD.md` corrected on all three points, and `docker-compose.yml` added
+so `docker compose up` provisions PostgreSQL, loads `schema.sql`, and supplies
+both required variables.
+
+**This is the value of running the thing.** Three defects — a false capability
+claim, an undocumented required variable, and a schema-initialisation gap — none
+of which were visible from reading the source, and all of which a researcher
+would have hit within a minute of first launch.
+
+### NOT verified in the 2026-07-26 build run
 
 Stated plainly, because a reproduction record that only lists successes is not
 evidence:
@@ -70,14 +112,18 @@ evidence:
   to start the server — `PORT=5000`, `8099`, `18080` — failed at
   `bind: operation not permitted` before reaching application logic. No page
   was ever served and no endpoint was reached.
-- **Degraded mode.** `main.go` calls `runDegradedMode` when `db.Connect` fails,
-  which should let the server run without PostgreSQL. This was read in source
-  only, never executed. `BUILD.md` documents the behaviour on that basis and it
-  needs confirmation on a machine that can open a port.
-- **Container image.** The `Dockerfile` added in this release was not built —
-  no Docker in the test environment. Asset paths in it were verified against
-  `findTemplatesDir()` / `findStaticDir()` / `RunSeedMigrations()` by reading
-  the source, not by running the image.
+- ~~**Degraded mode.**~~ **Resolved — the documented claim was false.** See
+  above: it is a database-outage path, not a no-database mode, and reaching it
+  requires `DATABASE_URL` to be set.
+- ~~**Container image.**~~ **Now verified** — see the entry above. All 23 build
+  steps completed and the binary started; the asset paths were correct.
+- **HTTP serving still unconfirmed.** The container exited on the missing
+  `DATABASE_URL` before serving a request, so no page has yet been retrieved
+  from any build of this deposit. `docker compose up` should close this, and has
+  not itself been run.
+- **`docker-compose.yml` is untested.** Written after the failure above; it
+  parses as valid YAML and the schema path it mounts exists, but no one has run
+  it.
 - **Clean-room independence.** A remote host was dispatched first but was
   powered down (`connect ... Operation timed out`), so the build ran on the
   author's own machine with a project-adjacent toolchain. It is a build from a
