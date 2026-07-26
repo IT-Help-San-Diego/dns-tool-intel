@@ -26,6 +26,8 @@ type mockAnalysisStore struct {
         GetAnalysisByIDFn                  func(ctx context.Context, id int32) (dbq.DomainAnalysis, error)
         CheckAnalysisOwnershipFn           func(ctx context.Context, arg dbq.CheckAnalysisOwnershipParams) (bool, error)
         GetRecentAnalysisByDomainFn        func(ctx context.Context, domain string) (dbq.DomainAnalysis, error)
+        GetTelemetryByAnalysisFn           func(ctx context.Context, analysisID int32) ([]dbq.ScanPhaseTelemetry, error)
+        GetTelemetryHashFn                 func(ctx context.Context, analysisID int32) (dbq.ScanTelemetryHash, error)
 }
 
 func (m *mockAnalysisStore) InsertAnalysis(ctx context.Context, arg dbq.InsertAnalysisParams) (dbq.InsertAnalysisRow, error) {
@@ -138,6 +140,20 @@ func (m *mockAnalysisStore) GetRecentAnalysisByDomain(ctx context.Context, domai
                 return m.GetRecentAnalysisByDomainFn(ctx, domain)
         }
         return dbq.DomainAnalysis{}, nil
+}
+
+func (m *mockAnalysisStore) GetTelemetryByAnalysis(ctx context.Context, analysisID int32) ([]dbq.ScanPhaseTelemetry, error) {
+        if m.GetTelemetryByAnalysisFn != nil {
+                return m.GetTelemetryByAnalysisFn(ctx, analysisID)
+        }
+        return nil, nil
+}
+
+func (m *mockAnalysisStore) GetTelemetryHash(ctx context.Context, analysisID int32) (dbq.ScanTelemetryHash, error) {
+        if m.GetTelemetryHashFn != nil {
+                return m.GetTelemetryHashFn(ctx, analysisID)
+        }
+        return dbq.ScanTelemetryHash{}, errors.New("no telemetry hash recorded")
 }
 
 type mockStatsExecer struct {

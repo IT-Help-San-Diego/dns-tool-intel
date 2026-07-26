@@ -43,7 +43,10 @@ func (h *TopologyHandler) loadSolverLayouts() {
         }
 }
 
-func (h *TopologyHandler) Topology(c *gin.Context) {
+// SolverJSON returns the merged solver layout profiles as a template.JS
+// value, loading them once. Shared by the /topology page and the
+// /replay/:id permalink so both render identical layout data.
+func (h *TopologyHandler) SolverJSON() template.JS {
         h.solverOnce.Do(h.loadSolverLayouts)
 
         solverJSON := "{}"
@@ -53,8 +56,11 @@ func (h *TopologyHandler) Topology(c *gin.Context) {
                         solverJSON = string(merged)
                 }
         }
+        return template.JS(solverJSON)
+}
 
+func (h *TopologyHandler) Topology(c *gin.Context) {
         data := NewTemplateData(c, h.Config, "topology")
-        data["SolverLayouts"] = template.JS(solverJSON)
+        data["SolverLayouts"] = h.SolverJSON()
         c.HTML(http.StatusOK, "topology.html", data)
 }

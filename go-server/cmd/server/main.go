@@ -542,6 +542,7 @@ func registerAnalysisRoutes(d routeDeps, analysis *handlers.AnalysisHandler, his
 	d.Router.GET("/export/subdomains", analysis.ExportSubdomainsCSV)
 	d.Router.GET("/analysis/:id/crossref", d.HeavyShed, analysis.ViewCrossReference)
 	d.Router.GET("/api/analysis/:id", analysis.APIAnalysis)
+	d.Router.GET("/api/replay/:id", analysis.APIReplay)
 	d.Router.GET("/api/analysis/:id/checksum", analysis.APIAnalysisChecksum)
 	d.Router.GET("/api/analysis/:id/crossref", d.HeavyShed, analysis.APICrossReference)
 	d.Router.GET("/api/subdomains/*domain", analysis.APISubdomains)
@@ -618,10 +619,10 @@ func registerFeatureRoutes(d routeDeps, analysis *handlers.AnalysisHandler, prox
 	d.Router.GET("/zone", middleware.RequireFeature(entitlements.FeatureZoneUpload), zoneHandler.UploadForm)
 	d.Router.POST("/zone/upload", middleware.RequireFeature(entitlements.FeatureZoneUpload), zoneHandler.ProcessUpload)
 
-	registerContentRoutes(d.Router, d.Cfg, d.DB, static)
+	registerContentRoutes(d.Router, d.Cfg, d.DB, static, analysis)
 }
 
-func registerContentRoutes(router *gin.Engine, cfg *config.Config, database *db.Database, static *handlers.StaticHandler) {
+func registerContentRoutes(router *gin.Engine, cfg *config.Config, database *db.Database, static *handlers.StaticHandler, analysis *handlers.AnalysisHandler) {
 	sourcesHandler := handlers.NewSourcesHandler(cfg)
 	router.GET("/sources", sourcesHandler.Sources)
 
@@ -641,6 +642,7 @@ func registerContentRoutes(router *gin.Engine, cfg *config.Config, database *db.
 
 	topologyHandler := handlers.NewTopologyHandler(cfg)
 	router.GET("/topology", topologyHandler.Topology)
+	router.GET("/replay/:id", analysis.ReplayPage(topologyHandler))
 
 	changelogHandler := handlers.NewChangelogHandler(cfg)
 	router.GET("/changelog", changelogHandler.Changelog)
