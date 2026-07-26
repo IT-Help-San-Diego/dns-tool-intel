@@ -55,7 +55,6 @@
 | testssl.sh | TLS/SSL analysis |
 | Subfinder | Passive subdomain enumeration |
 | WeasyPrint | HTML-to-PDF methodology docs |
-| SonarQube | Code quality reporting |
 
 ## Quality Gates
 | Script | Rule ID | Purpose |

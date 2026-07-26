@@ -136,7 +136,7 @@ Rules:
 
 1. `CITATION.cff` (`doi:` field) and `codemeta.json` (`identifier`) carry the **concept DOI**, not a version DOI. Dev bumps (config-only) must not modify these fields.
 2. Per-release version DOIs are recorded by Zenodo automatically on archive deposit; `.zenodo.json` describes the deposit metadata but does not itself carry the resulting version DOI.
-3. `scripts/release-gate.sh` updates `version:` fields in versioned artifacts (`CITATION.cff`, `codemeta.json`, `sonar-project.properties`, methodology docs) at tag time; the concept DOI does not change.
+3. `scripts/release-gate.sh` updates `version:` fields in versioned artifacts (`CITATION.cff`, `codemeta.json`, methodology docs) at tag time; the concept DOI does not change.
 4. Migrating to a new concept DOI (new Zenodo chain) requires an explicit migration note and a sweep of every metadata file that embeds the DOI string. This is intentionally rare.
 
 When citing DNS Tool externally, prefer the concept DOI unless a specific version is required.

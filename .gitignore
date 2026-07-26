@@ -42,7 +42,6 @@ generated-icon.png
 .drift/
 
 # SonarCloud scanner work directory (temp artifacts, binaries)
-.scannerwork/
 
 # Agent skills and internal docs — local only, never public
 .agents/

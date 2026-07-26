@@ -11,7 +11,6 @@
 # What this DOESN'T run (use other scripts):
 #   - dbtest / integration tags (need live PostgreSQL + network)
 #   - Lighthouse / Observatory (use scripts/quality-gate.sh)
-#   - SonarCloud (CI-only)
 #
 # Build tags reference:
 #   default     ~33K core lines

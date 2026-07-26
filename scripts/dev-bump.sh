@@ -4,8 +4,7 @@
 # The app version is now DERIVED FROM GIT (scripts/version.sh) and injected at
 # build time via -ldflags. Routine development ships NO LONGER bump a version
 # file at all — that hand-edit of the same Version line on every ship was the
-# single cause of the chronic every-ship merge conflict on config.go +
-# sonar-project.properties. There is nothing to bump for a dev ship.
+# single cause of the chronic every-ship merge conflict on config.go. There is nothing to bump for a dev ship.
 #
 # WHAT TO DO NOW:
 #   * Routine dev ship: just ship. The binary's version auto-advances from git
