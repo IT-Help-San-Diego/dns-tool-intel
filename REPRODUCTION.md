@@ -90,8 +90,15 @@ evidence:
 3. `BUILD.md` never mentioned `DATABASE_URL` or degraded mode — documented.
 4. `BUILD.md` said "Go 1.25+" while `go.mod` requires ≥ 1.25.12 — corrected.
 5. `.zenodo.json` claimed all `*_oss.go` build-tag stubs are included; the
-   archive contains zero. The build succeeds regardless, so the claim is
-   obsolete rather than harmful — pending correction in the deposit metadata.
+   archive contains zero. **Resolved — the claim was stale, not the archive
+   incomplete.** Git history shows `_oss.go` files did exist (added in the
+   initial import) and `_intel.go` counterparts appear in 13 commits, but
+   `docs/ARCHIVED_BUILD_TAG_HISTORY.md` records that v26.48 unified the two
+   repositories, removed every build tag, and renamed each `_oss.go` stub to
+   `_impl.go` carrying its full implementation. Eight `_impl.go` files are
+   present in both the working tree and this deposit, and `grep` finds no
+   `//go:build intel` tag anywhere. Nothing is withheld from the archive; the
+   description was simply written for the previous architecture. Corrected.
 6. Deposit metadata version read 26.46.14 while the archived file was
    `v26.50.05.zip`. Guarded going forward by
    `.github/workflows/guard_release_metadata.yml`.
