@@ -42,8 +42,8 @@ that term actually means in this codebase.
   (the exact minimum is in `go.mod`; older toolchains refuse to build)
 - **Git**
 
-No database is required to build, and none is required to run — see
-*Running without a database* below.
+No database is required to **build**. Running the server does require one —
+`DATABASE_URL` and `SESSION_SECRET` are both mandatory (see *Running* below).
 
 ### Quick Start
 
@@ -88,12 +88,27 @@ binary runs. `./server --help` lists the supported environment variables.
 
 ## Running
 
+Both variables below are mandatory. `config.Load()` returns an error and the
+process exits 1 if either is missing:
+
 ```bash
+export DATABASE_URL="postgres://user:pass@localhost:5432/dnstool?sslmode=disable"
+export SESSION_SECRET="$(openssl rand -hex 32)"
 export PORT=5000        # optional, 5000 is the default
 ./server
 ```
 
 The server is then available at <http://localhost:5000>.
+
+Against a **fresh, empty** database, load the base schema first — the server
+does not create it (see *Schema initialisation caveat* below):
+
+```bash
+psql "$DATABASE_URL" -f go-server/db/schema/schema.sql
+```
+
+If you do not want to provision PostgreSQL by hand, use `docker compose up`
+instead — it does all of the above for you.
 
 ### Degraded mode — what it is, and what it is not
 
@@ -113,13 +128,7 @@ Degraded mode is a resilience feature for a database outage in production. It is
 not an evaluation mode: no DNS analysis is available while it is active, only
 the maintenance page. Use `docker compose up` to evaluate the tool.
 
-### Running with a database
-
-```bash
-export DATABASE_URL="postgres://user:pass@localhost:5432/dnstool?sslmode=disable"
-export PORT=5000
-./server
-```
+### Database requirements
 
 PostgreSQL 16 or newer is expected.
 
