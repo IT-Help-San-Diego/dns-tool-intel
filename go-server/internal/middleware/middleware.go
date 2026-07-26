@@ -9,6 +9,7 @@ import (
         "encoding/base64"
         "fmt"
         "log/slog"
+        "net"
         "net/http"
         "net/url"
         "os"
@@ -65,6 +66,41 @@ func RequestContext() gin.HandlerFunc {
                         "duration_ms", fmt.Sprintf("%.1f", float64(duration.Microseconds())/1000.0),
                 )
         }
+}
+
+// CookieSecure reports whether the Secure attribute should be set on cookies
+// for this request.
+//
+// Secure is the correct default and is returned for every request that is not
+// provably a plaintext loopback request. A browser silently DISCARDS a
+// Secure cookie delivered over plain http://, which breaks the CSRF
+// double-submit check on a local `docker compose up` — the POST arrives with no
+// _csrf cookie and is rejected, surfacing in the UI as a generic
+// "Network error". See REPRODUCTION.md (2026-07-26).
+//
+// The exemption is deliberately narrow: BOTH conditions must hold.
+//   1. The request did not arrive over TLS, directly or via a terminating
+//      proxy (same test as the CSP upgrade-insecure-requests directive below).
+//   2. The Host is a loopback address.
+//
+// Production traffic fails both tests — it terminates TLS at the edge and
+// carries X-Forwarded-Proto: https with the canonical public Host — so this
+// cannot silently downgrade a deployed cookie. It is not gated on a dev-mode
+// env var, because the container case that needs it has no such variable set.
+func CookieSecure(c *gin.Context) bool {
+	if c.Request.TLS != nil || c.GetHeader("X-Forwarded-Proto") == "https" {
+		return true
+	}
+	host := c.Request.Host
+	if h, _, err := net.SplitHostPort(host); err == nil {
+		host = h
+	}
+	host = strings.TrimSuffix(strings.TrimPrefix(host, "["), "]")
+	switch host {
+	case "localhost", "127.0.0.1", "::1":
+		return false
+	}
+	return true
 }
 
 func CookieSameSite(c *gin.Context) http.SameSite {
