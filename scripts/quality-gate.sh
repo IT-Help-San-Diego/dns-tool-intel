@@ -24,7 +24,6 @@
 #   - Full handler test matrix → scripts/test-all.sh
 #   - Lighthouse 100/100/100/100 deep run → npx lighthouse manually
 #   - Observatory 145+ → web UI at https://developer.mozilla.org/en-US/observatory
-#   - SonarCloud A/A/A → CI-only
 
 set -uo pipefail
 cd "$(dirname "$0")/.."

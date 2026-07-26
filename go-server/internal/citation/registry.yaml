@@ -549,14 +549,6 @@ citations:
     functional_area: quality-gate
     publisher: Mozilla
 
-  - id: "sonar:sonarcloud"
-    type: tool
-    title: "SonarCloud"
-    url: "https://sonarcloud.io"
-    status: active
-    functional_area: quality-gate
-    publisher: SonarSource
-
   # ── Data Sources ──
   - id: "source:team-cymru"
     type: data-source

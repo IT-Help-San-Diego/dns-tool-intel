@@ -61,9 +61,9 @@ APIs must only use methods/events that `foundation.js` actually implements.
 - **E2E**: Playwright with TypeScript in `tests/e2e/`
 
 ## Version Management
-- Single source of truth: `go-server/internal/config/config.go` → `Version = "X.Y.Z"`
-- `build.sh` reads version automatically
-- Must also update: `sonar-project.properties`, `CITATION.cff`, `codemeta.json`
+- Single source of truth: git (`git describe --tags`, via `scripts/version.sh`), injected at build time by `build.sh` via `-ldflags`
+- `config.go` `Version = "dev"` is a no-ldflags fallback only — never hand-edit it
+- `CITATION.cff` / `codemeta.json` are updated only by `scripts/release-gate.sh` at tag time
 - Service worker cache version auto-updates from binary
 
 ## Static Asset Serving

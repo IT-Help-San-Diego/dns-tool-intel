@@ -27,7 +27,7 @@ cd "$(dirname "$0")/.."
 REPO="IT-Help-San-Diego/dns-tool-intel"
 LOCAL_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "replit-agent")
 REMOTE_BRANCH="$LOCAL_BRANCH"
-SHIP_BRANCH="main"   # The branch that drives CI/SonarCloud/deployments
+SHIP_BRANCH="main"   # The branch that drives CI/deployments
 PUSH_MAIN=1          # Default ON: a successful push must also fast-forward main
 GIT_PAT="${GH_SYNC_TOKEN:-${GITHUB_MASTER_PAT:-}}"
 
@@ -454,7 +454,7 @@ while [ "$ELAPSED" -lt "$MAX_WAIT" ]; do
     if [ "$CONFLICT_SEEN" -ge 2 ]; then
       echo ""
       echo "SHIP HALTED — PR #${PR_NUM} has a merge conflict against ${SHIP_BRANCH}; auto-merge cannot fire."
-      echo "  This is almost always the version-file conflict (config.go / sonar-project.properties)."
+      echo "  This is almost always the version-file conflict (config.go)."
       echo "  Fix: bash scripts/sync-local-to-main.sh   # merges main into local, resolves version files"
       echo "  Then re-run: bash scripts/git-push.sh      # fresh branch, clean PR, supersedes #${PR_NUM}"
       echo "  Inspect: gh pr view -R $REPO $PR_NUM --web"

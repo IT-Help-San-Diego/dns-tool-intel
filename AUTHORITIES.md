@@ -158,7 +158,6 @@ These are not standards bodies but tool vendors whose metrics we treat as mandat
 |-----------|------|------------|-----|
 | Google | Lighthouse | Performance 100, Best Practices 100, Accessibility 100, SEO 100 | https://pagespeed.web.dev |
 | Mozilla | Observatory | Score 145 (A+, never decrease) | https://observatory.mozilla.org |
-| SonarSource | SonarCloud | Reliability A, Security A, Maintainability A | https://sonarcloud.io |
 
 **Rule**: These scores are checked during development, not after. A regression in any gate blocks the change.
 
@@ -222,5 +221,5 @@ These are NOT ratified standards. We detect them as intelligence but never claim
 
 - **When adding a new feature**: Check if the underlying standard is listed here. If not, add it with current status.
 - **Every quarter**: Spot-check draft statuses on datatracker. Drafts expire, get adopted, or die.
-- **After any Lighthouse/Observatory/SonarCloud regression**: Trace the regression to its root cause and document in EVOLUTION.md "Gotchas" section.
+- **After any Lighthouse/Observatory regression**: Trace the regression to its root cause and document in EVOLUTION.md "Gotchas" section.
 - **Before citing any RFC in UI copy**: Verify it on datatracker. Do not trust cached memory.

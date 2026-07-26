@@ -58,7 +58,7 @@ def find_code_tags():
     }
 
     root_config_files = [
-        ".gitleaks.toml", ".semgrepignore", "sonar-project.properties",
+        ".gitleaks.toml", ".semgrepignore",
     ]
     for cfg in root_config_files:
         cfg_path = os.path.join(REPO_ROOT, cfg)

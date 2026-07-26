@@ -44,7 +44,6 @@ These are HARD STOPS. No change ships unless ALL pass. No exceptions. No "we'll 
 
 | Gate | Target | Verification Command | Failure = STOP |
 |------|--------|---------------------|----------------|
-| **SonarCloud** | A rating, all categories, 100% | SonarCloud dashboard | Yes |
 | **Lighthouse** | 100, all categories | `lighthouse` or Chrome DevTools | Yes |
 | **Mozilla Observatory** | 145+ score | observatory.mozilla.org | Yes |
 | **SRI** | All CSS/JS assets have SHA-384 integrity + crossorigin | `curl` + grep for `integrity=` | Yes |
@@ -65,7 +64,7 @@ These are HARD STOPS. No change ships unless ALL pass. No exceptions. No "we'll 
 
 ### Version Separation — Development vs Citation
 
-**Development version** (`config.go`, `sonar-project.properties`, UI badge):
+**Development version** (git-derived, injected at build time via `-ldflags`; UI badge):
 - Tracks the current development state
 - Changes with every meaningful code change
 
@@ -121,7 +120,7 @@ These are patterns where AI assistants commonly introduce errors in this codebas
 | **Hard-coded test data** | Code review | Test data must come from golden fixtures or deterministic generators |
 | **Confidence inflation** | ICAE score regression | ICAE audit scores must not decrease after a change |
 | **Citation metadata drift** | CITATION.cff version ≠ Zenodo release | Never bump CITATION.cff/codemeta.json during dev; only on Zenodo release |
-| **Quality gate regression** | Lighthouse/Observatory/Sonar score drops | Run ALL quality gates before and after every change |
+| **Quality gate regression** | Lighthouse/Observatory score drops | Run ALL quality gates before and after every change |
 | **IP leak in commit messages** | Public git log review | Never reference proprietary logic, Easter eggs, or intel details in public commits |
 
 ---
