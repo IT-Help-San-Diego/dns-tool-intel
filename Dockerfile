@@ -63,6 +63,11 @@ COPY --chown=dnstool:dnstool static/                  ./static/
 COPY --chown=dnstool:dnstool docs/                    ./docs/
 COPY --chown=dnstool:dnstool go-server/db/migrations/  ./go-server/db/migrations/
 
+# The structured logger creates ./logs at startup. WORKDIR is root-owned, so
+# without this the non-root user hits "mkdir logs: permission denied" and falls
+# back to stderr (non-fatal, but it loses the structured log pipeline).
+RUN mkdir -p /app/logs && chown dnstool:dnstool /app/logs
+
 USER dnstool
 
 ENV PORT=5000
