@@ -165,7 +165,36 @@ This is the first genuinely independent reproduction of this deposit: a
 different machine, a different architecture, a different operator, same result.
 The build is portable and the documentation defect was real.
 
-### NOT verified in the 2026-07-26 build run
+### 2026-07-26, fourth run — the deposit serves. Loop closed.
+
+With the host port corrected to 5055, a client reached the application:
+
+```
+$ curl -s localhost:5055/api/capacity
+{"available":20,"in_use":0,"ready":true,"status":"ok","total":20}
+
+$ curl -s -o /dev/null -w '%{http_code}\n' localhost:5055/
+200
+```
+
+This is the **first HTTP response recorded from this deposit**. The chain is now
+verified end to end, each link by execution rather than by reading source:
+
+| Link | Status | Evidence |
+|---|---|---|
+| Archive downloads from Zenodo | verified | 173,482,750 bytes, SHA-256 recorded above |
+| Compiles from source | verified | `go build` exit 0, 10.8 s, 65 MB binary |
+| Engine tests pass | verified | icae, icuae, unified, zoneparse, citation all `ok` |
+| `--version` works | verified | exit 0, no database, no port |
+| Container builds | verified | 23/24 steps, two machines, two architectures |
+| Database provisions and schema loads | verified | `00-schema.sql` applied, both seed migrations |
+| **Application serves HTTP** | **verified** | `/api/capacity` → JSON, `/` → 200 |
+
+`/api/capacity` returning `total: 20, in_use: 0` also confirms the scan-slot
+limiter initialised, i.e. the analysis pipeline is live rather than merely the
+router.
+
+### Remaining open items
 
 Stated plainly, because a reproduction record that only lists successes is not
 evidence:
@@ -181,10 +210,14 @@ evidence:
   steps completed and the binary started; the asset paths were correct.
 - ~~**`docker-compose.yml` is untested.**~~ **Now run successfully** — see the
   third-run entry above.
-- **An HTTP 200 from the application has still not been captured.** The stack
-  reached "Full router ready", but the only curl attempts in this session hit
-  the macOS AirPlay service on port 5000 rather than the container. A request to
-  the corrected port (5055) has not yet been recorded.
+- ~~**An HTTP 200 from the application has still not been captured.**~~
+  **Closed** — see the fourth-run entry above.
+- **No analysis has been run through the container.** Serving is confirmed; a
+  full domain analysis (which makes live outbound DNS queries from inside the
+  container) has not been exercised.
+- **Linux/amd64 serving is unconfirmed.** The Replit agent verified the build and
+  `--version` on amd64 but did not bring up Compose there; the HTTP 200 above is
+  from darwin/arm64.
 - **Clean-room independence.** A remote host was dispatched first but was
   powered down (`connect ... Operation timed out`), so the build ran on the
   author's own machine with a project-adjacent toolchain. It is a build from a
