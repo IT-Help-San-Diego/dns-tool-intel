@@ -277,13 +277,14 @@ func respondRateLimited(c *gin.Context, result RateLimitResult) {
 
 func setFlashCookies(c *gin.Context, msg string) {
         ss := CookieSameSite(c)
+        secure := CookieSecure(c)
         http.SetCookie(c.Writer, &http.Cookie{
                 Name:     "flash_message",
                 Value:    msg,
                 Path:     "/",
                 MaxAge:   10,
                 HttpOnly: true,
-                Secure:   true,
+                Secure:   secure,
                 SameSite: ss,
         })
         http.SetCookie(c.Writer, &http.Cookie{
@@ -292,7 +293,7 @@ func setFlashCookies(c *gin.Context, msg string) {
                 Path:     "/",
                 MaxAge:   10,
                 HttpOnly: true,
-                Secure:   true,
+                Secure:   secure,
                 SameSite: ss,
         })
 }

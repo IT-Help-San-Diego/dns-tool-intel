@@ -16,6 +16,7 @@ import (
 	"os/exec"
 	"os/signal"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync/atomic"
 	"syscall"
@@ -86,7 +87,55 @@ func init() {
 	}
 }
 
+// printVersionAndExit handles --version/-version/version before any listener is
+// opened or any config is loaded. BUILD.md documents `./server --version` as the
+// way to verify a build, so it must work on a machine with no DATABASE_URL, no
+// free port, and no environment at all.
+//
+// Values come from config.Version/GitCommit/BuildTime, injected via -ldflags by
+// build.sh (see scripts/version.sh). An unflagged `go build` — the command
+// BUILD.md gives researchers — leaves them at their fallbacks, so the output
+// says so rather than printing a bare "dev" that looks like a real version.
+func printVersionAndExit() {
+	fmt.Printf("DNS Tool %s\n", config.Version)
+	fmt.Printf("  commit:     %s\n", config.GitCommit)
+	fmt.Printf("  built:      %s\n", config.BuildTime)
+	fmt.Printf("  go:         %s\n", runtime.Version())
+	fmt.Printf("  platform:   %s/%s\n", runtime.GOOS, runtime.GOARCH)
+	if config.Version == "dev" {
+		fmt.Println()
+		fmt.Println("Built without version injection (plain `go build`).")
+		fmt.Println("For a version-stamped binary: bash build.sh")
+	}
+	os.Exit(0)
+}
+
 func main() {
+	// Argument handling comes first: --version must not require a bindable port
+	// or a database.
+	if len(os.Args) > 1 {
+		switch os.Args[1] {
+		case "--version", "-version", "version", "-v":
+			printVersionAndExit()
+		case "--help", "-help", "help", "-h":
+			fmt.Println("DNS Tool — Domain Security Intelligence Platform")
+			fmt.Println()
+			fmt.Println("Usage: server [--version] [--help]")
+			fmt.Println()
+			fmt.Println("With no arguments, starts the web server.")
+			fmt.Println()
+			fmt.Println("Environment:")
+			fmt.Println("  PORT           listen port (default 5000)")
+			fmt.Println("  DATABASE_URL   PostgreSQL connection string.")
+			fmt.Println("                 If unset or unreachable, the server starts in")
+			fmt.Println("                 DEGRADED MODE: pages that need no persistence")
+			fmt.Println("                 still render, analysis history is unavailable.")
+			fmt.Println()
+			fmt.Println("Docs: BUILD.md · https://dnstool.it-help.tech")
+			os.Exit(0)
+		}
+	}
+
 	initLogger()
 
 	earlyAddr := resolveListenAddr()
