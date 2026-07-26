@@ -139,10 +139,19 @@ The container-asset paths were correct: templates resolved from
    logger cannot create `/app/logs` and falls back to stderr. Harmless for
    evaluation; worth fixing so container logs are complete.
 
-### 2026-07-26, independent confirmation on a second daemon
+### 2026-07-26, second-machine run (linux/amd64) — partly independent
 
-The Replit agent ran the same tests on its own machine (linux/amd64), with no
-knowledge of my results, and reproduced them:
+The Replit agent ran the same tests on its own machine. **Its independence is
+partial and the distinction matters:** the handoff note it was answering already
+stated the central conclusion — "Compose is required: `DATABASE_URL` and
+`SESSION_SECRET` are both mandatory and a bare `docker run` of the image exits 1
+before serving." So its environment-variable result confirms a finding it was
+handed, not one it discovered. Treat those two rows as corroboration on second
+hardware, not as independent discovery.
+
+What *is* independent of anything I told it: the build succeeding on a different
+architecture, `--version` behaving correctly there, the retry timing, and the
+maintenance-page behaviour — none of which appeared in the handoff.
 
 | Test | Result |
 |---|---|
@@ -161,9 +170,12 @@ Two details this adds beyond my own run:
    returns the 503 HTML, not JSON. So even a reachable-then-failed database does
    not yield a partially functional API.
 
-This is the first genuinely independent reproduction of this deposit: a
-different machine, a different architecture, a different operator, same result.
-The build is portable and the documentation defect was real.
+**No fully independent reproduction of this deposit exists yet.** Both runs so
+far were performed by agents working from my notes, on this project's own
+machines. The build portability result is solid — two architectures, two
+toolchains, same outcome — but a genuine independent reproduction means someone
+outside this project downloading the Zenodo archive with no guidance from us.
+That has not happened, and the deposit's 0 reported downloads says as much.
 
 ### 2026-07-26, fourth run — the deposit serves. Loop closed.
 
