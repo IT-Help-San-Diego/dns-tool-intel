@@ -174,13 +174,22 @@ sha256sum <archive>.zip
 unzip -q <archive>.zip && cd IT-Help-San-Diego-dns-tool-intel-*
 go build ./go-server/cmd/server
 
-# 4. Verify
+# 4. Verify — needs no database and opens no port
 ./server --version
 
-# 5. Run it
-PORT=5000 ./server        # degraded mode, no database needed
+# 5. Run it. BOTH variables are mandatory: the process exits 1 without either.
+#    Against a fresh database, load the schema first — the server does not.
+export DATABASE_URL="postgres://user:pass@localhost:5432/dnstool?sslmode=disable"
+export SESSION_SECRET="$(openssl rand -hex 32)"
+psql "$DATABASE_URL" -f go-server/db/schema/schema.sql
+PORT=5000 ./server
+
+# 6. Confirm it serves
 curl -s localhost:5000/api/capacity
 ```
+
+If you do not want to provision PostgreSQL by hand, `docker compose up` from
+the repository root does steps 3-5 in one command.
 
 Report the toolchain version, platform, elapsed build time, and anything that
 failed. **Negative results are more useful than positive ones** — if it does not
