@@ -254,25 +254,6 @@ func validateBIMIResponse(resp *http.Response) ([]byte, string, error) {
         return body, safeCT, nil
 }
 
-// sonarBadgeURLs is preserved as institutional knowledge for the dormant
-// SonarCloud integration. The route in main.go is unregistered (April
-// 2026 SaaS decouple); SonarBadge below is a 410-Gone stub. To revive,
-// re-register `GET /proxy/sonar-badge/:key` in main.go and restore the
-// fetch implementation from git history.
-var sonarBadgeURLs = map[string]string{
-        "qg-intel": "https://sonarcloud.io/api/project_badges/quality_gate?project=IT-Help-San-Diego_dns-tool-intel",
-        "ai-intel": "https://sonarcloud.io/api/project_badges/ai_code_assurance?project=IT-Help-San-Diego_dns-tool-intel",
-}
-
-// SonarBadge returns 410 Gone. The route is currently unregistered in
-// main.go; this stub remains so the symbol is exported for any test or
-// future revival without re-implementing the network plumbing from
-// scratch. See git history for the prior fetch implementation.
-func (h *ProxyHandler) SonarBadge(c *gin.Context) {
-        c.Header("Cache-Control", "no-store")
-        c.String(http.StatusGone, "SonarCloud badge proxy disabled (April 2026 SaaS decouple)")
-}
-
 type validationError struct {
         msg string
 }

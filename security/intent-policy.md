@@ -97,7 +97,7 @@ The `secintent-check.py` script enforces:
 
 The SECINTENT system complements (does not replace) scanner-specific suppression:
 
-- **SonarQube**: `//NOSONAR` and `sonar-project.properties` multicriteria
+- **SonarQube (retired 2026-07-26)**: legacy `//NOSONAR` inline annotations remain in code as documentation
 - **Semgrep**: `// nosemgrep` inline annotations
 - **Gitleaks**: `.gitleaks.toml` allowlists
 - **gosec**: `//nolint:gosec` annotations

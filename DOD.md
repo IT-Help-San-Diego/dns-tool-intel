@@ -62,7 +62,7 @@ Any change to CSS or HTML templates MUST be verified at narrow viewport (375px, 
 - [ ] Go binary rebuilt and tested
 - [ ] Workflow restarted and running without errors
 
-## Quality Gates — Lighthouse, Observatory & SonarCloud (MANDATORY)
+## Quality Gates — Lighthouse & Observatory (MANDATORY)
 
 Every change must maintain or improve these scores. **Never ship a regression.**
 
@@ -73,18 +73,13 @@ Every change must maintain or improve these scores. **Never ship a regression.**
 | Lighthouse | Accessibility | 100 | 100 (no excuses) |
 | Lighthouse | SEO | 100 | 100 (no excuses) |
 | Mozilla Observatory | Security | 145 | 145 (never go backwards) |
-| SonarCloud | Reliability | A | A (zero new bugs) |
-| SonarCloud | Security | A | A (zero new vulnerabilities) |
-| SonarCloud | Maintainability | A | A (zero new code smells) |
 
 - [ ] Lighthouse Performance = 100 (all categories)
 - [ ] Lighthouse Best Practices = 100
 - [ ] Lighthouse Accessibility = 100
 - [ ] Lighthouse SEO = 100
 - [ ] Mozilla Observatory ≥ 145
-- [ ] SonarCloud Quality Gate passes (Reliability A, Security A, Maintainability A)
 - [ ] No new bugs, vulnerabilities, or code smells introduced
-- [ ] Security hotspots reviewed (not left unreviewed)
 
 **Rules:**
 1. Best Practices < 100 means a real error exists that affects user experience — fix it.
@@ -92,10 +87,8 @@ Every change must maintain or improve these scores. **Never ship a regression.**
 3. SEO < 100 means missing metadata, structural issues — fix it.
 4. Performance 98–100 is acceptable due to network variance; consistent 100 is the goal.
 5. Observatory score must never decrease. Security posture only moves forward.
-6. SonarCloud A-rating is non-negotiable. Code quality is foundational, not retroactive.
-7. **Test URL**: `https://pagespeed.web.dev/` against `https://dnstool.it-help.tech`
-8. **Observatory URL**: `https://observatory.mozilla.org/` against `dnstool.it-help.tech`
-9. **SonarCloud**: Enforced via CI on GitHub (`sonarcloud.yml`). Quality Gate must pass before merge.
+6. **Test URL**: `https://pagespeed.web.dev/` against `https://dnstool.it-help.tech`
+7. **Observatory URL**: `https://observatory.mozilla.org/` against `dnstool.it-help.tech`
 
 ## Development Process — Research First, Build Correctly
 

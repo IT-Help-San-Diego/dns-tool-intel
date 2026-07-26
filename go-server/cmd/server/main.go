@@ -641,9 +641,6 @@ func registerFeatureRoutes(d routeDeps, analysis *handlers.AnalysisHandler, prox
 	d.Router.POST("/ttl-tuner/analyze", middleware.AnalyzeRateLimit(d.RateLimiter), ttlTunerHandler.AnalyzeTTL)
 
 	d.Router.GET("/proxy/bimi-logo", proxy.BIMILogo)
-	// /proxy/sonar-badge/:key disabled April 2026 — SonarCloud SaaS
-	// decoupled (cost). Handler retained as dormant 410-Gone stub in
-	// proxy.go for one-line revival when local SonarQube CE is online.
 
 	agentHandler := agentpkg.NewAgentHandler(d.Cfg, d.Analyzer, handlers.NewTemplateData, d.DB.Queries)
 	agentHandler.SaveFn = analysis.SaveForAgent

@@ -1,6 +1,6 @@
 # DNS Tool Citation Inventory
 # Generated: 2026-03-20
-# Total unique external citations: 147
+# Total unique external citations: 139
 #
 # PURPOSE: Cross-reference all scientific and authoritative sources.
 # Ensure highest-authority citations, verify link health, track freshness.
@@ -290,16 +290,6 @@
   Pages: results
 - https://snapcraft.io/
   Pages: about
-- https://sonarcloud.io/summary/new_code?id=ithelpsandiego_dns-tool
-  Pages: approach
-- https://sonarcloud.io/summary/new_code?id=ithelpsandiego_dns-tool-cli
-  Pages: approach
-- https://sonarcloud.io/summary/new_code?id=ithelpsandiego_dns-tool-full
-  Pages: approach
-- https://sonarcloud.io/summary/new_code?id=dns-tool-full
-  Pages: approach
-- https://sonarcloud.io/summary/new_code?id=ithelpsandiego_dns-tool
-  Pages: approach
 - https://support.google.com/chrome/answer/9658361
   Pages: index, results_covert
 - https://techcommunity.microsoft.com/blog/exchange/announcing-general-availability-of-inbound-smtp-dane-with-dnssec-for-exchange-on/4281292

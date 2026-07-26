@@ -127,9 +127,9 @@ go test ./go-server/... -cover -count=1
    bash build.sh
    ```
 
-## SonarCloud Quality Gate Standards
+## Code Quality Standards
 
-All contributions must meet the following quality standards enforced by SonarCloud.
+All contributions must meet the following quality standards.
 
 ### Test Coverage
 
@@ -163,15 +163,11 @@ All contributions must meet the following quality standards enforced by SonarClo
 - Every CSS/template change must be verified at 375px viewport width.
 - All domain/IP input fields must include `autocapitalize="none" spellcheck="false" autocomplete="off"`.
 
-## Version Bump Protocol
+## Versioning
 
-1. Bump `Version` in `go-server/internal/config/config.go`.
-2. Run `bash build.sh` to compile the new version into the binary.
-3. Restart the application workflow.
+There is nothing to bump for a routine change. The version is derived from git (`git describe --tags`, via `scripts/version.sh`) and compiled into the binary at build time via `-ldflags` in `build.sh`. The `Version` variable in `config.go` is only a fallback for builds without `-ldflags` — never hand-edit it.
 
-The version is compiled at build time via `-ldflags` in `build.sh`. The `Version` variable in `config.go` is the single source of truth.
-
-## SonarCloud Coverage Targets by Package
+## Test Coverage Targets by Package
 
 | Package | Minimum Target |
 |---------|---------------|

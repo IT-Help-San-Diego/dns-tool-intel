@@ -3,8 +3,8 @@
 # version-line MERGE CONFLICT on the ship PR.
 #
 # WHY THIS EXISTS
-#   Every release bumps the same Version line (go-server/internal/config/config.go
-#   + sonar-project.properties). Changes land on main as SQUASH commits that the
+#   Every release bumps the same Version line (go-server/internal/config/config.go).
+#   Changes land on main as SQUASH commits that the
 #   local branch never receives, so local and main share only an ancient ancestor.
 #   A 3-way merge then sees that one line "changed on both sides" -> conflict on
 #   EVERY ship. Making local descend from origin/main removes the divergence, so
@@ -12,7 +12,7 @@
 #
 # WHEN TO RUN
 #   After a successful ship (PR merged to main), OR any time the ship PR shows a
-#   conflict on config.go / sonar-project.properties. Safe to run anytime.
+#   conflict on config.go. Safe to run anytime.
 #
 # WHAT IT DOES (native git only — no API ref writes, Repo Sync Law compliant)
 #   1. Refuses if the working tree is dirty (never risks uncommitted work).
@@ -30,7 +30,7 @@ set -uo pipefail   # pipefail: a failing git fetch must not be masked by a downs
 REPO="IT-Help-San-Diego/dns-tool-intel"
 SHIP_BRANCH="main"
 GIT_PAT="${GH_SYNC_TOKEN:-${GITHUB_MASTER_PAT:-}}"
-VERSION_FILES="go-server/internal/config/config.go sonar-project.properties"
+VERSION_FILES="go-server/internal/config/config.go"
 
 export GIT_TERMINAL_PROMPT=0
 export GIT_ASKPASS=
@@ -139,7 +139,7 @@ fi
 # conflicting lines are version-related. If a non-version line is in conflict
 # (i.e. real upstream code changed the same region), `--ours` would silently drop
 # it — so abort and force a manual merge instead.
-#   Allowed conflicting content: blank, the Version= line, sonar.projectVersion=,
+#   Allowed conflicting content: blank, the Version= line,
 #   or a bare semver. Anything else is "real" code -> abort.
 for f in $CONFLICTS; do
   CONFLICT_LINES=$(awk '
@@ -151,7 +151,7 @@ for f in $CONFLICTS; do
   ' "$f")
   NONVERSION=$(printf '%s\n' "$CONFLICT_LINES" \
     | sed '/^[[:space:]]*$/d' \
-    | grep -vE 'Version[[:space:]]*=|sonar\.projectVersion=|^[[:space:]]*"?[0-9]+\.[0-9]+\.[0-9]+' || true)
+    | grep -vE 'Version[[:space:]]*=|^[[:space:]]*"?[0-9]+\.[0-9]+\.[0-9]+' || true)
   if [ -n "$NONVERSION" ]; then
     echo ""
     echo "  HARD STOP: conflict in ${f} touches non-version lines:"
