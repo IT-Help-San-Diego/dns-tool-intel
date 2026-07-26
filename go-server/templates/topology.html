@@ -3,6 +3,25 @@
 <head>
     {{template "head" .}}
     {{template "head_css" .}}
+    {{if .ReplayID}}
+    <title>Scan Replay — {{.ReplayDomain}} — DNS Tool</title>
+    <meta name="description" content="Timeline replay of a recorded DNS security scan of {{.ReplayDomain}}. Every event is a real recorded pipeline measurement — {{.ReplaySeconds}}s of analysis across 9 protocols, tamper-evident via SHA3-512.">
+    <meta name="robots" content="index, follow">
+    <meta property="og:url" content="https://dnstool.it-help.tech/replay/{{.ReplayID}}">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Scan Replay — {{.ReplayDomain}} — DNS Tool">
+    <meta property="og:description" content="Watch the recorded {{.ReplaySeconds}}s security scan of {{.ReplayDomain}} replay on the live pipeline topology.">
+    <meta property="og:image" content="https://dnstool.it-help.tech/static/images/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:alt" content="DNS Tool - Scan Replay">
+    <meta property="og:site_name" content="DNS Tool">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Scan Replay — {{.ReplayDomain}} — DNS Tool">
+    <meta name="twitter:description" content="Watch the recorded {{.ReplaySeconds}}s security scan of {{.ReplayDomain}} replay on the live pipeline topology.">
+    <meta name="twitter:image" content="https://dnstool.it-help.tech/static/images/og-image.png">
+    {{else}}
     <title>Protocol Topology — Analysis Pipeline Map — DNS Tool</title>
     <meta name="description" content="Interactive topology map of DNS Tool protocol analysis pipeline. Visualize resolver paths, dependency graphs, and security protocol coverage.">
     <meta name="robots" content="index, follow">
@@ -22,6 +41,7 @@
     <meta name="twitter:title" content="Protocol Topology — Analysis Pipeline Map — DNS Tool">
     <meta name="twitter:description" content="Interactive system architecture diagram showing DNS Tool protocol analysis topology.">
     <meta name="twitter:image" content="https://dnstool.it-help.tech/static/images/og-image.png">
+    {{end}}
     <style nonce="{{.CspNonce}}">
         .topo-canvas-wrap {
             position: relative;
@@ -53,13 +73,13 @@
             background: rgba(7, 10, 15, 0.92);
             border-top: 1px solid rgba(255, 255, 255, 0.06);
             border-radius: 0 0 8px 8px;
-            padding: 5px 16px;
+            padding: 5px 13px;
             font-size: 0.68rem;
             color: #8b9aad;
             backdrop-filter: blur(8px);
             display: flex;
             flex-wrap: wrap;
-            gap: 10px 18px;
+            gap: 8px 21px;
             align-items: center;
             justify-content: center;
             box-sizing: border-box;
@@ -129,8 +149,8 @@
             background: rgba(255, 193, 7, 0.06);
             border: 1px solid rgba(255, 193, 7, 0.18);
             border-radius: 6px;
-            padding: 10px 16px;
-            margin-top: 12px;
+            padding: 8px 13px;
+            margin-top: 13px;
             font-size: 0.8rem;
             color: #c0c8d4;
             line-height: 1.5;
@@ -142,6 +162,216 @@
             text-transform: uppercase;
             letter-spacing: 0.08em;
             margin-right: 6px;
+        }
+        /* Scan-console spacing follows a Fibonacci scale (3/5/8/13/21 px)
+           so instrument chunks share one deliberate rhythm. CSS only —
+           the solver's node-layout math is untouched. */
+        .topo-scan-console {
+            position: absolute;
+            top: 13px;
+            right: 13px;
+            width: 340px;
+            max-width: calc(100% - 26px);
+            z-index: 6;
+            font-size: 0.78rem;
+            color: #c0c8d4;
+        }
+        .topo-scan-card {
+            background: rgba(7, 10, 15, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            backdrop-filter: blur(8px);
+            padding: 8px 13px;
+            margin-bottom: 8px;
+        }
+        .topo-scan-row { display: flex; gap: 5px; align-items: stretch; }
+        .topo-scan-input {
+            flex: 1;
+            min-width: 0;
+            background: #0d1117;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            color: #e6edf3;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 0.8rem;
+            font-family: var(--bs-font-monospace, monospace);
+        }
+        .topo-scan-input:focus {
+            outline: 2px solid rgba(255, 193, 7, 0.45);
+            border-color: #ffc107;
+        }
+        .topo-scan-btn {
+            background: #ffc107;
+            color: #1a1a1a;
+            border: 1px solid #ffc107;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 4px 12px;
+            white-space: nowrap;
+        }
+        .topo-scan-btn:disabled { opacity: 0.45; }
+        .topo-scan-adv-btn {
+            background: transparent;
+            color: #9fb0c0;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 4px;
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 4px 8px;
+            white-space: nowrap;
+        }
+        .topo-scan-adv-btn[aria-expanded="true"] {
+            color: #ffc107;
+            border-color: rgba(255, 193, 7, 0.5);
+        }
+        .topo-scan-adv { margin-top: 8px; }
+        .topo-scan-adv-label {
+            display: block;
+            font-size: 0.62rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #8b9aad;
+            margin-bottom: 2px;
+        }
+        .topo-scan-adv .topo-scan-input { width: 100%; margin-bottom: 5px; font-size: 0.74rem; }
+        .topo-scan-check { display: flex; gap: 5px; align-items: flex-start; margin-top: 5px; }
+        .topo-scan-check input { margin-top: 2px; flex-shrink: 0; }
+        .topo-scan-check label { font-size: 0.7rem; color: #a8b6c6; line-height: 1.35; }
+        .topo-scan-hud-row { display: flex; align-items: center; gap: 8px; }
+        .topo-scan-status {
+            font-size: 0.62rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #ffc107;
+            white-space: nowrap;
+        }
+        .topo-scan-status.is-complete { color: #81c784; }
+        .topo-scan-status.is-failed { color: #ef9a9a; }
+        .topo-scan-target {
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-family: var(--bs-font-monospace, monospace);
+            color: #e6edf3;
+            font-size: 0.76rem;
+        }
+        .topo-scan-elapsed {
+            font-family: var(--bs-font-monospace, monospace);
+            font-size: 0.7rem;
+            color: #9fb0c0;
+            white-space: nowrap;
+        }
+        .topo-scan-cancel {
+            background: transparent;
+            color: #9fb0c0;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 4px;
+            font-size: 0.64rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 2px 8px;
+            white-space: nowrap;
+        }
+        .topo-scan-cancel:hover { color: #e6edf3; border-color: rgba(255, 255, 255, 0.35); }
+        .topo-scan-sub { margin-top: 5px; font-size: 0.68rem; color: #8b9aad; font-family: var(--bs-font-monospace, monospace); }
+        .topo-scan-meter { display: flex; align-items: center; gap: 5px; margin-top: 5px; }
+        .topo-scan-meter-label {
+            flex: 0 0 44px;
+            font-size: 0.58rem;
+            color: #8b9aad;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-family: var(--bs-font-monospace, monospace);
+        }
+        .topo-scan-meter-track {
+            flex: 1;
+            height: 4px;
+            background: rgba(139, 154, 173, 0.18);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .topo-scan-meter-bar {
+            display: block;
+            height: 100%;
+            width: 0;
+            background: #ffc107;
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+        .topo-scan-meter-bar--tasks { background: #4fc3f7; }
+        .topo-scan-error { border-color: rgba(239, 83, 80, 0.4); color: #f0b4b2; }
+        .topo-scan-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+        .topo-vchip {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px;
+            border-radius: 10px;
+            border: 1px solid;
+            font-size: 0.66rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            line-height: 1.4;
+        }
+        .topo-v-ok   { color: #81c784; border-color: rgba(129, 199, 132, 0.5); background: rgba(129, 199, 132, 0.08); }
+        .topo-v-warn { color: #ffb74d; border-color: rgba(255, 183, 77, 0.5);  background: rgba(255, 183, 77, 0.08); }
+        .topo-v-ind  { color: #9fb0c0; border-color: rgba(159, 176, 192, 0.4); background: rgba(159, 176, 192, 0.08); }
+        .topo-v-bad  { color: #ef9a9a; border-color: rgba(239, 83, 80, 0.5);   background: rgba(239, 83, 80, 0.08); }
+        .topo-scan-links { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 5px 13px; }
+        .topo-scan-links a { font-size: 0.72rem; color: #6ecbf5; text-decoration: none; }
+        .topo-scan-links a:hover { text-decoration: underline; }
+        .topo-scan-note { margin-top: 5px; font-size: 0.7rem; color: #a8b6c6; line-height: 1.4; }
+        .topo-scan-ticker {
+            margin-top: 8px;
+            max-height: 96px;
+            overflow-y: auto;
+            font-size: 0.66rem;
+            line-height: 1.5;
+            color: #a8b6c6;
+            border-top: 1px solid rgba(159, 176, 192, 0.15);
+            padding-top: 5px;
+        }
+        .topo-tick-line { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .topo-tick-time { color: #6b7a8c; margin-right: 5px; }
+        .topo-tick-start { color: #ffd54f; }
+        .topo-tick-done  { color: #81c784; }
+        .topo-tick-task  { color: #9fb0c0; }
+        .topo-tick-fail  { color: #ef9a9a; }
+        .topo-scan-owls { display: flex; gap: 13px; margin-bottom: 8px; }
+        .topo-owl {
+            background: none;
+            border: 0;
+            padding: 0;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+        .topo-owl img { filter: grayscale(1) brightness(0.55) opacity(0.55); transition: filter 0.3s ease; }
+        .topo-owl.is-lit img { filter: none; }
+        .topo-owl-label { font-size: 0.58rem; color: #9fb0c0; letter-spacing: 0.04em; }
+        .topo-owl.is-lit .topo-owl-label { color: #e0e6ec; }
+        .topo-scan-owl-note { margin-bottom: 8px; font-size: 0.7rem; color: #a8b6c6; line-height: 1.4; }
+        @media (max-width: 576px) {
+            .topo-scan-console {
+                left: 13px;
+                right: 13px;
+                width: auto;
+                top: 66px;
+                max-height: calc(100% - 79px);
+                overflow-y: auto;
+                overscroll-behavior: contain;
+            }
+            .topo-scan-ticker { max-height: 72px; }
+            .topo-scan-owls { gap: 8px; }
+            .topo-scan-hud-row { flex-wrap: wrap; row-gap: 5px; }
         }
         .topo-c-cf { background: #f6821f; }
         .topo-c-g  { background: #4285f4; }
@@ -166,6 +396,63 @@
                 <div class="topo-title-overlay">
                     <h1 class="topo-title-h1">Intelligence Topology <span class="topo-beta-badge">Beta</span></h1>
                     DNS Security Pipeline &amp; Dependency Graph
+                </div>
+                <div class="topo-scan-console" id="topoScanConsole">
+                    <form id="topoScanForm" class="topo-scan-card" action="/analyze" method="POST" autocomplete="off">
+                        <input type="hidden" name="csrf_token" value="{{.CsrfToken}}">
+                        <div class="topo-scan-row">
+                            <label for="topoScanDomain" class="visually-hidden">Domain to scan</label>
+                            <input type="text"
+                                   class="topo-scan-input"
+                                   id="topoScanDomain"
+                                   name="domain"
+                                   placeholder="example.com"
+                                   inputmode="url"
+                                   enterkeyhint="go"
+                                   autocapitalize="none"
+                                   spellcheck="false"
+                                   autocomplete="off">
+                            <button type="submit" class="topo-scan-btn" id="topoScanRun">Run</button>
+                            <button type="button" class="topo-scan-adv-btn" id="topoScanAdvBtn" aria-expanded="false" aria-controls="topoScanAdv">Adv</button>
+                        </div>
+                        <div class="topo-scan-adv" id="topoScanAdv" hidden>
+                            <label class="topo-scan-adv-label" for="topoDkim1">DKIM Selector 1</label>
+                            <input type="text" class="topo-scan-input" id="topoDkim1" name="dkim_selector1" placeholder="e.g. google" autocapitalize="none" spellcheck="false" autocomplete="off">
+                            <label class="topo-scan-adv-label" for="topoDkim2">DKIM Selector 2</label>
+                            <input type="text" class="topo-scan-input" id="topoDkim2" name="dkim_selector2" placeholder="e.g. 8452036334128736" autocapitalize="none" spellcheck="false" autocomplete="off">
+                            <label class="topo-scan-adv-label" for="topoStKey">SecurityTrails API Key</label>
+                            <input type="password" class="topo-scan-input" id="topoStKey" name="securitytrails_api_key" placeholder="Never stored" autocapitalize="none" spellcheck="false" autocomplete="off">
+                            <div class="topo-scan-check">
+                                <input type="checkbox" id="topoExposure" name="exposure_checks" value="1">
+                                <label for="topoExposure">Expanded Exposure Checks &mdash; actively checks well-known misconfiguration paths. Adds scan time.</label>
+                            </div>
+                            <div class="topo-scan-check">
+                                <input type="checkbox" id="topoDevnull" name="devnull" value="1">
+                                <label for="topoDevnull">/dev/null Scan &mdash; full analysis, zero persistence. No stored report will exist afterward.</label>
+                            </div>
+                        </div>
+                    </form>
+                    <div class="topo-scan-card" id="topoScanHud" hidden>
+                        <div class="topo-scan-hud-row">
+                            <span class="topo-scan-status" id="topoScanStatus">Scanning</span>
+                            <span class="topo-scan-target" id="topoScanTarget"></span>
+                            <span class="topo-scan-elapsed" id="topoScanElapsed">0.0s</span>
+                            <button type="button" class="topo-scan-cancel" id="topoScanCancel" title="Stops watching this scan. A scan already running on the server continues.">Cancel</button>
+                        </div>
+                        <div class="topo-scan-sub" id="topoScanPhases" aria-live="polite">phases 0/9 &middot; tasks 0/0</div>
+                        <div class="topo-scan-meter"><span class="topo-scan-meter-label">Phases</span><span class="topo-scan-meter-track"><span class="topo-scan-meter-bar" id="topoMeterPhaseBar"></span></span></div>
+                        <div class="topo-scan-meter"><span class="topo-scan-meter-label">Tasks</span><span class="topo-scan-meter-track"><span class="topo-scan-meter-bar topo-scan-meter-bar--tasks" id="topoMeterTaskBar"></span></span></div>
+                        <div class="topo-scan-sub" id="topoScanLatency">acquisition &mdash;</div>
+                        <div class="topo-scan-ticker" id="topoScanTicker" aria-label="Scan event ticker" hidden></div>
+                    </div>
+                    <div class="topo-scan-card topo-scan-error" id="topoScanError" role="alert" hidden></div>
+                    <div class="topo-scan-card" id="topoScanVerdict" hidden>
+                        <div class="topo-scan-owls" id="topoScanOwls" aria-label="Epistemic owl semaphore" hidden></div>
+                        <div class="topo-scan-owl-note" id="topoScanOwlNote" hidden></div>
+                        <div class="topo-scan-chips" id="topoScanChips"></div>
+                        <div class="topo-scan-links" id="topoScanLinks"></div>
+                        <div class="topo-scan-note" id="topoScanNote" hidden></div>
+                    </div>
                 </div>
                 <div class="topo-legend">
                     <div class="topo-legend-section">
@@ -199,6 +486,7 @@
     {{template "footer" .}}
     {{template "scripts" .}}
     <script nonce="{{.CspNonce}}">window.__TOPO_SOLVER={{.SolverLayouts}};</script>
+    {{if .ReplayID}}<script nonce="{{.CspNonce}}">window.__TOPO_REPLAY={id:{{.ReplayID}},domain:{{.ReplayDomain}},totalMs:{{.ReplayTotalMs}}};</script>{{end}}
     <script nonce="{{.CspNonce}}" src="{{staticVersionURL "js/topology.min.js" .AppVersion}}" defer {{staticSRI "js/topology.min.js"}}></script>
 </body>
 </html>

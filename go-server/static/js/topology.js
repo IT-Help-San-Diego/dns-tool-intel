@@ -1773,6 +1773,9 @@
             PROTOCOLS.forEach(function(p) { drawProtocolNode(p); });
             OUTPUTS.forEach(function(o) { drawOutputNode(o); });
 
+            drawScanRings();
+            drawVerdictPopover();
+
             if (debugBounds) {
                 allLayoutNodes.forEach(function(nd) {
                     if (!nd._boxW) measureNodeBox(nd);
@@ -1787,6 +1790,908 @@
             }
 
             drawPopTooltip();
+        }
+
+        /* ---- Live scan console ------------------------------------------
+           Drives the topology canvas from a real scan: POST /analyze with
+           Accept: application/json (202 + progress token), then polls
+           /api/scan/progress/:token every 500ms. Phase groups from the
+           server's phase telemetry map onto canvas nodes; verdict chips are
+           read from the saved analysis via /api/analysis/:id on completion.
+           No navigation ever occurs (Safari-safe); links are plain anchors. */
+
+        let REPLAY = window.__TOPO_REPLAY || null;
+
+        let scanEls = {
+            form: document.getElementById('topoScanForm'),
+            domain: document.getElementById('topoScanDomain'),
+            run: document.getElementById('topoScanRun'),
+            advBtn: document.getElementById('topoScanAdvBtn'),
+            adv: document.getElementById('topoScanAdv'),
+            hud: document.getElementById('topoScanHud'),
+            status: document.getElementById('topoScanStatus'),
+            target: document.getElementById('topoScanTarget'),
+            elapsed: document.getElementById('topoScanElapsed'),
+            cancel: document.getElementById('topoScanCancel'),
+            phases: document.getElementById('topoScanPhases'),
+            phaseBar: document.getElementById('topoMeterPhaseBar'),
+            taskBar: document.getElementById('topoMeterTaskBar'),
+            latency: document.getElementById('topoScanLatency'),
+            error: document.getElementById('topoScanError'),
+            verdict: document.getElementById('topoScanVerdict'),
+            chips: document.getElementById('topoScanChips'),
+            links: document.getElementById('topoScanLinks'),
+            note: document.getElementById('topoScanNote'),
+            ticker: document.getElementById('topoScanTicker'),
+            owls: document.getElementById('topoScanOwls'),
+            owlNote: document.getElementById('topoScanOwlNote'),
+            exposure: document.getElementById('topoExposure'),
+            devnull: document.getElementById('topoDevnull')
+        };
+
+        let GROUP_NODES = {
+            dns_records: ['hub'],
+            email_auth: ['spf', 'dkim', 'dmarc'],
+            dnssec_dane: ['dnssec', 'dane'],
+            ct_subdomains: ['ct'],
+            smtp_transport: ['probes'],
+            policy_records: ['mtasts', 'tlsrpt', 'bimi', 'caa'],
+            registrar_infra: ['root', 'rdap'],
+            analysis_engine: ['engine']
+        };
+
+        let VERDICT_PROTOCOLS = [
+            { node: 'spf',    label: 'SPF',     key: 'spf_analysis' },
+            { node: 'dkim',   label: 'DKIM',    key: 'dkim_analysis' },
+            { node: 'dmarc',  label: 'DMARC',   key: 'dmarc_analysis' },
+            { node: 'dnssec', label: 'DNSSEC',  key: 'dnssec_analysis' },
+            { node: 'dane',   label: 'DANE',    key: 'dane_analysis' },
+            { node: 'mtasts', label: 'MTA-STS', key: 'mta_sts_analysis' },
+            { node: 'tlsrpt', label: 'TLS-RPT', key: 'tlsrpt_analysis' },
+            { node: 'bimi',   label: 'BIMI',    key: 'bimi_analysis' },
+            { node: 'caa',    label: 'CAA',     key: 'caa_analysis' }
+        ];
+
+        let VERDICT_RING_COLORS = {
+            success: 'rgba(129,199,132,0.85)',
+            warning: 'rgba(255,183,77,0.85)',
+            indeterminate: 'rgba(159,176,192,0.7)',
+            info: 'rgba(159,176,192,0.7)'
+        };
+
+        let VERDICT_RING_OUTER = {
+            success: 'rgba(129,199,132,0.35)',
+            warning: 'rgba(255,183,77,0.35)',
+            indeterminate: 'rgba(159,176,192,0.3)',
+            info: 'rgba(159,176,192,0.3)'
+        };
+
+        /* Standards references mirror the analyzer's verified-standards
+           table (integrity_hash.go) — RFC-cited, never invented. */
+        let VERDICT_RFCS = {
+            spf: 'RFC 7208',
+            dkim: 'RFC 6376',
+            dmarc: 'RFC 7489',
+            dnssec: 'RFC 4033 \u00b7 4034 \u00b7 4035',
+            dane: 'RFC 6698 \u00b7 RFC 7671',
+            mtasts: 'RFC 8461',
+            tlsrpt: 'RFC 8460',
+            bimi: 'draft-brand-indicators-for-message-identification',
+            caa: 'RFC 8659'
+        };
+
+        let scanState = {
+            active: false,
+            ringsOn: false,
+            token: null,
+            pollId: 0,
+            failures: 0,
+            startedAt: 0,
+            gen: 0,
+            lastPollMs: 0,
+            groups: {},
+            verdicts: null,
+            verdictDetails: null
+        };
+
+        function fmtScanDur(ms) {
+            if (ms >= 1000) return (ms / 1000).toFixed(1) + 's';
+            return Math.round(ms) + 'ms';
+        }
+
+        /* ---- Epistemic ticker -------------------------------------------
+           Rolls real pipeline events only: live scans diff successive
+           progress polls (phase started / task counts / phase complete);
+           replays emit the recorded telemetry events as the timeline
+           passes each event's end offset. Nothing is synthesized. */
+
+        /* Mirrors analyzer.PhaseGroupLabels (phase_telemetry.go). */
+        let PHASE_LABELS = {
+            dns_records: 'DNS Records',
+            email_auth: 'Email Authentication',
+            dnssec_dane: 'DNSSEC & DANE',
+            ct_subdomains: 'Certificate Transparency',
+            smtp_transport: 'SMTP Transport',
+            policy_records: 'Policy Records',
+            registrar_infra: 'Registrar & Infrastructure',
+            analysis_engine: 'Analysis Engine',
+            web3_analysis: 'Web3 Analysis'
+        };
+
+        let TICKER_MAX_LINES = 40;
+        let tickerState = { prev: {}, lines: 0, emitted: null };
+
+        function phaseDisplay(g) { return PHASE_LABELS[g] || g; }
+
+        function fmtTickStamp(ms) { return (ms / 1000).toFixed(1) + 's'; }
+
+        function tickerReset() {
+            tickerState.prev = {};
+            tickerState.lines = 0;
+            tickerState.emitted = null;
+            if (scanEls.ticker) {
+                scanEls.ticker.textContent = '';
+                setHidden(scanEls.ticker, true);
+            }
+        }
+
+        function tickerLine(stamp, text, cls) {
+            let div = document.createElement('div');
+            div.className = 'topo-tick-line' + (cls ? ' ' + cls : '');
+            if (stamp) {
+                let t = document.createElement('span');
+                t.className = 'topo-tick-time';
+                t.textContent = stamp;
+                div.appendChild(t);
+            }
+            div.appendChild(document.createTextNode(text));
+            return div;
+        }
+
+        function tickerPush(frag, count) {
+            if (!scanEls.ticker || !count) return;
+            scanEls.ticker.appendChild(frag);
+            tickerState.lines += count;
+            while (tickerState.lines > TICKER_MAX_LINES && scanEls.ticker.firstChild) {
+                scanEls.ticker.removeChild(scanEls.ticker.firstChild);
+                tickerState.lines--;
+            }
+            setHidden(scanEls.ticker, false);
+            scanEls.ticker.scrollTop = scanEls.ticker.scrollHeight;
+        }
+
+        function tickerDiffLive(data) {
+            if (!scanEls.ticker) return;
+            let phases = data.phases || {};
+            let now = typeof data.elapsed_ms === 'number' ? fmtTickStamp(data.elapsed_ms) : '';
+            let frag = document.createDocumentFragment();
+            let count = 0;
+            for (let g in phases) {
+                let ph = phases[g];
+                let prev = tickerState.prev[g] || { status: 'pending', tasks_done: 0 };
+                let done = ph.status === 'done' || ph.status === 'complete';
+                let running = ph.status === 'running' || ph.status === 'started';
+                let prevDone = prev.status === 'done' || prev.status === 'complete';
+                let prevRunning = prev.status === 'running' || prev.status === 'started';
+                if (running && !prevRunning && !prevDone) {
+                    frag.appendChild(tickerLine(now, phaseDisplay(g) + ' \u2014 phase started', 'topo-tick-start'));
+                    count++;
+                }
+                let td = ph.tasks_done || 0;
+                if (!done && td > (prev.tasks_done || 0) && (ph.tasks_total || 0) > 0) {
+                    frag.appendChild(tickerLine(now, phaseDisplay(g) + ' \u2014 ' + td + '/' + ph.tasks_total + ' tasks', 'topo-tick-task'));
+                    count++;
+                }
+                if (done && !prevDone) {
+                    let durTxt = typeof ph.duration_ms === 'number' ? ' in ' + fmtScanDur(ph.duration_ms) : '';
+                    frag.appendChild(tickerLine(now, phaseDisplay(g) + ' \u2014 complete' + durTxt, 'topo-tick-done'));
+                    count++;
+                }
+                tickerState.prev[g] = { status: ph.status, tasks_done: td };
+            }
+            tickerPush(frag, count);
+        }
+
+        function tickerFail(msg) {
+            if (!scanEls.ticker) return;
+            let frag = document.createDocumentFragment();
+            frag.appendChild(tickerLine('', 'scan failed' + (msg ? ' \u2014 ' + msg : ''), 'topo-tick-fail'));
+            tickerPush(frag, 1);
+        }
+
+        function tickerReplayFrame(events, T) {
+            if (!scanEls.ticker) return;
+            if (!tickerState.emitted || tickerState.emitted.length !== events.length) {
+                tickerState.emitted = new Array(events.length);
+            }
+            let frag = document.createDocumentFragment();
+            let count = 0;
+            for (let i = 0; i < events.length; i++) {
+                if (tickerState.emitted[i]) continue;
+                let ev = events[i];
+                let end = ev.t + (ev.dur || 0);
+                if (end > T) continue;
+                tickerState.emitted[i] = true;
+                let name = (ev.task || 'task') + ' (' + phaseDisplay(ev.group) + ')';
+                if (ev.err) {
+                    frag.appendChild(tickerLine(fmtTickStamp(end), name + ' \u2014 ' + ev.err, 'topo-tick-fail'));
+                } else {
+                    let txt = name + ' \u2014 ' + fmtScanDur(ev.dur || 0);
+                    if (typeof ev.rc === 'number' && ev.rc > 0) {
+                        txt += ' \u00b7 ' + ev.rc + (ev.rc === 1 ? ' record' : ' records');
+                    }
+                    frag.appendChild(tickerLine(fmtTickStamp(end), txt, 'topo-tick-task'));
+                }
+                count++;
+            }
+            tickerPush(frag, count);
+        }
+
+        /* ---- Owl semaphore ----------------------------------------------
+           Renders the additive owl_semaphore key from /api/analysis/:id.
+           States are computed server-side from stored analysis data; the
+           client only displays them. Absent key = no owls (older scans). */
+
+        let OWL_DEFS = [
+            { key: 'normative', label: 'Normative', asset: 'NORM' },
+            { key: 'non_normative', label: 'Non-Normative', asset: 'NONNORM' },
+            { key: 'critical', label: 'Critical', asset: 'CRIT' },
+            { key: 'metacognitive', label: 'Metacognitive', asset: 'META' }
+        ];
+
+        function owlAssetURL(asset, w) {
+            return '/static/exports/owl-semaphore/derived/' + asset + '-composite-transparent-w' + w + '.webp';
+        }
+
+        function owlsReset() {
+            if (scanEls.owls) {
+                scanEls.owls.textContent = '';
+                setHidden(scanEls.owls, true);
+            }
+            if (scanEls.owlNote) {
+                scanEls.owlNote.textContent = '';
+                setHidden(scanEls.owlNote, true);
+            }
+        }
+
+        function owlToggleNote(label, reason) {
+            if (!scanEls.owlNote) return;
+            let open = !scanEls.owlNote.hidden && scanEls.owlNote.getAttribute('data-owl') === label;
+            if (open) {
+                setHidden(scanEls.owlNote, true);
+                return;
+            }
+            scanEls.owlNote.setAttribute('data-owl', label);
+            scanEls.owlNote.textContent = label + ': ' + reason;
+            setHidden(scanEls.owlNote, false);
+        }
+
+        function scanBuildOwls(sem) {
+            if (!scanEls.owls || !sem) return;
+            owlsReset();
+            let shown = 0;
+            for (let i = 0; i < OWL_DEFS.length; i++) {
+                let def = OWL_DEFS[i];
+                let st = sem[def.key];
+                if (!st || typeof st.lit !== 'boolean') continue;
+                let btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'topo-owl' + (st.lit ? ' is-lit' : '');
+                btn.title = (st.reason && typeof st.reason === 'string') ? st.reason : def.label;
+                let img = document.createElement('img');
+                img.src = owlAssetURL(def.asset, 40);
+                img.srcset = owlAssetURL(def.asset, 40) + ' 1x, ' + owlAssetURL(def.asset, 96) + ' 2x';
+                img.width = 40;
+                img.height = 40;
+                img.alt = def.label + ' owl \u2014 ' + (st.lit ? 'lit' : 'dark');
+                img.loading = 'lazy';
+                img.decoding = 'async';
+                btn.appendChild(img);
+                let cap = document.createElement('span');
+                cap.className = 'topo-owl-label';
+                cap.textContent = def.label;
+                btn.appendChild(cap);
+                (function(label, reason) {
+                    btn.addEventListener('click', function() { owlToggleNote(label, reason); });
+                })(def.label, (st.reason && typeof st.reason === 'string') ? st.reason : '');
+                scanEls.owls.appendChild(btn);
+                shown++;
+            }
+            setHidden(scanEls.owls, shown === 0);
+        }
+
+        function drawScanNodeLabel(n, text, color) {
+            ctx.font = '600 ' + Math.round(9 * SCL) + 'px ' + 'ui-monospace, SFMono-Regular, Menlo, monospace';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            ctx.fillStyle = color;
+            ctx.fillText(text, n.x, n.y + effRadius(n) + 9);
+        }
+
+        function scanPhaseLabel(ph) {
+            if (ph.status === 'running' || ph.status === 'started') {
+                if (typeof ph.tasks_total === 'number' && ph.tasks_total > 0) {
+                    return { text: (ph.tasks_done || 0) + '/' + ph.tasks_total, color: 'rgba(255,193,7,0.85)' };
+                }
+                return { text: '\u2026', color: 'rgba(255,193,7,0.85)' };
+            }
+            if ((ph.status === 'done' || ph.status === 'complete') && typeof ph.duration_ms === 'number') {
+                return { text: fmtScanDur(ph.duration_ms), color: 'rgba(129,199,132,0.75)' };
+            }
+            return null;
+        }
+
+        function drawRingCircle(n, color, width) {
+            ctx.beginPath();
+            ctx.arc(n.x, n.y, effRadius(n) + 5, 0, Math.PI * 2);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = width;
+            ctx.stroke();
+        }
+
+        function drawRunningRing(n) {
+            let r = effRadius(n) + 5;
+            let a0 = (time * 1.8) % (Math.PI * 2);
+            ctx.beginPath();
+            ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(255,193,7,0.16)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(n.x, n.y, r, a0, a0 + Math.PI * 1.3);
+            ctx.strokeStyle = 'rgba(255,193,7,0.9)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        function scanRingColor(status) {
+            if (status === 'done' || status === 'complete') return 'rgba(129,199,132,0.7)';
+            if (status === 'failed' || status === 'error') return 'rgba(239,83,80,0.85)';
+            return null;
+        }
+
+        function drawVerdictRings(n, status) {
+            let vc = VERDICT_RING_COLORS[status] || 'rgba(239,83,80,0.85)';
+            let oc = VERDICT_RING_OUTER[status] || 'rgba(239,83,80,0.35)';
+            let dashed = status === 'indeterminate' || status === 'info';
+            if (dashed) ctx.setLineDash([4, 3]);
+            drawRingCircle(n, vc, 2);
+            ctx.beginPath();
+            ctx.arc(n.x, n.y, effRadius(n) + 9, 0, Math.PI * 2);
+            ctx.strokeStyle = oc;
+            ctx.lineWidth = 1.2;
+            ctx.stroke();
+            if (dashed) ctx.setLineDash([]);
+        }
+
+        function wrapPopoverText(text, maxW) {
+            let words = String(text).split(/\s+/);
+            let lines = [];
+            let cur = '';
+            for (let i = 0; i < words.length; i++) {
+                let next = cur ? cur + ' ' + words[i] : words[i];
+                if (cur && ctx.measureText(next).width > maxW) {
+                    lines.push(cur);
+                    cur = words[i];
+                } else {
+                    cur = next;
+                }
+                if (lines.length >= 5) {
+                    lines[4] = lines[4] + ' \u2026';
+                    return lines;
+                }
+            }
+            if (cur) lines.push(cur);
+            return lines;
+        }
+
+        function drawVerdictPopover() {
+            if (!scanState.verdicts || !hoverNode) return;
+            let status = scanState.verdicts[hoverNode.id];
+            if (!status) return;
+            let label = null;
+            for (let i = 0; i < VERDICT_PROTOCOLS.length; i++) {
+                if (VERDICT_PROTOCOLS[i].node === hoverNode.id) { label = VERDICT_PROTOCOLS[i].label; break; }
+            }
+            if (!label) return;
+
+            let vc = VERDICT_RING_COLORS[status] || 'rgba(239,83,80,0.85)';
+            let header = label + ' \u2014 ' + status;
+            let detail = (scanState.verdictDetails && scanState.verdictDetails[hoverNode.id]) ||
+                'No stored headline for this protocol.';
+            let rfc = VERDICT_RFCS[hoverNode.id] || '';
+
+            ctx.font = '11px -apple-system, BlinkMacSystemFont, monospace';
+            let bodyMaxW = 260;
+            let bodyLines = wrapPopoverText(detail, bodyMaxW);
+            if (rfc) bodyLines.push(rfc);
+
+            ctx.font = 'bold 12px -apple-system, BlinkMacSystemFont, sans-serif';
+            let maxW = ctx.measureText(header).width;
+            ctx.font = '11px -apple-system, BlinkMacSystemFont, monospace';
+            for (let j = 0; j < bodyLines.length; j++) {
+                let lw = ctx.measureText(bodyLines[j]).width;
+                if (lw > maxW) maxW = lw;
+            }
+
+            let lineH = 17;
+            let headerH = lineH + 4;
+            let tipW = maxW + 24;
+            let tipH = headerH + bodyLines.length * lineH + 12;
+            let tipX = hoverNode.x + effRadius(hoverNode) + 16;
+            let tipY = hoverNode.y - tipH / 2;
+            if (tipX + tipW > W - 10) tipX = hoverNode.x - effRadius(hoverNode) - 16 - tipW;
+            if (tipX < 10) tipX = 10;
+            if (tipY < 10) tipY = 10;
+            if (tipY + tipH > H - 10) tipY = H - tipH - 10;
+
+            ctx.save();
+            ctx.shadowColor = 'rgba(0,0,0,0.6)';
+            ctx.shadowBlur = 12;
+            ctx.shadowOffsetX = 2;
+            ctx.shadowOffsetY = 2;
+            roundRect(tipX, tipY, tipW, tipH, 6);
+            ctx.fillStyle = 'rgba(12, 16, 28, 0.95)';
+            ctx.fill();
+            ctx.restore();
+
+            roundRect(tipX, tipY, tipW, tipH, 6);
+            ctx.strokeStyle = vc;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            ctx.font = 'bold 12px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.fillStyle = vc;
+            ctx.fillText(header, tipX + 12, tipY + headerH / 2 + 2);
+
+            ctx.font = '11px -apple-system, BlinkMacSystemFont, monospace';
+            for (let j = 0; j < bodyLines.length; j++) {
+                let isRfc = rfc && j === bodyLines.length - 1;
+                ctx.fillStyle = isRfc ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.75)';
+                ctx.fillText(bodyLines[j], tipX + 12, tipY + headerH + j * lineH + lineH / 2 + 2);
+            }
+        }
+
+        function drawScanRings() {
+            if (!scanState.ringsOn) return;
+            for (let g in GROUP_NODES) {
+                let ph = scanState.groups[g];
+                if (!ph) continue;
+                let ids = GROUP_NODES[g];
+                for (let i = 0; i < ids.length; i++) {
+                    let n = allNodes[ids[i]];
+                    if (!n) continue;
+                    if (i === 0) {
+                        let lbl = scanPhaseLabel(ph);
+                        if (lbl) drawScanNodeLabel(n, lbl.text, lbl.color);
+                    }
+                    if (scanState.verdicts && scanState.verdicts[ids[i]]) {
+                        drawVerdictRings(n, scanState.verdicts[ids[i]]);
+                        continue;
+                    }
+                    if (ph.status === 'running' || ph.status === 'started') {
+                        drawRunningRing(n);
+                    } else {
+                        let c = scanRingColor(ph.status);
+                        if (c) drawRingCircle(n, c, 1.6);
+                    }
+                }
+            }
+        }
+
+        function setHidden(el, hide) { if (el) el.hidden = hide; }
+
+        function scanReset() {
+            if (scanState.pollId) clearInterval(scanState.pollId);
+            scanState.gen++;
+            scanState.active = false;
+            scanState.ringsOn = false;
+            scanState.token = null;
+            scanState.pollId = 0;
+            scanState.failures = 0;
+            scanState.lastPollMs = 0;
+            scanState.groups = {};
+            scanState.verdicts = null;
+            scanState.verdictDetails = null;
+            if (scanEls.phaseBar) scanEls.phaseBar.style.width = '0%';
+            if (scanEls.taskBar) scanEls.taskBar.style.width = '0%';
+            if (scanEls.latency) scanEls.latency.textContent = 'acquisition \u2014';
+            setHidden(scanEls.hud, true);
+            setHidden(scanEls.error, true);
+            setHidden(scanEls.verdict, true);
+            setHidden(scanEls.note, true);
+            if (scanEls.chips) scanEls.chips.textContent = '';
+            if (scanEls.links) scanEls.links.textContent = '';
+            tickerReset();
+            owlsReset();
+            if (scanEls.run) scanEls.run.disabled = false;
+            if (scanEls.status) {
+                scanEls.status.textContent = 'Scanning';
+                scanEls.status.classList.remove('is-complete', 'is-failed');
+            }
+            if (scanEls.cancel) scanEls.cancel.textContent = 'Cancel';
+        }
+
+        function scanShowError(msg) {
+            scanEls.error.textContent = msg;
+            setHidden(scanEls.error, false);
+        }
+
+        function scanStopPolling() {
+            if (scanState.pollId) clearInterval(scanState.pollId);
+            scanState.pollId = 0;
+            scanState.active = false;
+        }
+
+        function scanFail(msg) {
+            scanStopPolling();
+            scanEls.status.textContent = 'Failed';
+            scanEls.status.classList.add('is-failed');
+            scanEls.cancel.textContent = 'Reset';
+            scanEls.run.disabled = false;
+            scanShowError(msg);
+        }
+
+        function scanUpdateHud(data) {
+            let phases = data.phases || {};
+            let total = 0;
+            let done = 0;
+            let tTotal = 0;
+            let tDone = 0;
+            let durSum = 0;
+            let durMax = 0;
+            let durN = 0;
+            for (let k in phases) {
+                total++;
+                let ph = phases[k];
+                if (ph.status === 'done' || ph.status === 'complete') {
+                    done++;
+                    if (typeof ph.duration_ms === 'number') {
+                        durSum += ph.duration_ms;
+                        durN++;
+                        if (ph.duration_ms > durMax) durMax = ph.duration_ms;
+                    }
+                }
+                tTotal += ph.tasks_total || 0;
+                tDone += ph.tasks_done || 0;
+            }
+            scanEls.phases.textContent = 'phases ' + done + '/' + total + ' \u00b7 tasks ' + tDone + '/' + tTotal;
+            if (scanEls.phaseBar) scanEls.phaseBar.style.width = (total > 0 ? Math.round((done / total) * 100) : 0) + '%';
+            if (scanEls.taskBar) scanEls.taskBar.style.width = (tTotal > 0 ? Math.round((tDone / tTotal) * 100) : 0) + '%';
+            if (scanEls.latency) {
+                let parts = [];
+                if (scanState.lastPollMs > 0) parts.push('poll ' + fmtScanDur(scanState.lastPollMs));
+                if (durN > 0) parts.push('phase avg ' + fmtScanDur(durSum / durN) + ' \u00b7 max ' + fmtScanDur(durMax));
+                scanEls.latency.textContent = parts.length ? 'acquisition ' + parts.join(' \u00b7 ') : 'acquisition \u2014';
+            }
+            if (typeof data.elapsed_ms === 'number') {
+                scanEls.elapsed.textContent = (data.elapsed_ms / 1000).toFixed(1) + 's';
+            }
+        }
+
+        function verdictClass(status) {
+            if (status === 'success') return 'topo-v-ok';
+            if (status === 'warning') return 'topo-v-warn';
+            if (status === 'indeterminate' || status === 'info') return 'topo-v-ind';
+            return 'topo-v-bad';
+        }
+
+        function scanBuildChips(fr) {
+            scanState.verdicts = {};
+            scanState.verdictDetails = {};
+            for (let i = 0; i < VERDICT_PROTOCOLS.length; i++) {
+                let vp = VERDICT_PROTOCOLS[i];
+                let section = fr[vp.key];
+                let chip = document.createElement('span');
+                if (section && typeof section.status === 'string') {
+                    chip.className = 'topo-vchip ' + verdictClass(section.status);
+                    chip.title = vp.label + ': ' + section.status;
+                    scanState.verdicts[vp.node] = section.status;
+                    if (typeof section.message === 'string' && section.message) {
+                        scanState.verdictDetails[vp.node] = section.message;
+                    }
+                } else {
+                    chip.className = 'topo-vchip topo-v-ind';
+                    chip.title = vp.label + ': no data in stored analysis';
+                    scanState.verdicts[vp.node] = 'indeterminate';
+                }
+                chip.textContent = vp.label;
+                scanEls.chips.appendChild(chip);
+            }
+        }
+
+        function scanAddLink(href, text, title) {
+            let a = document.createElement('a');
+            a.href = href;
+            a.textContent = text;
+            if (title) a.title = title;
+            scanEls.links.appendChild(a);
+        }
+
+        function scanLoadVerdicts(analysisID, redirectURL) {
+            let myGen = scanState.gen;
+            let base = redirectURL || ('/analysis/' + analysisID);
+            setHidden(scanEls.verdict, false);
+            scanAddLink(base, 'Engineer\u2019s Report', 'Engineer\u2019s DNS Intelligence Report \u2014 full technical findings');
+            scanAddLink('/analysis/' + analysisID + '/view/B', 'Executive Brief', 'Executive\u2019s DNS Intelligence Brief \u2014 executive summary');
+            scanAddLink('/analysis/' + analysisID + '/view/C', 'Recon Report \u00b7 Red Team \u00b7 Scotopic', 'Covert Recon Report \u2014 red-team perspective in the scotopic-preserving covert interface');
+            if (!REPLAY) scanAddLink('/replay/' + analysisID, 'Scan Replay', 'Shareable timeline replay of this scan on the pipeline topology');
+            fetch('/api/analysis/' + analysisID, { headers: { 'Accept': 'application/json' } }).then(function(resp) {
+                return resp.ok ? resp.json() : null;
+            }).then(function(data) {
+                if (scanState.gen !== myGen) return;
+                let fr = data && data.full_results;
+                if (data && data.owl_semaphore) scanBuildOwls(data.owl_semaphore);
+                if (fr) {
+                    scanBuildChips(fr);
+                } else {
+                    scanEls.note.textContent = 'Verdict summary unavailable \u2014 open the full report for results.';
+                    setHidden(scanEls.note, false);
+                }
+            }).catch(function() {
+                if (scanState.gen !== myGen) return;
+                scanEls.note.textContent = 'Verdict summary unavailable \u2014 open the full report for results.';
+                setHidden(scanEls.note, false);
+            });
+        }
+
+        function scanComplete(data) {
+            scanStopPolling();
+            for (let g in scanState.groups) {
+                if (scanState.groups[g] && (scanState.groups[g].status === 'running' || scanState.groups[g].status === 'started')) {
+                    scanState.groups[g].status = 'done';
+                }
+            }
+            scanEls.status.textContent = 'Complete';
+            scanEls.status.classList.add('is-complete');
+            scanEls.cancel.textContent = 'Reset';
+            scanEls.run.disabled = false;
+            if (data.analysis_id) {
+                scanLoadVerdicts(data.analysis_id, data.redirect_url);
+            } else {
+                setHidden(scanEls.verdict, false);
+                scanEls.note.textContent = 'Scan complete \u2014 results were not persisted, so there is no stored report to link. /dev/null scans, unauthenticated custom-selector scans, and non-existent domains are analyzed without being written to the database.';
+                setHidden(scanEls.note, false);
+            }
+        }
+
+        function scanCheckFailures() {
+            if (scanState.failures >= 4) {
+                scanFail('Lost contact with the scan progress endpoint. The scan may still be running on the server.');
+            }
+        }
+
+        function scanHandlePoll(data) {
+            if (!scanState.active) return;
+            if (!data) { scanCheckFailures(); return; }
+            scanState.groups = data.phases || {};
+            scanUpdateHud(data);
+            tickerDiffLive(data);
+            if (data.status === 'failed') {
+                tickerFail(data.error || '');
+                scanFail(data.error || 'Analysis failed. Please try again.');
+                return;
+            }
+            if (data.status === 'complete') {
+                scanComplete(data);
+            }
+        }
+
+        function scanPollOnce() {
+            let t0 = performance.now();
+            fetch('/api/scan/progress/' + scanState.token).then(function(resp) {
+                scanState.lastPollMs = performance.now() - t0;
+                if (!resp.ok) { scanState.failures++; return null; }
+                scanState.failures = 0;
+                return resp.json();
+            }).then(function(data) {
+                scanHandlePoll(data);
+            }).catch(function() {
+                scanState.failures++;
+                scanCheckFailures();
+            });
+        }
+
+        function scanStart() {
+            let domain = scanEls.domain.value.trim();
+            if (!domain) { scanEls.domain.focus(); return; }
+            scanReset();
+            let myGen = scanState.gen;
+            scanState.startedAt = Date.now();
+            scanEls.target.textContent = domain;
+            scanEls.elapsed.textContent = '0.0s';
+            scanEls.phases.textContent = 'phases 0/9 \u00b7 tasks 0/0';
+            setHidden(scanEls.hud, false);
+            scanEls.run.disabled = true;
+            let fd = new FormData(scanEls.form);
+            fetch('/analyze', {
+                method: 'POST',
+                body: fd,
+                headers: { 'X-Requested-With': 'fetch', 'Accept': 'application/json' },
+                redirect: 'follow'
+            }).then(function(resp) {
+                let ct = resp.headers.get('content-type') || '';
+                let isJSON = ct.indexOf('application/json') !== -1;
+                if (resp.status === 202 && isJSON) return resp.json();
+                if (resp.status === 429 && isJSON) {
+                    return resp.json().then(function(d) {
+                        throw new Error(d && d.error ? d.error : 'Rate limited \u2014 please wait and try again.');
+                    });
+                }
+                throw new Error('Scan did not start \u2014 the server declined the request (invalid domain, rate limit, or expired session). Reload the page if this persists.');
+            }).then(function(data) {
+                if (scanState.gen !== myGen) return;
+                if (!data || !data.token) {
+                    throw new Error('Scan did not start \u2014 no progress token returned.');
+                }
+                scanState.token = data.token;
+                scanState.active = true;
+                scanState.ringsOn = true;
+                scanState.pollId = setInterval(scanPollOnce, 500);
+            }).catch(function(err) {
+                if (scanState.gen !== myGen) return;
+                scanState.active = false;
+                scanState.ringsOn = false;
+                setHidden(scanEls.hud, true);
+                scanEls.run.disabled = false;
+                scanShowError(err && err.message ? err.message : 'Network error \u2014 please check your connection and try again.');
+            });
+        }
+
+        if (!REPLAY && scanEls.form && scanEls.domain && scanEls.run && scanEls.hud) {
+            scanEls.form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                if (scanState.active) return;
+                scanStart();
+            });
+            scanEls.advBtn.addEventListener('click', function() {
+                let open = scanEls.adv.hidden;
+                scanEls.adv.hidden = !open;
+                scanEls.advBtn.setAttribute('aria-expanded', String(open));
+            });
+            scanEls.devnull.addEventListener('change', function() {
+                if (scanEls.devnull.checked) scanEls.exposure.checked = true;
+            });
+            scanEls.cancel.addEventListener('click', function() { scanReset(); });
+            document.addEventListener('keydown', function(e) {
+                if (e.key !== 'Escape') return;
+                if (!scanEls.adv.hidden && !scanState.active && !scanState.ringsOn) {
+                    scanEls.adv.hidden = true;
+                    scanEls.advBtn.setAttribute('aria-expanded', 'false');
+                    return;
+                }
+                if (scanState.active || scanState.ringsOn || !scanEls.error.hidden) scanReset();
+            });
+        }
+
+        /* ---- Scan replay ------------------------------------------------
+           Replay mode (/replay/:id) drives the SAME scanState + HUD + ring
+           pipeline as a live scan, but from the recorded phase telemetry
+           served by /api/replay/:id. Every frame is synthesized purely from
+           stored event offsets and durations — nothing is invented. */
+
+        let replayState = { data: null, T: 0, speed: 8, timerId: 0, done: false };
+
+        function replayFrame(events, T, totalMs) {
+            let phases = {};
+            for (let i = 0; i < events.length; i++) {
+                let ev = events[i];
+                if (!ev.group) continue;
+                let ph = phases[ev.group];
+                if (!ph) {
+                    ph = { status: 'pending', tasks_total: 0, tasks_done: 0, _t0: Infinity, _t1: 0 };
+                    phases[ev.group] = ph;
+                }
+                ph.tasks_total++;
+                let evEnd = ev.t + (ev.dur || 0);
+                if (ev.t < ph._t0) ph._t0 = ev.t;
+                if (evEnd > ph._t1) ph._t1 = evEnd;
+                if (evEnd <= T) ph.tasks_done++;
+            }
+            for (let g in phases) {
+                let ph = phases[g];
+                if (T >= ph._t1) {
+                    ph.status = 'done';
+                    ph.duration_ms = ph._t1 - ph._t0;
+                } else if (T >= ph._t0) {
+                    ph.status = 'running';
+                }
+            }
+            return {
+                phases: phases,
+                elapsed_ms: Math.min(T, totalMs),
+                status: T >= totalMs ? 'complete' : 'running'
+            };
+        }
+
+        function replayApplyFrame() {
+            let d = replayState.data;
+            let fr = replayFrame(d.events, replayState.T, d.total_ms);
+            scanState.groups = fr.phases;
+            scanUpdateHud(fr);
+            tickerReplayFrame(d.events, replayState.T);
+            if (scanEls.latency) {
+                scanEls.latency.textContent = 'replay ' + replayState.speed + '\u00d7 \u00b7 recorded ' + fmtScanDur(d.total_ms);
+            }
+            if (fr.status === 'complete' && !replayState.done) replayComplete();
+        }
+
+        function replayComplete() {
+            replayState.done = true;
+            if (replayState.timerId) { clearInterval(replayState.timerId); replayState.timerId = 0; }
+            scanEls.status.textContent = 'Replay Complete';
+            scanEls.status.classList.add('is-complete');
+            let d = replayState.data;
+            if (d.verdicts) {
+                scanState.verdicts = {};
+                for (let k in d.verdicts) scanState.verdicts[k] = d.verdicts[k];
+            }
+            scanLoadVerdicts(d.analysis_id || REPLAY.id, null);
+        }
+
+        function replayStart() {
+            if (replayState.timerId) { clearInterval(replayState.timerId); replayState.timerId = 0; }
+            scanState.gen++;
+            replayState.done = false;
+            replayState.T = 0;
+            scanState.verdicts = null;
+            scanState.verdictDetails = null;
+            scanState.groups = {};
+            scanState.ringsOn = true;
+            if (scanEls.chips) scanEls.chips.textContent = '';
+            if (scanEls.links) scanEls.links.textContent = '';
+            tickerReset();
+            owlsReset();
+            setHidden(scanEls.verdict, true);
+            setHidden(scanEls.note, true);
+            setHidden(scanEls.error, true);
+            scanEls.status.textContent = 'Replaying';
+            scanEls.status.classList.remove('is-complete', 'is-failed');
+            replayApplyFrame();
+            replayState.timerId = setInterval(function() {
+                replayState.T += 100 * replayState.speed;
+                replayApplyFrame();
+            }, 100);
+        }
+
+        if (REPLAY && scanEls.hud && scanEls.status && scanEls.cancel) {
+            if (scanEls.form) scanEls.form.hidden = true;
+            scanEls.target.textContent = REPLAY.domain || '';
+            scanEls.elapsed.textContent = '0.0s';
+            scanEls.status.textContent = 'Loading Replay';
+            setHidden(scanEls.hud, false);
+            scanEls.cancel.textContent = 'Restart';
+            scanEls.cancel.title = 'Restart the replay from the beginning.';
+            scanEls.cancel.addEventListener('click', function() {
+                if (replayState.data) replayStart();
+            });
+            let spdBtn = document.createElement('button');
+            spdBtn.type = 'button';
+            spdBtn.className = scanEls.cancel.className;
+            spdBtn.textContent = '8\u00d7 speed';
+            spdBtn.title = 'Toggle between true recorded speed (1\u00d7) and scaled speed (8\u00d7).';
+            spdBtn.addEventListener('click', function() {
+                replayState.speed = replayState.speed === 8 ? 1 : 8;
+                spdBtn.textContent = replayState.speed + '\u00d7 speed';
+                if (replayState.data && !replayState.done) replayApplyFrame();
+            });
+            scanEls.cancel.parentNode.insertBefore(spdBtn, scanEls.cancel);
+            fetch('/api/replay/' + REPLAY.id, { headers: { 'Accept': 'application/json' } }).then(function(resp) {
+                if (!resp.ok) return null;
+                return resp.json();
+            }).then(function(d) {
+                if (!d || !d.events || !d.events.length || typeof d.total_ms !== 'number') {
+                    throw new Error('Replay data unavailable \u2014 this analysis has no recorded scan timeline.');
+                }
+                replayState.data = d;
+                replayStart();
+            }).catch(function(err) {
+                scanEls.status.textContent = 'Replay Unavailable';
+                scanEls.status.classList.add('is-failed');
+                scanShowError(err && err.message ? err.message : 'Replay data unavailable \u2014 this analysis has no recorded scan timeline.');
+            });
         }
 
         let debugBounds = window.location.search.indexOf('debug=bounds') !== -1;

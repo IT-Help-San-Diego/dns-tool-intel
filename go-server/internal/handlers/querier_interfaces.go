@@ -27,6 +27,8 @@ type AnalysisStore interface {
         GetAnalysisByID(ctx context.Context, id int32) (dbq.DomainAnalysis, error)
         CheckAnalysisOwnership(ctx context.Context, arg dbq.CheckAnalysisOwnershipParams) (bool, error)
         GetRecentAnalysisByDomain(ctx context.Context, domain string) (dbq.DomainAnalysis, error)
+        GetTelemetryByAnalysis(ctx context.Context, analysisID int32) ([]dbq.ScanPhaseTelemetry, error)
+        GetTelemetryHash(ctx context.Context, analysisID int32) (dbq.ScanTelemetryHash, error)
 }
 
 
