@@ -1,12 +1,15 @@
 package handlers
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"html/template"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -342,5 +345,65 @@ func TestReplayPage_NoTelemetry404(t *testing.T) {
 	}
 	if strings.Contains(w.Body.String(), "TMPL:topology") {
 		t.Error("no-telemetry request must not render the replay page")
+	}
+}
+
+// TestReplayBootstrapTemplateEscaping renders the real __TOPO_REPLAY bootstrap
+// line from go-server/templates/topology.html through html/template and proves
+// contextual autoescaping emits the domain as a quoted JS string literal —
+// including under a hostile domain — so replay mode always receives a valid
+// object. Regression guard for the replay permalink bootstrap.
+func TestReplayBootstrapTemplateEscaping(t *testing.T) {
+	src, err := os.ReadFile(filepath.Join("..", "..", "templates", "topology.html"))
+	if err != nil {
+		t.Fatalf("read topology.html: %v", err)
+	}
+	var line string
+	for _, l := range strings.Split(string(src), "\n") {
+		if strings.Contains(l, "__TOPO_REPLAY") {
+			line = strings.TrimSpace(l)
+			break
+		}
+	}
+	if line == "" {
+		t.Fatal("topology.html no longer contains the __TOPO_REPLAY bootstrap line")
+	}
+	tmpl, err := template.New("boot").Parse(line)
+	if err != nil {
+		t.Fatalf("parse bootstrap line: %v", err)
+	}
+
+	render := func(domain string) string {
+		var buf bytes.Buffer
+		data := map[string]any{
+			"CspNonce":      "test-nonce",
+			"ReplayID":      int32(934),
+			"ReplayDomain":  domain,
+			"ReplayTotalMs": int64(9658),
+		}
+		if err := tmpl.Execute(&buf, data); err != nil {
+			t.Fatalf("execute bootstrap line: %v", err)
+		}
+		return buf.String()
+	}
+
+	// Benign domain: must render as a quoted JS string literal, not a bare
+	// identifier (domain:"ietf.org", never domain:ietf.org).
+	out := render("ietf.org")
+	if !strings.Contains(out, `domain:"ietf.org"`) {
+		t.Errorf("domain not rendered as a quoted JS string literal: %s", out)
+	}
+
+	// Hostile domain: the embedded quote must be escaped (\") so it cannot
+	// terminate the string literal and inject script.
+	hostile := render(`evil.com";alert(1);//`)
+	if strings.Contains(hostile, `evil.com";`) {
+		t.Errorf("hostile domain broke out of the JS string literal: %s", hostile)
+	}
+	if !strings.Contains(hostile, `evil.com\";alert(1)`) {
+		t.Errorf("hostile quote not escaped inside the JS string literal: %s", hostile)
+	}
+	if !strings.Contains(hostile, `domain:"`) {
+		t.Errorf("hostile domain not rendered as a quoted JS string literal: %s", hostile)
 	}
 }
