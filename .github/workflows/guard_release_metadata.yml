@@ -1,0 +1,94 @@
+name: Guard release metadata
+
+# Why this exists
+# ---------------
+# v26.50.05 shipped with its deposit metadata frozen at 26.46.14: the tag was
+# pushed from a commit where scripts/release-gate.sh had never run, so
+# CITATION.cff / .zenodo.json / codemeta.json still carried the previous
+# version. Zenodo archived the correct source zip under the wrong version, and
+# the citation string served from /api/research pointed at a stale release.
+#
+# scripts/verify-zenodo-release.sh already detects this — but only AFTER the
+# deposit exists, and a Zenodo deposit cannot be retracted cleanly. This guard
+# moves the check before the irreversible step.
+#
+# Two triggers, two jobs:
+#   tag push -> versions MUST equal the tag. Blocks the release.
+#   pull request -> the three metadata files must at least agree WITH EACH
+#                   OTHER, so drift is caught while it is still cheap to fix.
+
+on:
+  push:
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  metadata-matches-tag:
+    name: Metadata version matches tag
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+
+      - name: Assert CITATION.cff, .zenodo.json and codemeta.json equal the tag
+        run: |
+          set -euo pipefail
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          echo "Tag version: ${TAG_VERSION}"
+
+          CFF=$(grep -E '^version:' CITATION.cff | sed -E 's/^version:[[:space:]]*"?([^"]*)"?[[:space:]]*$/\1/')
+          ZEN=$(python3 -c "import json;print(json.load(open('.zenodo.json'))['version'])")
+          CODE=$(python3 -c "import json;d=json.load(open('codemeta.json'));print(d.get('version') or d.get('softwareVersion'))")
+
+          echo "  CITATION.cff  : ${CFF}"
+          echo "  .zenodo.json  : ${ZEN}"
+          echo "  codemeta.json : ${CODE}"
+
+          RC=0
+          [ "$CFF"  = "$TAG_VERSION" ] || { echo "FAIL: CITATION.cff  is ${CFF}, expected ${TAG_VERSION}"; RC=1; }
+          [ "$ZEN"  = "$TAG_VERSION" ] || { echo "FAIL: .zenodo.json  is ${ZEN}, expected ${TAG_VERSION}"; RC=1; }
+          [ "$CODE" = "$TAG_VERSION" ] || { echo "FAIL: codemeta.json is ${CODE}, expected ${TAG_VERSION}"; RC=1; }
+
+          if [ "$RC" -ne 0 ]; then
+            echo ""
+            echo "The tag commit does not carry a release-gate version bump."
+            echo "This is the v26.50.05 failure mode: Zenodo would archive the"
+            echo "correct source under the WRONG version, and the deposit cannot"
+            echo "be cleanly retracted."
+            echo ""
+            echo "Fix: delete the tag, run 'bash scripts/release-gate.sh ${TAG_VERSION}',"
+            echo "commit the bump, then re-tag."
+            exit 1
+          fi
+          echo "PASS: all three metadata files match ${TAG_VERSION}"
+
+  metadata-self-consistent:
+    name: Metadata files agree with each other
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+
+      - name: Assert the three versioned artifacts are mutually consistent
+        run: |
+          set -euo pipefail
+          CFF=$(grep -E '^version:' CITATION.cff | sed -E 's/^version:[[:space:]]*"?([^"]*)"?[[:space:]]*$/\1/')
+          ZEN=$(python3 -c "import json;print(json.load(open('.zenodo.json'))['version'])")
+          CODE=$(python3 -c "import json;d=json.load(open('codemeta.json'));print(d.get('version') or d.get('softwareVersion'))")
+
+          echo "  CITATION.cff  : ${CFF}"
+          echo "  .zenodo.json  : ${ZEN}"
+          echo "  codemeta.json : ${CODE}"
+
+          if [ "$CFF" != "$ZEN" ] || [ "$CFF" != "$CODE" ]; then
+            echo "FAIL: versioned artifacts disagree."
+            echo "They are bumped together by scripts/release-gate.sh; a mismatch"
+            echo "means one was hand-edited. Re-run the gate rather than patching."
+            exit 1
+          fi
+          echo "PASS: all three agree at ${CFF}"
