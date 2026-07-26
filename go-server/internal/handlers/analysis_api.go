@@ -229,6 +229,10 @@ func (h *AnalysisHandler) buildAnalysisJSON(ctx context.Context, analysis dbq.Do
 		"updated_at":        formatTimestampISO(analysis.UpdatedAt),
 	}
 
+	if owl := computeOwlSemaphore(fullResults); owl != nil {
+		payload["owl_semaphore"] = owl
+	}
+
 	keys := make([]string, 0, len(payload))
 	for k := range payload {
 		keys = append(keys, k)

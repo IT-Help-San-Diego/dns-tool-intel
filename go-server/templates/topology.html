@@ -73,13 +73,13 @@
             background: rgba(7, 10, 15, 0.92);
             border-top: 1px solid rgba(255, 255, 255, 0.06);
             border-radius: 0 0 8px 8px;
-            padding: 5px 16px;
+            padding: 5px 13px;
             font-size: 0.68rem;
             color: #8b9aad;
             backdrop-filter: blur(8px);
             display: flex;
             flex-wrap: wrap;
-            gap: 10px 18px;
+            gap: 8px 21px;
             align-items: center;
             justify-content: center;
             box-sizing: border-box;
@@ -149,8 +149,8 @@
             background: rgba(255, 193, 7, 0.06);
             border: 1px solid rgba(255, 193, 7, 0.18);
             border-radius: 6px;
-            padding: 10px 16px;
-            margin-top: 12px;
+            padding: 8px 13px;
+            margin-top: 13px;
             font-size: 0.8rem;
             color: #c0c8d4;
             line-height: 1.5;
@@ -163,12 +163,15 @@
             letter-spacing: 0.08em;
             margin-right: 6px;
         }
+        /* Scan-console spacing follows a Fibonacci scale (3/5/8/13/21 px)
+           so instrument chunks share one deliberate rhythm. CSS only —
+           the solver's node-layout math is untouched. */
         .topo-scan-console {
             position: absolute;
-            top: 12px;
-            right: 12px;
+            top: 13px;
+            right: 13px;
             width: 340px;
-            max-width: calc(100% - 24px);
+            max-width: calc(100% - 26px);
             z-index: 6;
             font-size: 0.78rem;
             color: #c0c8d4;
@@ -178,10 +181,10 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 6px;
             backdrop-filter: blur(8px);
-            padding: 8px 10px;
-            margin-bottom: 6px;
+            padding: 8px 13px;
+            margin-bottom: 8px;
         }
-        .topo-scan-row { display: flex; gap: 6px; align-items: stretch; }
+        .topo-scan-row { display: flex; gap: 5px; align-items: stretch; }
         .topo-scan-input {
             flex: 1;
             min-width: 0;
@@ -234,8 +237,8 @@
             color: #8b9aad;
             margin-bottom: 2px;
         }
-        .topo-scan-adv .topo-scan-input { width: 100%; margin-bottom: 6px; font-size: 0.74rem; }
-        .topo-scan-check { display: flex; gap: 6px; align-items: flex-start; margin-top: 4px; }
+        .topo-scan-adv .topo-scan-input { width: 100%; margin-bottom: 5px; font-size: 0.74rem; }
+        .topo-scan-check { display: flex; gap: 5px; align-items: flex-start; margin-top: 5px; }
         .topo-scan-check input { margin-top: 2px; flex-shrink: 0; }
         .topo-scan-check label { font-size: 0.7rem; color: #a8b6c6; line-height: 1.35; }
         .topo-scan-hud-row { display: flex; align-items: center; gap: 8px; }
@@ -277,8 +280,8 @@
             white-space: nowrap;
         }
         .topo-scan-cancel:hover { color: #e6edf3; border-color: rgba(255, 255, 255, 0.35); }
-        .topo-scan-sub { margin-top: 4px; font-size: 0.68rem; color: #8b9aad; font-family: var(--bs-font-monospace, monospace); }
-        .topo-scan-meter { display: flex; align-items: center; gap: 6px; margin-top: 5px; }
+        .topo-scan-sub { margin-top: 5px; font-size: 0.68rem; color: #8b9aad; font-family: var(--bs-font-monospace, monospace); }
+        .topo-scan-meter { display: flex; align-items: center; gap: 5px; margin-top: 5px; }
         .topo-scan-meter-label {
             flex: 0 0 44px;
             font-size: 0.58rem;
@@ -304,7 +307,7 @@
         }
         .topo-scan-meter-bar--tasks { background: #4fc3f7; }
         .topo-scan-error { border-color: rgba(239, 83, 80, 0.4); color: #f0b4b2; }
-        .topo-scan-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+        .topo-scan-chips { display: flex; flex-wrap: wrap; gap: 5px; }
         .topo-vchip {
             display: inline-flex;
             align-items: center;
@@ -320,17 +323,55 @@
         .topo-v-warn { color: #ffb74d; border-color: rgba(255, 183, 77, 0.5);  background: rgba(255, 183, 77, 0.08); }
         .topo-v-ind  { color: #9fb0c0; border-color: rgba(159, 176, 192, 0.4); background: rgba(159, 176, 192, 0.08); }
         .topo-v-bad  { color: #ef9a9a; border-color: rgba(239, 83, 80, 0.5);   background: rgba(239, 83, 80, 0.08); }
-        .topo-scan-links { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 4px 12px; }
+        .topo-scan-links { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 5px 13px; }
         .topo-scan-links a { font-size: 0.72rem; color: #6ecbf5; text-decoration: none; }
         .topo-scan-links a:hover { text-decoration: underline; }
-        .topo-scan-note { margin-top: 6px; font-size: 0.7rem; color: #a8b6c6; line-height: 1.4; }
+        .topo-scan-note { margin-top: 5px; font-size: 0.7rem; color: #a8b6c6; line-height: 1.4; }
+        .topo-scan-ticker {
+            margin-top: 8px;
+            max-height: 96px;
+            overflow-y: auto;
+            font-size: 0.66rem;
+            line-height: 1.5;
+            color: #a8b6c6;
+            border-top: 1px solid rgba(159, 176, 192, 0.15);
+            padding-top: 5px;
+        }
+        .topo-tick-line { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .topo-tick-time { color: #6b7a8c; margin-right: 5px; }
+        .topo-tick-start { color: #ffd54f; }
+        .topo-tick-done  { color: #81c784; }
+        .topo-tick-task  { color: #9fb0c0; }
+        .topo-tick-fail  { color: #ef9a9a; }
+        .topo-scan-owls { display: flex; gap: 13px; margin-bottom: 8px; }
+        .topo-owl {
+            background: none;
+            border: 0;
+            padding: 0;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+        .topo-owl img { filter: grayscale(1) brightness(0.55) opacity(0.55); transition: filter 0.3s ease; }
+        .topo-owl.is-lit img { filter: none; }
+        .topo-owl-label { font-size: 0.58rem; color: #9fb0c0; letter-spacing: 0.04em; }
+        .topo-owl.is-lit .topo-owl-label { color: #e0e6ec; }
+        .topo-scan-owl-note { margin-bottom: 8px; font-size: 0.7rem; color: #a8b6c6; line-height: 1.4; }
         @media (max-width: 576px) {
             .topo-scan-console {
-                left: 12px;
-                right: 12px;
+                left: 13px;
+                right: 13px;
                 width: auto;
                 top: 66px;
+                max-height: calc(100% - 79px);
+                overflow-y: auto;
+                overscroll-behavior: contain;
             }
+            .topo-scan-ticker { max-height: 72px; }
+            .topo-scan-owls { gap: 8px; }
+            .topo-scan-hud-row { flex-wrap: wrap; row-gap: 5px; }
         }
         .topo-c-cf { background: #f6821f; }
         .topo-c-g  { background: #4285f4; }
@@ -402,9 +443,12 @@
                         <div class="topo-scan-meter"><span class="topo-scan-meter-label">Phases</span><span class="topo-scan-meter-track"><span class="topo-scan-meter-bar" id="topoMeterPhaseBar"></span></span></div>
                         <div class="topo-scan-meter"><span class="topo-scan-meter-label">Tasks</span><span class="topo-scan-meter-track"><span class="topo-scan-meter-bar topo-scan-meter-bar--tasks" id="topoMeterTaskBar"></span></span></div>
                         <div class="topo-scan-sub" id="topoScanLatency">acquisition &mdash;</div>
+                        <div class="topo-scan-ticker" id="topoScanTicker" aria-label="Scan event ticker" hidden></div>
                     </div>
                     <div class="topo-scan-card topo-scan-error" id="topoScanError" role="alert" hidden></div>
                     <div class="topo-scan-card" id="topoScanVerdict" hidden>
+                        <div class="topo-scan-owls" id="topoScanOwls" aria-label="Epistemic owl semaphore" hidden></div>
+                        <div class="topo-scan-owl-note" id="topoScanOwlNote" hidden></div>
                         <div class="topo-scan-chips" id="topoScanChips"></div>
                         <div class="topo-scan-links" id="topoScanLinks"></div>
                         <div class="topo-scan-note" id="topoScanNote" hidden></div>
