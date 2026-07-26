@@ -846,7 +846,7 @@
                         <p class="text-muted small mb-0">&ldquo;How close is the collected data to ground truth?&rdquo; ICuAE scores each scan against a theoretical ideal &mdash; a machine-locked collector with perfect TTL compliance, complete records, and full resolver consensus. Real-world DNS fluctuates, so instead of pass/fail we track <strong>statistical stability</strong> &mdash; rolling averages and variance across scans.</p>
                     </div>
                 </div>
-                <p class="text-muted small mt-3 mb-0">Per ICD 203, confidence requires both: an accurate interpretation of data that is also current. One without the other is incomplete intelligence.</p>
+                <p class="text-muted small mt-3 mb-0">DNS Tool treats accuracy and currency as jointly necessary: an accurate interpretation of stale data is incomplete intelligence. ICD 203 lists currency among the causes of uncertainty that analytic products must note.</p>
             </div>
         </div>
         {{end}}
@@ -1102,7 +1102,7 @@
                     </table>
                 </div>
 
-                <p class="text-muted small mb-0"><strong>Why 0&ndash;100?</strong> ISO/IEC 25012 defines timeliness as a <em>quantitative</em> data quality dimension &mdash; it exists on a continuum, not as a binary. A 0&ndash;100 normalized score allows statistical tracking (rolling averages, standard deviation, trend analysis) that binary pass/fail cannot. NIST SP 800-53 SI-7 (Information Integrity) similarly treats data completeness and validity as measurable properties requiring periodic verification. The five-tier grading scale maps the continuous score to actionable categories, paralleling ICD 203&rsquo;s practice of expressing judgments as defined verbal bands rather than raw numbers.</p>
+                <p class="text-muted small mb-0"><strong>Why 0&ndash;100?</strong> ISO/IEC 25012 defines timeliness as a <em>quantitative</em> data quality dimension &mdash; it exists on a continuum, not as a binary. A 0&ndash;100 normalized score allows statistical tracking (rolling averages, standard deviation, trend analysis) that binary pass/fail cannot. NIST SP 800-53 SI-7 (Information Integrity) similarly treats data completeness and validity as measurable properties requiring periodic verification. The five-tier grading scale maps the continuous score to actionable categories, paralleling ICD 203&rsquo;s practice of pairing defined verbal bands with explicit numeric ranges.</p>
             </div>
         </div>
 
