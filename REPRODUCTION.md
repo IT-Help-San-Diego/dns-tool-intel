@@ -103,6 +103,42 @@ claim, an undocumented required variable, and a schema-initialisation gap — no
 of which were visible from reading the source, and all of which a researcher
 would have hit within a minute of first launch.
 
+### 2026-07-26, third run — `docker compose up`: the platform serves
+
+`docker compose up` brought up both containers successfully. Verbatim from the
+app log:
+
+```
+Database connected successfully
+seed: migration applied  013_seed_findings_and_ede.sql
+seed: migration applied  015_confidence_scores_link_seed.sql
+Templates directory resolved  path=go-server/templates
+Static directory resolved     path=static
+SRI hashes computed  assets=13
+Loaded IANA RDAP map  tld_count=1200
+CISA IP list refreshed  entries=485
+IETF metadata: bulk fetch complete  fetched=21 total=21
+Full router ready — handler swapped  address=0.0.0.0:5000 version=compose-local
+```
+
+The database container executed `00-schema.sql` (all tables and indexes created)
+and reported healthy before the app started. Both `*seed*` migrations applied.
+The container-asset paths were correct: templates resolved from
+`go-server/templates`, static from `static`.
+
+**Two operational findings from this run:**
+
+1. **Port 5000 is unusable on macOS.** An initial `curl localhost:5000` returned
+   `403 Forbidden` — but not from DNS Tool. `lsof -iTCP:5000 -sTCP:LISTEN`
+   showed `ControlCe` (Apple AirPlay Receiver) holding the port, and the
+   response carried `Server: AirTunes/950.7.1` with
+   `X-Apple-RequestReceivedTimestamp`. The request never reached the container.
+   `docker-compose.yml` now publishes on host port **5055**.
+2. **`mkdir logs: permission denied`** (WARN, non-fatal). The image runs as
+   non-root uid 10001 with `WORKDIR /app` owned by root, so the structured
+   logger cannot create `/app/logs` and falls back to stderr. Harmless for
+   evaluation; worth fixing so container logs are complete.
+
 ### NOT verified in the 2026-07-26 build run
 
 Stated plainly, because a reproduction record that only lists successes is not
@@ -117,13 +153,12 @@ evidence:
   requires `DATABASE_URL` to be set.
 - ~~**Container image.**~~ **Now verified** — see the entry above. All 23 build
   steps completed and the binary started; the asset paths were correct.
-- **HTTP serving still unconfirmed.** The container exited on the missing
-  `DATABASE_URL` before serving a request, so no page has yet been retrieved
-  from any build of this deposit. `docker compose up` should close this, and has
-  not itself been run.
-- **`docker-compose.yml` is untested.** Written after the failure above; it
-  parses as valid YAML and the schema path it mounts exists, but no one has run
-  it.
+- ~~**`docker-compose.yml` is untested.**~~ **Now run successfully** — see the
+  third-run entry above.
+- **An HTTP 200 from the application has still not been captured.** The stack
+  reached "Full router ready", but the only curl attempts in this session hit
+  the macOS AirPlay service on port 5000 rather than the container. A request to
+  the corrected port (5055) has not yet been recorded.
 - **Clean-room independence.** A remote host was dispatched first but was
   powered down (`connect ... Operation timed out`), so the build ran on the
   author's own machine with a project-adjacent toolchain. It is a build from a
