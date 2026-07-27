@@ -230,8 +230,17 @@
                         let cx2 = p2.x + Math.cos(ca) * dist;
                         let cy2 = p2.y + Math.sin(ca) * dist;
                         if (Math.cos(ca) < 0) cx2 -= tagW;
-                        cx2 = Math.max(Math.max(4, maxLabelLeft), Math.min(cx2, maxLabelRight - tagW));
-                        cy2 = Math.max(Math.max(4, maxLabelTop), Math.min(cy2, maxLabelBottom - tagH));
+                        // REJECT candidates that do not fit; never CLAMP them.
+                        // Clamping was the pile-up. maxLabelLeft evaluates to
+                        // about -150 at every viewport (there is only 41-77px
+                        // of canvas west of the globe against a ~104px tag), so
+                        // Math.max(4, maxLabelLeft) collapsed every westward
+                        // candidate onto x=4 — where they all "fit", stacked on
+                        // each other. Rejecting instead pushes the search into
+                        // the corridors that genuinely are free: above and
+                        // below the globe.
+                        if (cx2 < 4 || cx2 + tagW > maxLabelRight) continue;
+                        if (cy2 < 4 || cy2 + tagH > maxLabelBottom) continue;
                         let hasCollision = false;
                         for (let pi = 0; pi < placedBoxes.length; pi++) {
                             let pb = placedBoxes[pi];
@@ -245,6 +254,14 @@
                         let score = (hasCollision ? 10000 : 0) + distFromDot;
                         if (score < bestScore) { bestScore = score; bestX2 = cx2; bestY2 = cy2; }
                     }
+                    }
+                    // No candidate fitted at all — park it in the corridor
+                    // below the globe rather than leaving it at the last
+                    // clamped position.
+                    if (bestX2 === null) {
+                        bestX2 = Math.min(Math.max(4, p2.x - tagW / 2), maxLabelRight - tagW);
+                        bestY2 = Math.min(globe.cy + globe.R + 16 * SCL, maxLabelBottom - tagH);
+                        bestScore = 10000;
                     }
                     if (bestScore >= 10000) {
                         for (let ri = 0; ri < 8; ri++) {
@@ -654,6 +671,7 @@
             FONT_SUB = Math.round(Math.max(8, Math.min(12, 10 * SCL)));
             FONT_TAG = Math.round(Math.max(10, Math.min(15, 13 * SCL)));
             MIN_SPACING = Math.round(Math.max(5, 8 * SCL));
+            clearTextWidthCache();
         }
 
         function computeNodeBox(shape, radius, label, sub, scale, fontLabel, fontSub, measureFn) {
@@ -669,19 +687,26 @@
                 }
             }
             let contentW = Math.max(labelW, subW) + 24 * scale;
+            // Extra height for wrapped sub-text. Only the default branch used
+            // to account for this, so cylinders and diamonds — which DO draw a
+            // multi-line sub below the label — measured shorter than they
+            // render. Their AABBs then cleared each other while the drawn text
+            // collided, which is why the storage stack looked overlapped while
+            // the overlap pass reported nothing to fix.
+            let subExtra = subLineCount > 1 ? (subLineCount - 1) * (fontSub + 2) : 0;
             let w, h;
             if (shape === 'circle') {
                 w = Math.max(radius * 2, contentW);
                 h = radius * 2;
             } else if (shape === 'diamond') {
                 w = Math.max(radius * 1.7, contentW + 8);
-                h = radius * 1.7;
+                h = radius * 1.7 + subExtra;
             } else if (shape === 'hexagon') {
                 w = Math.max(radius * 2, contentW);
-                h = radius * 2;
+                h = radius * 2 + subExtra;
             } else if (shape === 'cylinder') {
                 w = Math.max(radius * 2.4, contentW);
-                h = radius * 1.5 + 16;
+                h = radius * 1.5 + 16 + subExtra;
             } else if (shape === 'hub' || shape === 'roundRect') {
                 w = Math.max(radius * 2.4, contentW);
                 h = Math.max(radius * 1.4, 40 * scale);
@@ -692,9 +717,22 @@
             return { w: w, h: h, halfW: w / 2, halfH: h / 2, contentW: contentW, subLineCount: subLineCount };
         }
 
+        // Memoised: ctx.font assignment re-parses the font string and
+        // measureText re-shapes the run, together ~1-5us per call. This is hit
+        // once per label per frame from the globe marker code, which made it
+        // the single largest per-frame cost on this canvas — an order of
+        // magnitude above the layout solver it was blamed on. Cleared whenever
+        // scaling changes.
+        let _textWidthCache = new Map();
+        function clearTextWidthCache() { _textWidthCache.clear(); }
         function canvasMeasureText(text, fontSize) {
+            let key = fontSize + '|' + text;
+            let hit = _textWidthCache.get(key);
+            if (hit !== undefined) return hit;
             ctx.font = fontSize + 'px -apple-system, BlinkMacSystemFont, sans-serif';
-            return ctx.measureText(text).width;
+            let w = ctx.measureText(text).width;
+            _textWidthCache.set(key, w);
+            return w;
         }
 
         function measureNodeBox(n) {
@@ -1145,6 +1183,14 @@
                 try {
                     window.__topoDbg = {
                         W: W, H: H, scl: SCL, solver: SOLVER_ACTIVE,
+                        zones: (function() {
+                            let z = {};
+                            for (let k in zones) { z[k] = zones[k].bounds; }
+                            return z;
+                        })(),
+                        boxes: allLayoutNodes.map(function(n) {
+                            return { id: n.id, zone: n.zone, hw: n._halfW || n.radius, hh: n._halfH || n.radius };
+                        }),
                         globe: { cx: globe.cx, cy: globe.cy, R: globe.R },
                         nodes: allLayoutNodes.map(function(n) {
                             return { id: n.id, zone: n.zone, x: Math.round(n.x), y: Math.round(n.y),
