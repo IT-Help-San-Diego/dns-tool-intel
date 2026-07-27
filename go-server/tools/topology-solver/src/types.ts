@@ -326,6 +326,10 @@ export interface LayoutLabelBox {
 }
 
 export interface LayoutResult {
+  // Canvas the coordinates were solved for. The client must remap through
+  // these dims, not its own hardcoded copy, or profile edits silently skew
+  // every position.
+  canvas: { width: number; height: number };
   nodeCenters: Record<string, { x: number; y: number }>;
   routedEdges: RoutedEdge[];
   metrics: MetricsReport;

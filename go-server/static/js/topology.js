@@ -1053,6 +1053,103 @@
             allLayoutNodes = SOURCES.concat([HUB, ENGINE], CONFIDENCE, STORAGE, PROTOCOLS, OUTPUTS);
             let allLayoutEdges = FLOW_EDGES.concat(PROTO_EDGES);
 
+            allLayoutNodes.forEach(function(nd) {
+                measureNodeBox(nd);
+            });
+
+            // The engine/confidence/storage zones stack in one column, and
+            // at narrow viewports the hand-set bands partition that column
+            // wrongly: storage measures 236px of content in a 211px band
+            // while engine sits on 128px of slack. No placement exists
+            // inside a too-small band, so the overlap pass jams — push
+            // apart, clamp back, 40 times. The content DOES fit the column
+            // (589px bare in 660px, measured at 1233x750), so re-partition
+            // the stacked bands by measured shelf-fit need before the pass
+            // runs. Zones outside a deficient stack keep their bands.
+            (function() {
+                let byZone = {};
+                allLayoutNodes.forEach(function(nd) {
+                    let zk = nd.zone || nd.id;
+                    (byZone[zk] = byZone[zk] || []).push(nd);
+                });
+                // Shelf-fit: members packed into rows of the band's width;
+                // returns the height the zone actually needs at a given pad.
+                function shelfNeed(members, zw, pad) {
+                    let rowW = 0, rowH = 0, needH = 0, rows = 0;
+                    members.forEach(function(nd) {
+                        let w = (nd._halfW || nd.radius) * 2;
+                        let h = (nd._halfH || nd.radius) * 2;
+                        if (rowW > 0 && rowW + pad + w > zw) {
+                            needH += rowH;
+                            rows++;
+                            rowW = 0;
+                            rowH = 0;
+                        }
+                        rowW += rowW > 0 ? pad + w : w;
+                        if (h > rowH) rowH = h;
+                    });
+                    needH += rowH;
+                    rows++;
+                    return needH + pad * (rows - 1);
+                }
+                // Group zones into vertical stacks: mutual x-overlap with
+                // neither band containing the other (source contains hub by
+                // design — leave containment pairs alone).
+                let keys = [];
+                for (let zk in byZone) {
+                    if (zones[zk] && zones[zk].bounds) keys.push(zk);
+                }
+                keys.sort();
+                let grouped = {};
+                keys.forEach(function(ka) {
+                    if (grouped[ka]) return;
+                    let a = zones[ka].bounds;
+                    let stack = [ka];
+                    keys.forEach(function(kb) {
+                        if (kb === ka || grouped[kb]) return;
+                        let b = zones[kb].bounds;
+                        let xOver = Math.min(a.x2, b.x2) - Math.max(a.x1, b.x1);
+                        let minW = Math.min(a.x2 - a.x1, b.x2 - b.x1);
+                        let contains = (a.y1 <= b.y1 && a.y2 >= b.y2) || (b.y1 <= a.y1 && b.y2 >= a.y2);
+                        if (xOver > minW * 0.6 && !contains) stack.push(kb);
+                    });
+                    if (stack.length < 2) return;
+                    stack.sort(function(x, y) { return zones[x].bounds.y1 - zones[y].bounds.y1; });
+                    // Only re-partition when a member measurably cannot fit
+                    // its band; feasible stacks keep their designed bands.
+                    let anyDeficit = stack.some(function(zk) {
+                        let zb = zones[zk].bounds;
+                        return shelfNeed(byZone[zk], zb.x2 - zb.x1, 0) > zb.y2 - zb.y1;
+                    });
+                    if (!anyDeficit) return;
+                    let top = zones[stack[0]].bounds.y1;
+                    let bottom = zones[stack[stack.length - 1]].bounds.y2;
+                    // Stage the pad down until the stack's needs fit its span;
+                    // pixel-clearance (pad 0) is the floor.
+                    let needs = null, usedPad = 0;
+                    let pads = [14, 8, 4, 0];
+                    for (let pi = 0; pi < pads.length; pi++) {
+                        let p = pads[pi];
+                        let n = stack.map(function(zk) {
+                            let zb = zones[zk].bounds;
+                            return shelfNeed(byZone[zk], zb.x2 - zb.x1, p);
+                        });
+                        let total = n.reduce(function(s, v) { return s + v; }, 0) + p * (stack.length - 1);
+                        if (total <= bottom - top) { needs = n; usedPad = p; break; }
+                    }
+                    if (!needs) return; // cannot fit even at pad 0 — keep bands
+                    let leftover = (bottom - top) - needs.reduce(function(s, v) { return s + v; }, 0) - usedPad * (stack.length - 1);
+                    let share = leftover / stack.length;
+                    let cursor = top;
+                    stack.forEach(function(zk, i) {
+                        zones[zk].bounds.y1 = cursor;
+                        zones[zk].bounds.y2 = cursor + needs[i] + share;
+                        cursor = zones[zk].bounds.y2 + usedPad;
+                        grouped[zk] = true;
+                    });
+                });
+            })();
+
             let solverProfile = W > 1000 ? 'desktop' : (W > 600 ? 'tablet' : 'mobile');
             let solverData = null;
             try {
@@ -1066,6 +1163,15 @@
                 console.log('Topology: using hybrid solver (' + solverProfile + ')');
                 let solverRef = { desktop: { w: 1600, h: 900 }, tablet: { w: 1100, h: 940 }, mobile: { w: 420, h: 1700 } };
                 let ref = solverRef[solverProfile] || solverRef.desktop;
+                // The layout JSON carries the canvas it was solved for.
+                // Prefer it: remapping through a stale hardcoded copy
+                // silently skews every position when a profile is re-sized.
+                try {
+                    let refCanvas = SOLVER_LAYOUTS[solverProfile].canvas;
+                    if (refCanvas && refCanvas.width > 0 && refCanvas.height > 0) {
+                        ref = { w: refCanvas.width, h: refCanvas.height };
+                    }
+                } catch (e) { /* keep fallback */ }
                 // Map solver coordinates into the width actually available to
                 // the graph, not the raw canvas width. Reserving the console's
                 // width narrowed every zone's bounds while these positions
@@ -1123,10 +1229,6 @@
                 console.log('Topology: using FR fallback');
                 forceDirectedLayout(allLayoutNodes, allLayoutEdges, zones, globalBounds, 120);
             }
-
-            allLayoutNodes.forEach(function(nd) {
-                measureNodeBox(nd);
-            });
 
             let overlapPad = 14;
             for (let op = 0; op < 40; op++) {
@@ -3247,5 +3349,23 @@
             });
             ro.observe(wrap);
         }
+        // Embedded panes and some hosts size the document AFTER script
+        // eval, so the boot resize() can run against a zero-width wrap and
+        // the layout collapses onto x=4. No window resize event follows and
+        // a ResizeObserver whose baseline is taken after the late sizing
+        // never fires either — the collapsed layout sticks (measured live:
+        // W=0 with the wrap at its final size moments later). Poll until
+        // the wrap's size and the laid-out size agree.
+        (function healBootSize() {
+            let tries = 0;
+            function check() {
+                let r = wrap.getBoundingClientRect();
+                let mismatch = Math.abs(r.width - W) >= 1 || Math.abs(r.height - H) >= 1;
+                if (mismatch && r.width > 0 && r.height > 0) relayout();
+                else if (W > 0 && !mismatch) return;
+                if (++tries < 300) requestAnimationFrame(check);
+            }
+            requestAnimationFrame(check);
+        })();
         loop();
     })();
