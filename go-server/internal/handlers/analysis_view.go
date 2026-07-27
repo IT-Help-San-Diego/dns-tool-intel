@@ -462,6 +462,9 @@ func (h *AnalysisHandler) buildAnalyzeViewData(c *gin.Context, v viewDataInput) 
 	analyzeData["IsTLD"] = dnsclient.IsTLDInput(v.asciiDomain)
 	analyzeData["SubdomainEmailScope"] = emailScope
 	analyzeData["WaybackURL"] = ""
+	if disc := fixturecorpus.Lookup(v.asciiDomain); disc != nil {
+		analyzeData["FixtureDisclosure"] = disc
+	}
 	if q := h.rawQueries(); q != nil {
 		if icaeMetrics := icae.LoadReportMetrics(ctx, q); icaeMetrics != nil {
 			analyzeData["ICAEMetrics"] = icaeMetrics

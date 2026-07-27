@@ -2661,6 +2661,12 @@
                 if (scanState.gen !== myGen) return;
                 scanState.active = false;
                 scanState.ringsOn = false;
+                // The HUD hides on a failed start, so release its claims too \u2014
+                // otherwise the output nodes stay hidden and a fixture-domain
+                // pulse flashes forever with no scan running.
+                HUD_ACTIVE = false;
+                FIXTURE_SCAN = null;
+                setHidden(scanEls.fixtureHud, true);
                 setHidden(scanEls.hud, true);
                 scanEls.run.disabled = false;
                 scanShowError(err && err.message ? err.message : 'Network error \u2014 please check your connection and try again.');
