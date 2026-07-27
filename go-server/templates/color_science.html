@@ -115,7 +115,8 @@
                             </tbody>
                         </table>
                     </div>
-                    <p class="text-muted mb-2"><em>Method and uncertainty:</em> computed as [V&prime;(&lambda;)/V(&lambda;)] normalised to 630 nm, from CIE 1924 V(&lambda;) and CIE 1951 V&prime;(&lambda;). Treat these as order-of-magnitude. V&prime;(&lambda;) falls roughly exponentially through the red, so the 630 nm denominator is highly sensitive to which tabulation and interpolation are used &mdash; independent recomputations spread these figures by 10&ndash;30%. The conclusion is robust; the third significant figure is not.</p>
+                    <p class="text-muted mb-2"><em>Method and provenance:</em> computed as [V&prime;(&lambda;)/V(&lambda;)] normalised to 630 nm, from the CIE 1924 photopic and CIE 1951 scotopic luminous efficiency functions at 5 nm in energy units, fetched from the <a href="http://www.cvrl.org/" target="_blank" rel="noopener" class="text-info">CVRL database</a> (Colour &amp; Vision Research Laboratory, UCL) and committed to this repository at <code>docs/data/cie/</code>. The calculator on this page reads the same tables, so the prose and the tool cannot drift apart. Exact figures: 345&times; at 490 nm and 31.9&times; at 555 nm; 507 nm is the conventional rhodopsin peak but does not sit on the 5 nm grid, falling between 195&times; (505 nm) and 158&times; (510 nm). Values are rounded to two significant figures because the underlying tables are quoted to three or four, not because the computation is uncertain.</p>
+                    <p class="text-muted mb-2"><em>A correction worth recording:</em> an earlier revision of this page interpolated a coarse table linearly across the far red, where V&prime;(&lambda;) decays roughly exponentially. That over-read V&prime;(630) by 25% &mdash; 4.185&times;10<sup>&minus;3</sup> against the true 3.335&times;10<sup>&minus;3</sup> &mdash; which understated the advantage of red rather than overstating it. Moving to 5 nm authoritative anchors reduces the residual interpolation error across that tail to roughly 2%.</p>
 
                     <h3 class="h6 text-info mt-3">Intensity Dominates Colour</h3>
                     <p class="text-muted mb-2">The single most actionable finding is not about hue at all: <strong>brightness matters more than colour</strong>. A bright red display will disrupt dark adaptation more than a dim blue-green one. Wavelength choice is a second-order optimisation on top of getting luminance low &mdash; it is not a licence to run the display bright. Dim the screen first; the palette is what protects you after that.</p>
@@ -137,7 +138,7 @@
                     <ul class="list-unstyled mb-0 text-muted">
                         <li class="mb-2"><strong class="text-info">MIL-STD-1472H</strong> &mdash; Department of Defense Design Criteria Standard: Human Engineering (September 2020). Section 5.5.3.6: Dark adaptation and night vision conditions.</li>
                         <li class="mb-2"><strong class="text-info">MIL-STD-3009</strong> &mdash; Lighting, Aircraft, Night Vision Imaging System (NVIS) Compatible. Spectral radiance limits for NVIS-compatible displays.</li>
-                        <li class="mb-2"><strong class="text-info">CIE 1951 Scotopic Luminosity Function V&prime;(&lambda;)</strong> &mdash; Commission Internationale de l&rsquo;&Eacute;clairage. Standard observer for scotopic (rod-mediated) vision, peak at 507 nm.</li>
+                        <li class="mb-2"><strong class="text-info">CIE 1951 Scotopic Luminosity Function V&prime;(&lambda;)</strong> &mdash; Commission Internationale de l&rsquo;&Eacute;clairage. Standard observer for scotopic (rod-mediated) vision, peak at 507 nm. Tabulated values here are from Wyszecki &amp; Stiles (1982), Table I(4.3.2), as distributed by CVRL (<code>scvle.csv</code>); the CIE 1924 photopic companion is <code>vl1924e.csv</code>. Both are committed at <code>docs/data/cie/</code> so this page&rsquo;s arithmetic is reproducible without a network fetch.</li>
                         <li class="mb-2"><strong class="text-info">CIE S 026/E:2018</strong> &mdash; System for Metrology of Optical Radiation for ipRGC-Influenced Responses to Light. Defines the melanopic action spectrum (peak ~490 nm) and melanopic equivalent daylight illuminance (mEDI). Normative source for the circadian channel; not reproduced on this page.</li>
                         <li class="mb-2"><strong class="text-info">WCAG 2.2 Contrast Requirements</strong> &mdash; W3C Web Content Accessibility Guidelines. Success Criteria 1.4.3 (AA) and 1.4.6 (AAA) for text contrast ratios.</li>
                         <li class="mb-0"><strong class="text-info">ISO 9241-3</strong> &mdash; Ergonomic requirements for office work with visual display terminals. Display ergonomics including luminance contrast and color requirements.</li>
@@ -192,20 +193,43 @@
             return (lighter + 0.05) / (darker + 0.05);
         }
 
+        // CIE 1924 photopic V(lambda) and CIE 1951 scotopic V'(lambda),
+        // 5 nm, energy units, fetched verbatim from the CVRL database
+        // (cvrl.org, Colour & Vision Research Laboratory, UCL) and committed
+        // at docs/data/cie/. Generated from those files, never hand-typed:
+        // the previous coarse anchors interpolated linearly across a tail that
+        // decays exponentially, over-reading V'(630) by 25% (4.185e-3 vs the
+        // true 3.335e-3). At 5 nm that error falls to ~2%.
         const scotopicEfficiency = {
-            380: 0.000589, 400: 0.00929, 420: 0.0966, 440: 0.328,
-            460: 0.567, 480: 0.793, 500: 0.982, 507: 1,
-            520: 0.935, 540: 0.65, 560: 0.381, 580: 0.169,
-            600: 0.0468, 620: 0.00737, 640: 0.001, 660: 0.000148,
-            680: 0.0000212, 700: 0.00000329
+            380: 0.000589, 385: 0.001108, 390: 0.002209, 395: 0.00453, 400: 0.00929, 405: 0.01852,
+            410: 0.03484, 415: 0.0604, 420: 0.0966, 425: 0.1436, 430: 0.1998, 435: 0.2625,
+            440: 0.3281, 445: 0.3931, 450: 0.455, 455: 0.513, 460: 0.567, 465: 0.62,
+            470: 0.676, 475: 0.734, 480: 0.793, 485: 0.851, 490: 0.904, 495: 0.949,
+            500: 0.982, 505: 0.998, 510: 0.997, 515: 0.975, 520: 0.935, 525: 0.88,
+            530: 0.811, 535: 0.733, 540: 0.65, 545: 0.564, 550: 0.481, 555: 0.402,
+            560: 0.3288, 565: 0.2639, 570: 0.2076, 575: 0.1602, 580: 0.1212, 585: 0.0899,
+            590: 0.0655, 595: 0.0469, 600: 0.03315, 605: 0.02312, 610: 0.01593, 615: 0.01088,
+            620: 0.00737, 625: 0.00497, 630: 0.003335, 635: 0.002235, 640: 0.001497, 645: 0.001005,
+            650: 0.000677, 655: 0.000459, 660: 0.0003129, 665: 0.0002146, 670: 0.000148, 675: 0.0001026,
+            680: 7.15e-5, 685: 5.01e-5, 690: 3.533e-5, 695: 2.501e-5, 700: 1.78e-5, 705: 1.273e-5,
+            710: 9.14e-6, 715: 6.6e-6, 720: 4.78e-6, 725: 3.482e-6, 730: 2.546e-6, 735: 1.87e-6,
+            740: 1.379e-6, 745: 1.022e-6, 750: 7.6e-7, 755: 5.67e-7, 760: 4.25e-7, 765: 3.196e-7,
+            770: 2.413e-7, 775: 1.829e-7, 780: 1.39e-7
         };
 
         const photopicEfficiency = {
-            380: 0.0002, 400: 0.004, 420: 0.004, 440: 0.023,
-            460: 0.06, 480: 0.139, 500: 0.323, 520: 0.71,
-            540: 0.954, 555: 1,
-            560: 0.995, 580: 0.87, 600: 0.631, 620: 0.381,
-            640: 0.175, 660: 0.061, 680: 0.017, 700: 0.0041
+            380: 3.9e-5, 385: 6.4e-5, 390: 0.00012, 395: 0.000217, 400: 0.000396, 405: 0.00064,
+            410: 0.00121, 415: 0.00218, 420: 0.004, 425: 0.0073, 430: 0.0116, 435: 0.01684,
+            440: 0.023, 445: 0.0298, 450: 0.038, 455: 0.048, 460: 0.06, 465: 0.0739,
+            470: 0.09098, 475: 0.1126, 480: 0.13902, 485: 0.1693, 490: 0.20802, 495: 0.2586,
+            500: 0.323, 505: 0.4073, 510: 0.503, 515: 0.6082, 520: 0.71, 525: 0.7932,
+            530: 0.862, 535: 0.91485, 540: 0.954, 545: 0.9803, 550: 0.99495, 555: 1,
+            560: 0.995, 565: 0.9786, 570: 0.952, 575: 0.9154, 580: 0.87, 585: 0.8163,
+            590: 0.757, 595: 0.6949, 600: 0.631, 605: 0.5668, 610: 0.503, 615: 0.4412,
+            620: 0.381, 625: 0.321, 630: 0.265, 635: 0.217, 640: 0.175, 645: 0.1382,
+            650: 0.107, 655: 0.0816, 660: 0.061, 665: 0.04458, 670: 0.032, 675: 0.0232,
+            680: 0.017, 685: 0.01192, 690: 0.00821, 695: 0.005723, 700: 0.004102, 705: 0.002929,
+            710: 0.002091, 715: 0.001484, 720: 0.001047, 725: 0.00074, 730: 0.00052
         };
 
         function interpolateLookup(table, wl) {
