@@ -320,6 +320,9 @@
                     <a href="/topology?domain={{.Domain}}" class="btn btn-report-action" title="View DNS Topology Map">
                         {{icon "project-diagram" "me-1"}}Topology
                     </a>
+                    <a href="/replay/{{.AnalysisID}}" class="btn btn-report-action" title="Replay this scan's recorded timeline on the pipeline topology">
+                        {{icon "play" "me-1"}}Replay
+                    </a>
                 </div>
                 <div class="dropdown me-2">
                     <button class="btn dropdown-toggle btn-tlp-amber" id="tlpSelectorBtn" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Traffic Light Protocol — controls report distribution scope">
@@ -353,6 +356,13 @@
         </div>
 
         {{/* Bird's-Eye Verdict merged into the single "DNS Security & Trust Posture" command card below (was a screen-only duplicate of the same $posture data). */}}
+
+        {{if .FixtureDisclosure}}
+        <div class="alert alert-warning border-warning mb-4" role="note" data-testid="fixture-disclosure">
+            {{icon "flask" "me-2"}}<strong>{{.FixtureDisclosure.Badge}}.</strong>
+            <span class="small">{{.FixtureDisclosure.Note}}</span>
+        </div>
+        {{end}}
 
         {{if .DriftDetected}}
         <div class="alert alert-warning border-warning mb-4" role="alert">

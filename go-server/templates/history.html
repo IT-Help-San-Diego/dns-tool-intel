@@ -118,11 +118,15 @@
                                     </td>
                                     <td>
                                         <div class="btn-group">
-                                            <a href="/analysis/{{$a.ID}}/view" 
+                                            <a href="/analysis/{{$a.ID}}/view"
                                                class="btn btn-sm btn-outline-primary history-view-btn" title="View this report">
                                                 {{icon "eye"}}
                                             </a>
-                                            <a href="/analyze?domain={{$a.Domain}}" 
+                                            <a href="/replay/{{$a.ID}}"
+                                               class="btn btn-sm btn-outline-light history-replay-btn" title="Replay this scan on the pipeline topology">
+                                                {{icon "play"}}
+                                            </a>
+                                            <a href="/analyze?domain={{$a.Domain}}"
                                                class="btn btn-sm btn-outline-success history-reanalyze-btn" title="Re-analyze now">
                                                 {{icon "sync-alt"}}
                                             </a>
@@ -160,11 +164,15 @@
                                 </div>
                             </div>
                             <div class="btn-group flex-shrink-0 ms-2">
-                                <a href="/analysis/{{$a.ID}}/view" 
+                                <a href="/analysis/{{$a.ID}}/view"
                                    class="btn btn-sm btn-outline-primary history-view-btn" title="View">
                                     {{icon "eye"}}
                                 </a>
-                                <a href="/analyze?domain={{$a.Domain}}" 
+                                <a href="/replay/{{$a.ID}}"
+                                   class="btn btn-sm btn-outline-light history-replay-btn" title="Replay on topology">
+                                    {{icon "play"}}
+                                </a>
+                                <a href="/analyze?domain={{$a.Domain}}"
                                    class="btn btn-sm btn-outline-success history-reanalyze-btn" title="Re-analyze">
                                     {{icon "sync-alt"}}
                                 </a>

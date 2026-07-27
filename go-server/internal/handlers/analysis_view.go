@@ -13,6 +13,7 @@ import (
 	"dnstool/go-server/internal/analyzer"
 	"dnstool/go-server/internal/dbq"
 	"dnstool/go-server/internal/dnsclient"
+	"dnstool/go-server/internal/fixturecorpus"
 	"dnstool/go-server/internal/icae"
 	"dnstool/go-server/internal/icuae"
 	"dnstool/go-server/internal/unified"
@@ -159,6 +160,9 @@ func (h *AnalysisHandler) viewAnalysisWithMode(c *gin.Context, mode string) {
 	viewData["WaitSeconds"] = waitSeconds
 	viewData["WaitReason"] = waitReason
 	viewData["DomainExists"] = resultsDomainExists(results)
+	if disc := fixturecorpus.Lookup(analysis.AsciiDomain); disc != nil {
+		viewData["FixtureDisclosure"] = disc
+	}
 	viewData["ToolVersion"] = toolVersion
 	viewData["VerificationCommands"] = verifyCommands
 	viewData["IsSubdomain"] = isSub

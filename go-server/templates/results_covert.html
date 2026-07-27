@@ -167,6 +167,13 @@
             </div>
         </div>
 
+        {{if .FixtureDisclosure}}
+        <div class="alert alert-warning border-warning mb-4" role="note" data-testid="fixture-disclosure">
+            {{icon "flask" "me-2"}}<strong>{{.FixtureDisclosure.Badge}}.</strong>
+            <span class="small">{{.FixtureDisclosure.Note}}</span>
+        </div>
+        {{end}}
+
         {{if not .DomainExists}}
         {{if eq (mapGetStr "domain_status" $results) "indeterminate"}}
         <div class="card border-warning mb-4">

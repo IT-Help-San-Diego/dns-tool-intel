@@ -323,9 +323,16 @@
         .topo-v-warn { color: #ffb74d; border-color: rgba(255, 183, 77, 0.5);  background: rgba(255, 183, 77, 0.08); }
         .topo-v-ind  { color: #9fb0c0; border-color: rgba(159, 176, 192, 0.4); background: rgba(159, 176, 192, 0.08); }
         .topo-v-bad  { color: #ef9a9a; border-color: rgba(239, 83, 80, 0.5);   background: rgba(239, 83, 80, 0.08); }
-        .topo-scan-links { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 5px 13px; }
+        .topo-scan-links { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px 13px; }
         .topo-scan-links a { font-size: 0.72rem; color: #6ecbf5; text-decoration: none; }
         .topo-scan-links a:hover { text-decoration: underline; }
+        /* Post-scan primary actions — the reports are the product; they get
+           real buttons, not 11px footnote links. */
+        .topo-scan-links a.topo-scan-cta { flex: 1 1 100%; display: block; padding: 9px 12px; border: 1px solid rgba(110,203,245,.4); border-radius: 8px; background: rgba(110,203,245,.08); color: #cfeeff; font-size: 0.86rem; font-weight: 600; letter-spacing: .02em; text-align: center; }
+        .topo-scan-links a.topo-scan-cta:hover { background: rgba(110,203,245,.18); text-decoration: none; }
+        .topo-scan-links a.topo-scan-cta--flagship { border-color: rgba(255,193,7,.55); background: rgba(255,193,7,.10); color: #ffe9ad; }
+        .topo-scan-links a.topo-scan-cta--flagship:hover { background: rgba(255,193,7,.18); }
+        .topo-scan-fixture { margin-top: 8px; padding: 7px 10px; border: 1px solid rgba(255,204,128,.5); border-radius: 6px; background: rgba(255,204,128,.08); color: #ffcc80; font-size: 0.72rem; line-height: 1.35; }
         .topo-scan-note { margin-top: 5px; font-size: 0.7rem; color: #a8b6c6; line-height: 1.4; }
         .topo-scan-ticker {
             margin-top: 8px;
@@ -443,12 +450,14 @@
                         <div class="topo-scan-meter"><span class="topo-scan-meter-label">Phases</span><span class="topo-scan-meter-track"><span class="topo-scan-meter-bar" id="topoMeterPhaseBar"></span></span></div>
                         <div class="topo-scan-meter"><span class="topo-scan-meter-label">Tasks</span><span class="topo-scan-meter-track"><span class="topo-scan-meter-bar topo-scan-meter-bar--tasks" id="topoMeterTaskBar"></span></span></div>
                         <div class="topo-scan-sub" id="topoScanLatency">acquisition &mdash;</div>
+                        <div class="topo-scan-fixture" id="topoScanFixtureHud" hidden></div>
                         <div class="topo-scan-ticker" id="topoScanTicker" aria-label="Scan event ticker" hidden></div>
                     </div>
                     <div class="topo-scan-card topo-scan-error" id="topoScanError" role="alert" hidden></div>
                     <div class="topo-scan-card" id="topoScanVerdict" hidden>
                         <div class="topo-scan-owls" id="topoScanOwls" aria-label="Epistemic owl semaphore" hidden></div>
                         <div class="topo-scan-owl-note" id="topoScanOwlNote" hidden></div>
+                        <div class="topo-scan-fixture" id="topoScanFixtureVerdict" hidden></div>
                         <div class="topo-scan-chips" id="topoScanChips"></div>
                         <div class="topo-scan-links" id="topoScanLinks"></div>
                         <div class="topo-scan-note" id="topoScanNote" hidden></div>
@@ -485,7 +494,7 @@
     </main>
     {{template "footer" .}}
     {{template "scripts" .}}
-    <script nonce="{{.CspNonce}}">window.__TOPO_SOLVER={{.SolverLayouts}};</script>
+    <script nonce="{{.CspNonce}}">window.__TOPO_SOLVER={{.SolverLayouts}};window.__FIXTURE_CORPUS={{.FixtureCorpusJSON}};</script>
     {{if .ReplayID}}<script nonce="{{.CspNonce}}">window.__TOPO_REPLAY={id:{{.ReplayID}},domain:{{.ReplayDomain}},totalMs:{{.ReplayTotalMs}}};</script>{{end}}
     <script nonce="{{.CspNonce}}" src="{{staticVersionURL "js/topology.min.js" .AppVersion}}" defer {{staticSRI "js/topology.min.js"}}></script>
 </body>

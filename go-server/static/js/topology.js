@@ -480,6 +480,17 @@
             let degLabel = ((-snapLon % 360) + 360) % 360;
             if (degLabel > 180) degLabel -= 360;
             ctx.fillText(degLabel.toFixed(0) + '\u00b0 longitude center', globe.cx, globe.cy + globe.R + 20 * SCL);
+            if (GlobeCore.subsolarPoint) {
+                // The instrument declares its own state: the terminator shown
+                // is computed for this moment, not asserted.
+                let now = new Date();
+                let sp = GlobeCore.subsolarPoint(now);
+                let latTxt = Math.abs(sp.latDeg).toFixed(1) + '\u00b0' + (sp.latDeg >= 0 ? 'N' : 'S');
+                let lonTxt = Math.abs(sp.lonDeg).toFixed(1) + '\u00b0' + (sp.lonDeg >= 0 ? 'E' : 'W');
+                let hh = String(now.getUTCHours()).padStart(2, '0');
+                let mm = String(now.getUTCMinutes()).padStart(2, '0');
+                ctx.fillText('Subsolar ' + latTxt + ' ' + lonTxt + ' \u00b7 terminator for ' + hh + ':' + mm + ' UTC', globe.cx, globe.cy + globe.R + 32 * SCL);
+            }
         }
 
         let SOURCES = [
@@ -1043,13 +1054,28 @@
                     nd._initialized = true;
                 }
             });
+
+            // ?debug=bounds introspection: expose the exact layout the solver
+            // produced so rendering bugs can be measured instead of eyeballed.
+            if (typeof debugBounds !== 'undefined' && debugBounds) {
+                try {
+                    window.__topoDbg = {
+                        W: W, H: H, scl: SCL, solver: SOLVER_ACTIVE,
+                        globe: { cx: globe.cx, cy: globe.cy, R: globe.R },
+                        nodes: allLayoutNodes.map(function(n) {
+                            return { id: n.id, zone: n.zone, x: Math.round(n.x), y: Math.round(n.y),
+                                     tx: Math.round(n.targetX), ty: Math.round(n.targetY) };
+                        })
+                    };
+                } catch (e) { /* diagnostics only */ }
+            }
         }
 
         let hoverNode = null;
         let mouseX = -1, mouseY = -1;
 
         function hitTest(mx, my) {
-            let all = SOURCES.concat(CONFIDENCE, STORAGE, OUTPUTS, PROTOCOLS, [ENGINE, HUB]);
+            let all = SOURCES.concat(CONFIDENCE, STORAGE, HUD_ACTIVE ? [] : OUTPUTS, PROTOCOLS, [ENGINE, HUB]);
             for (let i = 0; i < all.length; i++) {
                 let n = all[i];
                 let dx = mx - n.x;
@@ -1170,10 +1196,19 @@
             let to = allNodes[e.to];
             if (!from || !to) return;
 
+            // While the scan console/verdict panel is up it owns the right
+            // side of the canvas — the output nodes and their edges yield.
+            if (HUD_ACTIVE && ((from.zone === 'output') || (to.zone === 'output'))) return;
+
             let isHL = hoverNode && (hoverNode.id === e.from || hoverNode.id === e.to);
             let alpha;
-            if (e.type === 'flow') alpha = isHL ? 0.3 : 0.08;
-            else alpha = isHL ? 0.6 : (e.type === 'hard' ? 0.35 : 0.2);
+            if (e.type === 'flow') {
+                // The pipeline should read at rest, not only on hover — ICIE's
+                // connections carry the whole frame, so they rest brightest.
+                let touchesEngine = e.from === 'engine' || e.to === 'engine';
+                alpha = isHL ? 0.35 : (touchesEngine ? 0.18 : 0.13);
+            }
+            else alpha = isHL ? 0.6 : (e.type === 'hard' ? 0.4 : 0.25);
 
             let curve = findEdgeCurveOffset(from, to, e.type);
 
@@ -1656,6 +1691,7 @@
         }
 
         let time = 0;
+        let lastFrameMs = 0;
 
         function resize() {
             let rect = wrap.getBoundingClientRect();
@@ -1668,9 +1704,14 @@
         }
 
         function update() {
-            time += 0.016;
+            // Real elapsed time, not per-frame constants — a 120 Hz display
+            // must not spin the Earth twice as fast as a 60 Hz one.
+            let nowMs = Date.now();
+            let dtSec = lastFrameMs > 0 ? Math.min(0.1, (nowMs - lastFrameMs) / 1000) : 0.016;
+            lastFrameMs = nowMs;
+            time += dtSec;
 
-            globe.rotLon = (globe.rotLon + 0.08) % 360;
+            globe.rotLon = (globe.rotLon + 4.8 * dtSec) % 360; // 4.8°/s = 75 s/revolution
 
             let allArr = SOURCES.concat(CONFIDENCE, STORAGE, OUTPUTS, PROTOCOLS, [ENGINE, HUB]);
             for (let i = 0; i < allArr.length; i++) {
@@ -1718,6 +1759,7 @@
                 let from = allNodes[fp.edge.from];
                 let to = allNodes[fp.edge.to];
                 if (!from || !to) continue;
+                if (HUD_ACTIVE && ((from.zone === 'output') || (to.zone === 'output'))) continue;
                 let curve = findEdgeCurveOffset(from, to, fp.edge.type);
                 let startPt, endPt;
                 if (curve) {
@@ -1737,13 +1779,29 @@
                     y = startPt.y + (endPt.y - startPt.y) * fp.t;
                 }
                 let isHL = hoverNode && (hoverNode.id === fp.edge.from || hoverNode.id === fp.edge.to);
-                let alpha = isHL ? fp.alpha * 1.8 : fp.alpha * 0.5;
+                let touchesEngine = fp.edge.from === 'engine' || fp.edge.to === 'engine';
+                let alpha = isHL ? fp.alpha * 1.8 : fp.alpha * (touchesEngine ? 1.0 : 0.75);
                 let color = from.color || COLORS.engine;
                 ctx.beginPath();
                 ctx.arc(x, y, fp.size * (isHL ? 1.3 : 1), 0, Math.PI * 2);
                 ctx.fillStyle = hexToRgba(color, alpha);
                 ctx.fill();
             }
+        }
+
+        function drawFixturePulse() {
+            // Scanning a fixture-corpus domain lights up the Golden Fixtures
+            // node — the disclosure lives in the graph, not just the console.
+            let fx = allNodes.fixtures;
+            if (!fx || !fx._initialized) return;
+            let a = 0.4 + 0.35 * Math.sin(time * 3);
+            let hw = (fx._halfW || fx.radius) + 10;
+            let hh = (fx._halfH || fx.radius) + 10;
+            ctx.strokeStyle = 'rgba(255,204,128,' + a.toFixed(3) + ')';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([6, 4]);
+            ctx.strokeRect(fx.x - hw, fx.y - hh, hw * 2, hh * 2);
+            ctx.setLineDash([]);
         }
 
         let placedEdgeLabels = [];
@@ -1771,9 +1829,10 @@
             CONFIDENCE.forEach(function(c) { drawConfidenceNode(c); });
             STORAGE.forEach(function(s) { drawStorageNode(s); });
             PROTOCOLS.forEach(function(p) { drawProtocolNode(p); });
-            OUTPUTS.forEach(function(o) { drawOutputNode(o); });
+            if (!HUD_ACTIVE) OUTPUTS.forEach(function(o) { drawOutputNode(o); });
 
             drawScanRings();
+            if (FIXTURE_SCAN) drawFixturePulse();
             drawVerdictPopover();
 
             if (debugBounds) {
@@ -1801,6 +1860,15 @@
            No navigation ever occurs (Safari-safe); links are plain anchors. */
 
         let REPLAY = window.__TOPO_REPLAY || null;
+        let FIXTURE_CORPUS = window.__FIXTURE_CORPUS || null;
+        let FIXTURE_SCAN = null;   // active fixture-domain disclosure, per scan
+        let HUD_ACTIVE = false;    // scan console owns the right side; output nodes yield
+
+        function fixtureLookup(domain) {
+            if (!FIXTURE_CORPUS) return null;
+            let d = String(domain || '').trim().toLowerCase().replace(/\.$/, '');
+            return FIXTURE_CORPUS[d] || null;
+        }
 
         let scanEls = {
             form: document.getElementById('topoScanForm'),
@@ -1809,6 +1877,8 @@
             advBtn: document.getElementById('topoScanAdvBtn'),
             adv: document.getElementById('topoScanAdv'),
             hud: document.getElementById('topoScanHud'),
+            fixtureHud: document.getElementById('topoScanFixtureHud'),
+            fixtureVerdict: document.getElementById('topoScanFixtureVerdict'),
             status: document.getElementById('topoScanStatus'),
             target: document.getElementById('topoScanTarget'),
             elapsed: document.getElementById('topoScanElapsed'),
@@ -2121,15 +2191,41 @@
             return null;
         }
 
+        // Scan/verdict rings: circular nodes get circles, but wide box nodes
+        // (source tags, IETF, storage cylinders) get rings that hug the box.
+        // effRadius on a wide tag yields a circle sized to the tag's WIDTH,
+        // which bleeds onto the neighbors in the packed source column — the
+        // "crisp elliptical strokes overlapping the source nodes" artifact.
+        function isBoxNode(n) { return n.shape === 'rect' || n.shape === 'cylinder'; }
+
+        function ringBoxPath(n, pad) {
+            let hw = ((n._drawW || n.radius * 2.2) / 2) + pad;
+            let hh = ((n._drawH || n.radius * 1.4) / 2) + pad;
+            roundRect(n.x - hw, n.y - hh, hw * 2, hh * 2, 9);
+        }
+
         function drawRingCircle(n, color, width) {
-            ctx.beginPath();
-            ctx.arc(n.x, n.y, effRadius(n) + 5, 0, Math.PI * 2);
             ctx.strokeStyle = color;
             ctx.lineWidth = width;
+            if (isBoxNode(n)) {
+                ringBoxPath(n, 5);
+                ctx.stroke();
+                return;
+            }
+            ctx.beginPath();
+            ctx.arc(n.x, n.y, effRadius(n) + 5, 0, Math.PI * 2);
             ctx.stroke();
         }
 
         function drawRunningRing(n) {
+            if (isBoxNode(n)) {
+                let a = 0.35 + 0.5 * (0.5 + 0.5 * Math.sin(time * 3.6));
+                ctx.strokeStyle = 'rgba(255,193,7,' + a.toFixed(3) + ')';
+                ctx.lineWidth = 2;
+                ringBoxPath(n, 5);
+                ctx.stroke();
+                return;
+            }
             let r = effRadius(n) + 5;
             let a0 = (time * 1.8) % (Math.PI * 2);
             ctx.beginPath();
@@ -2156,10 +2252,14 @@
             let dashed = status === 'indeterminate' || status === 'info';
             if (dashed) ctx.setLineDash([4, 3]);
             drawRingCircle(n, vc, 2);
-            ctx.beginPath();
-            ctx.arc(n.x, n.y, effRadius(n) + 9, 0, Math.PI * 2);
             ctx.strokeStyle = oc;
             ctx.lineWidth = 1.2;
+            if (isBoxNode(n)) {
+                ringBoxPath(n, 9);
+            } else {
+                ctx.beginPath();
+                ctx.arc(n.x, n.y, effRadius(n) + 9, 0, Math.PI * 2);
+            }
             ctx.stroke();
             if (dashed) ctx.setLineDash([]);
         }
@@ -2298,6 +2398,10 @@
             if (scanEls.phaseBar) scanEls.phaseBar.style.width = '0%';
             if (scanEls.taskBar) scanEls.taskBar.style.width = '0%';
             if (scanEls.latency) scanEls.latency.textContent = 'acquisition \u2014';
+            HUD_ACTIVE = false;
+            FIXTURE_SCAN = null;
+            setHidden(scanEls.fixtureHud, true);
+            setHidden(scanEls.fixtureVerdict, true);
             setHidden(scanEls.hud, true);
             setHidden(scanEls.error, true);
             setHidden(scanEls.verdict, true);
@@ -2410,14 +2514,34 @@
             scanEls.links.appendChild(a);
         }
 
+        function scanAddCTA(href, text, title, flagship) {
+            let a = document.createElement('a');
+            a.className = 'topo-scan-cta' + (flagship ? ' topo-scan-cta--flagship' : '');
+            a.href = href;
+            a.textContent = text;
+            if (title) a.title = title;
+            scanEls.links.appendChild(a);
+        }
+
+        function scanShowFixture(el) {
+            if (!el) return;
+            if (FIXTURE_SCAN) {
+                el.textContent = FIXTURE_SCAN.badge + ' — ' + FIXTURE_SCAN.note;
+                el.hidden = false;
+            } else {
+                el.hidden = true;
+            }
+        }
+
         function scanLoadVerdicts(analysisID, redirectURL) {
             let myGen = scanState.gen;
             let base = redirectURL || ('/analysis/' + analysisID);
             setHidden(scanEls.verdict, false);
-            scanAddLink(base, 'Engineer\u2019s Report', 'Engineer\u2019s DNS Intelligence Report \u2014 full technical findings');
-            scanAddLink('/analysis/' + analysisID + '/view/B', 'Executive Brief', 'Executive\u2019s DNS Intelligence Brief \u2014 executive summary');
+            scanShowFixture(scanEls.fixtureVerdict);
+            scanAddCTA(base, 'Engineer\u2019s Report', 'Engineer\u2019s DNS Intelligence Report \u2014 full technical findings', true);
+            scanAddCTA('/analysis/' + analysisID + '/view/B', 'Executive Brief', 'Executive\u2019s DNS Intelligence Brief \u2014 executive summary', false);
+            if (!REPLAY) scanAddCTA('/replay/' + analysisID, '\u25b6 Scan Replay', 'Shareable timeline replay of this scan on the pipeline topology', false);
             scanAddLink('/analysis/' + analysisID + '/view/C', 'Recon Report \u00b7 Red Team \u00b7 Scotopic', 'Covert Recon Report \u2014 red-team perspective in the scotopic-preserving covert interface');
-            if (!REPLAY) scanAddLink('/replay/' + analysisID, 'Scan Replay', 'Shareable timeline replay of this scan on the pipeline topology');
             fetch('/api/analysis/' + analysisID, { headers: { 'Accept': 'application/json' } }).then(function(resp) {
                 return resp.ok ? resp.json() : null;
             }).then(function(data) {
@@ -2504,6 +2628,9 @@
             scanEls.elapsed.textContent = '0.0s';
             scanEls.phases.textContent = 'phases 0/9 \u00b7 tasks 0/0';
             setHidden(scanEls.hud, false);
+            HUD_ACTIVE = true;
+            FIXTURE_SCAN = fixtureLookup(domain);
+            scanShowFixture(scanEls.fixtureHud);
             scanEls.run.disabled = true;
             let fd = new FormData(scanEls.form);
             fetch('/analyze', {
@@ -2662,6 +2789,9 @@
             scanEls.elapsed.textContent = '0.0s';
             scanEls.status.textContent = 'Loading Replay';
             setHidden(scanEls.hud, false);
+            HUD_ACTIVE = true;
+            FIXTURE_SCAN = fixtureLookup(REPLAY.domain);
+            scanShowFixture(scanEls.fixtureHud);
             scanEls.cancel.textContent = 'Restart';
             scanEls.cancel.title = 'Restart the replay from the beginning.';
             scanEls.cancel.addEventListener('click', function() {
@@ -2713,9 +2843,27 @@
         initAmbient();
         initFlowParticles();
         initSignalParticles();
-        window.addEventListener('resize', function() {
+        function relayout() {
             resize();
             initAmbient();
-        });
+        }
+        window.addEventListener('resize', relayout);
+        // The wrap can change size without a window resize event (panel
+        // toggles, scrollbar appearance, embedded panes). A layout computed
+        // at a stale width strands mobile/tablet node targets on a grown
+        // canvas — the protocol circles and their curved edges then sit on
+        // top of the source column. Watch the wrap itself, not just the window.
+        if (typeof ResizeObserver !== 'undefined') {
+            let roRect = wrap.getBoundingClientRect();
+            let roW = roRect.width, roH = roRect.height, roTimer = null;
+            let ro = new ResizeObserver(function(entries) {
+                let r = entries[entries.length - 1].contentRect;
+                if (Math.abs(r.width - roW) < 1 && Math.abs(r.height - roH) < 1) return;
+                roW = r.width; roH = r.height;
+                if (roTimer) clearTimeout(roTimer);
+                roTimer = setTimeout(relayout, 120);
+            });
+            ro.observe(wrap);
+        }
         loop();
     })();
