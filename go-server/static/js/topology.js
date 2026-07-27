@@ -2853,9 +2853,25 @@
             }, 100);
         }
 
+        // Arriving with ?domain= — prefill and run immediately. This is the
+        // entry point the homepage form, the results-page Topology button and
+        // history all land on: the scan starts on arrival rather than showing
+        // an empty box whose placeholder reads like a wrong prefill.
+        let AUTORUN_DOMAIN = null;
+        if (!REPLAY && scanEls.form && scanEls.domain) {
+            let raw = new URLSearchParams(location.search).get('domain') || '';
+            let d = raw.trim().toLowerCase().replace(/^\.+/, '').replace(/\.+$/, '');
+            if (d && d.length <= 253 && /^[a-z0-9-]+(\.[a-z0-9-]+)*$/.test(d)) {
+                AUTORUN_DOMAIN = d;
+                scanEls.domain.value = d;
+            }
+        }
+
         // Restore the last completed scan's verdict panel across refresh —
-        // the report links shouldn't evaporate on reload (6 h window).
-        if (!REPLAY && scanEls.verdict && scanEls.links) {
+        // the report links shouldn't evaporate on reload (6 h window). Skipped
+        // when a fresh scan is inbound, so stale results never sit under a
+        // running scan.
+        if (!REPLAY && !AUTORUN_DOMAIN && scanEls.verdict && scanEls.links) {
             try {
                 let last = JSON.parse(sessionStorage.getItem('topoLastScan') || 'null');
                 if (last && last.id && Date.now() - (last.ts || 0) < 6 * 3600 * 1000) {
@@ -2866,6 +2882,10 @@
                     scanLoadVerdicts(last.id, last.base || null);
                 }
             } catch (e) { /* restore is best-effort */ }
+        }
+
+        if (AUTORUN_DOMAIN && scanEls.run && scanEls.hud) {
+            scanStart();
         }
 
         if (REPLAY && scanEls.hud && scanEls.status && scanEls.cancel) {
