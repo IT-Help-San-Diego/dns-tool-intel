@@ -895,6 +895,13 @@
             let c2w = pipeTotal * 0.20;
             let c3w = pipeTotal * 0.42;
             let c4w = pipeTotal * 0.16;
+            // With the output column retired its width is dead space. Hand it
+            // to the protocols, which carry the relationship graph and need
+            // room to show it rather than stacking into a vertical line.
+            if (!SHOW_OUTPUTS) {
+                c3w += c4w + colGap;
+                c4w = 0;
+            }
             let col1L = pipeStart;
             let col1R = col1L + c1w;
             let col2L = col1R + colGap;
@@ -1015,10 +1022,18 @@
                 console.log('Topology: using hybrid solver (' + solverProfile + ')');
                 let solverRef = { desktop: { w: 1600, h: 900 }, tablet: { w: 1100, h: 940 }, mobile: { w: 420, h: 1700 } };
                 let ref = solverRef[solverProfile] || solverRef.desktop;
+                // Map solver coordinates into the width actually available to
+                // the graph, not the raw canvas width. Reserving the console's
+                // width narrowed every zone's bounds while these positions
+                // still scaled to full W, so nodes landed outside their zone
+                // and were clamped — several to the SAME edge, which is what
+                // stacked the protocol circles and drove the confidence column
+                // left into CISA/Threat and DNS Resolvers.
+                let usableW = W - consoleReserve;
                 allLayoutNodes.forEach(function(nd) {
                     let pos = solverData[nd.id];
                     if (pos) {
-                        nd.targetX = (pos.x / ref.w) * W;
+                        nd.targetX = (pos.x / ref.w) * usableW;
                         nd.targetY = titleSafe + (pos.y / ref.h) * (legendSafe - titleSafe);
                         let z = zones[nd.zone || nd.id];
                         if (z && z.bounds) {
@@ -1037,6 +1052,28 @@
                         nd.targetY = Math.max(globalBounds.y1 + 10, Math.min(globalBounds.y2 - 10, nd.targetY));
                     }
                 });
+                // The solver's protocol ellipse was authored for a canvas with
+                // four live columns. Rescale it to actually FILL the protocol
+                // zone, so the nine circles spread out and their relationship
+                // edges are legible instead of overlapping in a column.
+                let pxs = PROTOCOLS.map(function(p) { return p.targetX; });
+                let pys = PROTOCOLS.map(function(p) { return p.targetY; });
+                let minPX = Math.min.apply(null, pxs), maxPX = Math.max.apply(null, pxs);
+                let minPY = Math.min.apply(null, pys), maxPY = Math.max.apply(null, pys);
+                let pz = zones.protocol.bounds;
+                let padX = 52 * SCL, padY = 44 * SCL;
+                let tx1 = pz.x1 + padX, tx2 = pz.x2 - padX;
+                let ty1 = pz.y1 + padY, ty2 = pz.y2 - padY;
+                if (maxPX - minPX > 1 && tx2 - tx1 > 40) {
+                    PROTOCOLS.forEach(function(p) {
+                        p.targetX = tx1 + ((p.targetX - minPX) / (maxPX - minPX)) * (tx2 - tx1);
+                    });
+                }
+                if (maxPY - minPY > 1 && ty2 - ty1 > 40) {
+                    PROTOCOLS.forEach(function(p) {
+                        p.targetY = ty1 + ((p.targetY - minPY) / (maxPY - minPY)) * (ty2 - ty1);
+                    });
+                }
             } else {
                 SOLVER_ACTIVE = false;
                 console.log('Topology: using FR fallback');
