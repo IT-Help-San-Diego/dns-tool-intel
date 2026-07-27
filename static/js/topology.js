@@ -1867,7 +1867,17 @@
         function fixtureLookup(domain) {
             if (!FIXTURE_CORPUS) return null;
             let d = String(domain || '').trim().toLowerCase().replace(/\.$/, '');
-            return FIXTURE_CORPUS[d] || null;
+            // Suffix walk = registrable-domain matching against the small
+            // corpus allowlist (www.apple.com → apple.com); mirrors the
+            // server's fixturecorpus.Lookup.
+            while (d) {
+                if (FIXTURE_CORPUS[d]) return FIXTURE_CORPUS[d];
+                let i = d.indexOf('.');
+                if (i < 0) return null;
+                d = d.slice(i + 1);
+                if (d.indexOf('.') < 0) return null;
+            }
+            return null;
         }
 
         let scanEls = {
@@ -2576,6 +2586,9 @@
                 scanLoadVerdicts(data.analysis_id, data.redirect_url);
             } else {
                 setHidden(scanEls.verdict, false);
+                // Non-persisted scans (e.g. the thisdoesnotexist negative
+                // control) still owe the fixture disclosure in the verdict.
+                scanShowFixture(scanEls.fixtureVerdict);
                 scanEls.note.textContent = 'Scan complete \u2014 results were not persisted, so there is no stored report to link. /dev/null scans, unauthenticated custom-selector scans, and non-existent domains are analyzed without being written to the database.';
                 setHidden(scanEls.note, false);
             }

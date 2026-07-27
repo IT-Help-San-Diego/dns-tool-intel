@@ -37,12 +37,30 @@ func normalize(domain string) string {
 }
 
 // Lookup returns the disclosure for a corpus domain, or nil for everything
-// else. Baseline membership wins if a domain ever appears in both corpora.
+// else. Matching walks parent domains (www.apple.com → apple.com), which is
+// registrable-domain matching against this small allowlist: no public suffix
+// is ever in the corpus, so suffix-walking cannot false-positive, and the
+// walk stops before single labels. Baseline membership wins if a domain ever
+// appears in both corpora.
 func Lookup(domain string) *Disclosure {
 	d := normalize(domain)
-	if d == "" {
-		return nil
+	for d != "" {
+		if disc := exactLookup(d); disc != nil {
+			return disc
+		}
+		i := strings.IndexByte(d, '.')
+		if i < 0 {
+			return nil
+		}
+		d = d[i+1:]
+		if !strings.Contains(d, ".") {
+			return nil
+		}
 	}
+	return nil
+}
+
+func exactLookup(d string) *Disclosure {
 	if goldenfixtures.IsBaselineDomain(d) {
 		return &Disclosure{
 			Corpus: "baseline",
