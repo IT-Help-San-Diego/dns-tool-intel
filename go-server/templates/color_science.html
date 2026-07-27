@@ -98,6 +98,32 @@
                 <div class="cs-section p-4 mb-4">
                     <h3 class="h6 text-info">Why Red Light Preserves Dark Adaptation</h3>
                     <p class="text-muted mb-2">Human scotopic (dark-adapted) vision is mediated by rhodopsin, a photopigment in rod cells with peak sensitivity near 507 nm (blue-green). Red light in the 620&ndash;700 nm range falls at the extreme low end of rhodopsin&rsquo;s absorption curve, meaning rod cells are nearly insensitive to it. This allows operators to read instruments and displays without bleaching rhodopsin, preserving the ability to detect dim targets in peripheral vision.</p>
+                    <h3 class="h6 text-info mt-3">Three Channels, Not Two</h3>
+                    <p class="text-muted mb-2">Rods and cones are not the whole retina. <strong>Intrinsically photosensitive retinal ganglion cells (ipRGCs)</strong>, containing the photopigment melanopsin, form a third channel that peaks near 490 nm and drives circadian regulation rather than image formation. Its action spectrum is normative in <strong>CIE S 026/E:2018</strong>, which defines melanopic equivalent daylight illuminance (mEDI). This channel is why blue-enriched light at night suppresses melatonin &mdash; the mechanism behind consumer &ldquo;night mode&rdquo; features.</p>
+                    <p class="text-muted mb-2">For an operator working at 02:00 this matters twice over: long-wavelength red is far off-peak for <em>both</em> rhodopsin (507 nm) and melanopsin (~490 nm), so it preserves dark adaptation and imposes minimal circadian load. We do not reproduce the melanopic action spectrum here &mdash; it is normative in a paywalled standard, and this page quotes no melanopic figure it cannot derive from published tables.</p>
+
+                    <h3 class="h6 text-info mt-3">Rod Load at Equal Perceived Brightness</h3>
+                    <p class="text-muted mb-2">Comparing colours only makes sense at matched <em>perceived</em> brightness. Normalising by the photopic function V(&lambda;) and taking the ratio of scotopic to photopic efficiency against 630 nm red gives the relative rod load:</p>
+                    <div class="table-responsive mb-2">
+                        <table class="table table-dark table-bordered table-sm mb-0">
+                            <thead><tr><th scope="col">Wavelength</th><th scope="col">Rod load vs. 630 nm</th></tr></thead>
+                            <tbody>
+                                <tr><td>490 nm (melanopsin peak)</td><td>~350&times;</td></tr>
+                                <tr><td>507 nm (rhodopsin peak)</td><td>~180&times;</td></tr>
+                                <tr><td>555 nm (photopic peak)</td><td>~32&times;</td></tr>
+                                <tr><td><strong>630 nm (this palette)</strong></td><td><strong>1&times;</strong></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-muted mb-2"><em>Method and uncertainty:</em> computed as [V&prime;(&lambda;)/V(&lambda;)] normalised to 630 nm, from CIE 1924 V(&lambda;) and CIE 1951 V&prime;(&lambda;). Treat these as order-of-magnitude. V&prime;(&lambda;) falls roughly exponentially through the red, so the 630 nm denominator is highly sensitive to which tabulation and interpolation are used &mdash; independent recomputations spread these figures by 10&ndash;30%. The conclusion is robust; the third significant figure is not.</p>
+
+                    <h3 class="h6 text-info mt-3">Intensity Dominates Colour</h3>
+                    <p class="text-muted mb-2">The single most actionable finding is not about hue at all: <strong>brightness matters more than colour</strong>. A bright red display will disrupt dark adaptation more than a dim blue-green one. Wavelength choice is a second-order optimisation on top of getting luminance low &mdash; it is not a licence to run the display bright. Dim the screen first; the palette is what protects you after that.</p>
+
+                    <h3 class="h6 text-info mt-3">Why Aviation Uses Blue-Green &mdash; and Why That Is Not This</h3>
+                    <p class="text-muted mb-2">Modern military cockpits specify blue-green, not red, which looks like a contradiction until you ask what is being protected. Image intensifier tubes are strongly sensitive to the red and near-infrared &mdash; red cockpit lighting blooms the goggle. So NVIS-equipped aircraft use blue-green lighting; U.S. Navy and Army aircraft <em>without</em> NVIS still use red. The constraint is the equipment, not the eye.</p>
+                    <p class="text-muted mb-0">An analyst reading a display in a dark room has no image intensifier to protect. Adopting blue-green here would import a constraint that does not apply and surrender the one property that does &mdash; minimal rod and melanopic load per unit of perceived brightness. Covert Recon Mode stays red deliberately, and on measurement rather than tradition.</p>
+
                     <h3 class="h6 text-info mt-3">MIL-STD-1472H &mdash; Human Engineering</h3>
                     <p class="text-muted mb-2">Section 5.5.3.6 establishes requirements for dark adaptation and night vision conditions, specifying that ambient illumination shall be controllable and compatible with dark-adapted operations. Section 5.5.3.6.3 defers NVIS-compatible lighting requirements to MIL-STD-3009. This is the primary standard governing human-system interface design for U.S. Department of Defense systems (September 2020). The archived reference PDF (MIL-STD-1472G.pdf) contains the H revision.</p>
                     <h3 class="h6 text-info mt-3">MIL-STD-3009 &mdash; NVIS Compatibility</h3>
@@ -112,6 +138,7 @@
                         <li class="mb-2"><strong class="text-info">MIL-STD-1472H</strong> &mdash; Department of Defense Design Criteria Standard: Human Engineering (September 2020). Section 5.5.3.6: Dark adaptation and night vision conditions.</li>
                         <li class="mb-2"><strong class="text-info">MIL-STD-3009</strong> &mdash; Lighting, Aircraft, Night Vision Imaging System (NVIS) Compatible. Spectral radiance limits for NVIS-compatible displays.</li>
                         <li class="mb-2"><strong class="text-info">CIE 1951 Scotopic Luminosity Function V&prime;(&lambda;)</strong> &mdash; Commission Internationale de l&rsquo;&Eacute;clairage. Standard observer for scotopic (rod-mediated) vision, peak at 507 nm.</li>
+                        <li class="mb-2"><strong class="text-info">CIE S 026/E:2018</strong> &mdash; System for Metrology of Optical Radiation for ipRGC-Influenced Responses to Light. Defines the melanopic action spectrum (peak ~490 nm) and melanopic equivalent daylight illuminance (mEDI). Normative source for the circadian channel; not reproduced on this page.</li>
                         <li class="mb-2"><strong class="text-info">WCAG 2.2 Contrast Requirements</strong> &mdash; W3C Web Content Accessibility Guidelines. Success Criteria 1.4.3 (AA) and 1.4.6 (AAA) for text contrast ratios.</li>
                         <li class="mb-0"><strong class="text-info">ISO 9241-3</strong> &mdash; Ergonomic requirements for office work with visual display terminals. Display ergonomics including luminance contrast and color requirements.</li>
                     </ul>
