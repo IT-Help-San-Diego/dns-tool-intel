@@ -2037,7 +2037,54 @@
             { node: 'caa',    label: 'CAA',     key: 'caa_analysis' }
         ];
 
+        /* Analyzer status strings → the four states this canvas can draw.
+           The server deliberately passes analyzer statuses through verbatim
+           (see analysis_replay.go: "never collapsed into pass or fail —
+           tri-state honesty"). The client used to know only four of them and
+           fall through to RED for everything else, which meant affirmative
+           results — 'pass', 'present', 'ok', 'found' — drew a failure ring,
+           and 'skipped'/'not_applicable' drew failure for something that was
+           never measured. That is precisely the absence-as-result error the
+           server comment exists to prevent, reintroduced one layer later. */
+        let VERDICT_STATUS_ALIAS = {
+            // Affirmative
+            success: 'success', pass: 'success', passed: 'success', ok: 'success',
+            present: 'success', found: 'success', secure: 'success', valid: 'success',
+            configured: 'success', enforced: 'success', completed: 'success',
+            synchronized: 'success', validated: 'success',
+            // Qualified / partial
+            warning: 'warning', partial: 'warning', propagating: 'warning',
+            inferred: 'warning', deferred: 'warning', default: 'warning',
+            testing: 'warning', weak: 'warning',
+            // Adverse
+            fail: 'failed', failed: 'failed', error: 'failed', bogus: 'failed',
+            insecure: 'failed', exposed: 'failed', invalid: 'failed',
+            // Observed-but-unscored, or explicitly not measured
+            indeterminate: 'indeterminate', info: 'indeterminate',
+            observed: 'indeterminate', not_applicable: 'indeterminate',
+            skipped: 'indeterminate', unknown: 'indeterminate', custom: 'indeterminate',
+            clear: 'indeterminate'
+        };
+
+        /* Absence is protocol-dependent, and that is a scientific judgement
+           rather than a rendering detail — a domain with no DMARC has a real
+           gap; a domain with no DANE is unremarkable. So absence maps per
+           protocol instead of by one global rule. Tunable on purpose. */
+        let ABSENCE_STATUSES = { missing: 1, absent: 1, not_found: 1, not_configured: 1, no_key: 1, none: 1 };
+        let ABSENCE_IS_GAP = { spf: 1, dmarc: 1, dkim: 1, dnssec: 1, caa: 1 };
+
+        function canonicalVerdict(nodeId, status) {
+            if (typeof status !== 'string' || !status) return 'indeterminate';
+            let s = status.toLowerCase();
+            if (ABSENCE_STATUSES[s]) return ABSENCE_IS_GAP[nodeId] ? 'warning' : 'indeterminate';
+            // An unrecognised string means this client does not know what the
+            // analyzer meant. Saying so is the honest render; guessing 'failed'
+            // is not.
+            return VERDICT_STATUS_ALIAS[s] || 'indeterminate';
+        }
+
         let VERDICT_RING_COLORS = {
+            failed: 'rgba(239,83,80,0.85)',
             success: 'rgba(129,199,132,0.85)',
             warning: 'rgba(255,183,77,0.85)',
             indeterminate: 'rgba(159,176,192,0.7)',
@@ -2045,6 +2092,7 @@
         };
 
         let VERDICT_RING_OUTER = {
+            failed: 'rgba(239,83,80,0.35)',
             success: 'rgba(129,199,132,0.35)',
             warning: 'rgba(255,183,77,0.35)',
             indeterminate: 'rgba(159,176,192,0.3)',
@@ -2332,7 +2380,10 @@
             if (!scanState.verdicts) return null;
             let v = scanState.verdicts[id];
             if (!v) return null;
-            return VERDICT_NODE_COLORS[v] || VERDICT_NODE_COLORS.failed;
+            // scanState.verdicts holds canonical states, but fall back to
+            // indeterminate rather than failed: an unknown state is unknown,
+            // not bad.
+            return VERDICT_NODE_COLORS[v] || VERDICT_NODE_COLORS.indeterminate;
         }
 
         // Verdicts arrive all at once; flash the result colour through the
@@ -2406,8 +2457,8 @@
         }
 
         function drawVerdictRings(n, status) {
-            let vc = VERDICT_RING_COLORS[status] || 'rgba(239,83,80,0.85)';
-            let oc = VERDICT_RING_OUTER[status] || 'rgba(239,83,80,0.35)';
+            let vc = VERDICT_RING_COLORS[status] || VERDICT_RING_COLORS.indeterminate;
+            let oc = VERDICT_RING_OUTER[status] || VERDICT_RING_OUTER.indeterminate;
             let dashed = status === 'indeterminate' || status === 'info';
             // The ring is now the sole carrier of the verdict, so it has to be
             // strong enough to read on its own against a family-coloured body.
@@ -2639,10 +2690,10 @@
             }
         }
 
-        function verdictClass(status) {
-            if (status === 'success') return 'topo-v-ok';
-            if (status === 'warning') return 'topo-v-warn';
-            if (status === 'indeterminate' || status === 'info') return 'topo-v-ind';
+        function verdictClass(canon) {
+            if (canon === 'success') return 'topo-v-ok';
+            if (canon === 'warning') return 'topo-v-warn';
+            if (canon === 'indeterminate' || canon === 'info') return 'topo-v-ind';
             return 'topo-v-bad';
         }
 
@@ -2655,9 +2706,14 @@
                 let section = fr[vp.key];
                 let chip = document.createElement('span');
                 if (section && typeof section.status === 'string') {
-                    chip.className = 'topo-vchip ' + verdictClass(section.status);
+                    // Canonicalise once, here. Everything downstream — chips,
+                    // node tint, rings — reads the canonical state, while the
+                    // tooltip still shows the analyzer's own word so nothing
+                    // is hidden by the translation.
+                    let canon = canonicalVerdict(vp.node, section.status);
+                    chip.className = 'topo-vchip ' + verdictClass(canon);
                     chip.title = vp.label + ': ' + section.status;
-                    scanState.verdicts[vp.node] = section.status;
+                    scanState.verdicts[vp.node] = canon;
                     if (typeof section.message === 'string' && section.message) {
                         scanState.verdictDetails[vp.node] = section.message;
                     }
@@ -2992,7 +3048,9 @@
             let d = replayState.data;
             if (d.verdicts) {
                 scanState.verdicts = {};
-                for (let k in d.verdicts) scanState.verdicts[k] = d.verdicts[k];
+                // Replay statuses come from the same analyzer vocabulary, so
+                // they need the same canonicalisation as a live scan.
+                for (let k in d.verdicts) scanState.verdicts[k] = canonicalVerdict(k, d.verdicts[k]);
                 scanState.verdictAt = Date.now();
             }
             scanLoadVerdicts(d.analysis_id || REPLAY.id, null);
