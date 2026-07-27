@@ -891,17 +891,23 @@
             let pipeEnd = W * 0.99 - consoleReserve;
             let pipeTotal = pipeEnd - pipeStart;
             let colGap = Math.max(4, pipeTotal * 0.01);
-            let c1w = pipeTotal * 0.13;
-            let c2w = pipeTotal * 0.20;
-            let c3w = pipeTotal * 0.42;
-            let c4w = pipeTotal * 0.16;
-            // With the output column retired its width is dead space. Hand it
-            // to the protocols, which carry the relationship graph and need
-            // room to show it rather than stacking into a vertical line.
-            if (!SHOW_OUTPUTS) {
-                c3w += c4w + colGap;
-                c4w = 0;
-            }
+            // Size the source and confidence columns to what they ACTUALLY
+            // contain rather than to fixed fractions. The source tags carry two
+            // lines of sub-text and measured ~170px against a 13% column of
+            // ~100px, so they overflowed their zone and collided with the
+            // confidence diamonds no matter how the clamping was tuned.
+            SOURCES.forEach(measureNodeBox);
+            measureNodeBox(HUB);
+            CONFIDENCE.forEach(measureNodeBox);
+            let srcNeed = Math.max.apply(null, SOURCES.map(function(n) { return n._boxW; }).concat([HUB._boxW])) + 26;
+            let confNeed = Math.max.apply(null, CONFIDENCE.map(function(n) { return n._boxW; })) + 26;
+
+            let c1w = Math.min(Math.max(srcNeed, pipeTotal * 0.13), pipeTotal * 0.30);
+            let c2w = Math.min(Math.max(confNeed, pipeTotal * 0.14), pipeTotal * 0.24);
+            let c4w = SHOW_OUTPUTS ? pipeTotal * 0.16 : 0;
+            // Protocols take everything left over: they carry the relationship
+            // graph and benefit most from width.
+            let c3w = pipeTotal - c1w - c2w - c4w - colGap * (SHOW_OUTPUTS ? 3 : 2);
             let col1L = pipeStart;
             let col1R = col1L + c1w;
             let col2L = col1R + colGap;
@@ -1609,10 +1615,16 @@
             let dimmed = hoverNode && !isHover && !conn[p.id];
 
             let r = p.radius;
-            // After a scan the verdict colour replaces the category colour, so
-            // the node cannot contradict its own chip and ring.
+            // The body keeps its FAMILY colour — email / transport / policy /
+            // brand grouping is scientific content, not decoration. The verdict
+            // lives on the ring, with a brief flash through the body when it
+            // lands. An absent protocol is drained rather than recoloured, so
+            // it still reads as a member of its family.
             let vCol = nodeVerdictColor(p.id);
-            let col = vCol || p.color;
+            let status = scanState.verdicts ? scanState.verdicts[p.id] : null;
+            let isIndet = status === 'indeterminate' || status === 'info';
+            let flash = vCol ? verdictFlash() : 0;
+            let col = flash > 0 ? mixHex(p.color, vCol, flash * 0.85) : p.color;
 
             let glowR = r * 1.5;
             let glow = ctx.createRadialGradient(p.x, p.y, r * 0.3, p.x, p.y, glowR);
@@ -1625,12 +1637,11 @@
 
             ctx.beginPath();
             ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
-            // Indeterminate reads as drained rather than merely grey-ringed:
-            // a near-empty fill is legible at a glance across the graph.
-            let isIndet = vCol && (scanState.verdicts[p.id] === 'indeterminate' || scanState.verdicts[p.id] === 'info');
-            ctx.fillStyle = hexToRgba(col, dimmed ? 0.05 : (isIndet ? 0.04 : (isHover ? 0.22 : 0.1)));
+            // Absent protocol: drained family colour + dashed edge. Present:
+            // normal family fill, brightened while the verdict flash decays.
+            ctx.fillStyle = hexToRgba(col, dimmed ? 0.05 : (isIndet ? 0.035 : (isHover ? 0.22 : 0.1 + flash * 0.18)));
             ctx.fill();
-            ctx.strokeStyle = hexToRgba(col, dimmed ? 0.12 : (isHover ? 0.85 : (isIndet ? 0.3 : 0.45)));
+            ctx.strokeStyle = hexToRgba(col, dimmed ? 0.12 : (isHover ? 0.85 : (isIndet ? 0.22 : 0.45 + flash * 0.4)));
             ctx.lineWidth = isHover ? 2 : 1;
             if (isIndet) ctx.setLineDash([5, 4]);
             ctx.stroke();
@@ -2324,6 +2335,28 @@
             return VERDICT_NODE_COLORS[v] || VERDICT_NODE_COLORS.failed;
         }
 
+        // Verdicts arrive all at once; flash the result colour through the
+        // node bodies, then decay back to the family palette. Attention first,
+        // taxonomy after — the family colours are themselves scientific
+        // communication and must not be permanently overwritten by a verdict.
+        const VERDICT_FLASH_MS = 1400;
+        function verdictFlash() {
+            if (!scanState.verdictAt) return 0;
+            let t = (Date.now() - scanState.verdictAt) / VERDICT_FLASH_MS;
+            if (t < 0 || t > 1) return 0;
+            return 1 - t;
+        }
+
+        function mixHex(a, b, t) {
+            let pa = Number.parseInt(a.slice(1), 16), pb = Number.parseInt(b.slice(1), 16);
+            let ar = (pa >> 16) & 255, ag = (pa >> 8) & 255, ab = pa & 255;
+            let br = (pb >> 16) & 255, bg = (pb >> 8) & 255, bb = pb & 255;
+            let r = Math.round(ar + (br - ar) * t);
+            let g = Math.round(ag + (bg - ag) * t);
+            let bl = Math.round(ab + (bb - ab) * t);
+            return '#' + ((1 << 24) | (r << 16) | (g << 8) | bl).toString(16).slice(1);
+        }
+
         function ringBoxPath(n, pad) {
             let hw = ((n._drawW || n.radius * 2.2) / 2) + pad;
             let hh = ((n._drawH || n.radius * 1.4) / 2) + pad;
@@ -2376,10 +2409,12 @@
             let vc = VERDICT_RING_COLORS[status] || 'rgba(239,83,80,0.85)';
             let oc = VERDICT_RING_OUTER[status] || 'rgba(239,83,80,0.35)';
             let dashed = status === 'indeterminate' || status === 'info';
+            // The ring is now the sole carrier of the verdict, so it has to be
+            // strong enough to read on its own against a family-coloured body.
             if (dashed) ctx.setLineDash([4, 3]);
-            drawRingCircle(n, vc, 2);
+            drawRingCircle(n, vc, 3.2);
             ctx.strokeStyle = oc;
-            ctx.lineWidth = 1.2;
+            ctx.lineWidth = 1.6;
             if (isBoxNode(n)) {
                 ringBoxPath(n, 9);
             } else {
@@ -2520,6 +2555,7 @@
             scanState.lastPollMs = 0;
             scanState.groups = {};
             scanState.verdicts = null;
+            scanState.verdictAt = 0;
             scanState.verdictDetails = null;
             if (scanEls.phaseBar) scanEls.phaseBar.style.width = '0%';
             if (scanEls.taskBar) scanEls.taskBar.style.width = '0%';
@@ -2613,6 +2649,7 @@
         function scanBuildChips(fr) {
             scanState.verdicts = {};
             scanState.verdictDetails = {};
+            scanState.verdictAt = Date.now();
             for (let i = 0; i < VERDICT_PROTOCOLS.length; i++) {
                 let vp = VERDICT_PROTOCOLS[i];
                 let section = fr[vp.key];
@@ -2956,6 +2993,7 @@
             if (d.verdicts) {
                 scanState.verdicts = {};
                 for (let k in d.verdicts) scanState.verdicts[k] = d.verdicts[k];
+                scanState.verdictAt = Date.now();
             }
             scanLoadVerdicts(d.analysis_id || REPLAY.id, null);
         }
@@ -2966,6 +3004,7 @@
             replayState.done = false;
             replayState.T = 0;
             scanState.verdicts = null;
+            scanState.verdictAt = 0;
             scanState.verdictDetails = null;
             scanState.groups = {};
             scanState.ringsOn = true;
