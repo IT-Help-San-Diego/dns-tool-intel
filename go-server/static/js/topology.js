@@ -171,6 +171,7 @@
                 placedBoxes.push({ x: nd.x - hw, y: nd.y - hh, w: hw * 2, h: hh * 2 });
             });
             popHitAreas = [];
+            let cityLabeled = {};
 
             let labelGap = 12 * SCL;
             let labelBand = 120 * SCL;
@@ -195,6 +196,16 @@
                 ctx.arc(p2.x, p2.y, isHovered ? 5 : 4, 0, Math.PI * 2);
                 ctx.fillStyle = hexToRgba(pop2.color, (isHovered ? 1 : 0.85) * alpha);
                 ctx.fill();
+
+                // Two resolvers sharing a PoP city (CF+OD London, CF+Q9
+                // Singapore) used to fight for the same spot with duplicate
+                // tags \u2014 one label per city is enough; the dot still renders
+                // and hover still identifies the specific resolver.
+                if (!isHovered && cityLabeled[pop2.city]) {
+                    popHitAreas.push({ x: p2.x - 8, y: p2.y - 8, w: 16, h: 16, dotX: p2.x, dotY: p2.y, idx: vp.idx });
+                    continue;
+                }
+                cityLabeled[pop2.city] = true;
 
                 let label = isHovered ? (pop2.tag + ' \u00b7 ' + pop2.city) : pop2.city;
                 ctx.font = (isHovered ? 'bold ' : '') + FONT_TAG + 'px -apple-system, BlinkMacSystemFont, sans-serif';
@@ -1075,7 +1086,7 @@
         let mouseX = -1, mouseY = -1;
 
         function hitTest(mx, my) {
-            let all = SOURCES.concat(CONFIDENCE, STORAGE, HUD_ACTIVE ? [] : OUTPUTS, PROTOCOLS, [ENGINE, HUB]);
+            let all = SOURCES.concat(CONFIDENCE, STORAGE, (HUD_ACTIVE || !SHOW_OUTPUTS) ? [] : OUTPUTS, PROTOCOLS, [ENGINE, HUB]);
             for (let i = 0; i < all.length; i++) {
                 let n = all[i];
                 let dx = mx - n.x;
@@ -1196,9 +1207,9 @@
             let to = allNodes[e.to];
             if (!from || !to) return;
 
-            // While the scan console/verdict panel is up it owns the right
-            // side of the canvas — the output nodes and their edges yield.
-            if (HUD_ACTIVE && ((from.zone === 'output') || (to.zone === 'output'))) return;
+            // Output nodes are hidden unless SHOW_OUTPUTS, and always yield
+            // while the scan console/verdict panel owns the right side.
+            if (((from.zone === 'output') || (to.zone === 'output')) && (HUD_ACTIVE || !SHOW_OUTPUTS)) return;
 
             let isHL = hoverNode && (hoverNode.id === e.from || hoverNode.id === e.to);
             let alpha;
@@ -1759,7 +1770,7 @@
                 let from = allNodes[fp.edge.from];
                 let to = allNodes[fp.edge.to];
                 if (!from || !to) continue;
-                if (HUD_ACTIVE && ((from.zone === 'output') || (to.zone === 'output'))) continue;
+                if (((from.zone === 'output') || (to.zone === 'output')) && (HUD_ACTIVE || !SHOW_OUTPUTS)) continue;
                 let curve = findEdgeCurveOffset(from, to, fp.edge.type);
                 let startPt, endPt;
                 if (curve) {
@@ -1829,7 +1840,7 @@
             CONFIDENCE.forEach(function(c) { drawConfidenceNode(c); });
             STORAGE.forEach(function(s) { drawStorageNode(s); });
             PROTOCOLS.forEach(function(p) { drawProtocolNode(p); });
-            if (!HUD_ACTIVE) OUTPUTS.forEach(function(o) { drawOutputNode(o); });
+            if (SHOW_OUTPUTS && !HUD_ACTIVE) OUTPUTS.forEach(function(o) { drawOutputNode(o); });
 
             drawScanRings();
             if (FIXTURE_SCAN) drawFixturePulse();
@@ -1862,7 +1873,13 @@
         let REPLAY = window.__TOPO_REPLAY || null;
         let FIXTURE_CORPUS = window.__FIXTURE_CORPUS || null;
         let FIXTURE_SCAN = null;   // active fixture-domain disclosure, per scan
+        let SCAN_NOTICE = '';      // chip text: fixture disclosure and/or subdomain note
         let HUD_ACTIVE = false;    // scan console owns the right side; output nodes yield
+        // Output nodes (Reports/JSON API/Schema.org/SVG Badges) are program
+        // plumbing, not DNS — hidden by default per Carey 2026-07-26, pending
+        // a mission-critical verdict from the science review. Flip to true to
+        // restore them to the idle graph.
+        let SHOW_OUTPUTS = false;
 
         function fixtureLookup(domain) {
             if (!FIXTURE_CORPUS) return null;
@@ -2410,6 +2427,7 @@
             if (scanEls.latency) scanEls.latency.textContent = 'acquisition \u2014';
             HUD_ACTIVE = false;
             FIXTURE_SCAN = null;
+            SCAN_NOTICE = '';
             setHidden(scanEls.fixtureHud, true);
             setHidden(scanEls.fixtureVerdict, true);
             setHidden(scanEls.hud, true);
@@ -2533,10 +2551,29 @@
             scanEls.links.appendChild(a);
         }
 
-        function scanShowFixture(el) {
+        // Builds the per-scan notice: fixture disclosure (annotated when the
+        // match came via a parent domain) and/or a plain subdomain heads-up
+        // for www.-prefixed inputs. The www rule is deliberately narrow — a
+        // general registrable-domain test needs the PSL, and bbc.co.uk must
+        // not be called a subdomain.
+        function scanNotices(domain) {
+            let d = String(domain || '').trim().toLowerCase().replace(/\.$/, '');
+            let fx = fixtureLookup(d);
+            let exact = FIXTURE_CORPUS && FIXTURE_CORPUS[d];
+            let text = '';
+            if (fx) {
+                text = fx.badge + ' — ' + fx.note;
+                if (!exact) text += ' (Matched via its parent domain — you are scanning a subdomain.)';
+            } else if (d.indexOf('www.') === 0) {
+                text = 'Heads-up: ' + d + ' is a subdomain — email posture is typically evaluated at the registrable domain (' + d.slice(4) + ').';
+            }
+            return { fx: fx, text: text };
+        }
+
+        function scanShowNotice(el) {
             if (!el) return;
-            if (FIXTURE_SCAN) {
-                el.textContent = FIXTURE_SCAN.badge + ' — ' + FIXTURE_SCAN.note;
+            if (SCAN_NOTICE) {
+                el.textContent = SCAN_NOTICE;
                 el.hidden = false;
             } else {
                 el.hidden = true;
@@ -2547,7 +2584,18 @@
             let myGen = scanState.gen;
             let base = redirectURL || ('/analysis/' + analysisID);
             setHidden(scanEls.verdict, false);
-            scanShowFixture(scanEls.fixtureVerdict);
+            scanShowNotice(scanEls.fixtureVerdict);
+            if (!REPLAY) {
+                // Survive refresh: the report links shouldn't evaporate on
+                // reload. Restored at init from sessionStorage.
+                try {
+                    sessionStorage.setItem('topoLastScan', JSON.stringify({
+                        id: analysisID, base: base,
+                        domain: scanEls.target ? scanEls.target.textContent : '',
+                        ts: Date.now()
+                    }));
+                } catch (e) { /* private mode \u2014 restore is best-effort */ }
+            }
             scanAddCTA(base, 'Engineer\u2019s Report', 'Engineer\u2019s DNS Intelligence Report \u2014 full technical findings', true);
             scanAddCTA('/analysis/' + analysisID + '/view/B', 'Executive Brief', 'Executive\u2019s DNS Intelligence Brief \u2014 executive summary', false);
             if (!REPLAY) scanAddCTA('/replay/' + analysisID, '\u25b6 Scan Replay', 'Shareable timeline replay of this scan on the pipeline topology', false);
@@ -2588,7 +2636,7 @@
                 setHidden(scanEls.verdict, false);
                 // Non-persisted scans (e.g. the thisdoesnotexist negative
                 // control) still owe the fixture disclosure in the verdict.
-                scanShowFixture(scanEls.fixtureVerdict);
+                scanShowNotice(scanEls.fixtureVerdict);
                 scanEls.note.textContent = 'Scan complete \u2014 results were not persisted, so there is no stored report to link. /dev/null scans, unauthenticated custom-selector scans, and non-existent domains are analyzed without being written to the database.';
                 setHidden(scanEls.note, false);
             }
@@ -2642,8 +2690,10 @@
             scanEls.phases.textContent = 'phases 0/9 \u00b7 tasks 0/0';
             setHidden(scanEls.hud, false);
             HUD_ACTIVE = true;
-            FIXTURE_SCAN = fixtureLookup(domain);
-            scanShowFixture(scanEls.fixtureHud);
+            let notice = scanNotices(domain);
+            FIXTURE_SCAN = notice.fx;
+            SCAN_NOTICE = notice.text;
+            scanShowNotice(scanEls.fixtureHud);
             scanEls.run.disabled = true;
             let fd = new FormData(scanEls.form);
             fetch('/analyze', {
@@ -2679,6 +2729,7 @@
                 // pulse flashes forever with no scan running.
                 HUD_ACTIVE = false;
                 FIXTURE_SCAN = null;
+                SCAN_NOTICE = '';
                 setHidden(scanEls.fixtureHud, true);
                 setHidden(scanEls.hud, true);
                 scanEls.run.disabled = false;
@@ -2802,6 +2853,21 @@
             }, 100);
         }
 
+        // Restore the last completed scan's verdict panel across refresh —
+        // the report links shouldn't evaporate on reload (6 h window).
+        if (!REPLAY && scanEls.verdict && scanEls.links) {
+            try {
+                let last = JSON.parse(sessionStorage.getItem('topoLastScan') || 'null');
+                if (last && last.id && Date.now() - (last.ts || 0) < 6 * 3600 * 1000) {
+                    let restoredNotice = scanNotices(last.domain || '');
+                    FIXTURE_SCAN = restoredNotice.fx;
+                    SCAN_NOTICE = restoredNotice.text;
+                    if (scanEls.target && last.domain) scanEls.target.textContent = last.domain;
+                    scanLoadVerdicts(last.id, last.base || null);
+                }
+            } catch (e) { /* restore is best-effort */ }
+        }
+
         if (REPLAY && scanEls.hud && scanEls.status && scanEls.cancel) {
             if (scanEls.form) scanEls.form.hidden = true;
             scanEls.target.textContent = REPLAY.domain || '';
@@ -2809,8 +2875,10 @@
             scanEls.status.textContent = 'Loading Replay';
             setHidden(scanEls.hud, false);
             HUD_ACTIVE = true;
-            FIXTURE_SCAN = fixtureLookup(REPLAY.domain);
-            scanShowFixture(scanEls.fixtureHud);
+            let replayNotice = scanNotices(REPLAY.domain);
+            FIXTURE_SCAN = replayNotice.fx;
+            SCAN_NOTICE = replayNotice.text;
+            scanShowNotice(scanEls.fixtureHud);
             scanEls.cancel.textContent = 'Restart';
             scanEls.cancel.title = 'Restart the replay from the beginning.';
             scanEls.cancel.addEventListener('click', function() {

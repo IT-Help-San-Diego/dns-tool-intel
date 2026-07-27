@@ -6,7 +6,7 @@
             <picture><source srcset="{{staticVersionURL "icons/icon-48x48.webp" .AppVersion}}" type="image/webp"><img src="{{staticVersionURL "icons/icon-48x48.png" .AppVersion}}" width="32" height="32" alt="DNS Tool" class="navbar-brand-owl rounded-circle" loading="eager" decoding="sync" fetchpriority="high"></picture>
             <span class="navbar-brand-text">
                 <span class="navbar-brand-name">DNS Tool</span>
-                <span class="nav-version-badge">v{{displayVersion .AppVersion}}</span>
+                {{if .IsCloudDeployment}}<span class="nav-version-badge">v{{displayVersion .AppVersion}}</span>{{else}}<span class="nav-version-badge nav-version-badge--local" title="Running locally — not the cloud deployment">local{{if ne .AppVersion "dev"}} · v{{displayVersion .AppVersion}}{{end}}</span>{{end}}
             </span>
         </a>
         <div class="u-nav-controls d-flex align-items-center ms-auto gap-2">

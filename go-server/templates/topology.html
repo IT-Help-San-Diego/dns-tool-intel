@@ -170,8 +170,14 @@
             position: absolute;
             top: 13px;
             right: 13px;
-            width: 340px;
+            width: 360px;
             max-width: calc(100% - 26px);
+            /* Never clip the bottom of the console: it scrolls inside the
+               canvas wrap instead of overflowing past it. */
+            max-height: calc(100% - 26px);
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            scrollbar-width: thin;
             z-index: 6;
             font-size: 0.78rem;
             color: #c0c8d4;
