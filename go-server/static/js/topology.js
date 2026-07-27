@@ -174,7 +174,7 @@
             let cityLabeled = {};
 
             let labelGap = 12 * SCL;
-            let labelBand = 120 * SCL;
+            let labelBand = 190 * SCL;
             let maxLabelRight = globe.cx + globe.R + labelBand + labelGap;
             let maxLabelLeft = globe.cx - globe.R - labelBand - labelGap;
             let maxLabelTop = globe.cy - globe.R - labelBand;
@@ -221,7 +221,8 @@
                     let baseAngle = Math.atan2(p2.y - globe.cy, p2.x - globe.cx);
                     let bestX2 = null, bestY2 = null, bestScore = Infinity;
                     let candidateAngles = [0, 15, -15, 30, -30, 45, -45, 60, -60, 75, -75, 90, -90, 105, -105, 120, -120, 135, -135, 150, -150, 165, -165, 180];
-                    let candidateDists = [globe.R * 0.15 + labelGap, globe.R * 0.25 + labelGap, globe.R * 0.35 + labelGap];
+                    let candidateDists = [globe.R * 0.15 + labelGap, globe.R * 0.25 + labelGap, globe.R * 0.35 + labelGap,
+                                          globe.R * 0.5 + labelGap, globe.R * 0.68 + labelGap, globe.R * 0.88 + labelGap];
                     for (let di = 0; di < candidateDists.length; di++) {
                     for (let ci = 0; ci < candidateAngles.length; ci++) {
                         let ca = baseAngle + candidateAngles[ci] * DEG;
@@ -285,13 +286,28 @@
                 placedBoxes.push({ x: rawTagX, y: rawTagY, w: tagW, h: tagH });
                 popHitAreas.push({ x: rawTagX, y: rawTagY, w: tagW, h: tagH, dotX: p2.x, dotY: p2.y, idx: vp.idx });
 
-                let lineEndX = (rawTagX + tagW / 2 > p2.x) ? rawTagX : rawTagX + tagW;
+                // The leader is the whole point of a floating tag: it must
+                // visibly pin to a physical place. Attach to the point on the
+                // tag rectangle CLOSEST to the dot, so the line always lands on
+                // the tag edge instead of a fixed left/right midpoint that can
+                // leave a visible gap. Alpha carries a floor as well, because
+                // scaling it by limb depth faded near-horizon leaders to
+                // roughly 0.12 — technically drawn, effectively invisible.
+                let anchorX = Math.max(rawTagX, Math.min(p2.x, rawTagX + tagW));
+                let anchorY = Math.max(rawTagY, Math.min(p2.y, rawTagY + tagH));
                 ctx.beginPath();
                 ctx.moveTo(p2.x, p2.y);
-                ctx.lineTo(lineEndX, rawTagY + tagH / 2);
-                ctx.strokeStyle = hexToRgba(pop2.color, (isHovered ? 0.5 : 0.3) * alpha);
-                ctx.lineWidth = isHovered ? 1 : 0.7;
+                ctx.lineTo(anchorX, anchorY);
+                ctx.strokeStyle = hexToRgba(pop2.color, isHovered ? 0.85 : Math.max(0.4, 0.6 * alpha));
+                ctx.lineWidth = (isHovered ? 1.4 : 1) * Math.max(1, SCL);
                 ctx.stroke();
+
+                // A hard pin-head at the ground end: unambiguous that the tag
+                // refers to THIS coordinate, not merely near it.
+                ctx.beginPath();
+                ctx.arc(p2.x, p2.y, (isHovered ? 2.6 : 2) * Math.max(1, SCL), 0, Math.PI * 2);
+                ctx.fillStyle = hexToRgba(pop2.color, isHovered ? 1 : Math.max(0.6, alpha));
+                ctx.fill();
 
                 roundRect(rawTagX, rawTagY, tagW, tagH, 4);
                 ctx.fillStyle = 'rgba(0,0,0,' + (isHovered ? 0.6 : 0.5 * alpha) + ')';
@@ -382,7 +398,7 @@
 
         function drawProbeMarkers(placedBoxes) {
             let labelGap = 12 * SCL;
-            let labelBand = 120 * SCL;
+            let labelBand = 190 * SCL;
             let pCandidateAngles = [0, 20, -20, 40, -40, 60, -60, 80, -80, 100, -100, 120, -120, 140, -140, 160, -160, 180];
             let pCandidateDists = [globe.R * 0.18 + labelGap, globe.R * 0.28 + labelGap, globe.R * 0.38 + labelGap];
 
@@ -454,13 +470,21 @@
                 let pPos = { x: pCached.curX, y: pCached.curY };
                 placedBoxes.push({ x: pPos.x, y: pPos.y, w: pTagW, h: pTagH });
 
-                let pLineEndX = (pPos.x + pTagW / 2 > pp.x) ? pPos.x : pPos.x + pTagW;
+                // Same pinning rule as the resolver leaders: land on the
+                // nearest point of the tag, keep a visible alpha floor, and
+                // put a pin-head on the coordinate itself.
+                let pAnchorX = Math.max(pPos.x, Math.min(pp.x, pPos.x + pTagW));
+                let pAnchorY = Math.max(pPos.y, Math.min(pp.y, pPos.y + pTagH));
                 ctx.beginPath();
                 ctx.moveTo(pp.x, pp.y);
-                ctx.lineTo(pLineEndX, pPos.y + pTagH / 2);
-                ctx.strokeStyle = hexToRgba(probe.color, 0.4 * pAlpha);
-                ctx.lineWidth = 0.8;
+                ctx.lineTo(pAnchorX, pAnchorY);
+                ctx.strokeStyle = hexToRgba(probe.color, Math.max(0.4, 0.6 * pAlpha));
+                ctx.lineWidth = Math.max(1, SCL);
                 ctx.stroke();
+                ctx.beginPath();
+                ctx.arc(pp.x, pp.y, 2 * Math.max(1, SCL), 0, Math.PI * 2);
+                ctx.fillStyle = hexToRgba(probe.color, Math.max(0.6, pAlpha));
+                ctx.fill();
 
                 roundRect(pPos.x, pPos.y, pTagW, pTagH, 4);
                 ctx.fillStyle = hexToRgba(probe.color, 0.18 * pAlpha);
@@ -858,7 +882,13 @@
             globe.cy = titleSafe + usableH * 0.42;
 
             let pipeStart = globe.cx + globeR + W * 0.02;
-            let pipeEnd = W * 0.99;
+            // The scan console is a fixed 360px card pinned top-right. Treat it
+            // as occupied space rather than letting the graph run underneath
+            // it — that is what put the console on top of DANE and TLS-RPT.
+            // Below 1000px the console goes near-full-width and overlaying is
+            // unavoidable, so reserve nothing and let it sit above.
+            let consoleReserve = W >= 1000 ? 386 : 0;
+            let pipeEnd = W * 0.99 - consoleReserve;
             let pipeTotal = pipeEnd - pipeStart;
             let colGap = Math.max(4, pipeTotal * 0.01);
             let c1w = pipeTotal * 0.13;
@@ -1542,11 +1572,15 @@
             let dimmed = hoverNode && !isHover && !conn[p.id];
 
             let r = p.radius;
+            // After a scan the verdict colour replaces the category colour, so
+            // the node cannot contradict its own chip and ring.
+            let vCol = nodeVerdictColor(p.id);
+            let col = vCol || p.color;
 
             let glowR = r * 1.5;
             let glow = ctx.createRadialGradient(p.x, p.y, r * 0.3, p.x, p.y, glowR);
-            glow.addColorStop(0, hexToRgba(p.color, dimmed ? 0.03 : (isHover ? 0.2 : 0.1)));
-            glow.addColorStop(1, hexToRgba(p.color, 0));
+            glow.addColorStop(0, hexToRgba(col, dimmed ? 0.03 : (isHover ? 0.2 : 0.1)));
+            glow.addColorStop(1, hexToRgba(col, 0));
             ctx.beginPath();
             ctx.arc(p.x, p.y, glowR, 0, Math.PI * 2);
             ctx.fillStyle = glow;
@@ -1554,11 +1588,16 @@
 
             ctx.beginPath();
             ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
-            ctx.fillStyle = hexToRgba(p.color, dimmed ? 0.05 : (isHover ? 0.22 : 0.1));
+            // Indeterminate reads as drained rather than merely grey-ringed:
+            // a near-empty fill is legible at a glance across the graph.
+            let isIndet = vCol && (scanState.verdicts[p.id] === 'indeterminate' || scanState.verdicts[p.id] === 'info');
+            ctx.fillStyle = hexToRgba(col, dimmed ? 0.05 : (isIndet ? 0.04 : (isHover ? 0.22 : 0.1)));
             ctx.fill();
-            ctx.strokeStyle = hexToRgba(p.color, dimmed ? 0.12 : (isHover ? 0.85 : 0.45));
+            ctx.strokeStyle = hexToRgba(col, dimmed ? 0.12 : (isHover ? 0.85 : (isIndet ? 0.3 : 0.45)));
             ctx.lineWidth = isHover ? 2 : 1;
+            if (isIndet) ctx.setLineDash([5, 4]);
             ctx.stroke();
+            ctx.setLineDash([]);
 
             let fontSize = Math.round((p.label.length > 6 ? 12 : (p.label.length > 4 ? 13 : 15)) * SCL);
             ctx.font = (isHover ? 'bold ' : '') + fontSize + 'px -apple-system, BlinkMacSystemFont, sans-serif';
@@ -1904,6 +1943,7 @@
             advBtn: document.getElementById('topoScanAdvBtn'),
             adv: document.getElementById('topoScanAdv'),
             hud: document.getElementById('topoScanHud'),
+            stamp: document.getElementById('topoScanStamp'),
             fixtureHud: document.getElementById('topoScanFixtureHud'),
             fixtureVerdict: document.getElementById('topoScanFixtureVerdict'),
             status: document.getElementById('topoScanStatus'),
@@ -2223,7 +2263,29 @@
         // effRadius on a wide tag yields a circle sized to the tag's WIDTH,
         // which bleeds onto the neighbors in the packed source column — the
         // "crisp elliptical strokes overlapping the source nodes" artifact.
-        function isBoxNode(n) { return n.shape === 'rect' || n.shape === 'cylinder'; }
+        // 'hub' is box-drawn (roundRect) like rect/cylinder — it was missing
+        // here, so DNS Resolvers got a wide circle circumscribing its box on
+        // top of the outline it already has. One indicator is enough.
+        function isBoxNode(n) { return n.shape === 'rect' || n.shape === 'cylinder' || n.shape === 'hub'; }
+
+        // Once a scan has produced a verdict, the node itself must carry it.
+        // Protocol nodes are tinted by CATEGORY (DANE is transport → green),
+        // so an indeterminate DANE still read as green while its chip and ring
+        // said otherwise. The verdict outranks the category.
+        let VERDICT_NODE_COLORS = {
+            success: '#81c784',
+            warning: '#ffb74d',
+            indeterminate: '#9fb0c0',
+            info: '#9fb0c0',
+            failed: '#ef5350',
+            error: '#ef5350'
+        };
+        function nodeVerdictColor(id) {
+            if (!scanState.verdicts) return null;
+            let v = scanState.verdicts[id];
+            if (!v) return null;
+            return VERDICT_NODE_COLORS[v] || VERDICT_NODE_COLORS.failed;
+        }
 
         function ringBoxPath(n, pad) {
             let hw = ((n._drawW || n.radius * 2.2) / 2) + pad;
@@ -2428,6 +2490,7 @@
             HUD_ACTIVE = false;
             FIXTURE_SCAN = null;
             SCAN_NOTICE = '';
+            setHidden(scanEls.stamp, true);
             setHidden(scanEls.fixtureHud, true);
             setHidden(scanEls.fixtureVerdict, true);
             setHidden(scanEls.hud, true);
@@ -2542,13 +2605,33 @@
             scanEls.links.appendChild(a);
         }
 
-        function scanAddCTA(href, text, title, flagship) {
+        function scanAddCTA(href, text, title, extraClass) {
             let a = document.createElement('a');
-            a.className = 'topo-scan-cta' + (flagship ? ' topo-scan-cta--flagship' : '');
+            a.className = 'topo-scan-cta' + (extraClass ? ' ' + extraClass : '');
             a.href = href;
             a.textContent = text;
             if (title) a.title = title;
             scanEls.links.appendChild(a);
+        }
+
+        // Stamps the subject and the moment under the page title, where there
+        // is open space — the instrument should say what it measured and when.
+        function scanSetStamp(domain, seconds) {
+            if (!scanEls.stamp) return;
+            if (!domain) { scanEls.stamp.hidden = true; return; }
+            scanEls.stamp.textContent = '';
+            let d = document.createElement('span');
+            d.className = 'topo-stamp-domain';
+            d.textContent = domain;
+            scanEls.stamp.appendChild(d);
+            let meta = document.createElement('span');
+            meta.className = 'topo-stamp-meta';
+            let now = new Date();
+            let hh = String(now.getUTCHours()).padStart(2, '0');
+            let mm = String(now.getUTCMinutes()).padStart(2, '0');
+            meta.textContent = (seconds ? 'analysed in ' + seconds + ' · ' : '') + hh + ':' + mm + ' UTC';
+            scanEls.stamp.appendChild(meta);
+            scanEls.stamp.hidden = false;
         }
 
         // Builds the per-scan notice: fixture disclosure (annotated when the
@@ -2596,10 +2679,21 @@
                     }));
                 } catch (e) { /* private mode \u2014 restore is best-effort */ }
             }
-            scanAddCTA(base, 'Engineer\u2019s Report', 'Engineer\u2019s DNS Intelligence Report \u2014 full technical findings', true);
-            scanAddCTA('/analysis/' + analysisID + '/view/B', 'Executive Brief', 'Executive\u2019s DNS Intelligence Brief \u2014 executive summary', false);
-            if (!REPLAY) scanAddCTA('/replay/' + analysisID, '\u25b6 Scan Replay', 'Shareable timeline replay of this scan on the pipeline topology', false);
-            scanAddLink('/analysis/' + analysisID + '/view/C', 'Recon Report \u00b7 Red Team \u00b7 Scotopic', 'Covert Recon Report \u2014 red-team perspective in the scotopic-preserving covert interface');
+            scanAddCTA(base, 'Engineer\u2019s Report', 'Engineer\u2019s DNS Intelligence Report \u2014 full technical findings', 'topo-scan-cta--flagship');
+            scanAddCTA('/analysis/' + analysisID + '/view/B', 'Executive Brief', 'Executive\u2019s DNS Intelligence Brief \u2014 executive summary');
+            // Remediation and Replay share one row: what to fix next, and how
+            // it was measured. Remediation is the tool's next most important
+            // output after the reports themselves.
+            scanAddCTA('/remediation?analysis_id=' + analysisID, 'Remediation', 'Prioritised, actionable fixes for what this scan found', 'topo-scan-cta--half topo-scan-cta--fix');
+            if (!REPLAY) {
+                scanAddCTA('/replay/' + analysisID, '\u25b6 Replay', 'Shareable timeline replay of this scan on the pipeline topology', 'topo-scan-cta--half');
+            }
+            let recon = document.createElement('a');
+            recon.className = 'topo-scan-recon';
+            recon.href = '/analysis/' + analysisID + '/view/C';
+            recon.textContent = '\u25b6 Recon Report \u00b7 Red Team \u00b7 Scotopic';
+            recon.title = 'Covert Recon Report \u2014 red-team perspective in the scotopic-preserving covert interface';
+            scanEls.links.appendChild(recon);
             fetch('/api/analysis/' + analysisID, { headers: { 'Accept': 'application/json' } }).then(function(resp) {
                 return resp.ok ? resp.json() : null;
             }).then(function(data) {
@@ -2630,6 +2724,7 @@
             scanEls.status.classList.add('is-complete');
             scanEls.cancel.textContent = 'Reset';
             scanEls.run.disabled = false;
+            scanSetStamp(scanEls.target ? scanEls.target.textContent : '', scanEls.elapsed ? scanEls.elapsed.textContent : '');
             if (data.analysis_id) {
                 scanLoadVerdicts(data.analysis_id, data.redirect_url);
             } else {

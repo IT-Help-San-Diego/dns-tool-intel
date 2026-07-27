@@ -122,6 +122,27 @@
             letter-spacing: 0.15em;
             pointer-events: none;
         }
+        /* Subject + moment of the scan, stamped under the title where there is
+           open space, so the instrument says what it measured and when. */
+        .topo-scan-stamp {
+            margin-top: 10px;
+            font-size: 0.82rem;
+            letter-spacing: 0.06em;
+            text-transform: none;
+            color: rgba(255, 255, 255, 0.72);
+        }
+        .topo-scan-stamp .topo-stamp-domain {
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 1.05rem;
+            color: #ffc86e;
+            letter-spacing: 0.02em;
+        }
+        .topo-scan-stamp .topo-stamp-meta {
+            display: block;
+            margin-top: 2px;
+            font-size: 0.72rem;
+            color: rgba(255, 255, 255, 0.42);
+        }
         .topo-title-h1 {
             color: rgba(255, 255, 255, 0.6);
             font-size: 0.95rem;
@@ -338,6 +359,26 @@
         .topo-scan-links a.topo-scan-cta:hover { background: rgba(110,203,245,.18); text-decoration: none; }
         .topo-scan-links a.topo-scan-cta--flagship { border-color: rgba(255,193,7,.55); background: rgba(255,193,7,.10); color: #ffe9ad; }
         .topo-scan-links a.topo-scan-cta--flagship:hover { background: rgba(255,193,7,.18); }
+        /* Remediation + Replay share one row as a split pair. */
+        .topo-scan-links a.topo-scan-cta--half { flex: 1 1 calc(50% - 7px); }
+        .topo-scan-links a.topo-scan-cta--fix { border-color: rgba(129,199,132,.5); background: rgba(129,199,132,.10); color: #cdeccf; }
+        .topo-scan-links a.topo-scan-cta--fix:hover { background: rgba(129,199,132,.18); }
+        /* Covert/red-team tier — the low-visibility path gets the red vibe. */
+        .topo-scan-links a.topo-scan-recon {
+            flex: 1 1 100%;
+            margin-top: 2px;
+            padding: 5px 10px;
+            border: 1px solid rgba(204,32,32,.45);
+            border-radius: 6px;
+            background: rgba(204,32,32,.09);
+            color: #ff8a8a;
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 0.7rem;
+            letter-spacing: 0.08em;
+            text-align: center;
+            text-transform: uppercase;
+        }
+        .topo-scan-links a.topo-scan-recon:hover { background: rgba(204,32,32,.2); color: #ffb3b3; text-decoration: none; }
         .topo-scan-fixture { margin-top: 8px; padding: 7px 10px; border: 1px solid rgba(255,204,128,.5); border-radius: 6px; background: rgba(255,204,128,.08); color: #ffcc80; font-size: 0.72rem; line-height: 1.35; }
         .topo-scan-note { margin-top: 5px; font-size: 0.7rem; color: #a8b6c6; line-height: 1.4; }
         .topo-scan-ticker {
@@ -409,6 +450,7 @@
                 <div class="topo-title-overlay">
                     <h1 class="topo-title-h1">Intelligence Topology <span class="topo-beta-badge">Beta</span></h1>
                     DNS Security Pipeline &amp; Dependency Graph
+                    <div class="topo-scan-stamp" id="topoScanStamp" hidden></div>
                 </div>
                 <div class="topo-scan-console" id="topoScanConsole">
                     <form id="topoScanForm" class="topo-scan-card" action="/analyze" method="POST" autocomplete="off">
