@@ -555,7 +555,11 @@
 
         let HUB = { id: 'hub', label: 'DNS Resolvers', sub: 'Signal Aggregation', color: COLORS.source, zone: 'hub', x: 0, y: 0, targetX: 0, targetY: 0, radius: 44, _initialized: false, shape: 'hub' };
 
-        let ENGINE = { id: 'engine', label: 'ICIE', sub: 'Analysis Engine', color: COLORS.engine, zone: 'engine', x: 0, y: 0, targetX: 0, targetY: 0, radius: 54, _initialized: false };
+        // shape MUST be declared: measureNodeBox falls through to the rect
+        // formula without it, measuring ICIE as a ~70px-tall box while
+        // drawEngineNode draws a 108px circle. Every spacing pass then works
+        // from a box 38px shorter than the ink.
+        let ENGINE = { id: 'engine', label: 'ICIE', sub: 'Analysis Engine', color: COLORS.engine, zone: 'engine', shape: 'circle', x: 0, y: 0, targetX: 0, targetY: 0, radius: 54, _initialized: false };
 
         let CONFIDENCE = [
             { id: 'ietf',  label: 'IETF Metadata',   sub: 'RFC Status \u00b7 Errata\nDraft Tracker',  color: COLORS.intel,  zone: 'confidence' },
@@ -706,7 +710,19 @@
                 h = radius * 2 + subExtra;
             } else if (shape === 'cylinder') {
                 w = Math.max(radius * 2.4, contentW);
-                h = radius * 1.5 + 16 + subExtra;
+                // A cylinder is the one shape whose sub-text is drawn OUTSIDE
+                // its body: drawStorageNode anchors it at drumBottom +
+                // 12*scale, so that ink is below the drum by construction.
+                // Measuring only the drum under-reported the node by ~34px at
+                // SCL 1.15 and let the next cylinder's box sit inside this
+                // one's text — measured live: 22.4px vertical intrusion while
+                // the overlap pass correctly reported nothing to fix.
+                // The box therefore spans cap + drum + cap + sub-below, and
+                // drawStorageNode positions the drum from the box top so the
+                // two agree by construction. cylinderParts() is the single
+                // source of truth for both.
+                let parts = cylinderParts(radius, scale, fontSub, subLineCount);
+                h = parts.total;
             } else if (shape === 'hub' || shape === 'roundRect') {
                 w = Math.max(radius * 2.4, contentW);
                 h = Math.max(radius * 1.4, 40 * scale);
@@ -733,6 +749,20 @@
             let w = ctx.measureText(text).width;
             _textWidthCache.set(key, w);
             return w;
+        }
+
+        // Geometry of a drawn cylinder, shared by the measurer and the
+        // renderer so a cylinder's box always covers its ink. capH is the
+        // end-cap ellipse that overhangs the drum at both ends (it was a raw
+        // unscaled 7 in the draw and absent from the measure); subBelow is the
+        // sub-text drawn under the drum, including the last line's descent.
+        function cylinderParts(radius, scale, fontSub, subLineCount) {
+            let capH = 7 * scale;
+            let drumH = radius * 1.5 + 16;
+            let subBelow = subLineCount > 0
+                ? 12 * scale + (subLineCount - 1) * (fontSub + 2) + fontSub * 0.6
+                : 0;
+            return { capH: capH, drumH: drumH, subBelow: subBelow, total: drumH + 2 * capH + subBelow };
         }
 
         function measureNodeBox(n) {
@@ -1050,7 +1080,17 @@
                 }
             };
 
-            allLayoutNodes = SOURCES.concat([HUB, ENGINE], CONFIDENCE, STORAGE, PROTOCOLS, OUTPUTS);
+            // Nodes that are never drawn must never occupy layout space. With
+            // SHOW_OUTPUTS false the four output hexagons are not rendered,
+            // not hit-tested and their edges are skipped — but they stayed in
+            // the layout set, so the overlap pass kept shoving real nodes away
+            // from four invisible boxes. Worse, with c4w=0 the output zone is
+            // arithmetically inverted (x1 > x2 by exactly colGap), so all four
+            // pinned to a single x just inside the pipeline and pushed the
+            // protocol circles left. Measured live at W=1873: output zone
+            // width -10px, all four nodes at x=1458.
+            let layoutOutputs = (SHOW_OUTPUTS && !HUD_ACTIVE) ? OUTPUTS : [];
+            allLayoutNodes = SOURCES.concat([HUB, ENGINE], CONFIDENCE, STORAGE, PROTOCOLS, layoutOutputs);
             let allLayoutEdges = FLOW_EDGES.concat(PROTO_EDGES);
 
             allLayoutNodes.forEach(function(nd) {
@@ -1137,8 +1177,18 @@
                         let total = n.reduce(function(s, v) { return s + v; }, 0) + p * (stack.length - 1);
                         if (total <= bottom - top) { needs = n; usedPad = p; break; }
                     }
-                    if (!needs) return; // cannot fit even at pad 0 — keep bands
+                    // If no pad tier fits, the column is genuinely too short for
+                    // its honestly-measured contents — at W=1873, 695px of
+                    // column against 830px of need. Keep the designed bands.
+                    // Proportional redistribution was tried and measured worse
+                    // (AABB overlaps 1 -> 6): it relieves the starved zone by
+                    // starving its neighbours, so the deficit spreads instead
+                    // of resolving. An infeasible column needs a real decision
+                    // — more width for the storage shelf, shorter sub-text, or
+                    // its own column — not a redistribution that hides it.
+                    if (!needs) return;
                     let leftover = (bottom - top) - needs.reduce(function(s, v) { return s + v; }, 0) - usedPad * (stack.length - 1);
+                    if (leftover < 0) leftover = 0;
                     let share = leftover / stack.length;
                     let cursor = top;
                     stack.forEach(function(zk, i) {
@@ -1179,51 +1229,66 @@
                 // and were clamped — several to the SAME edge, which is what
                 // stacked the protocol circles and drove the confidence column
                 // left into CISA/Threat and DNS Resolvers.
+                // Map each zone's OWN solver extent onto that zone's client
+                // bounds — an affine map per zone, not one global scale.
+                //
+                // The previous map was `targetX = (pos.x / ref.w) * usableW`:
+                // a pure scale about x=0, which silently drops the graph's
+                // left origin. Solver content starts at the profile's left
+                // margin (desktop: x=430 of a 1600 canvas) while the client's
+                // pipeline starts at pipeStart, so every node landed left of
+                // its own column and was clamped to the column edge. When
+                // several nodes in one zone all land left of it they clamp to
+                // the SAME edge — which is exactly how nine protocol circles
+                // became one vertical stack. The ellipse rescale that used to
+                // follow could not undo it either: it computed minPX/maxPX
+                // AFTER the clamp, so its `maxPX - minPX > 1` guard skipped
+                // the rescale precisely when the ellipse had collapsed.
+                //
+                // Mapping per zone makes a node land inside its column by
+                // construction, so the clamp becomes a backstop instead of the
+                // thing that decides the layout — and the protocol ellipse
+                // fills its zone without a special case.
+                function mapSpan(v, s1, s2, d1, d2) {
+                    if (!(s2 - s1 > 1e-6)) return (d1 + d2) / 2;
+                    return d1 + ((v - s1) / (s2 - s1)) * (d2 - d1);
+                }
+                let zoneExtent = {};
+                allLayoutNodes.forEach(function(nd) {
+                    let pos = solverData[nd.id];
+                    if (!pos) return;
+                    let zk = nd.zone || nd.id;
+                    let e = zoneExtent[zk];
+                    if (!e) { e = zoneExtent[zk] = { x1: pos.x, x2: pos.x, y1: pos.y, y2: pos.y }; return; }
+                    if (pos.x < e.x1) e.x1 = pos.x;
+                    if (pos.x > e.x2) e.x2 = pos.x;
+                    if (pos.y < e.y1) e.y1 = pos.y;
+                    if (pos.y > e.y2) e.y2 = pos.y;
+                });
                 let usableW = W - consoleReserve;
                 allLayoutNodes.forEach(function(nd) {
                     let pos = solverData[nd.id];
-                    if (pos) {
+                    if (!pos) return;
+                    let z = zones[nd.zone || nd.id];
+                    let e = zoneExtent[nd.zone || nd.id];
+                    if (z && z.bounds && e && z.bounds.x2 > z.bounds.x1 && z.bounds.y2 > z.bounds.y1) {
+                        // Inset the destination by the node's own half-extent so
+                        // the mapped box sits wholly inside its column.
+                        let hw = nd._halfW || nd.radius || 0;
+                        let hh = nd._halfH || nd.radius || 0;
+                        let dx1 = z.bounds.x1 + hw, dx2 = z.bounds.x2 - hw;
+                        let dy1 = z.bounds.y1 + hh, dy2 = z.bounds.y2 - hh;
+                        if (!(dx2 > dx1)) { dx1 = dx2 = (z.bounds.x1 + z.bounds.x2) / 2; }
+                        if (!(dy2 > dy1)) { dy1 = dy2 = (z.bounds.y1 + z.bounds.y2) / 2; }
+                        nd.targetX = mapSpan(pos.x, e.x1, e.x2, dx1, dx2);
+                        nd.targetY = mapSpan(pos.y, e.y1, e.y2, dy1, dy2);
+                    } else {
                         nd.targetX = (pos.x / ref.w) * usableW;
                         nd.targetY = titleSafe + (pos.y / ref.h) * (legendSafe - titleSafe);
-                        let z = zones[nd.zone || nd.id];
-                        if (z && z.bounds) {
-                            let zw = z.bounds.x2 - z.bounds.x1;
-                            let zh = z.bounds.y2 - z.bounds.y1;
-                            let zpx = Math.min(30, zw * 0.15);
-                            let zpy = Math.min(20, zh * 0.15);
-                            if (z.bounds.x1 + zpx < z.bounds.x2 - zpx) {
-                                nd.targetX = Math.max(z.bounds.x1 + zpx, Math.min(z.bounds.x2 - zpx, nd.targetX));
-                            }
-                            if (z.bounds.y1 + zpy < z.bounds.y2 - zpy) {
-                                nd.targetY = Math.max(z.bounds.y1 + zpy, Math.min(z.bounds.y2 - zpy, nd.targetY));
-                            }
-                        }
-                        nd.targetX = Math.max(globalBounds.x1 + 10, Math.min(globalBounds.x2 - 10, nd.targetX));
-                        nd.targetY = Math.max(globalBounds.y1 + 10, Math.min(globalBounds.y2 - 10, nd.targetY));
                     }
+                    nd.targetX = Math.max(globalBounds.x1 + 10, Math.min(globalBounds.x2 - 10, nd.targetX));
+                    nd.targetY = Math.max(globalBounds.y1 + 10, Math.min(globalBounds.y2 - 10, nd.targetY));
                 });
-                // The solver's protocol ellipse was authored for a canvas with
-                // four live columns. Rescale it to actually FILL the protocol
-                // zone, so the nine circles spread out and their relationship
-                // edges are legible instead of overlapping in a column.
-                let pxs = PROTOCOLS.map(function(p) { return p.targetX; });
-                let pys = PROTOCOLS.map(function(p) { return p.targetY; });
-                let minPX = Math.min.apply(null, pxs), maxPX = Math.max.apply(null, pxs);
-                let minPY = Math.min.apply(null, pys), maxPY = Math.max.apply(null, pys);
-                let pz = zones.protocol.bounds;
-                let padX = 52 * SCL, padY = 44 * SCL;
-                let tx1 = pz.x1 + padX, tx2 = pz.x2 - padX;
-                let ty1 = pz.y1 + padY, ty2 = pz.y2 - padY;
-                if (maxPX - minPX > 1 && tx2 - tx1 > 40) {
-                    PROTOCOLS.forEach(function(p) {
-                        p.targetX = tx1 + ((p.targetX - minPX) / (maxPX - minPX)) * (tx2 - tx1);
-                    });
-                }
-                if (maxPY - minPY > 1 && ty2 - ty1 > 40) {
-                    PROTOCOLS.forEach(function(p) {
-                        p.targetY = ty1 + ((p.targetY - minPY) / (maxPY - minPY)) * (ty2 - ty1);
-                    });
-                }
             } else {
                 SOLVER_ACTIVE = false;
                 console.log('Topology: using FR fallback');
@@ -1817,14 +1882,24 @@
             let h = n._boxH;
             n._drawW = w;
             n._drawH = h;
+            // Anchor the drum from the TOP of the measured box rather than
+            // centring it on n.y. The box now includes the sub-text drawn
+            // below the drum (see cylinderParts), so centring the drum would
+            // push that text back out the bottom — which is the bug this
+            // pair-of-changes fixes. Deriving both from cylinderParts keeps
+            // the drawn ink inside the measured box by construction.
+            let parts = cylinderParts(n.radius, SCL, FONT_SUB, n.sub ? n.sub.split('\n').length : 0);
             let ew = w / 2;
-            let eh = 7;
+            let eh = parts.capH;
+            let drumTop = n.y - h / 2 + parts.capH;
+            let drumBot = drumTop + parts.drumH;
+            let drumMid = (drumTop + drumBot) / 2;
 
             ctx.beginPath();
-            ctx.ellipse(n.x, n.y - h / 2, ew, eh, 0, Math.PI, Math.PI * 2);
-            ctx.lineTo(n.x + ew, n.y + h / 2);
-            ctx.ellipse(n.x, n.y + h / 2, ew, eh, 0, 0, Math.PI);
-            ctx.lineTo(n.x - ew, n.y - h / 2);
+            ctx.ellipse(n.x, drumTop, ew, eh, 0, Math.PI, Math.PI * 2);
+            ctx.lineTo(n.x + ew, drumBot);
+            ctx.ellipse(n.x, drumBot, ew, eh, 0, 0, Math.PI);
+            ctx.lineTo(n.x - ew, drumTop);
             ctx.fillStyle = hexToRgba(n.color, dimmed ? 0.04 : (isHover ? 0.18 : 0.08));
             ctx.fill();
             ctx.strokeStyle = hexToRgba(n.color, dimmed ? 0.12 : (isHover ? 0.7 : 0.3));
@@ -1832,7 +1907,7 @@
             ctx.stroke();
 
             ctx.beginPath();
-            ctx.ellipse(n.x, n.y - h / 2, ew, eh, 0, 0, Math.PI * 2);
+            ctx.ellipse(n.x, drumTop, ew, eh, 0, 0, Math.PI * 2);
             ctx.strokeStyle = hexToRgba(n.color, dimmed ? 0.08 : (isHover ? 0.5 : 0.2));
             ctx.lineWidth = 0.6;
             ctx.stroke();
@@ -1842,14 +1917,14 @@
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.15)' : (isHover ? '#fff' : 'rgba(255,255,255,0.75)');
-            ctx.fillText(n.label, n.x, n.y);
+            ctx.fillText(n.label, n.x, drumMid);
 
             if (!dimmed && n.sub) {
                 let lines = n.sub.split('\n');
                 ctx.font = FONT_SUB + 'px -apple-system, BlinkMacSystemFont, sans-serif';
                 ctx.fillStyle = isHover ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.2)';
                 for (let i = 0; i < lines.length; i++) {
-                    ctx.fillText(lines[i], n.x, n.y + h / 2 + 12 * SCL + i * (FONT_SUB + 2));
+                    ctx.fillText(lines[i], n.x, drumBot + 12 * SCL + i * (FONT_SUB + 2));
                 }
             }
         }
