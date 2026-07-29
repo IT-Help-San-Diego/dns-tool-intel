@@ -562,12 +562,12 @@ func TestMatchesFreeCertAuthority(t *testing.T) {
 }
 
 func TestEvaluateDeliberateMonitoring(t *testing.T) {
-        ok, _ := evaluateDeliberateMonitoring(protocolState{}, 0)
+        ok, _ := evaluateDeliberateMonitoring(protocolState{})
         if ok {
                 t.Error("should be false with no DMARC")
         }
 
-        ok, note := evaluateDeliberateMonitoring(protocolState{dmarcOK: true, dmarcHasRua: true, spfOK: true, dmarcPolicy: "none"}, 3)
+        ok, note := evaluateDeliberateMonitoring(protocolState{dmarcOK: true, dmarcHasRua: true, spfOK: true, dmarcPolicy: "none", dnssecOK: true, caaOK: true})
         if !ok {
                 t.Error("should be true for monitoring phase")
         }
@@ -575,17 +575,17 @@ func TestEvaluateDeliberateMonitoring(t *testing.T) {
                 t.Error("should have a note")
         }
 
-        ok, _ = evaluateDeliberateMonitoring(protocolState{dmarcOK: true, dmarcHasRua: true, spfOK: true, dmarcPolicy: "quarantine", dmarcPct: 50}, 3)
+        ok, _ = evaluateDeliberateMonitoring(protocolState{dmarcOK: true, dmarcHasRua: true, spfOK: true, dmarcPolicy: "quarantine", dmarcPct: 50, dnssecOK: true, caaOK: true})
         if !ok {
                 t.Error("should be true for partial quarantine")
         }
 
-        ok, _ = evaluateDeliberateMonitoring(protocolState{dmarcOK: true, dmarcHasRua: true, spfOK: true, dmarcPolicy: "quarantine", dmarcPct: 100}, 3)
+        ok, _ = evaluateDeliberateMonitoring(protocolState{dmarcOK: true, dmarcHasRua: true, spfOK: true, dmarcPolicy: "quarantine", dmarcPct: 100, dnssecOK: true, caaOK: true})
         if !ok {
                 t.Error("should be true for full quarantine")
         }
 
-        ok, _ = evaluateDeliberateMonitoring(protocolState{dmarcOK: true, dmarcHasRua: true, spfOK: true, dmarcPolicy: "reject"}, 3)
+        ok, _ = evaluateDeliberateMonitoring(protocolState{dmarcOK: true, dmarcHasRua: true, spfOK: true, dmarcPolicy: "reject", dnssecOK: true, caaOK: true})
         if ok {
                 t.Error("reject should return false")
         }

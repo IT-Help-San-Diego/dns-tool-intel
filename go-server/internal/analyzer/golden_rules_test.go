@@ -1183,8 +1183,10 @@ func TestDeliberateMonitoringNoneWithRua(t *testing.T) {
                 dmarcHasRua: true,
                 spfOK:       true,
                 dmarcPolicy: "none",
+		dnssecOK:    true,
+		caaOK:       true,
         }
-        deliberate, msg := evaluateDeliberateMonitoring(ps, 2)
+        deliberate, msg := evaluateDeliberateMonitoring(ps)
         if !deliberate {
                 t.Error("p=none with rua and spfOK and 2 configured should trigger deliberate monitoring")
         }
@@ -1200,8 +1202,10 @@ func TestDeliberateMonitoringQuarantineFull(t *testing.T) {
                 spfOK:       true,
                 dmarcPolicy: "quarantine",
                 dmarcPct:    100,
+		dnssecOK:    true,
+		caaOK:       true,
         }
-        deliberate, msg := evaluateDeliberateMonitoring(ps, 3)
+        deliberate, msg := evaluateDeliberateMonitoring(ps)
         if !deliberate {
                 t.Error("p=quarantine at 100% with rua should trigger deliberate deployment phase")
         }
@@ -1217,8 +1221,10 @@ func TestDeliberateMonitoringQuarantinePartial(t *testing.T) {
                 spfOK:       true,
                 dmarcPolicy: "quarantine",
                 dmarcPct:    50,
+		dnssecOK:    true,
+		caaOK:       true,
         }
-        deliberate, msg := evaluateDeliberateMonitoring(ps, 2)
+        deliberate, msg := evaluateDeliberateMonitoring(ps)
         if !deliberate {
                 t.Error("p=quarantine at 50% with rua should trigger deliberate deployment phase")
         }
@@ -1233,8 +1239,10 @@ func TestDeliberateMonitoringNoRua(t *testing.T) {
                 dmarcHasRua: false,
                 spfOK:       true,
                 dmarcPolicy: "none",
+		dnssecOK:    true,
+		caaOK:       true,
         }
-        deliberate, _ := evaluateDeliberateMonitoring(ps, 3)
+        deliberate, _ := evaluateDeliberateMonitoring(ps)
         if deliberate {
                 t.Error("p=none WITHOUT rua should NOT trigger deliberate monitoring")
         }
@@ -1246,8 +1254,10 @@ func TestDeliberateMonitoringRejectNotMonitoring(t *testing.T) {
                 dmarcHasRua: true,
                 spfOK:       true,
                 dmarcPolicy: "reject",
+		dnssecOK:    true,
+		caaOK:       true,
         }
-        deliberate, _ := evaluateDeliberateMonitoring(ps, 5)
+        deliberate, _ := evaluateDeliberateMonitoring(ps)
         if deliberate {
                 t.Error("p=reject should NOT trigger monitoring phase — reject is fully enforced")
         }

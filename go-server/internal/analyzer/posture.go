@@ -61,6 +61,8 @@ type protocolState struct {
         dmarcPolicy         string
         dmarcPct            int
         dmarcHasRua         bool
+        dmarcHasRuf         bool
+        dmarcStrictAlign    bool
         dkimOK              bool
         dkimProvider        bool
         dkimPartial         bool
@@ -154,6 +156,21 @@ func evaluateSPFState(spf map[string]any) (spfOK, spfWarning, spfMissing, spfHar
         return
 }
 
+// dmarcReportingSignals reads the tags the deliberateness model needs and that
+// the analyzer already parses but previously threw away at this boundary: ruf=
+// (forensic reporting) and strict alignment. ruf= is the single strongest
+// collection tell — DMARCbis removed it and the large receivers ignore it, so
+// publishing it in 2026 is a choice, not an inherited default.
+func dmarcReportingSignals(dmarc map[string]any) (hasRuf, strictAlign bool) {
+        if ruf, ok := dmarc["ruf"].(string); ok && ruf != "" {
+                hasRuf = true
+        }
+        aspf, _ := dmarc["aspf"].(string)
+        adkim, _ := dmarc["adkim"].(string)
+        strictAlign = aspf == "strict" && adkim == "strict"
+        return
+}
+
 func evaluateDMARCState(dmarc map[string]any) (dmarcOK, dmarcWarning, dmarcMissing, dmarcHasRua bool, dmarcPolicy string, dmarcPct int) {
         if isMissingRecord(dmarc) {
                 dmarcMissing = true
@@ -244,6 +261,7 @@ func evaluateProtocolStates(results map[string]any) protocolState {
 
         ps.spfOK, ps.spfWarning, ps.spfMissing, ps.spfHardFail, ps.spfDangerous, ps.spfNeutral, ps.spfLookupExceeded, ps.spfLookupCount = evaluateSPFState(spf)
         ps.dmarcOK, ps.dmarcWarning, ps.dmarcMissing, ps.dmarcHasRua, ps.dmarcPolicy, ps.dmarcPct = evaluateDMARCState(dmarc)
+        ps.dmarcHasRuf, ps.dmarcStrictAlign = dmarcReportingSignals(dmarc)
 
         // Tri-state honesty: a transient TXT lookup failure (SERVFAIL/timeout) is
         // neither configured nor absent. Track it explicitly so downstream
@@ -768,20 +786,115 @@ func classifyCertificateCosts(results map[string]any, acc *postureAccumulator) {
         }
 }
 
-func evaluateDeliberateMonitoring(ps protocolState, configuredCount int) (bool, string) {
+// deliberatenessEvidence separates the two ways a non-maximal DMARC policy can
+// be a considered choice rather than an unfinished rollout:
+//
+//   - collection: the operator is tuned to HARVEST. ruf= is the strongest tell
+//     (DMARCbis removed it; the large receivers ignore it; publishing it is a
+//     deliberate request for forensics from whatever minority still answers).
+//   - maturity: the operator plainly knows how to do this, so an unfinished
+//     rollout is the less likely reading — they have some other reason.
+//
+// Only signals INDEPENDENT of the gate count. rua= is excluded on purpose: the
+// caller already requires it, so counting it would be circular — which is the
+// exact defect this replaces.
+func deliberatenessEvidence(ps protocolState) (collection []string, maturity []string) {
+        if ps.dmarcHasRuf {
+                collection = append(collection, "forensic reporting (ruf=), which DMARCbis removed and most large receivers no longer honour")
+        }
+        if ps.tlsrptOK {
+                collection = append(collection, "TLS-RPT transport failure reporting")
+        }
+        if ps.dmarcStrictAlign {
+                collection = append(collection, "strict alignment on both SPF and DKIM, where relaxed is the default")
+        }
+        if ps.dnssecOK {
+                maturity = append(maturity, "a validating DNSSEC chain")
+        }
+        if ps.mtaStsOK {
+                maturity = append(maturity, "MTA-STS")
+        }
+        if ps.caaOK {
+                maturity = append(maturity, "CAA")
+        }
+        if ps.bimiOK {
+                maturity = append(maturity, "BIMI")
+        }
+        if ps.spfHardFail {
+                maturity = append(maturity, "an SPF -all hard fail")
+        }
+        return collection, maturity
+}
+
+// deliberatenessCorroborationBar is the number of independent signals required
+// before the tool will describe a policy choice as possibly deliberate. Two is
+// judgement, not a measured threshold: the base rate of these combinations in
+// the wild has not been measured, so this is deliberately conservative — ICD
+// 203 prefers understating confidence to overstating it.
+const deliberatenessCorroborationBar = 2
+
+func evaluateDeliberateMonitoring(ps protocolState) (bool, string) {
         if !ps.dmarcOK || !ps.dmarcHasRua || !ps.spfOK {
                 return false, ""
         }
-        if ps.dmarcPolicy == statusNone && configuredCount >= 2 {
-                return true, "DMARC is published at p=none with aggregate reporting enabled (RFC 7489 §6.3) — authentication results are reported but no enforcement is requested. It's possible this organization is deliberately prioritizing observation over enforcement; note that p=none does not block spoofed mail, so moving to quarantine or reject adds protection while aggregate reporting continues unchanged."
+        // The previous bar was `configuredCount >= 2`, which could never fail:
+        // reaching this line already requires SPF and DMARC, and both append to
+        // acc.configured. A check implied by its own gate is not corroboration,
+        // so in practice every qualifying domain received the hedge.
+        collection, maturity := deliberatenessEvidence(ps)
+        if len(collection)+len(maturity) < deliberatenessCorroborationBar {
+                return false, ""
         }
-        if ps.dmarcPolicy == mapKeyQuarantine && ps.dmarcPct < 100 && configuredCount >= 2 {
-                return true, "DMARC quarantine is enforced at partial percentage with aggregate reporting (RFC 7489 §6.3). Quarantine accepts failing mail for inspection (e.g. spam folder) rather than refusing it at delivery — it's possible this organization values that message-level visibility over outright rejection. Raising the percentage toward p=reject increases enforcement when full rejection is the goal; aggregate reporting continues under reject."
-        }
-        if ps.dmarcPolicy == mapKeyQuarantine && ps.dmarcPct >= 100 && configuredCount >= 2 {
-                return true, "DMARC quarantine is fully enforced (100%) with aggregate reporting (RFC 7489 §6.3). Unlike p=reject, which refuses unauthenticated mail at delivery, quarantine still accepts it for inspection — combined with active reporting, it's possible this organization values that retained message-level visibility over pure rejection. p=reject remains the strongest anti-spoofing posture if message-level inspection is not a deliberate requirement (aggregate reporting is unaffected by either policy)."
+        evidence := describeDeliberatenessEvidence(collection, maturity)
+        // Every branch states the practical consequence for someone RECEIVING
+        // mail from this domain. A hedge about the operator's intent must never
+        // leave a reader believing the domain is therefore safe to trust —
+        // under none and under quarantine, spoofed mail still reaches them.
+        switch {
+        case ps.dmarcPolicy == statusNone:
+                return true, "DMARC is published at p=none with aggregate reporting enabled (RFC 7489 §6.3) — authentication results are reported but no enforcement is requested. " +
+                        evidence +
+                        " It's possible this organization is deliberately prioritising observation over enforcement. What this means if you receive mail from this domain: p=none blocks nothing — a spoofed message that fails authentication is delivered to the inbox exactly as it would be with no DMARC record at all. Moving to quarantine or reject adds protection while aggregate reporting continues unchanged."
+        case ps.dmarcPolicy == mapKeyQuarantine && ps.dmarcPct < 100:
+                return true, fmt.Sprintf("DMARC quarantine is enforced at %d%% with aggregate reporting (RFC 7489 §6.3). Quarantine accepts failing mail for inspection rather than refusing it at delivery. ", ps.dmarcPct) +
+                        evidence +
+                        fmt.Sprintf(" It's possible this organization values that message-level visibility over outright rejection. What this means if you receive mail from this domain: roughly %d%% of messages that fail authentication are filtered to a spam or junk folder rather than refused, and the remaining %d%% are delivered normally. Spoofed mail from this domain can still reach you.", ps.dmarcPct, 100-ps.dmarcPct)
+        case ps.dmarcPolicy == mapKeyQuarantine:
+                return true, "DMARC quarantine is fully enforced (100%) with aggregate reporting (RFC 7489 §6.3). Unlike p=reject, which refuses unauthenticated mail at delivery, quarantine still accepts it for inspection. " +
+                        evidence +
+                        " It's possible this organization values that retained message-level visibility over pure rejection. What this means if you receive mail from this domain: messages that fail authentication are still delivered — typically to a spam or junk folder — not refused. A domain at p=quarantine is not a domain from which spoofed mail cannot reach you. p=reject remains the strongest anti-spoofing posture if message-level inspection is not a deliberate requirement; aggregate reporting is unaffected by either policy."
         }
         return false, ""
+}
+
+// describeDeliberatenessEvidence names what the judgement rests on, so a reader
+// can check the reasoning instead of taking the verdict on trust — the analytic
+// standard's requirement to distinguish the underlying observation from the
+// judgement drawn from it. (The standard is named only in the centralised
+// methodology constants; see the guard in methodology_const_test.go.)
+func describeDeliberatenessEvidence(collection, maturity []string) string {
+        switch {
+        case len(collection) > 0 && len(maturity) > 0:
+                return "This is not a default configuration: the record also carries " + joinPhrases(collection) +
+                        ", and the domain separately deploys " + joinPhrases(maturity) + "."
+        case len(collection) > 0:
+                return "This is not a default configuration: the record also carries " + joinPhrases(collection) + "."
+        case len(maturity) > 0:
+                return "The domain separately deploys " + joinPhrases(maturity) + ", so an unfinished rollout is the less likely reading."
+        }
+        return ""
+}
+
+func joinPhrases(items []string) string {
+        switch len(items) {
+        case 0:
+                return ""
+        case 1:
+                return items[0]
+        case 2:
+                return items[0] + " and " + items[1]
+        }
+        return strings.Join(items[:len(items)-1], ", ") + ", and " + items[len(items)-1]
 }
 
 func (a *Analyzer) CalculatePosture(results map[string]any) map[string]any {
@@ -841,7 +954,7 @@ func (a *Analyzer) CalculatePosture(results map[string]any) map[string]any {
         verdicts := buildVerdicts(vi)
         buildAISurfaceVerdicts(results, verdicts)
 
-        deliberate, deliberateNote := evaluateDeliberateMonitoring(ps, len(acc.configured))
+        deliberate, deliberateNote := evaluateDeliberateMonitoring(ps)
 
         var criticalIssues []string
         if ps.dnssecBroken {

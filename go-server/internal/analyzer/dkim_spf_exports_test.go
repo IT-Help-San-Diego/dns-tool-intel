@@ -1374,25 +1374,25 @@ func TestExportFunctions(t *testing.T) {
 
 func TestEvaluateDeliberateMonitoring_Boost(t *testing.T) {
         t.Run("none_policy_high_config", func(t *testing.T) {
-                isMonitoring, _ := evaluateDeliberateMonitoring(protocolState{dmarcOK: true, dmarcHasRua: true, spfOK: true, dmarcPolicy: "none"}, 2)
+                isMonitoring, _ := evaluateDeliberateMonitoring(protocolState{dmarcOK: true, dmarcHasRua: true, spfOK: true, dmarcPolicy: "none", dnssecOK: true, caaOK: true})
                 if !isMonitoring {
                         t.Error("expected monitoring for none policy with 2+ configured")
                 }
         })
         t.Run("quarantine_partial_high_config", func(t *testing.T) {
-                isMonitoring, _ := evaluateDeliberateMonitoring(protocolState{dmarcOK: true, dmarcHasRua: true, spfOK: true, dmarcPolicy: "quarantine", dmarcPct: 50}, 2)
+                isMonitoring, _ := evaluateDeliberateMonitoring(protocolState{dmarcOK: true, dmarcHasRua: true, spfOK: true, dmarcPolicy: "quarantine", dmarcPct: 50, dnssecOK: true, caaOK: true})
                 if !isMonitoring {
                         t.Error("expected monitoring for quarantine pct<100 with 2+ configured")
                 }
         })
         t.Run("quarantine_full_high_config", func(t *testing.T) {
-                isMonitoring, _ := evaluateDeliberateMonitoring(protocolState{dmarcOK: true, dmarcHasRua: true, spfOK: true, dmarcPolicy: "quarantine", dmarcPct: 100}, 2)
+                isMonitoring, _ := evaluateDeliberateMonitoring(protocolState{dmarcOK: true, dmarcHasRua: true, spfOK: true, dmarcPolicy: "quarantine", dmarcPct: 100, dnssecOK: true, caaOK: true})
                 if !isMonitoring {
                         t.Error("expected monitoring for quarantine pct>=100 with 2+ configured")
                 }
         })
         t.Run("reject_low_config", func(t *testing.T) {
-                isMonitoring, _ := evaluateDeliberateMonitoring(protocolState{dmarcOK: true, dmarcHasRua: true, spfOK: true, dmarcPolicy: "reject"}, 1)
+                isMonitoring, _ := evaluateDeliberateMonitoring(protocolState{dmarcOK: true, dmarcHasRua: true, spfOK: true, dmarcPolicy: "reject", dnssecOK: true, caaOK: true})
                 if isMonitoring {
                         t.Error("should not be monitoring for reject with low config count")
                 }
