@@ -11,6 +11,13 @@
         let dpr = window.devicePixelRatio || 1;
         let W, H;
         let SCL = 1;
+        // Which axis the pipeline flows along, re-derived on every layout.
+        let VERTICAL_FLOW = false;
+        // Height the vertical flow needs; resize() grows the canvas to it.
+        let VERTICAL_NEEDED_H = 0;
+        // Single source of truth for node separation, shared by the vertical
+        // shelf packer and the overlap-resolution pass.
+        let overlapPadValue = 14;
         let FONT_LABEL = 13;
         let FONT_SUB = 10;
         let FONT_TAG = 13;
@@ -940,14 +947,47 @@
         function layoutAll() {
             computeScaling();
 
-            let titleSafe = Math.max(H * 0.07, 42);
+            // Which axis the pipeline flows along is MEASURED, not guessed from
+            // a breakpoint. The horizontal flow needs the globe plus four
+            // columns of real measured content plus gaps; if that does not fit
+            // the canvas we actually have, the flow runs vertically instead.
+            //
+            // Deriving it means rotation is free: layoutAll() re-runs on every
+            // resize, and a phone going 393x852 -> 852x393 re-decides from the
+            // new numbers rather than from a remembered mode. A fixed 700px
+            // cliff would have called landscape-phone "desktop" and portrait
+            // iPad "phone", both wrong.
+            SOURCES.forEach(measureNodeBox);
+            measureNodeBox(HUB);
+            CONFIDENCE.forEach(measureNodeBox);
+            PROTOCOLS.forEach(measureNodeBox);
+            let widest = function(list) {
+                return Math.max.apply(null, list.map(function(n) { return n._boxW; }));
+            };
+            let srcNeed = Math.max(widest(SOURCES), HUB._boxW) + 26;
+            let confNeed = widest(CONFIDENCE) + 26;
+            // Protocols carry the relationship graph: two abreast is the least
+            // that reads as a graph rather than a list.
+            let protoNeed = widest(PROTOCOLS) * 2 + 26;
+            let horizontalNeed = 2 * Math.min(W * 0.13 * SCL, H * 0.25 * SCL, 180)
+                + srcNeed + confNeed + protoNeed + 40;
+            VERTICAL_FLOW = W > 0 && W < horizontalNeed;
+
+            // Portrait reserves space ABOVE the graph for the console instead of
+            // beside it; the console is full-width at these sizes.
+            let consoleTopReserve = VERTICAL_FLOW ? Math.min(190, H * 0.30) : 0;
+            let titleSafe = Math.max(H * 0.07, 42) + consoleTopReserve;
             let legendSafe = H * 0.95;
             let usableH = legendSafe - titleSafe;
 
-            let globeR = Math.min(W * 0.13 * SCL, H * 0.25 * SCL, 180);
+            let globeR = VERTICAL_FLOW
+                ? Math.min(W * 0.30 * SCL, H * 0.13 * SCL, 120)
+                : Math.min(W * 0.13 * SCL, H * 0.25 * SCL, 180);
             globe.R = globeR;
-            globe.cx = W * 0.04 + globeR;
-            globe.cy = titleSafe + usableH * 0.42;
+            // Portrait: the globe heads the flow, centred, rather than sitting
+            // to the left of columns that no longer exist.
+            globe.cx = VERTICAL_FLOW ? W * 0.5 : W * 0.04 + globeR;
+            globe.cy = VERTICAL_FLOW ? titleSafe + globeR + 8 : titleSafe + usableH * 0.42;
 
             let pipeStart = globe.cx + globeR + W * 0.02;
             // The scan console is a fixed 360px card pinned top-right. Treat it
@@ -964,11 +1004,7 @@
             // lines of sub-text and measured ~170px against a 13% column of
             // ~100px, so they overflowed their zone and collided with the
             // confidence diamonds no matter how the clamping was tuned.
-            SOURCES.forEach(measureNodeBox);
-            measureNodeBox(HUB);
-            CONFIDENCE.forEach(measureNodeBox);
-            let srcNeed = Math.max.apply(null, SOURCES.map(function(n) { return n._boxW; }).concat([HUB._boxW])) + 26;
-            let confNeed = Math.max.apply(null, CONFIDENCE.map(function(n) { return n._boxW; })) + 26;
+            // srcNeed / confNeed are measured above, where the flow axis is decided.
 
             let c1w = Math.min(Math.max(srcNeed, pipeTotal * 0.13), pipeTotal * 0.30);
             let c2w = Math.min(Math.max(confNeed, pipeTotal * 0.14), pipeTotal * 0.24);
@@ -1119,6 +1155,94 @@
             // width -10px, all four nodes at x=1458.
             let layoutOutputs = (SHOW_OUTPUTS && !HUD_ACTIVE) ? OUTPUTS : [];
             allLayoutNodes = SOURCES.concat([HUB, ENGINE], CONFIDENCE, STORAGE, PROTOCOLS, layoutOutputs);
+
+            // ---- Vertical flow -------------------------------------------------
+            // Portrait: the pipeline runs top-to-bottom in reading order, each
+            // stage a full-width band sized to its measured content and its
+            // members shelf-packed inside it. Deterministic — no ellipse, no
+            // columns, no solver remap, because the solver's mobile profile is a
+            // fixed 420x1780 and these bands are sized from the canvas in hand.
+            //
+            // Rotation needs nothing special: this runs inside layoutAll(), which
+            // resize() calls, so 852x393 re-derives from scratch.
+            if (VERTICAL_FLOW) {
+                let order = [
+                    { key: 'source', members: SOURCES },
+                    { key: 'hub', members: [HUB] },
+                    { key: 'engine', members: [ENGINE] },
+                    { key: 'confidence', members: CONFIDENCE },
+                    { key: 'storage', members: STORAGE },
+                    { key: 'protocol', members: PROTOCOLS },
+                    { key: 'output', members: layoutOutputs }
+                ].filter(function(s) { return s.members.length > 0; });
+
+                allLayoutNodes.forEach(measureNodeBox);
+                let padX = Math.max(8, W * 0.03);
+                let bandW = W - padX * 2;
+                // MUST exceed overlapPad (14) used by the resolution pass, or
+                // that pass reads our own shelf gaps as overlaps, pushes the
+                // nodes apart, and the zone clamp pulls them back — the same
+                // pad-mismatch that jammed the storage column. Measured: 30
+                // residual overlaps at gap=12*SCL (7.8px at the SCL floor).
+                let gap = Math.max(overlapPadValue + 3, 12 * SCL);
+
+                // Shelf-pack a band's members into rows of bandW; returns the
+                // rows so the height is known before anything is placed.
+                function shelvesFor(members) {
+                    let rows = [], row = [], rowW = 0, rowH = 0;
+                    members.forEach(function(n) {
+                        let w = n._boxW, h = n._boxH;
+                        if (row.length && rowW + gap + w > bandW) {
+                            rows.push({ items: row, w: rowW, h: rowH });
+                            row = []; rowW = 0; rowH = 0;
+                        }
+                        rowW += row.length ? gap + w : w;
+                        row.push(n);
+                        if (h > rowH) rowH = h;
+                    });
+                    if (row.length) rows.push({ items: row, w: rowW, h: rowH });
+                    return rows;
+                }
+
+                let plans = order.map(function(s) {
+                    let rows = shelvesFor(s.members);
+                    let h = rows.reduce(function(a, r) { return a + r.h; }, 0) + gap * (rows.length - 1);
+                    return { key: s.key, rows: rows, need: h };
+                });
+                let totalNeed = plans.reduce(function(a, p) { return a + p.need; }, 0) + gap * (plans.length - 1);
+
+                // Grow the canvas when the flow is taller than the viewport —
+                // scrolling a phone is native and expected, and squeezing seven
+                // stages into one screen is what made the labels collide.
+                VERTICAL_NEEDED_H = Math.ceil(titleSafe + totalNeed + gap * 2 + (H - legendSafe));
+
+                let avail = legendSafe - titleSafe;
+                let slack = Math.max(0, avail - totalNeed);
+                let share = plans.length ? slack / plans.length : 0;
+                let cursor = titleSafe;
+                plans.forEach(function(p) {
+                    let bandH = p.need + share;
+                    let z = zones[p.key];
+                    if (z) {
+                        z.bounds = { x1: padX, x2: padX + bandW, y1: cursor, y2: cursor + bandH };
+                        z.gx = W * 0.5;
+                        z.gy = cursor + bandH / 2;
+                    }
+                    // Centre each shelf inside the band.
+                    let inner = cursor + (bandH - p.need) / 2;
+                    p.rows.forEach(function(r) {
+                        let x = padX + (bandW - r.w) / 2;
+                        r.items.forEach(function(n) {
+                            n.targetX = x + n._boxW / 2;
+                            n.targetY = inner + r.h / 2;
+                            x += n._boxW + gap;
+                        });
+                        inner += r.h + gap;
+                    });
+                    cursor += bandH + gap;
+                });
+            }
+            // ---- end vertical flow ---------------------------------------------
             let allLayoutEdges = FLOW_EDGES.concat(PROTO_EDGES);
 
             allLayoutNodes.forEach(function(nd) {
@@ -1236,7 +1360,7 @@
                 }
             } catch (e) { solverData = null; }
 
-            if (solverData) {
+            if (solverData && !VERTICAL_FLOW) {
                 SOLVER_ACTIVE = true;
                 console.log('Topology: using hybrid solver (' + solverProfile + ')');
                 let solverRef = { desktop: { w: 1600, h: 900 }, tablet: { w: 1100, h: 940 }, mobile: { w: 420, h: 1700 } };
@@ -1322,13 +1446,18 @@
                     nd.targetX = Math.max(globalBounds.x1 + 10, Math.min(globalBounds.x2 - 10, nd.targetX));
                     nd.targetY = Math.max(globalBounds.y1 + 10, Math.min(globalBounds.y2 - 10, nd.targetY));
                 });
+            } else if (VERTICAL_FLOW) {
+                // Vertical flow already placed every node deterministically in
+                // its band. Falling through to the force solver would scatter
+                // that packing — measured: 28 overlaps at 393x1051.
+                SOLVER_ACTIVE = false;
             } else {
                 SOLVER_ACTIVE = false;
                 console.log('Topology: using FR fallback');
                 forceDirectedLayout(allLayoutNodes, allLayoutEdges, zones, globalBounds, 120);
             }
 
-            let overlapPad = 14;
+            let overlapPad = overlapPadValue;
             for (let op = 0; op < 40; op++) {
                 let anyOverlap = false;
                 for (let oi = 0; oi < allLayoutNodes.length; oi++) {
@@ -2055,6 +2184,27 @@
             canvas.height = H * dpr;
             ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
             layoutAll();
+
+            // Second pass, portrait only: seven stages stacked in reading order
+            // are usually taller than a phone viewport. Grow the canvas to the
+            // height the flow needs and lay out again, so the page scrolls
+            // instead of the stages colliding. One extra pass, never a loop —
+            // the re-layout runs against the grown height and settles.
+            if (VERTICAL_FLOW && VERTICAL_NEEDED_H > H + 1) {
+                let target = Math.min(VERTICAL_NEEDED_H, 6000);
+                wrap.style.height = target + 'px';
+                let grown = wrap.getBoundingClientRect();
+                W = grown.width;
+                H = grown.height;
+                canvas.width = W * dpr;
+                canvas.height = H * dpr;
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                layoutAll();
+            } else if (!VERTICAL_FLOW && wrap.style.height) {
+                // Rotating back to landscape must release the portrait height,
+                // or the graph keeps a phone-tall canvas on a short viewport.
+                wrap.style.height = '';
+            }
         }
 
         function update() {
