@@ -48,7 +48,9 @@ type RRSIGInfo struct {
         KeyTag       uint16        `json:"key_tag"`
         SignerName   string        `json:"signer_name"`
         TimeToExpiry time.Duration `json:"time_to_expiry"`
+        Lifetime     time.Duration `json:"lifetime"`
         ExpiringSoon bool          `json:"expiring_soon"`
+        AtRisk       bool          `json:"at_risk"`
         Expired      bool          `json:"expired"`
         Raw          string        `json:"raw"`
 }
@@ -150,12 +152,62 @@ func parseDNSSECKeys(records []*dns.DNSKEY) []DNSSECKeyInfo {
         return keys
 }
 
+// RRSIG freshness is judged against the signature's OWN validity period rather
+// than an absolute calendar window.
+//
+// The previous rule was `tte < 7*24*time.Hour`. Measured on cia.gov (Akamai
+// Edge DNS): every RRSIG has a 3.04-day lifetime, re-signed roughly daily,
+// sitting at 2.07 days remaining — 68% of life left, and all six tripped it.
+// A short validity window is BETTER hygiene, not worse: it bounds how long a
+// captured (RRset, RRSIG) pair can be replayed. Worse, that rule cannot tell a
+// healthy 3-day signature from a 90-day one with 6 days left — both are simply
+// "< 7 days" — because it never reads Inception. Lifetime is unknowable to it,
+// so it is not merely mis-calibrated, it is blind to the deciding variable.
+//
+// Two independent questions are therefore measured separately:
+//
+//   - is re-signing LATE? -> proportional: remaining / lifetime. Catches the
+//     90-day signature with 6 days left (7% remaining, genuinely overdue).
+//   - is resolution about to BREAK? -> absolute, relative to cache lifetime: a
+//     signature must outlive the copies resolvers have already cached.
+//
+// The 0.25 fraction and the 3x-TTL cache floor are operational judgement, not
+// RFC-specified: RFC 6781 §4.4.2 discusses re-signing intervals but sets no
+// numeric threshold.
+//
+// NOTE: "re-signed roughly daily" was inferred from lifetime minus age at a
+// single observation, not from watching a re-sign occur. Confirming it needs a
+// second measurement ~24h later; the drift signal worth storing is whether
+// Inception advances between scans, not the expiry date.
+const (
+        rrsigLateFraction  = 0.25
+        rrsigCacheTTLMult  = 3
+        rrsigMinCacheFloor = time.Hour
+)
+
+func classifyRRSIGFreshness(tte, lifetime time.Duration, origTTL uint32) (late, atRisk bool) {
+        if tte <= 0 {
+                return false, false // expiry is reported on its own path
+        }
+        cacheFloor := time.Duration(rrsigCacheTTLMult) * time.Duration(origTTL) * time.Second
+        if cacheFloor < rrsigMinCacheFloor {
+                cacheFloor = rrsigMinCacheFloor
+        }
+        atRisk = tte < cacheFloor
+        if lifetime > 0 {
+                late = float64(tte)/float64(lifetime) < rrsigLateFraction
+        }
+        return late, atRisk
+}
+
 func parseRRSIGRecords(records []*dns.RRSIG, now time.Time) []RRSIGInfo {
         var sigs []RRSIGInfo
         for _, rr := range records {
                 expTime := uint32ToTime(rr.Expiration)
                 incTime := uint32ToTime(rr.Inception)
                 tte := expTime.Sub(now)
+                lifetime := expTime.Sub(incTime)
+                late, atRisk := classifyRRSIGFreshness(tte, lifetime, rr.OrigTTL)
                 info := RRSIGInfo{
                         TypeCovered:  dns.TypeToString[rr.TypeCovered],
                         Algorithm:    rr.Algorithm,
@@ -166,7 +218,9 @@ func parseRRSIGRecords(records []*dns.RRSIG, now time.Time) []RRSIGInfo {
                         KeyTag:       rr.KeyTag,
                         SignerName:   rr.SignerName,
                         TimeToExpiry: tte,
-                        ExpiringSoon: tte > 0 && tte < 7*24*time.Hour,
+                        Lifetime:     lifetime,
+                        ExpiringSoon: late,
+                        AtRisk:       atRisk,
                         Expired:      tte <= 0,
                         Raw:          rr.String(),
                 }
@@ -276,8 +330,18 @@ func collectDNSSECOpsIssues(sigs []RRSIGInfo, doe DenialOfExistence, rollover Ro
         for _, sig := range sigs {
                 if sig.Expired {
                         issues = append(issues, fmt.Sprintf("RRSIG for %s (key tag %d) has expired", sig.TypeCovered, sig.KeyTag))
+                } else if sig.AtRisk {
+                        issues = append(issues, fmt.Sprintf(
+                                "RRSIG for %s (key tag %d) expires in %s — less than the time resolvers may keep it cached (TTL %ds)",
+                                sig.TypeCovered, sig.KeyTag, sig.TimeToExpiry.Round(time.Minute), sig.OriginalTTL))
                 } else if sig.ExpiringSoon {
-                        issues = append(issues, fmt.Sprintf("RRSIG for %s (key tag %d) expires in less than 7 days", sig.TypeCovered, sig.KeyTag))
+                        // Late relative to its own cadence — say so in those terms.
+                        // "N days left" alone is what made a healthy 3-day
+                        // signature look identical to a 90-day one running late.
+                        issues = append(issues, fmt.Sprintf(
+                                "RRSIG for %s (key tag %d) is late in its signing cycle — %s of a %s validity period remaining; expected re-signing before now",
+                                sig.TypeCovered, sig.KeyTag,
+                                sig.TimeToExpiry.Round(time.Hour), sig.Lifetime.Round(time.Hour)))
                 }
         }
         issues = append(issues, doe.Issues...)
