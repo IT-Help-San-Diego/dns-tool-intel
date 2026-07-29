@@ -230,10 +230,14 @@ func partialProtectionFixtures() []TestCase {
                         Protocol:   mapKeyDmarc,
                         Layer:      LayerAnalysis,
                         RFCSection: citFixtureE2eDmarcS63,
-                        Expected:   "partial percentage flagged",
+                        Expected:   "partial coverage flagged, and quarantined mail still delivered",
                         RunFn: func() (string, bool) {
+                                // Asserts BOTH halves of the honest answer: that coverage is
+                                // partial, and that quarantined mail is set aside rather than
+                                // refused. The prior wording checked only the coverage half.
                                 answer := analyzer.ExportBuildEmailAnswer(false, "quarantine", 25, false, true, true)
-                                return answer, strings.Contains(answer, "limited percentage")
+                                return answer, strings.Contains(answer, "only part of the mail") &&
+                                        strings.Contains(answer, "delivered to spam rather than refused")
                         },
                 },
         }

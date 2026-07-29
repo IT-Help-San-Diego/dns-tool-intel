@@ -669,6 +669,11 @@ func TestBuildEmailVerdict_Variations(t *testing.T) {
                         wantColor: "success",
                 },
                 {
+                        // Quarantine at 100% is fully enforcing and stays green, but it is
+                        // NOT the same answer as reject: receivers are asked to accept the
+                        // message and set it aside, so a spoofed mail still reaches the
+                        // mailbox in spam. This case previously asserted "Protected",
+                        // which collapsed the two policies.
                         name: "enforcing quarantine 100",
                         vi: verdictInput{
                                 ps:       protocolState{dmarcPolicy: "quarantine", dmarcPct: 100},
@@ -676,7 +681,7 @@ func TestBuildEmailVerdict_Variations(t *testing.T) {
                                 hasSPF:   true,
                                 hasDMARC: true,
                         },
-                        wantLabel: "Protected",
+                        wantLabel: "Quarantined",
                         wantColor: "success",
                 },
                 {
@@ -801,8 +806,8 @@ func TestBuildEmailAnswer(t *testing.T) {
                 {"no-mail domain", protocolState{isNoMailDomain: true}, false, false, "null MX"},
                 {"no protections", protocolState{}, false, false, "no SPF or DMARC"},
                 {"reject", protocolState{dmarcPolicy: "reject"}, true, true, "reject policy enforced"},
-                {"quarantine 100", protocolState{dmarcPolicy: "quarantine", dmarcPct: 100}, true, true, "quarantine policy enforced"},
-                {"quarantine partial", protocolState{dmarcPolicy: "quarantine", dmarcPct: 50}, true, true, "limited percentage"},
+                {"quarantine 100", protocolState{dmarcPolicy: "quarantine", dmarcPct: 100}, true, true, "delivered to spam rather than refused"},
+                {"quarantine partial", protocolState{dmarcPolicy: "quarantine", dmarcPct: 50}, true, true, "delivered to spam rather than refused"},
                 {"none", protocolState{dmarcPolicy: "none"}, true, true, "monitor-only"},
                 {"spf only", protocolState{}, true, false, "SPF alone"},
                 {"dmarc only", protocolState{}, false, true, "no SPF"},
@@ -829,8 +834,8 @@ func TestBuildEmailAnswerStructured(t *testing.T) {
                 {"no-mail", protocolState{isNoMailDomain: true}, false, false, "No", "success"},
                 {"no protections", protocolState{}, false, false, "Yes", "danger"},
                 {"reject", protocolState{dmarcPolicy: "reject"}, true, true, "No", "success"},
-                {"quarantine 100", protocolState{dmarcPolicy: "quarantine", dmarcPct: 100}, true, true, "Unlikely", "success"},
-                {"quarantine partial", protocolState{dmarcPolicy: "quarantine", dmarcPct: 50}, true, true, "Partially", "warning"},
+                {"quarantine 100", protocolState{dmarcPolicy: "quarantine", dmarcPct: 100}, true, true, "Partly", "success"},
+                {"quarantine partial", protocolState{dmarcPolicy: "quarantine", dmarcPct: 50}, true, true, "Partly", "warning"},
                 {"none", protocolState{dmarcPolicy: "none"}, true, true, "Yes", "danger"},
                 {"spf only", protocolState{}, true, false, "Likely", "danger"},
                 {"dmarc only", protocolState{}, false, true, "Partially", "warning"},

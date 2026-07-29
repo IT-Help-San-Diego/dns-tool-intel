@@ -50,7 +50,10 @@ func TestEmailAnswerMonitorOnly(t *testing.T) {
 func TestEmailAnswerQuarantineFull(t *testing.T) {
         ps := protocolState{dmarcPolicy: "quarantine", dmarcPct: 100}
         answer := buildEmailAnswer(ps, true, true)
-        expected := "Unlikely — SPF and DMARC quarantine policy enforced"
+        // Quarantine at 100% is fully enforcing, but "Unlikely" overstated it:
+        // receivers accept the message and set it aside, so spoofed mail still
+        // reaches the mailbox in spam.
+        expected := "Partly — DMARC quarantine is enforced at 100%, but quarantined mail is delivered to spam rather than refused"
         if answer != expected {
                 t.Errorf(errExpectedGot, expected, answer)
         }

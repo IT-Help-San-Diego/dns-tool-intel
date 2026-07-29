@@ -276,14 +276,14 @@ func dmarcAnalysisCases() []TestCase {
                 },
                 {
                         CaseID:     "dmarc-analysis-004",
-                        CaseName:   "DMARC quarantine at 100% = unlikely spoofable",
+                        CaseName:   "DMARC quarantine at 100% = enforced, but spoofed mail still reaches the mailbox",
                         Protocol:   mapKeyDmarc,
                         Layer:      LayerAnalysis,
                         RFCSection: rfcDMARCSection63,
-                        Expected:   "Unlikely — SPF and DMARC quarantine policy enforced",
+                        Expected:   "Partly — DMARC quarantine is enforced at 100%, but quarantined mail is delivered to spam rather than refused",
                         RunFn: func() (string, bool) {
                                 answer := analyzer.ExportBuildEmailAnswer(false, "quarantine", 100, false, true, true)
-                                return answer, answer == "Unlikely — SPF and DMARC quarantine policy enforced"
+                                return answer, answer == "Partly — DMARC quarantine is enforced at 100%, but quarantined mail is delivered to spam rather than refused"
                         },
                 },
                 {
@@ -292,10 +292,10 @@ func dmarcAnalysisCases() []TestCase {
                         Protocol:   mapKeyDmarc,
                         Layer:      LayerAnalysis,
                         RFCSection: rfcDMARCSection63,
-                        Expected:   "Partially — DMARC quarantine at limited percentage",
+                        Expected:   "Partly — DMARC quarantine covers only part of the mail, and quarantined mail is delivered to spam rather than refused",
                         RunFn: func() (string, bool) {
                                 answer := analyzer.ExportBuildEmailAnswer(false, "quarantine", 50, false, true, true)
-                                return answer, answer == "Partially — DMARC quarantine at limited percentage"
+                                return answer, answer == "Partly — DMARC quarantine covers only part of the mail, and quarantined mail is delivered to spam rather than refused"
                         },
                 },
                 {

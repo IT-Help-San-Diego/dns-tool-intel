@@ -36,6 +36,8 @@ const (
         strPartially              = "Partially"
         strPossible               = "Possible"
         strProtected              = "Protected"
+        strQuarantined            = "Quarantined"
+        strPartly                 = "Partly"
         strUnlikely               = "Unlikely"
         mapKeyIcon                = "icon"
         mapKeyLabel               = "label"
@@ -1250,8 +1252,8 @@ var emailAnswerText = map[emailSpoofClass]string{
         emailSpoofNoMail:            "No — null MX indicates no-mail domain",
         emailSpoofUnprotected:       "Yes — no SPF or DMARC protection",
         emailSpoofReject:            "No — SPF and DMARC reject policy enforced",
-        emailSpoofQuarantineFull:    "Unlikely — SPF and DMARC quarantine policy enforced",
-        emailSpoofQuarantinePartial: "Partially — DMARC quarantine at limited percentage",
+        emailSpoofQuarantineFull:    "Partly — DMARC quarantine is enforced at 100%, but quarantined mail is delivered to spam rather than refused",
+        emailSpoofQuarantinePartial: "Partly — DMARC quarantine covers only part of the mail, and quarantined mail is delivered to spam rather than refused",
         emailSpoofMonitorOnly:       "Yes — DMARC is monitor-only (p=none)",
         emailSpoofSPFOnly:           "Likely — SPF alone cannot prevent spoofing",
         emailSpoofDMARCOnly:         "Partially — DMARC present but no SPF",
@@ -1269,8 +1271,8 @@ var emailAnswerDetails = map[emailSpoofClass]emailAnswerDetail{
         emailSpoofNoMail:            {"No", "null MX indicates no-mail domain", mapKeySuccess},
         emailSpoofUnprotected:       {answerYes, "no SPF or DMARC protection", mapKeyDanger},
         emailSpoofReject:            {"No", "SPF and DMARC reject policy enforced", mapKeySuccess},
-        emailSpoofQuarantineFull:    {strUnlikely, "SPF and DMARC quarantine policy enforced", mapKeySuccess},
-        emailSpoofQuarantinePartial: {strPartially, "DMARC quarantine at limited percentage", mapKeyWarning},
+        emailSpoofQuarantineFull:    {strPartly, "SPF and DMARC are enforced at p=quarantine, 100% (RFC 7489 §6.3) — receivers accept failing mail and set it aside, so a spoofed message still reaches the mailbox in spam or junk rather than being refused", mapKeySuccess},
+        emailSpoofQuarantinePartial: {strPartly, "DMARC quarantine applies to only part of the mail stream (RFC 7489 §6.3), and quarantined mail is delivered to spam rather than refused — the uncovered remainder is delivered normally", mapKeyWarning},
         emailSpoofMonitorOnly:       {answerYes, "DMARC is monitor-only (p=none)", mapKeyDanger},
         emailSpoofSPFOnly:           {strLikely, "SPF alone cannot prevent spoofing", mapKeyDanger},
         emailSpoofDMARCOnly:         {strPartially, "DMARC present but no SPF", mapKeyWarning},
@@ -1295,12 +1297,19 @@ func buildEmailAnswerStructured(ps protocolState, hasSPF, hasDMARC bool) map[str
         return map[string]string{mapKeyAnswer: detail.answer, mapKeyReason: detail.reason, mapKeyColor: detail.color}
 }
 
+// Every branch names the observation behind its label. Five of these six
+// previously emitted a label, a colour and an icon with no reason and no
+// answer — a predicate with no evidence attached. "Basic" is the one that
+// mattered most: it is a judgement about ADEQUACY, and it was being asserted
+// without saying what was measured or what remains open.
 func buildEmailVerdict(vi verdictInput, verdicts map[string]any) {
         if vi.ps.spfIndeterminate || vi.ps.dmarcIndeterminate {
                 verdicts[mapKeyEmailSpoofing] = map[string]any{
-                        mapKeyLabel: "Inconclusive",
-                        mapKeyColor: "secondary",
-                        mapKeyIcon:  "question",
+                        mapKeyLabel:  "Inconclusive",
+                        mapKeyColor:  "secondary",
+                        mapKeyIcon:   "question",
+                        mapKeyAnswer: "Unknown",
+                        mapKeyReason: "A DNS lookup for SPF or DMARC did not complete, so no conclusion is available. This is not evidence that either record is absent — the measurement failed, and a failed measurement is not a finding.",
                 }
                 return
         }
@@ -1312,43 +1321,95 @@ func buildEmailVerdict(vi verdictInput, verdicts map[string]any) {
 
         if vi.hasSPF && !vi.hasDMARC {
                 verdicts[mapKeyEmailSpoofing] = map[string]any{
-                        mapKeyLabel: strBasic,
-                        mapKeyColor: mapKeyWarning,
-                        mapKeyIcon:  iconShieldAlt,
+                        mapKeyLabel:  strBasic,
+                        mapKeyColor:  mapKeyWarning,
+                        mapKeyIcon:   iconShieldAlt,
+                        mapKeyAnswer: strLikely,
+                        mapKeyReason: "SPF is published but no DMARC record was found (RFC 7489 §6.3). SPF alone tells a receiver which hosts may send, but nothing about what to do when a message fails — and it does not cover the From: address a reader actually sees, so a spoofed message can still be delivered.",
                 }
                 return
         }
 
         if !vi.hasSPF && !vi.hasDMARC {
                 verdicts[mapKeyEmailSpoofing] = map[string]any{
-                        mapKeyLabel: strExposed,
-                        mapKeyColor: mapKeyDanger,
-                        mapKeyIcon:  iconExclamationTriangle,
+                        mapKeyLabel:  strExposed,
+                        mapKeyColor:  mapKeyDanger,
+                        mapKeyIcon:   iconExclamationTriangle,
+                        mapKeyAnswer: answerYes,
+                        mapKeyReason: "Neither SPF (RFC 7208) nor DMARC (RFC 7489) was found. Nothing instructs a receiver to check whether mail claiming this domain is authorised, so anyone can send as this domain and the message will be delivered normally.",
                 }
                 return
         }
 
         if vi.hasSPF && vi.hasDMARC {
-                verdicts[mapKeyEmailSpoofing] = map[string]any{
-                        mapKeyLabel: strBasic,
-                        mapKeyColor: mapKeyWarning,
-                        mapKeyIcon:  iconShieldAlt,
-                }
+                verdicts[mapKeyEmailSpoofing] = buildNonEnforcingEmailVerdict(vi.ps)
                 return
         }
 
         verdicts[mapKeyEmailSpoofing] = map[string]any{
-                mapKeyLabel: strExposed,
-                mapKeyColor: mapKeyDanger,
-                mapKeyIcon:  iconExclamationTriangle,
+                mapKeyLabel:  strExposed,
+                mapKeyColor:  mapKeyDanger,
+                mapKeyIcon:   iconExclamationTriangle,
+                mapKeyAnswer: answerYes,
+                mapKeyReason: "The combination of SPF and DMARC records observed does not request any enforcement, so a receiver is not asked to reject or set aside mail that fails authentication.",
         }
 }
 
+// buildNonEnforcingEmailVerdict covers SPF + DMARC present but not enforcing:
+// p=none, or quarantine below 100%. "Basic" asserts adequacy, so it has to say
+// what is actually configured and what that leaves open.
+func buildNonEnforcingEmailVerdict(ps protocolState) map[string]any {
+        reason := "SPF and DMARC are both published, but the DMARC policy does not request enforcement (RFC 7489 §6.3), so a message failing authentication is delivered normally."
+        switch {
+        case ps.dmarcPolicy == statusNone:
+                reason = "SPF and DMARC are both published, but DMARC is at p=none (RFC 7489 §6.3) — a monitoring policy. Authentication results are reported to the domain owner, and nothing is blocked: a spoofed message that fails is delivered to the inbox exactly as it would be with no DMARC record."
+        case ps.dmarcPolicy == mapKeyQuarantine && ps.dmarcPct > 0 && ps.dmarcPct < 100:
+                reason = fmt.Sprintf("SPF and DMARC are both published, and DMARC requests quarantine for %d%% of mail (RFC 7489 §6.3). The remaining %d%% is delivered normally, and quarantined mail is set aside in spam rather than refused — so a spoofed message can still reach the recipient by either route.", ps.dmarcPct, 100-ps.dmarcPct)
+        }
+        return map[string]any{
+                mapKeyLabel:  strBasic,
+                mapKeyColor:  mapKeyWarning,
+                mapKeyIcon:   iconShieldAlt,
+                mapKeyAnswer: strLikely,
+                mapKeyReason: reason,
+        }
+}
+
+// buildEnforcingEmailVerdict answers "can this domain be impersonated by
+// email?" for the two fully-enforcing DMARC policies. They are NOT the same
+// answer, and this branch used to collapse them.
+//
+// It previously emitted label/colour/icon and nothing else — no answer, no
+// reason — while every other builder in this file supplies both. The branch
+// making the strongest claim was the only one offering no observation to back
+// it. It also took ps and ds and read neither, so it could not have been
+// conditioned on anything.
+//
+// p=reject asks receivers to REFUSE unauthenticated mail at the gateway: it
+// does not reach the mailbox. p=quarantine at 100% asks receivers to ACCEPT it
+// and set it aside — it lands in spam or junk, where a user can still open it.
+// Both are strong, deliberate postures and both stay green; the colour is not
+// the thing that was wrong. The predicate was.
+//
+// buildDNSVerdict's AD-flag branch is the house model for this: it withholds
+// "Protected" when the confirming observation was not made.
 func buildEnforcingEmailVerdict(ps protocolState, ds DKIMState, verdicts map[string]any) {
+        if ps.dmarcPolicy == mapKeyQuarantine {
+                verdicts[mapKeyEmailSpoofing] = map[string]any{
+                        mapKeyLabel:  strQuarantined,
+                        mapKeyColor:  mapKeySuccess,
+                        mapKeyIcon:   iconShieldHalved,
+                        mapKeyAnswer: strUnlikely,
+                        mapKeyReason: "SPF and DMARC are enforced at p=quarantine, 100% (RFC 7489 §6.3). Quarantine asks receivers to accept failing mail and set it aside rather than refuse it, so a spoofed message is still delivered — typically to a spam or junk folder — where a recipient can open it. Some operators choose quarantine deliberately to retain that message-level visibility; p=reject is the posture that stops the message reaching the mailbox at all.",
+                }
+                return
+        }
         verdicts[mapKeyEmailSpoofing] = map[string]any{
-                mapKeyLabel: strProtected,
-                mapKeyColor: mapKeySuccess,
-                mapKeyIcon:  iconShieldAlt,
+                mapKeyLabel:  strProtected,
+                mapKeyColor:  mapKeySuccess,
+                mapKeyIcon:   iconShieldAlt,
+                mapKeyAnswer: strUnlikely,
+                mapKeyReason: "SPF and DMARC are enforced at p=reject, 100% (RFC 7489 §6.3) — receivers are asked to refuse unauthenticated mail at the gateway, so a spoofed message is rejected rather than delivered.",
         }
 }
 
