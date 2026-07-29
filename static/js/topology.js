@@ -1013,14 +1013,35 @@
             CONFIDENCE[3].targetX = procCx;
             CONFIDENCE[3].targetY = confY + usableH * 0.18;
 
-            let storeY = titleSafe + usableH * 0.78;
-            let storeSpread = Math.max(confSpread * 0.8, 60);
-            STORAGE[0].targetX = procCx;
-            STORAGE[0].targetY = storeY;
-            STORAGE[1].targetX = procCx - storeSpread;
-            STORAGE[1].targetY = storeY + usableH * 0.10;
-            STORAGE[2].targetX = procCx + storeSpread;
-            STORAGE[2].targetY = storeY + usableH * 0.10;
+            // Storage is the persistence layer BENEATH the pipeline, not a
+            // stage between confidence and output. Stacked vertically in a
+            // column the three cylinders need 382px inside a 222px band
+            // (measured at W=1873) — infeasible at every padding, which is why
+            // they overlapped no matter how the bands were re-partitioned.
+            // Side by side they need ~474px of width and one cylinder of
+            // height, and the canvas has that along the bottom in abundance.
+            // Laid out as an explicit foundation row: deterministic, and it
+            // reads as the substrate the rest of the graph sits on.
+            STORAGE.forEach(measureNodeBox);
+            let storeGap = 18 * SCL;
+            let storeRowW = STORAGE.reduce(function(s, n) { return s + n._boxW; }, 0) + storeGap * (STORAGE.length - 1);
+            let storeRowH = Math.max.apply(null, STORAGE.map(function(n) { return n._boxH; }));
+            let storeBandH = storeRowH + 20 * SCL;
+            let storeBandY1 = legendSafe - storeBandH;
+            let storeY = storeBandY1 + storeBandH / 2;
+            // Centre the row on the processing column, but keep it clear of
+            // the source column: col1 runs the full height, so a row that
+            // starts west of col1R lands on the bottom source tag (measured:
+            // root <-> postgres, 98px x 37px).
+            let storeRowL = Math.max(col1R + storeGap, Math.min(col4R - storeRowW, procCx - storeRowW / 2));
+            let storeCursor = storeRowL;
+            STORAGE.forEach(function(s) {
+                s.targetX = storeCursor + s._boxW / 2;
+                s.targetY = storeY;
+                storeCursor += s._boxW + storeGap;
+            });
+            let storeBandX1 = storeRowL - storeGap;
+            let storeBandX2 = storeRowL + storeRowW + storeGap;
 
             let protoCx = (col3L + col3R) / 2;
             let protoCy = titleSafe + usableH * 0.42;
@@ -1061,17 +1082,24 @@
                 'confidence': {
                     gx: procCx, gy: confY + usableH * 0.06,
                     gravity: 0.30,
-                    bounds: { x1: col2L, x2: col2R, y1: titleSafe + usableH * 0.25, y2: titleSafe + usableH * 0.75 }
+                    bounds: { x1: col2L, x2: col2R, y1: titleSafe + usableH * 0.25, y2: storeBandY1 - 14 }
                 },
+                // A wide, short band along the bottom — see the foundation-row
+                // placement above. Every other zone that shares its x range
+                // must now stop above it, or the overlap pass spends its
+                // iterations pushing protocol circles out of the substrate.
                 'storage': {
                     gx: procCx, gy: storeY,
                     gravity: 0.35,
-                    bounds: { x1: col2L - c2w * 0.3, x2: col2R + c2w * 0.3, y1: titleSafe + usableH * 0.68, y2: legendSafe }
+                    bounds: { x1: storeBandX1, x2: storeBandX2, y1: storeBandY1, y2: legendSafe }
                 },
                 'protocol': {
                     gx: protoCx, gy: protoCy,
                     gravity: 0.18,
-                    bounds: { x1: col3L, x2: col3R, y1: titleSafe, y2: titleSafe + usableH * 0.88 }
+                    bounds: { x1: col3L, x2: col3R, y1: titleSafe,
+                              y2: (col3L < storeBandX2 && col3R > storeBandX1)
+                                    ? Math.min(titleSafe + usableH * 0.88, storeBandY1 - 14)
+                                    : titleSafe + usableH * 0.88 }
                 },
                 'output': {
                     gx: outCx, gy: titleSafe + usableH * 0.5,
@@ -1269,6 +1297,11 @@
                 allLayoutNodes.forEach(function(nd) {
                     let pos = solverData[nd.id];
                     if (!pos) return;
+                    // Storage keeps its explicit foundation-row placement. The
+                    // solver arranges these three vertically for a tall narrow
+                    // zone; mapping that onto a wide short band would spread
+                    // them on the wrong axis and re-create the pile-up.
+                    if ((nd.zone || nd.id) === 'storage') return;
                     let z = zones[nd.zone || nd.id];
                     let e = zoneExtent[nd.zone || nd.id];
                     if (z && z.bounds && e && z.bounds.x2 > z.bounds.x1 && z.bounds.y2 > z.bounds.y1) {
