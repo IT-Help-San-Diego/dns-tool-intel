@@ -2991,12 +2991,25 @@
             scanEls.links.appendChild(a);
         }
 
-        function scanAddCTA(href, text, title, extraClass) {
+        // sub renders VISIBLY under the label. It used to be passed as
+        // a.title — a hover tooltip, which nobody sees on touch and few see on
+        // desktop. Right after a 60-second scan the reader needs to know which
+        // door to open, so the difference between the reports has to be legible
+        // without hovering.
+        function scanAddCTA(href, text, sub, extraClass) {
             let a = document.createElement('a');
             a.className = 'topo-scan-cta' + (extraClass ? ' ' + extraClass : '');
             a.href = href;
-            a.textContent = text;
-            if (title) a.title = title;
+            let label = document.createElement('span');
+            label.className = 'topo-scan-cta-label';
+            label.textContent = text;
+            a.appendChild(label);
+            if (sub) {
+                let s = document.createElement('span');
+                s.className = 'topo-scan-cta-sub';
+                s.textContent = sub;
+                a.appendChild(s);
+            }
             scanEls.links.appendChild(a);
         }
 
@@ -3049,12 +3062,16 @@
             }
         }
 
-        function scanLoadVerdicts(analysisID, redirectURL) {
+        function scanLoadVerdicts(analysisID, redirectURL, isRestore) {
             let myGen = scanState.gen;
             let base = redirectURL || ('/analysis/' + analysisID);
             setHidden(scanEls.verdict, false);
             scanShowNotice(scanEls.fixtureVerdict);
-            if (!REPLAY) {
+            // isRestore: re-writing the record here would stamp a new ts on
+            // every page view, so the 6-hour expiry could never elapse — the
+            // panel would persist indefinitely for anyone who keeps returning.
+            // Only a real scan may (re)start that clock.
+            if (!REPLAY && !isRestore) {
                 // Survive refresh: the report links shouldn't evaporate on
                 // reload. Restored at init from sessionStorage.
                 try {
@@ -3065,8 +3082,8 @@
                     }));
                 } catch (e) { /* private mode \u2014 restore is best-effort */ }
             }
-            scanAddCTA(base, 'Engineer\u2019s Report', 'Engineer\u2019s DNS Intelligence Report \u2014 full technical findings', 'topo-scan-cta--flagship');
-            scanAddCTA('/analysis/' + analysisID + '/view/B', 'Executive Brief', 'Executive\u2019s DNS Intelligence Brief \u2014 executive summary');
+            scanAddCTA(base, 'Engineer\u2019s Report', 'The deepest technical findings \u2014 every record, every RFC', 'topo-scan-cta--flagship');
+            scanAddCTA('/analysis/' + analysisID + '/view/B', 'Executive Brief', 'The same findings in plain English \u2014 built to hand to a decision-maker');
             // Remediation and Replay share one row: what to fix next, and how
             // it was measured. Remediation is the tool's next most important
             // output after the reports themselves.
@@ -3352,6 +3369,40 @@
             }
         }
 
+        // A restored panel is a record of a PREVIOUS scan, not the state of
+        // this page. Say so, name the domain, timestamp it, and give the reader
+        // one click to clear it — a bare /topology should not carry findings
+        // the user did not ask for on this visit.
+        function scanMarkRestored(domain, ageMs) {
+            if (!scanEls.verdict) return;
+            let mins = Math.round(ageMs / 60000);
+            let when = mins < 1 ? 'moments ago'
+                : mins < 60 ? mins + ' min ago'
+                : Math.round(mins / 60) + ' h ago';
+            let bar = document.createElement('div');
+            bar.className = 'topo-scan-restored';
+            bar.setAttribute('role', 'note');
+            let txt = document.createElement('span');
+            txt.textContent = 'Previous scan — ' + domain + ' · ' + when + '. Not a live result.';
+            let clear = document.createElement('button');
+            clear.type = 'button';
+            clear.className = 'topo-scan-restored-clear';
+            clear.textContent = 'Clear';
+            clear.addEventListener('click', function() {
+                try { sessionStorage.removeItem('topoLastScan'); } catch (e) { /* private mode */ }
+                setHidden(scanEls.verdict, true);
+                if (scanEls.links) scanEls.links.innerHTML = '';
+                if (scanEls.target) scanEls.target.textContent = '';
+                FIXTURE_SCAN = false;
+                SCAN_NOTICE = '';
+                if (scanEls.fixtureVerdict) setHidden(scanEls.fixtureVerdict, true);
+                bar.remove();
+            });
+            bar.appendChild(txt);
+            bar.appendChild(clear);
+            scanEls.verdict.insertBefore(bar, scanEls.verdict.firstChild);
+        }
+
         // Restore the last completed scan's verdict panel across refresh —
         // the report links shouldn't evaporate on reload (6 h window). Skipped
         // when a fresh scan is inbound, so stale results never sit under a
@@ -3359,12 +3410,23 @@
         if (!REPLAY && !AUTORUN_DOMAIN && scanEls.verdict && scanEls.links) {
             try {
                 let last = JSON.parse(sessionStorage.getItem('topoLastScan') || 'null');
-                if (last && last.id && Date.now() - (last.ts || 0) < 6 * 3600 * 1000) {
-                    let restoredNotice = scanNotices(last.domain || '');
+                let age = Date.now() - (last && last.ts ? last.ts : 0);
+                // A restored panel MUST name its subject. Without a domain the
+                // page asserts findings about nothing — a fixture-corpus notice
+                // sitting beside an empty input reads as a claim about whatever
+                // the reader assumes, including the placeholder. If we cannot
+                // say which domain a finding is about, we do not show it.
+                if (last && last.id && last.domain && age < 6 * 3600 * 1000) {
+                    let restoredNotice = scanNotices(last.domain);
                     FIXTURE_SCAN = restoredNotice.fx;
                     SCAN_NOTICE = restoredNotice.text;
-                    if (scanEls.target && last.domain) scanEls.target.textContent = last.domain;
-                    scanLoadVerdicts(last.id, last.base || null);
+                    if (scanEls.target) scanEls.target.textContent = last.domain;
+                    scanLoadVerdicts(last.id, last.base || null, true);
+                    scanMarkRestored(last.domain, age);
+                } else if (last && (!last.domain || age >= 6 * 3600 * 1000)) {
+                    // Unusable or expired: drop it rather than leave a record
+                    // that can be half-restored on a later visit.
+                    sessionStorage.removeItem('topoLastScan');
                 }
             } catch (e) { /* restore is best-effort */ }
         }

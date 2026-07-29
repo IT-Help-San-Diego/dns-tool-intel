@@ -359,6 +359,30 @@
         .topo-scan-links a.topo-scan-cta:hover { background: rgba(110,203,245,.18); text-decoration: none; }
         .topo-scan-links a.topo-scan-cta--flagship { border-color: rgba(255,193,7,.55); background: rgba(255,193,7,.10); color: #ffe9ad; }
         .topo-scan-links a.topo-scan-cta--flagship:hover { background: rgba(255,193,7,.18); }
+        /* CTA sub-labels render visibly: after a long scan the reader has to
+           be able to tell the two reports apart without hovering. */
+        .topo-scan-links a.topo-scan-cta { flex-direction: column; align-items: flex-start; gap: .12rem; }
+        .topo-scan-cta-label { font-weight: 600; }
+        .topo-scan-cta-sub { display: block; font-size: .66rem; line-height: 1.25;
+            opacity: .72; font-weight: 400; letter-spacing: .01em; }
+        /* Draw the eye to the next step once results land. */
+        @keyframes topoCtaArrive { 0% { box-shadow: 0 0 0 0 rgba(255,193,7,.45); }
+            70% { box-shadow: 0 0 0 7px rgba(255,193,7,0); }
+            100% { box-shadow: 0 0 0 0 rgba(255,193,7,0); } }
+        .topo-scan-links a.topo-scan-cta--flagship { animation: topoCtaArrive 1.9s ease-out 3; }
+        @media (prefers-reduced-motion: reduce) {
+            .topo-scan-links a.topo-scan-cta--flagship { animation: none; }
+        }
+        /* Restored-scan bar: a record of a previous scan, visually distinct
+           from live results so it is never read as the current state. */
+        .topo-scan-restored { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap;
+            margin-bottom: .5rem; padding: .35rem .55rem; border-radius: 4px;
+            border: 1px dashed rgba(255,255,255,.28); background: rgba(255,255,255,.04);
+            color: rgba(255,255,255,.72); font-size: .72rem; letter-spacing: .01em; }
+        .topo-scan-restored-clear { margin-left: auto; border: 1px solid rgba(255,255,255,.3);
+            background: transparent; color: rgba(255,255,255,.8); border-radius: 3px;
+            padding: .1rem .45rem; font-size: .68rem; cursor: pointer; }
+        .topo-scan-restored-clear:hover { background: rgba(255,255,255,.12); color: #fff; }
         /* Remediation + Replay share one row as a split pair. */
         .topo-scan-links a.topo-scan-cta--half { flex: 1 1 calc(50% - 7px); }
         .topo-scan-links a.topo-scan-cta--fix { border-color: rgba(129,199,132,.5); background: rgba(129,199,132,.10); color: #cdeccf; }
