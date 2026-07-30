@@ -43,6 +43,13 @@
            The domain cell keeps its max-width and ellipsis so a long name cannot
            push the others around. */
         .history-table{table-layout:auto}
+        /* .proto-badge-row wraps by default, which is right in a narrow card but
+           wrong in a table cell: under auto layout a wrapping row reports a tiny
+           min-content width, so the column collapsed and SPF/DMARC/DKIM stacked
+           into three lines, making every row three times taller. nowrap makes the
+           column ask for the width it actually needs. Scoped to the table because
+           dossier.html shares this class and should keep wrapping. */
+        .history-table .proto-badge-row{flex-wrap:nowrap;white-space:nowrap}
         .source-tag{display:inline-flex;align-items:center;gap:.3em;font-size:.6875rem;font-weight:600;color:#a78bfa;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.25);border-radius:.25rem;padding:.1em .45em;white-space:nowrap;vertical-align:middle;letter-spacing:.01em;text-decoration:none;cursor:pointer;transition:background .2s,border-color .2s}
         .source-tag:hover{background:rgba(167,139,250,.22);border-color:rgba(167,139,250,.4);color:#c4b5fd}
         .source-tag svg{width:.75em;height:.75em;fill:currentColor;flex-shrink:0}
@@ -130,7 +137,7 @@
         {{end}}
 
         {{if .Analyses}}
-            <div class="card d-none d-md-block">
+            <div class="card d-none d-lg-block">
                 <div class="card-body">
                     <div class="table-responsive">
                         <table class="table table-hover mb-0 history-table">
@@ -215,7 +222,7 @@
                 </div>
             </div>
 
-            <div class="d-md-none">
+            <div class="d-lg-none">
                 {{range $i, $a := .Analyses}}
                 <div class="card mb-2 history-mobile-card">
                     <div class="card-body py-2 px-3">
