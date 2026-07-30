@@ -32,7 +32,17 @@
         .history-table .col-date{white-space:nowrap;font-size:.8125rem}
         .history-table .col-domain{max-width:320px;overflow:hidden;text-overflow:ellipsis}
         .badge{white-space:nowrap}
-        .u-w-38pct{width:38%}.u-w-26pct{width:26%}.u-w-22pct{width:22%}.u-w-23pct{width:23%}.u-w-14pct{width:14%}
+        .u-w-38pct{width:auto}.u-w-26pct{width:auto}.u-w-22pct{width:auto}.u-w-23pct{width:23%}.u-w-14pct{width:1%}
+        /* Fixed percentages cannot know how wide their content is. The Actions
+           column holds a five-button control that needs ~161px; 20% of a desktop
+           table is 258px but 20% of an iPad table is ~140px, so the fifth button
+           was clipped and the table overflowed sideways. Auto layout with
+           width:1% + nowrap is the standard way to say "this column is exactly as
+           wide as its contents" — the remaining columns then share what is left,
+           at any viewport, without arithmetic that has to be re-tuned per device.
+           The domain cell keeps its max-width and ellipsis so a long name cannot
+           push the others around. */
+        .history-table{table-layout:auto}
         .source-tag{display:inline-flex;align-items:center;gap:.3em;font-size:.6875rem;font-weight:600;color:#a78bfa;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.25);border-radius:.25rem;padding:.1em .45em;white-space:nowrap;vertical-align:middle;letter-spacing:.01em;text-decoration:none;cursor:pointer;transition:background .2s,border-color .2s}
         .source-tag:hover{background:rgba(167,139,250,.22);border-color:rgba(167,139,250,.4);color:#c4b5fd}
         .source-tag svg{width:.75em;height:.75em;fill:currentColor;flex-shrink:0}
@@ -59,7 +69,7 @@
            meaning, but on hover, where it identifies the action you are about to
            take instead of fragmenting the row at rest. */
         .history-actions{display:inline-flex;border:1px solid rgba(255,255,255,.18);border-radius:.375rem;overflow:hidden;background:rgba(255,255,255,.02)}
-        .history-actions .history-act{border:0;border-radius:0;background:transparent;box-shadow:none;color:#aeb9c7;padding:.3rem .6rem;line-height:1;transition:background .15s,color .15s}
+        .history-actions .history-act{border:0;border-radius:0;background:transparent;box-shadow:none;color:#aeb9c7;padding:.3rem .45rem;line-height:1;transition:background .15s,color .15s}
         .history-actions .history-act+.history-act{border-left:1px solid rgba(255,255,255,.12)}
         .history-actions .history-act svg{width:.95em;height:.95em;vertical-align:-.12em}
         .history-actions .history-act:hover,.history-actions .history-act:focus-visible{background:rgba(255,255,255,.09);color:#f2f6fb}
@@ -301,47 +311,6 @@
 
     {{template "scripts" .}}
     <script nonce="{{.CspNonce}}">
-    /* How many rows fit is arithmetic the server cannot do: it never sees the
-       viewport. Measure floor(space / rowHeight) here, hand the answer to the
-       server in a cookie, and let it fetch exactly that many.
-
-       Guards, because a self-adjusting page size can loop:
-         - only ever reload once per browser session per computed value
-         - only when the difference is worth a round trip (>= 2 rows)
-         - never while a search is being narrowed, and never past page 1
-       If anything is unmeasurable, do nothing and keep the server default. */
-    (function(){
-        function fitRows(){
-            try{
-                const rows=document.querySelectorAll('.history-table tbody tr');
-                const footer=document.querySelector('main#main-content>footer');
-                const table=document.querySelector('.history-frame,.card.d-none.d-md-block');
-                if(!rows.length||!footer||!table) return;
-                const rowH=rows[0].getBoundingClientRect().height;
-                if(!(rowH>20)) return;                       // not laid out yet
-                const top=table.getBoundingClientRect().top; // chrome above the table
-                const footerH=footer.getBoundingClientRect().height;
-                const head=document.querySelector('.history-table thead');
-                const pager=document.querySelector('main#main-content>nav.mt-4');
-                const headH=head?head.getBoundingClientRect().height:0;
-                const pagerH=pager?pager.getBoundingClientRect().height:0;
-                const space=innerHeight-top-headH-pagerH-footerH-24; // 24 = card padding
-                const want=Math.max(4,Math.min(60,Math.floor(space/rowH)));
-                if(!isFinite(want)||want<4) return;
-                if(Math.abs(want-rows.length)<2) return;      // close enough; leave it
-                const key='histRows:'+want;
-                if(sessionStorage.getItem(key)) return;       // already tried this one
-                sessionStorage.setItem(key,'1');
-                document.cookie='hist_rows='+want+';path=/;max-age=31536000;samesite=lax';
-                location.reload();
-            }catch(e){/* measurement is best-effort; the default still works */}
-        }
-        const p=new URLSearchParams(location.search);
-        if(!p.get('page')||p.get('page')==='1'){
-            if(document.readyState==='complete') fitRows();
-            else addEventListener('load',fitRows,{once:true});
-        }
-    })();
     function getDomain(btn){
         const row=btn.closest('tr')||btn.closest('.history-mobile-card');
         const el=row?row.querySelector('.fw-medium'):null;

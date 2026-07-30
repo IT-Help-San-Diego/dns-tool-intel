@@ -440,8 +440,8 @@ func TestBuildHistoryItemICSAECount(t *testing.T) {
 	})
 }
 
-// perPage sizes a database query from a client-supplied cookie, so every value
-// that is not a sane row count must fall back to the default rather than reach
+// A stale hist_rows cookie from the withdrawn auto-fit must never pin a reader
+// to a shallow page, and any value that is not a sane row count must not reach
 // the query.
 func TestHistoryPerPageClampsClientValue(t *testing.T) {
 	cases := []struct {
@@ -449,17 +449,16 @@ func TestHistoryPerPageClampsClientValue(t *testing.T) {
 		want   int
 	}{
 		{"", historyRowsDefault},
-		{"8", 8},
-		{"11", 11},
-		{"4", 4},
+		{"4", historyRowsDefault}, // stale auto-fit value: expired, not honoured
+		{"8", historyRowsDefault}, // ditto
+		{"50", 50},
 		{"60", 60},
-		{"3", historyRowsDefault},  // below min
 		{"61", historyRowsDefault}, // above max
 		{"0", historyRowsDefault},
 		{"-5", historyRowsDefault},
 		{"abc", historyRowsDefault},
 		{"9999999999999999999999", historyRowsDefault}, // overflows Atoi
-		{"8; DROP TABLE", historyRowsDefault},
+		{"50; DROP TABLE", historyRowsDefault},
 	}
 	for _, tc := range cases {
 		w := httptest.NewRecorder()

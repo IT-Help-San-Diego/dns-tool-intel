@@ -267,28 +267,33 @@ func buildHistoryItem(a dbq.DomainAnalysis) historyAnalysisItem {
 	}
 }
 
-// How many rows fit a screen is a measurement, not a constant. perPage = 20 was
-// a guess that made the page scroll on every desktop: at a row height of 59.5px
-// an 887px viewport holds 8 and a 1080px one holds 11, and the server cannot see
-// either number. So the client measures floor(availableHeight / rowHeight) and
-// reports it here; this only decides how many records to fetch.
+// A history is for depth: you come here to find a scan, so the list should be
+// long. 50 covers the common case in one fetch and vertical scrolling is the
+// correct way to read a long list.
 //
-// The value is clamped and any garbage falls back to the old default, because it
-// arrives from the client and sizes a query.
+// An earlier version derived this from the viewport — floor(space / rowHeight) —
+// which was solving the wrong problem: it made the page SHALLOW (4 rows on a
+// laptop) to avoid a scrollbar nobody objected to. The horizontal overflow was
+// the real complaint. The cookie it wrote is expired on sight below so a browser
+// that still has one is not stuck on a tiny page.
 const (
-	historyRowsDefault = 20
+	historyRowsDefault = 50
 	historyRowsMin     = 4
 	historyRowsMax     = 60
 	historyRowsCookie  = "hist_rows"
 )
 
+// historyPerPage honours an explicit hist_rows cookie but clears any value left
+// behind by the withdrawn auto-fit, which could pin a reader to four rows.
 func historyPerPage(c *gin.Context) int {
 	raw, err := c.Cookie(historyRowsCookie)
 	if err != nil {
 		return historyRowsDefault
 	}
 	n, err := strconv.Atoi(raw)
-	if err != nil || n < historyRowsMin || n > historyRowsMax {
+	if err != nil || n < historyRowsMin || n > historyRowsMax || n < historyRowsDefault {
+		// Expire it: it sizes a query and its only writer has been removed.
+		c.SetCookie(historyRowsCookie, "", -1, "/", "", false, false)
 		return historyRowsDefault
 	}
 	return n
