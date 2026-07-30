@@ -1521,6 +1521,28 @@
                             return { id: n.id, zone: n.zone, hw: n._halfW || n.radius, hh: n._halfH || n.radius };
                         }),
                         globe: { cx: globe.cx, cy: globe.cy, R: globe.R },
+                        // First entry in the ink registry. Edge-label pills are
+                        // placed during DRAW, not layout, and placedEdgeLabels is
+                        // reassigned every pass — so a snapshot taken here would
+                        // always be empty. Expose a reader that samples the
+                        // CURRENT pass instead.
+                        //
+                        // Why this matters: every "0 overlaps" measurement before
+                        // this swept __topoDbg.nodes only — 23 node boxes — while
+                        // city labels, probe tags, edge pills, timing badges and
+                        // the legend were structurally invisible to it. Those
+                        // claims were true and nearly meaningless. This is class
+                        // 2 of 5; the rest still need registering the same way,
+                        // in {kind, id, x1, y1, x2, y2} form.
+                        edgeLabels: function() {
+                            return placedEdgeLabels.map(function(p, i) {
+                                return {
+                                    kind: 'edgeLabel', id: 'edgeLabel#' + i,
+                                    x1: p.x - p.w / 2, y1: p.y - p.h / 2,
+                                    x2: p.x + p.w / 2, y2: p.y + p.h / 2
+                                };
+                            });
+                        },
                         nodes: allLayoutNodes.map(function(n) {
                             return { id: n.id, zone: n.zone, x: Math.round(n.x), y: Math.round(n.y),
                                      tx: Math.round(n.targetX), ty: Math.round(n.targetY) };
