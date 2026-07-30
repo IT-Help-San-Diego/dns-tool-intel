@@ -135,12 +135,12 @@
                             <tbody>
                                 {{range $i, $a := .Analyses}}
                                 <tr>
+                                    {{/* The domain is what you scan for, so it leads. Risk and fix count
+                                         are attributes of it and trail on the same line, which also removes
+                                         a whole stacked block: the row was three blocks tall (89.8px) and
+                                         is now two, and row height is what decides how many records fit a
+                                         screen. */}}
                                     <td class="col-domain">
-                                        {{if $a.RiskLevel}}<span class="d-inline-flex align-items-center gap-1 mb-1">
-                                            <span class="badge bg-{{$a.RiskColor}}" title="Overall Security Posture">{{$a.RiskLevel}}</span>
-                                            {{/* "2 to Fix" needed a hover to say what the 2 counted. The noun goes in the badge. */}}
-                                            {{if gt $a.FixCount 0}}<span class="badge rounded-pill bg-{{$a.FixColor}}" title="{{$a.FixCount}} verified finding{{if gt $a.FixCount 1}}s{{end}} with a real operational consequence — deliberate posture, platform limits and unverifiable controls are excluded">{{$a.FixCount}} issue{{if gt $a.FixCount 1}}s{{end}} to fix</span>{{end}}
-                                        </span>{{end}}
                                         <div class="d-flex align-items-center min-width-0">
                                             {{icon "globe" "text-primary me-2 flex-shrink-0"}}
                                             <div class="min-width-0">
@@ -149,6 +149,13 @@
                                                     <small class="text-muted text-truncate d-block">{{$a.AsciiDomain}}</small>
                                                 {{end}}
                                             </div>
+                                            {{if $a.RiskLevel}}
+                                            <span class="d-inline-flex align-items-center gap-1 ms-2 flex-shrink-0">
+                                                <span class="badge bg-{{$a.RiskColor}}" title="Overall Security Posture">{{$a.RiskLevel}}</span>
+                                                {{/* "2 to Fix" needed a hover to say what the 2 counted. The noun goes in the badge. */}}
+                                                {{if gt $a.FixCount 0}}<span class="badge rounded-pill bg-{{$a.FixColor}}" title="{{$a.FixCount}} verified finding{{if gt $a.FixCount 1}}s{{end}} with a real operational consequence — deliberate posture, platform limits and unverifiable controls are excluded">{{$a.FixCount}} issue{{if gt $a.FixCount 1}}s{{end}} to fix</span>{{end}}
+                                            </span>
+                                            {{end}}
                                         </div>
                                         {{/* The one thing only a history can tell you: did this domain move.
                                              Without it the same domain appears three times with identical
@@ -160,9 +167,11 @@
                                             {{template "protocol_badges" $a}}
                                         </div>
                                     </td>
+                                    {{/* "vdev · 62.0s" was a second line of unexplained noise next to the
+                                         date. It is build version and scan duration; it says so on hover
+                                         now, and the cell costs one line instead of two. */}}
                                     <td class="col-date">
-                                        <span class="text-muted">{{$a.CreatedDate}} {{$a.CreatedTime}}</span>
-                                        <br><small class="text-muted">{{if $a.ToolVersion}}v{{$a.ToolVersion}}{{end}}{{if $a.AnalysisDuration}} &middot; {{formatFloat 1 $a.AnalysisDuration}}s{{end}}</small>
+                                        <span class="text-muted"{{if or $a.ToolVersion $a.AnalysisDuration}} title="Scanned in {{formatFloat 1 $a.AnalysisDuration}}s{{if $a.ToolVersion}} by build {{$a.ToolVersion}}{{end}}"{{end}}>{{$a.CreatedDate}} {{$a.CreatedTime}}</span>
                                     </td>
                                     <td>
                                         <div class="btn-group history-actions">
