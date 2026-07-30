@@ -50,6 +50,13 @@
            column ask for the width it actually needs. Scoped to the table because
            dossier.html shares this class and should keep wrapping. */
         .history-table .proto-badge-row{flex-wrap:nowrap;white-space:nowrap}
+        /* On a phone card the header is [domain block][action group]. The badges
+           sat in the domain block as a nowrap inline-flex, so a wide pair like
+           "Medium Risk · 2 issues to fix" could not shrink or wrap and overflowed
+           into the buttons — the badge visibly sat on top of the eye. Let the pair
+           wrap and bound it to the block it lives in. */
+        .history-mobile-card .history-card-badges{flex-wrap:wrap;max-width:100%;min-width:0}
+        .history-mobile-card .history-card-badges .badge{max-width:100%}
         .source-tag{display:inline-flex;align-items:center;gap:.3em;font-size:.6875rem;font-weight:600;color:#a78bfa;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.25);border-radius:.25rem;padding:.1em .45em;white-space:nowrap;vertical-align:middle;letter-spacing:.01em;text-decoration:none;cursor:pointer;transition:background .2s,border-color .2s}
         .source-tag:hover{background:rgba(167,139,250,.22);border-color:rgba(167,139,250,.4);color:#c4b5fd}
         .source-tag svg{width:.75em;height:.75em;fill:currentColor;flex-shrink:0}
@@ -230,7 +237,7 @@
                             <div class="d-flex align-items-center min-width-0">
                                 {{icon "globe" "text-primary me-2 flex-shrink-0"}}
                                 <div class="min-width-0">
-                                    {{if $a.RiskLevel}}<span class="d-inline-flex align-items-center gap-1 mb-1">
+                                    {{if $a.RiskLevel}}<span class="d-inline-flex align-items-center gap-1 mb-1 history-card-badges">
                                         <span class="badge bg-{{$a.RiskColor}}" title="Overall Security Posture">{{$a.RiskLevel}}</span>
                                         {{if gt $a.FixCount 0}}<span class="badge rounded-pill bg-{{$a.FixColor}}" title="{{$a.FixCount}} verified finding{{if gt $a.FixCount 1}}s{{end}} with a real operational consequence — deliberate posture, platform limits and unverifiable controls are excluded">{{$a.FixCount}} issue{{if gt $a.FixCount 1}}s{{end}} to fix</span>{{end}}
                                     </span>{{end}}
