@@ -203,6 +203,11 @@
             });
             popHitAreas = [];
             let cityLabeled = {};
+            // Dots that already carry a label this frame, so a cluster too tight
+            // to label legibly can fall back to dots. visiblePops is sorted by
+            // depth, so the frontmost dot in a cluster is the one that keeps its
+            // label.
+            let labeledDots = [];
 
             let labelGap = 12 * SCL;
             let labelBand = 190 * SCL;
@@ -236,13 +241,45 @@
                     popHitAreas.push({ x: p2.x - 8, y: p2.y - 8, w: 16, h: 16, dotX: p2.x, dotY: p2.y, idx: vp.idx });
                     continue;
                 }
-                cityLabeled[pop2.city] = true;
 
                 let label = isHovered ? (pop2.tag + ' \u00b7 ' + pop2.city) : pop2.city;
                 ctx.font = (isHovered ? 'bold ' : '') + FONT_TAG + 'px -apple-system, BlinkMacSystemFont, sans-serif';
                 let tw = ctx.measureText(label).width;
                 let tagW = tw + 18 * SCL;
                 let tagH = Math.round(20 * SCL + 2);
+
+                // Orthographic projection compresses x-separation by cos(lon):
+                // two dots 15 degrees apart span 0.259R at the centre but only
+                // 0.034R at 75 degrees. Near the limb a whole cluster \u2014 Dublin,
+                // London, Paris, Brussels \u2014 lands inside a few pixels, and no
+                // placement can separate four ~100px tags from anchors that
+                // close. Solving more often just recomputes an impossible
+                // problem; the escape is to stop asking for four labels.
+                //
+                // Same rule as the shared-city case above: label the frontmost
+                // and leave the rest as dots. The dot still renders and its hit
+                // area still resolves on hover, so nothing becomes unreachable \u2014
+                // which is the line between suppressing a LABEL and suppressing
+                // a RESOLVER. Never do the latter.
+                let tooClose = false;
+                if (!isHovered) {
+                    for (let li = 0; li < labeledDots.length; li++) {
+                        let ld = labeledDots[li];
+                        let dx = p2.x - ld.x;
+                        let dy = p2.y - ld.y;
+                        if (dx * dx + dy * dy < ld.minSep * ld.minSep) { tooClose = true; break; }
+                    }
+                }
+                if (tooClose) {
+                    popHitAreas.push({ x: p2.x - 8, y: p2.y - 8, w: 16, h: 16, dotX: p2.x, dotY: p2.y, idx: vp.idx });
+                    continue;
+                }
+                cityLabeled[pop2.city] = true;
+                // Tags stack vertically when they cannot sit side by side, so the
+                // pitch that matters is tag height, not width. 1.5x leaves normal
+                // spacing (San Jose / San Francisco sit ~46px apart and both keep
+                // their labels) while catching genuine limb pile-ups.
+                labeledDots.push({ x: p2.x, y: p2.y, minSep: tagH * 1.5 });
 
                 let cacheKey = 'r' + vp.idx;
                 let cached = _resolverLabelCache[cacheKey];
