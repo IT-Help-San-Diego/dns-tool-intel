@@ -51,6 +51,24 @@
         .history-change--same::before{content:"\003D"}
         .history-change--unknown{color:#7c8794;font-style:italic}
         .history-change--unknown::before{content:"\2013"}
+        /* Five peer actions — view, replay, re-scan, compare, drift — used five
+           different Bootstrap hues, so the group read as five unrelated chips
+           rather than one control, and the odd one out looked disabled. They are
+           siblings: same treatment, told apart by their icon. One shared frame,
+           hairline dividers, rounded only at the ends. Colour still carries
+           meaning, but on hover, where it identifies the action you are about to
+           take instead of fragmenting the row at rest. */
+        .history-actions{display:inline-flex;border:1px solid rgba(255,255,255,.18);border-radius:.375rem;overflow:hidden;background:rgba(255,255,255,.02)}
+        .history-actions .history-act{border:0;border-radius:0;background:transparent;box-shadow:none;color:#aeb9c7;padding:.3rem .6rem;line-height:1;transition:background .15s,color .15s}
+        .history-actions .history-act+.history-act{border-left:1px solid rgba(255,255,255,.12)}
+        .history-actions .history-act svg{width:.95em;height:.95em;vertical-align:-.12em}
+        .history-actions .history-act:hover,.history-actions .history-act:focus-visible{background:rgba(255,255,255,.09);color:#f2f6fb}
+        .history-actions .history-view-btn:hover{color:#ffd479}
+        .history-actions .history-replay-btn:hover{color:#9ad0ff}
+        .history-actions .history-reanalyze-btn:hover{color:#8fdc9a}
+        .history-actions .history-compare-btn:hover{color:#e8c07a}
+        .history-actions .history-drift-btn:hover{color:#87d3e8}
+        .history-actions .history-act.disabled{opacity:.35;pointer-events:none}
     </style>
     {{template "head_css" .}}
 </head>
@@ -136,25 +154,25 @@
                                         <br><small class="text-muted">{{if $a.ToolVersion}}v{{$a.ToolVersion}}{{end}}{{if $a.AnalysisDuration}} &middot; {{formatFloat 1 $a.AnalysisDuration}}s{{end}}</small>
                                     </td>
                                     <td>
-                                        <div class="btn-group">
+                                        <div class="btn-group history-actions">
                                             <a href="/analysis/{{$a.ID}}/view"
-                                               class="btn btn-sm btn-outline-primary history-view-btn" title="View this report">
+                                               class="btn btn-sm history-act history-view-btn" title="View this report">
                                                 {{icon "eye"}}
                                             </a>
                                             <a href="/replay/{{$a.ID}}"
-                                               class="btn btn-sm btn-outline-secondary history-replay-btn" title="Replay this scan on the pipeline topology">
+                                               class="btn btn-sm history-act history-replay-btn" title="Replay this scan on the pipeline topology">
                                                 {{icon "play"}}
                                             </a>
                                             <a href="/topology?domain={{$a.Domain}}"
-                                               class="btn btn-sm btn-outline-success history-reanalyze-btn" title="Re-analyze now">
+                                               class="btn btn-sm history-act history-reanalyze-btn" title="Re-analyze now">
                                                 {{icon "sync-alt"}}
                                             </a>
                                             <a href="/compare?domain={{$a.Domain}}" 
-                                               class="btn btn-sm btn-outline-warning" title="Compare scans">
+                                               class="btn btn-sm history-act history-compare-btn" title="Compare scans">
                                                 {{icon "code-compare"}}
                                             </a>
                                             <a href="/drift?domain={{$a.Domain}}" 
-                                               class="btn btn-sm btn-outline-info" title="Drift timeline">
+                                               class="btn btn-sm history-act history-drift-btn" title="Drift timeline">
                                                 {{icon "chart-line"}}
                                             </a>
                                         </div>
@@ -183,25 +201,25 @@
                                     {{if $a.ChangeText}}<div class="history-change history-change--{{$a.ChangeKind}}" title="Compared with the previous scan of this domain shown on this page">{{$a.ChangeText}}</div>{{end}}
                                 </div>
                             </div>
-                            <div class="btn-group flex-shrink-0 ms-2">
+                            <div class="btn-group history-actions flex-shrink-0 ms-2">
                                 <a href="/analysis/{{$a.ID}}/view"
-                                   class="btn btn-sm btn-outline-primary history-view-btn" title="View">
+                                   class="btn btn-sm history-act history-view-btn" title="View">
                                     {{icon "eye"}}
                                 </a>
                                 <a href="/replay/{{$a.ID}}"
-                                   class="btn btn-sm btn-outline-secondary history-replay-btn" title="Replay on topology">
+                                   class="btn btn-sm history-act history-replay-btn" title="Replay on topology">
                                     {{icon "play"}}
                                 </a>
                                 <a href="/topology?domain={{$a.Domain}}"
-                                   class="btn btn-sm btn-outline-success history-reanalyze-btn" title="Re-scan live on the topology">
+                                   class="btn btn-sm history-act history-reanalyze-btn" title="Re-scan live on the topology">
                                     {{icon "sync-alt"}}
                                 </a>
                                 <a href="/compare?domain={{$a.Domain}}" 
-                                   class="btn btn-sm btn-outline-warning" title="Compare scans">
+                                   class="btn btn-sm history-act history-compare-btn" title="Compare scans">
                                     {{icon "code-compare"}}
                                 </a>
                                 <a href="/drift?domain={{$a.Domain}}" 
-                                   class="btn btn-sm btn-outline-info" title="Drift timeline">
+                                   class="btn btn-sm history-act history-drift-btn" title="Drift timeline">
                                     {{icon "chart-line"}}
                                 </a>
                             </div>
