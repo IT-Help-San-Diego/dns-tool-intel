@@ -301,6 +301,47 @@
 
     {{template "scripts" .}}
     <script nonce="{{.CspNonce}}">
+    /* How many rows fit is arithmetic the server cannot do: it never sees the
+       viewport. Measure floor(space / rowHeight) here, hand the answer to the
+       server in a cookie, and let it fetch exactly that many.
+
+       Guards, because a self-adjusting page size can loop:
+         - only ever reload once per browser session per computed value
+         - only when the difference is worth a round trip (>= 2 rows)
+         - never while a search is being narrowed, and never past page 1
+       If anything is unmeasurable, do nothing and keep the server default. */
+    (function(){
+        function fitRows(){
+            try{
+                const rows=document.querySelectorAll('.history-table tbody tr');
+                const footer=document.querySelector('main#main-content>footer');
+                const table=document.querySelector('.history-frame,.card.d-none.d-md-block');
+                if(!rows.length||!footer||!table) return;
+                const rowH=rows[0].getBoundingClientRect().height;
+                if(!(rowH>20)) return;                       // not laid out yet
+                const top=table.getBoundingClientRect().top; // chrome above the table
+                const footerH=footer.getBoundingClientRect().height;
+                const head=document.querySelector('.history-table thead');
+                const pager=document.querySelector('main#main-content>nav.mt-4');
+                const headH=head?head.getBoundingClientRect().height:0;
+                const pagerH=pager?pager.getBoundingClientRect().height:0;
+                const space=innerHeight-top-headH-pagerH-footerH-24; // 24 = card padding
+                const want=Math.max(4,Math.min(60,Math.floor(space/rowH)));
+                if(!isFinite(want)||want<4) return;
+                if(Math.abs(want-rows.length)<2) return;      // close enough; leave it
+                const key='histRows:'+want;
+                if(sessionStorage.getItem(key)) return;       // already tried this one
+                sessionStorage.setItem(key,'1');
+                document.cookie='hist_rows='+want+';path=/;max-age=31536000;samesite=lax';
+                location.reload();
+            }catch(e){/* measurement is best-effort; the default still works */}
+        }
+        const p=new URLSearchParams(location.search);
+        if(!p.get('page')||p.get('page')==='1'){
+            if(document.readyState==='complete') fitRows();
+            else addEventListener('load',fitRows,{once:true});
+        }
+    })();
     function getDomain(btn){
         const row=btn.closest('tr')||btn.closest('.history-mobile-card');
         const el=row?row.querySelector('.fw-medium'):null;

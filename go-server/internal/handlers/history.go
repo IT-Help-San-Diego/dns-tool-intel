@@ -267,6 +267,33 @@ func buildHistoryItem(a dbq.DomainAnalysis) historyAnalysisItem {
 	}
 }
 
+// How many rows fit a screen is a measurement, not a constant. perPage = 20 was
+// a guess that made the page scroll on every desktop: at a row height of 59.5px
+// an 887px viewport holds 8 and a 1080px one holds 11, and the server cannot see
+// either number. So the client measures floor(availableHeight / rowHeight) and
+// reports it here; this only decides how many records to fetch.
+//
+// The value is clamped and any garbage falls back to the old default, because it
+// arrives from the client and sizes a query.
+const (
+	historyRowsDefault = 20
+	historyRowsMin     = 4
+	historyRowsMax     = 60
+	historyRowsCookie  = "hist_rows"
+)
+
+func historyPerPage(c *gin.Context) int {
+	raw, err := c.Cookie(historyRowsCookie)
+	if err != nil {
+		return historyRowsDefault
+	}
+	n, err := strconv.Atoi(raw)
+	if err != nil || n < historyRowsMin || n > historyRowsMax {
+		return historyRowsDefault
+	}
+	return n
+}
+
 func (h *HistoryHandler) History(c *gin.Context) {
 	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
 	if err != nil {
@@ -276,7 +303,7 @@ func (h *HistoryHandler) History(c *gin.Context) {
 		page = 1
 	}
 	searchDomain := c.Query("domain")
-	perPage := 20
+	perPage := historyPerPage(c)
 
 	ctx := c.Request.Context()
 
