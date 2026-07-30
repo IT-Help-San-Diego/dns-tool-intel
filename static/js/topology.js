@@ -149,7 +149,22 @@
         let _prevProbeVisSet = '';
         let _labelFrameCount = 0;
         let LABEL_LERP = 0.12;
+        // Frame cap, kept as a safety net for when the globe is not turning at
+        // all (rotation paused ⇒ no angular delta ⇒ no re-solve would ever fire).
         let RELAYOUT_INTERVAL = 120;
+        // Labels are solved against collisions once, then merely TRANSLATED with
+        // their dots until the next re-solve. Under orthographic projection the
+        // on-screen x-separation of two points scales with cos(lon): two dots 15°
+        // apart span 0.259R at the centre but only 0.034R at 75°. So labels that
+        // were genuinely clean when solved get squeezed into each other purely by
+        // rotation, and nothing re-checks. Gating on frames meant 101 of every 120
+        // frames — 84% — applied no collision test at all, which is why the
+        // European cluster piles up and then stays piled. Gate on how far the
+        // globe has actually turned instead. At 4.8°/s (see rotLon, ~:2240) 2.5°
+        // is a re-solve roughly every half second.
+        let RELAYOUT_DEG = 2.5;
+        let _lastLayoutLon = null;
+        let _periodicRelayout = false;
 
         function drawResolverMarkers(returnBoxes) {
             let visiblePops = [];
@@ -166,9 +181,18 @@
             _labelFrameCount++;
             let visIds = visiblePops.map(function(v) { return v.idx; }).slice().sort(function(a,b){ return a-b; });
             let visKey = visIds.join(',');
-            let periodicRelayout = (_labelFrameCount % RELAYOUT_INTERVAL === 0);
-            let visChanged = visKey !== _prevVisibleSet || periodicRelayout;
+            // Shortest signed arc since the last solve, so wrapping past 360 does
+            // not read as a full revolution.
+            let rotDelta = _lastLayoutLon === null
+                ? 360
+                : Math.abs(((globe.rotLon - _lastLayoutLon + 540) % 360) - 180);
+            _periodicRelayout = rotDelta >= RELAYOUT_DEG || (_labelFrameCount % RELAYOUT_INTERVAL === 0);
+            let visChanged = visKey !== _prevVisibleSet || _periodicRelayout;
             _prevVisibleSet = visKey;
+            // Measure from the last actual re-solve, not the last frame — a
+            // visible-set change re-solves too, and resetting here keeps the two
+            // triggers from double-counting the same rotation.
+            if (visChanged) _lastLayoutLon = globe.rotLon;
 
             let placedBoxes = [];
             allLayoutNodes.forEach(function(nd) {
@@ -434,7 +458,10 @@
             let probeVisKey = probeVisIds.join(',');
             let probeVisChanged = probeVisKey !== _prevProbeVisSet;
             _prevProbeVisSet = probeVisKey;
-            let visChanged = probeVisChanged || (_labelFrameCount % RELAYOUT_INTERVAL === 0);
+            // Same trigger as the city tags. drawResolverMarkers runs first in
+            // drawGlobe and computes it, so probe tags and city tags re-solve on
+            // the same frames and against the same placedBoxes.
+            let visChanged = probeVisChanged || _periodicRelayout;
 
             for (let pi = 0; pi < OWN_PROBES.length; pi++) {
                 let probe = OWN_PROBES[pi];
