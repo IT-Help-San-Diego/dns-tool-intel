@@ -69,10 +69,21 @@
         .history-actions .history-compare-btn:hover{color:#e8c07a}
         .history-actions .history-drift-btn:hover{color:#87d3e8}
         .history-actions .history-act.disabled{opacity:.35;pointer-events:none}
+        /* The footer is a shared template on 56 pages, so it is NOT edited here.
+           the body element is per-page, so a scoped class collapses the two heavy blocks on
+           this page only and the other 55 cannot regress: .ftr-tree is 201px of
+           org chart and .ftr-grid is 297px of link farm — 519px of the 786px
+           total, on a list page whose job is showing rows. Identity, BLACK SITE
+           and the provenance links stay. */
+        .page-tight footer.text-center{margin-top:1rem!important;margin-bottom:.5rem!important}
+        .page-tight .ftr-tree,.page-tight .ftr-grid,.page-tight .ftr-grid-connector{display:none}
+        .page-tight footer .u-footer-tagline{display:none}
+        .page-tight footer>.text-center.mt-3{margin-top:.4rem!important}
+        .page-tight footer>.d-flex.justify-content-center{margin-top:.4rem!important}
     </style>
     {{template "head_css" .}}
 </head>
-<body>
+<body class="page-tight">
     {{template "nav" .}}
 
     <main id="main-content" class="container my-4">
