@@ -3232,10 +3232,17 @@
         // desktop. Right after a 60-second scan the reader needs to know which
         // door to open, so the difference between the reports has to be legible
         // without hovering.
-        function scanAddCTA(href, text, sub, extraClass) {
+        // onClick makes a CTA an action rather than a destination — used by Play
+        // Again, which restarts the timeline in place instead of navigating. It
+        // keeps anchor styling and keyboard behaviour; the href stays '#' and the
+        // default is prevented.
+        function scanAddCTA(href, text, sub, extraClass, onClick) {
             let a = document.createElement('a');
             a.className = 'topo-scan-cta' + (extraClass ? ' ' + extraClass : '');
             a.href = href;
+            if (onClick) {
+                a.addEventListener('click', function(ev) { ev.preventDefault(); onClick(); });
+            }
             let label = document.createElement('span');
             label.className = 'topo-scan-cta-label';
             label.textContent = text;
@@ -3324,9 +3331,19 @@
             // it was measured. Remediation is the tool's next most important
             // output after the reports themselves.
             scanAddCTA('/remediation?analysis_id=' + analysisID, 'Remediation', 'Prioritised, actionable fixes for what this scan found', 'topo-scan-cta--half topo-scan-cta--fix');
+            // The half-width pair needs BOTH halves or flexbox grows the survivor
+            // to fill the row, which silently undoes the split. In replay the
+            // Replay link would point at the page you are already on, so the
+            // partner becomes Play Again \u2014 the same replayStart() the Restart
+            // control runs, placed where the eye already is.
             if (!REPLAY) {
                 scanAddCTA('/replay/' + analysisID, '\u25b6 Replay', 'Shareable timeline replay of this scan on the pipeline topology', 'topo-scan-cta--half');
+            } else {
+                scanAddCTA('#', '\u21bb Play Again', 'Run this recorded timeline from the beginning, at the current speed', 'topo-scan-cta--half', function() {
+                    if (replayState.data) replayStart();
+                });
             }
+            scanAddCTA('/history', 'History', 'Every scan this tool has run \u2014 watch a domain change, or hold it against its own past');
             let recon = document.createElement('a');
             recon.className = 'topo-scan-recon';
             recon.href = '/analysis/' + analysisID + '/view/C';
