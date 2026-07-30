@@ -4,50 +4,144 @@
 package handlers
 
 import (
-        "context"
-        "encoding/json"
-        "net/http"
-        "strconv"
+	"context"
+	"encoding/json"
+	"net/http"
+	"strconv"
+	"strings"
 
-        "dnstool/go-server/internal/config"
-        "dnstool/go-server/internal/db"
-        "dnstool/go-server/internal/dbq"
-        "dnstool/go-server/internal/icsae"
+	"dnstool/go-server/internal/config"
+	"dnstool/go-server/internal/db"
+	"dnstool/go-server/internal/dbq"
+	"dnstool/go-server/internal/icsae"
 
-        "github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin"
 )
 
 const (
-        templateHistory = "history.html"
+	templateHistory = "history.html"
 
-        mapKeyHistory = "history"
+	mapKeyHistory = "history"
 )
 
 type HistoryHandler struct {
-        DB     *db.Database
-        Config *config.Config
+	DB     *db.Database
+	Config *config.Config
 }
 
 func NewHistoryHandler(database *db.Database, cfg *config.Config) *HistoryHandler {
-        return &HistoryHandler{DB: database, Config: cfg}
+	return &HistoryHandler{DB: database, Config: cfg}
 }
 
 type historyAnalysisItem struct {
-        ID               int32
-        Domain           string
-        AsciiDomain      string
-        SpfStatus        string
-        DmarcStatus      string
-        DkimStatus       string
-        AnalysisDuration float64
-        CreatedDate      string
-        CreatedTime      string
-        ToolVersion      string
-        RequestSource    string
-        RiskLevel        string
-        RiskColor        string
-        FixCount         int
-        FixColor         string
+	ID               int32
+	Domain           string
+	AsciiDomain      string
+	SpfStatus        string
+	DmarcStatus      string
+	DkimStatus       string
+	AnalysisDuration float64
+	CreatedDate      string
+	CreatedTime      string
+	ToolVersion      string
+	RequestSource    string
+	RiskLevel        string
+	RiskColor        string
+	FixCount         int
+	FixColor         string
+	// A history's one job that no other view can do is show CHANGE. Without
+	// these a reader sees the same domain three times with identical badges
+	// and learns nothing from the repetition. Derived by comparing each row
+	// against the next-older row for the same domain, which is already in
+	// the result set — no extra query.
+	ChangeKind string // better | worse | mixed | same | unknown
+	ChangeText string
+}
+
+// Orders protocol states so improvement and regression are comparable.
+// -1 means "not measured": a status we never established. Comparisons involving
+// it are skipped rather than reported as change, because "we don't know" is not
+// evidence of movement in either direction.
+func protoRank(status string) int {
+	switch status {
+	case "success", "partial":
+		return 3
+	case "info":
+		return 2
+	case "warning":
+		return 1
+	case "error", "missing":
+		return 0
+	default:
+		return -1
+	}
+}
+
+// annotateChanges fills ChangeKind/ChangeText by comparing each row to the next
+// older scan of the same domain within this page of results.
+//
+// Scope is stated honestly: if no earlier scan of a domain appears on this page
+// we say so rather than calling it a first scan, because pagination means we
+// have not looked. Asserting "first scan" from an absence we never checked is
+// the same defect this tool exists to catch.
+func annotateChanges(items []historyAnalysisItem) {
+	for i := range items {
+		prev := -1
+		for j := i + 1; j < len(items); j++ {
+			if items[j].AsciiDomain == items[i].AsciiDomain {
+				prev = j
+				break
+			}
+		}
+		if prev == -1 {
+			items[i].ChangeKind = "unknown"
+			items[i].ChangeText = "No earlier scan on this page"
+			continue
+		}
+		cur, old := items[i], items[prev]
+		var gains, losses []string
+		for _, p := range []struct{ name, now, was string }{
+			{"SPF", cur.SpfStatus, old.SpfStatus},
+			{"DMARC", cur.DmarcStatus, old.DmarcStatus},
+			{"DKIM", cur.DkimStatus, old.DkimStatus},
+		} {
+			rNow, rWas := protoRank(p.now), protoRank(p.was)
+			if rNow < 0 || rWas < 0 || rNow == rWas {
+				continue
+			}
+			if rNow > rWas {
+				gains = append(gains, p.name)
+			} else {
+				losses = append(losses, p.name)
+			}
+		}
+		fixDelta := cur.FixCount - old.FixCount
+		items[i].ChangeKind, items[i].ChangeText = describeChange(gains, losses, fixDelta, old.CreatedDate)
+	}
+}
+
+func describeChange(gains, losses []string, fixDelta int, sinceDate string) (string, string) {
+	switch {
+	case len(gains) > 0 && len(losses) > 0:
+		return "mixed", strings.Join(gains, ", ") + " improved, " + strings.Join(losses, ", ") + " regressed"
+	case len(losses) > 0:
+		return "worse", strings.Join(losses, ", ") + " regressed since " + sinceDate
+	case len(gains) > 0:
+		return "better", strings.Join(gains, ", ") + " now passing"
+	case fixDelta < 0:
+		return "better", fixPlural(-fixDelta) + " cleared since " + sinceDate
+	case fixDelta > 0:
+		return "worse", fixPlural(fixDelta) + " appeared since " + sinceDate
+	default:
+		return "same", "Unchanged since " + sinceDate
+	}
+}
+
+func fixPlural(n int) string {
+	if n == 1 {
+		return "1 issue"
+	}
+	return strconv.Itoa(n) + " issues"
 }
 
 // normalizeRiskColor whitelists the posture color read from persisted
@@ -55,21 +149,21 @@ type historyAnalysisItem struct {
 // interpolated into a bg-* class. Stored JSON can drift across versions, so we
 // never trust the producer: any unrecognized value falls back to "secondary".
 func normalizeRiskColor(color string) string {
-        switch color {
-        case "success", "info", "warning", "danger":
-                return color
-        default:
-                return "secondary"
-        }
+	switch color {
+	case "success", "info", "warning", "danger":
+		return color
+	default:
+		return "secondary"
+	}
 }
 
 // postureSliceLen returns the length of a JSON array stored under key in the
 // already-decoded posture map, tolerating absent or wrong-typed values.
 func postureSliceLen(posture map[string]interface{}, key string) int {
-        if arr, ok := posture[key].([]interface{}); ok {
-                return len(arr)
-        }
-        return 0
+	if arr, ok := posture[key].([]interface{}); ok {
+		return len(arr)
+	}
+	return 0
 }
 
 // icsaeFixSummary derives the reality-matched "to Fix" count from a persisted
@@ -82,174 +176,175 @@ func postureSliceLen(posture map[string]interface{}, key string) int {
 // both directions. See icsae.ClassifyFixes. The boolean is false when the scan
 // predates ICSAE wiring, so callers can fall back to posture-derived counts.
 func icsaeFixSummary(fr map[string]interface{}) (int, string, bool) {
-        fc, ok := icsae.ClassifyFromResults(fr)
-        if !ok {
-                return 0, "", false
-        }
-        return fc.RealFixCount, fc.Color, true
+	fc, ok := icsae.ClassifyFromResults(fr)
+	if !ok {
+		return 0, "", false
+	}
+	return fc.RealFixCount, fc.Color, true
 }
 
 func buildHistoryItem(a dbq.DomainAnalysis) historyAnalysisItem {
-        spfStatus := ""
-        if a.SpfStatus != nil {
-                spfStatus = *a.SpfStatus
-        }
-        dmarcStatus := ""
-        if a.DmarcStatus != nil {
-                dmarcStatus = *a.DmarcStatus
-        }
-        dkimStatus := ""
-        if a.DkimStatus != nil {
-                dkimStatus = *a.DkimStatus
-        }
-        dur := 0.0
-        if a.AnalysisDuration != nil {
-                dur = *a.AnalysisDuration
-        }
-        createdDate, createdTime := "", ""
-        if a.CreatedAt.Valid {
-                createdDate = a.CreatedAt.Time.UTC().Format("2 Jan 2006")
-                createdTime = a.CreatedAt.Time.UTC().Format("15:04 UTC")
-        }
-        toolVersion := ""
-        requestSource := ""
-        riskLevel := ""
-        riskColor := ""
-        fixCount := 0
-        fixColor := ""
-        if len(a.FullResults) > 0 {
-                var fr map[string]interface{}
-                if json.Unmarshal(a.FullResults, &fr) == nil {
-                        if tv, ok := fr["_tool_version"].(string); ok {
-                                toolVersion = tv
-                        }
-                        if rs, ok := fr["_request_source"].(string); ok {
-                                requestSource = rs
-                        }
-                        if posture, ok := fr["posture"].(map[string]interface{}); ok {
-                                if st, ok := posture["state"].(string); ok {
-                                        riskLevel = st
-                                }
-                                if cl, ok := posture["color"].(string); ok {
-                                        riskColor = normalizeRiskColor(cl)
-                                }
-                        }
-                        // Catalog-backed "to Fix" count: the reality-matched RealFixCount from
-                        // icsae.ClassifyFixes (failed controls that carry a real, RFC-grounded
-                        // consequence for THIS operator; deliberate posture, platform limits,
-                        // could-not-verify and hygiene are bucketed out). Falls back to
-                        // posture-derived issues for scans recorded before ICSAE was wired in.
-                        if c, col, ok := icsaeFixSummary(fr); ok {
-                                fixCount = c
-                                fixColor = col
-                        } else if posture, ok := fr["posture"].(map[string]interface{}); ok {
-                                critical := postureSliceLen(posture, "critical_issues")
-                                recommendations := postureSliceLen(posture, "recommendations")
-                                fixCount = critical + recommendations
-                                if critical > 0 {
-                                        fixColor = "danger"
-                                } else if recommendations > 0 {
-                                        fixColor = "warning"
-                                }
-                        }
-                }
-        }
-        return historyAnalysisItem{
-                ID:               a.ID,
-                Domain:           a.Domain,
-                AsciiDomain:      a.AsciiDomain,
-                SpfStatus:        spfStatus,
-                DmarcStatus:      dmarcStatus,
-                DkimStatus:       dkimStatus,
-                AnalysisDuration: dur,
-                CreatedDate:      createdDate,
-                CreatedTime:      createdTime,
-                ToolVersion:      toolVersion,
-                RequestSource:    requestSource,
-                RiskLevel:        riskLevel,
-                RiskColor:        riskColor,
-                FixCount:         fixCount,
-                FixColor:         fixColor,
-        }
+	spfStatus := ""
+	if a.SpfStatus != nil {
+		spfStatus = *a.SpfStatus
+	}
+	dmarcStatus := ""
+	if a.DmarcStatus != nil {
+		dmarcStatus = *a.DmarcStatus
+	}
+	dkimStatus := ""
+	if a.DkimStatus != nil {
+		dkimStatus = *a.DkimStatus
+	}
+	dur := 0.0
+	if a.AnalysisDuration != nil {
+		dur = *a.AnalysisDuration
+	}
+	createdDate, createdTime := "", ""
+	if a.CreatedAt.Valid {
+		createdDate = a.CreatedAt.Time.UTC().Format("2 Jan 2006")
+		createdTime = a.CreatedAt.Time.UTC().Format("15:04 UTC")
+	}
+	toolVersion := ""
+	requestSource := ""
+	riskLevel := ""
+	riskColor := ""
+	fixCount := 0
+	fixColor := ""
+	if len(a.FullResults) > 0 {
+		var fr map[string]interface{}
+		if json.Unmarshal(a.FullResults, &fr) == nil {
+			if tv, ok := fr["_tool_version"].(string); ok {
+				toolVersion = tv
+			}
+			if rs, ok := fr["_request_source"].(string); ok {
+				requestSource = rs
+			}
+			if posture, ok := fr["posture"].(map[string]interface{}); ok {
+				if st, ok := posture["state"].(string); ok {
+					riskLevel = st
+				}
+				if cl, ok := posture["color"].(string); ok {
+					riskColor = normalizeRiskColor(cl)
+				}
+			}
+			// Catalog-backed "to Fix" count: the reality-matched RealFixCount from
+			// icsae.ClassifyFixes (failed controls that carry a real, RFC-grounded
+			// consequence for THIS operator; deliberate posture, platform limits,
+			// could-not-verify and hygiene are bucketed out). Falls back to
+			// posture-derived issues for scans recorded before ICSAE was wired in.
+			if c, col, ok := icsaeFixSummary(fr); ok {
+				fixCount = c
+				fixColor = col
+			} else if posture, ok := fr["posture"].(map[string]interface{}); ok {
+				critical := postureSliceLen(posture, "critical_issues")
+				recommendations := postureSliceLen(posture, "recommendations")
+				fixCount = critical + recommendations
+				if critical > 0 {
+					fixColor = "danger"
+				} else if recommendations > 0 {
+					fixColor = "warning"
+				}
+			}
+		}
+	}
+	return historyAnalysisItem{
+		ID:               a.ID,
+		Domain:           a.Domain,
+		AsciiDomain:      a.AsciiDomain,
+		SpfStatus:        spfStatus,
+		DmarcStatus:      dmarcStatus,
+		DkimStatus:       dkimStatus,
+		AnalysisDuration: dur,
+		CreatedDate:      createdDate,
+		CreatedTime:      createdTime,
+		ToolVersion:      toolVersion,
+		RequestSource:    requestSource,
+		RiskLevel:        riskLevel,
+		RiskColor:        riskColor,
+		FixCount:         fixCount,
+		FixColor:         fixColor,
+	}
 }
 
 func (h *HistoryHandler) History(c *gin.Context) {
-        page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
-        if err != nil {
-                page = 1
-        }
-        if page < 1 {
-                page = 1
-        }
-        searchDomain := c.Query("domain")
-        perPage := 20
+	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
+	if err != nil {
+		page = 1
+	}
+	if page < 1 {
+		page = 1
+	}
+	searchDomain := c.Query("domain")
+	perPage := 20
 
-        ctx := c.Request.Context()
+	ctx := c.Request.Context()
 
-        total, err := h.countAnalyses(ctx, searchDomain)
-        if err != nil {
-                errData := NewTemplateData(c, h.Config, mapKeyHistory)
-                errData["FlashMessages"] = []FlashMessage{{Category: "danger", Message: "Failed to count analyses"}}
-                c.HTML(http.StatusInternalServerError, templateHistory, errData)
-                return
-        }
+	total, err := h.countAnalyses(ctx, searchDomain)
+	if err != nil {
+		errData := NewTemplateData(c, h.Config, mapKeyHistory)
+		errData["FlashMessages"] = []FlashMessage{{Category: "danger", Message: "Failed to count analyses"}}
+		c.HTML(http.StatusInternalServerError, templateHistory, errData)
+		return
+	}
 
-        pagination := NewPagination(page, perPage, total)
+	pagination := NewPagination(page, perPage, total)
 
-        items, err := h.fetchAnalyses(ctx, searchDomain, &pagination)
-        if err != nil {
-                errData := NewTemplateData(c, h.Config, mapKeyHistory)
-                errData["FlashMessages"] = []FlashMessage{{Category: "danger", Message: "Failed to fetch analyses"}}
-                c.HTML(http.StatusInternalServerError, templateHistory, errData)
-                return
-        }
+	items, err := h.fetchAnalyses(ctx, searchDomain, &pagination)
+	if err != nil {
+		errData := NewTemplateData(c, h.Config, mapKeyHistory)
+		errData["FlashMessages"] = []FlashMessage{{Category: "danger", Message: "Failed to fetch analyses"}}
+		c.HTML(http.StatusInternalServerError, templateHistory, errData)
+		return
+	}
 
-        pd := BuildPagination(page, pagination.TotalPages, total)
+	pd := BuildPagination(page, pagination.TotalPages, total)
 
-        data := NewTemplateData(c, h.Config, mapKeyHistory)
-        data["Analyses"] = items
-        data["Pagination"] = pd
-        data["SearchDomain"] = searchDomain
-        data["SearchAction"] = "/history"
-        data["SearchPlaceholder"] = "Search by domain name..."
-        data["SearchAriaLabel"] = "Search history by domain name"
-        data["PaginationLabel"] = "Analysis history pagination"
-        data["PaginationBase"] = "/history"
-        c.HTML(http.StatusOK, templateHistory, data)
+	data := NewTemplateData(c, h.Config, mapKeyHistory)
+	data["Analyses"] = items
+	data["Pagination"] = pd
+	data["SearchDomain"] = searchDomain
+	data["SearchAction"] = "/history"
+	data["SearchPlaceholder"] = "Search by domain name..."
+	data["SearchAriaLabel"] = "Search history by domain name"
+	data["PaginationLabel"] = "Analysis history pagination"
+	data["PaginationBase"] = "/history"
+	c.HTML(http.StatusOK, templateHistory, data)
 }
 
 func (h *HistoryHandler) countAnalyses(ctx context.Context, searchDomain string) (int64, error) {
-        if searchDomain != "" {
-                searchPattern := "%" + searchDomain + "%"
-                return h.DB.Queries.CountSearchSuccessfulAnalyses(ctx, searchPattern)
-        }
-        return h.DB.Queries.CountSuccessfulAnalyses(ctx)
+	if searchDomain != "" {
+		searchPattern := "%" + searchDomain + "%"
+		return h.DB.Queries.CountSearchSuccessfulAnalyses(ctx, searchPattern)
+	}
+	return h.DB.Queries.CountSuccessfulAnalyses(ctx)
 }
 
 func (h *HistoryHandler) fetchAnalyses(ctx context.Context, searchDomain string, pagination *PaginationInfo) ([]historyAnalysisItem, error) {
-        var analyses []dbq.DomainAnalysis
-        var err error
+	var analyses []dbq.DomainAnalysis
+	var err error
 
-        if searchDomain != "" {
-                searchPattern := "%" + searchDomain + "%"
-                analyses, err = h.DB.Queries.SearchSuccessfulAnalyses(ctx, dbq.SearchSuccessfulAnalysesParams{
-                        Domain: searchPattern,
-                        Limit:  pagination.Limit(),
-                        Offset: pagination.Offset(),
-                })
-        } else {
-                analyses, err = h.DB.Queries.ListSuccessfulAnalyses(ctx, dbq.ListSuccessfulAnalysesParams{
-                        Limit:  pagination.Limit(),
-                        Offset: pagination.Offset(),
-                })
-        }
-        if err != nil {
-                return nil, err
-        }
+	if searchDomain != "" {
+		searchPattern := "%" + searchDomain + "%"
+		analyses, err = h.DB.Queries.SearchSuccessfulAnalyses(ctx, dbq.SearchSuccessfulAnalysesParams{
+			Domain: searchPattern,
+			Limit:  pagination.Limit(),
+			Offset: pagination.Offset(),
+		})
+	} else {
+		analyses, err = h.DB.Queries.ListSuccessfulAnalyses(ctx, dbq.ListSuccessfulAnalysesParams{
+			Limit:  pagination.Limit(),
+			Offset: pagination.Offset(),
+		})
+	}
+	if err != nil {
+		return nil, err
+	}
 
-        items := make([]historyAnalysisItem, 0, len(analyses))
-        for _, a := range analyses {
-                items = append(items, buildHistoryItem(a))
-        }
-        return items, nil
+	items := make([]historyAnalysisItem, 0, len(analyses))
+	for _, a := range analyses {
+		items = append(items, buildHistoryItem(a))
+	}
+	annotateChanges(items)
+	return items, nil
 }

@@ -37,6 +37,20 @@
         .source-tag:hover{background:rgba(167,139,250,.22);border-color:rgba(167,139,250,.4);color:#c4b5fd}
         .source-tag svg{width:.75em;height:.75em;fill:currentColor;flex-shrink:0}
         .source-tag img{width:.85em;height:.85em;flex-shrink:0;border-radius:2px;object-fit:contain}
+        /* Change since the previous scan of this domain. Each state leads with a
+           glyph so the direction is legible without relying on colour. */
+        .history-change{font-size:.75rem;line-height:1.3;margin-top:.25rem;display:block}
+        .history-change::before{font-weight:700;margin-right:.35em}
+        .history-change--better{color:#7fc98a}
+        .history-change--better::before{content:"\2191"}
+        .history-change--worse{color:#e88a8a}
+        .history-change--worse::before{content:"\2193"}
+        .history-change--mixed{color:#e0b05e}
+        .history-change--mixed::before{content:"\21C5"}
+        .history-change--same{color:#8b98a8}
+        .history-change--same::before{content:"\003D"}
+        .history-change--unknown{color:#7c8794;font-style:italic}
+        .history-change--unknown::before{content:"\2013"}
     </style>
     {{template "head_css" .}}
 </head>
@@ -95,7 +109,8 @@
                                     <td class="col-domain">
                                         {{if $a.RiskLevel}}<span class="d-inline-flex align-items-center gap-1 mb-1">
                                             <span class="badge bg-{{$a.RiskColor}}" title="Overall Security Posture">{{$a.RiskLevel}}</span>
-                                            {{if gt $a.FixCount 0}}<span class="badge rounded-pill bg-{{$a.FixColor}}" title="{{$a.FixCount}} verified finding{{if gt $a.FixCount 1}}s{{end}} to fix">{{$a.FixCount}} to Fix</span>{{end}}
+                                            {{/* "2 to Fix" needed a hover to say what the 2 counted. The noun goes in the badge. */}}
+                                            {{if gt $a.FixCount 0}}<span class="badge rounded-pill bg-{{$a.FixColor}}" title="{{$a.FixCount}} verified finding{{if gt $a.FixCount 1}}s{{end}} with a real operational consequence — deliberate posture, platform limits and unverifiable controls are excluded">{{$a.FixCount}} issue{{if gt $a.FixCount 1}}s{{end}} to fix</span>{{end}}
                                         </span>{{end}}
                                         <div class="d-flex align-items-center min-width-0">
                                             {{icon "globe" "text-primary me-2 flex-shrink-0"}}
@@ -106,6 +121,10 @@
                                                 {{end}}
                                             </div>
                                         </div>
+                                        {{/* The one thing only a history can tell you: did this domain move.
+                                             Without it the same domain appears three times with identical
+                                             badges and the repetition teaches nothing. */}}
+                                        {{if $a.ChangeText}}<div class="history-change history-change--{{$a.ChangeKind}}" title="Compared with the previous scan of this domain shown on this page">{{$a.ChangeText}}</div>{{end}}
                                     </td>
                                     <td>
                                         <div class="proto-badge-row">
@@ -158,9 +177,10 @@
                                 <div class="min-width-0">
                                     {{if $a.RiskLevel}}<span class="d-inline-flex align-items-center gap-1 mb-1">
                                         <span class="badge bg-{{$a.RiskColor}}" title="Overall Security Posture">{{$a.RiskLevel}}</span>
-                                        {{if gt $a.FixCount 0}}<span class="badge rounded-pill bg-{{$a.FixColor}}" title="{{$a.FixCount}} verified finding{{if gt $a.FixCount 1}}s{{end}} to fix">{{$a.FixCount}} to Fix</span>{{end}}
+                                        {{if gt $a.FixCount 0}}<span class="badge rounded-pill bg-{{$a.FixColor}}" title="{{$a.FixCount}} verified finding{{if gt $a.FixCount 1}}s{{end}} with a real operational consequence — deliberate posture, platform limits and unverifiable controls are excluded">{{$a.FixCount}} issue{{if gt $a.FixCount 1}}s{{end}} to fix</span>{{end}}
                                     </span>{{end}}
                                     <div class="fw-medium text-truncate">{{$a.Domain}}{{if eq $a.RequestSource "agent"}} <a href="/agent/plugin" class="source-tag" title="Queried via DEVONagent Pro plugin — click to learn more"><picture><source srcset="{{staticVersionURL "images/devonagent-pro-logo.webp" $.AppVersion}}" type="image/webp"><img src="{{staticVersionURL "images/devonagent-pro-logo.png" $.AppVersion}}" alt="" width="12" height="12" loading="lazy"></picture>Plugin</a>{{end}}</div>
+                                    {{if $a.ChangeText}}<div class="history-change history-change--{{$a.ChangeKind}}" title="Compared with the previous scan of this domain shown on this page">{{$a.ChangeText}}</div>{{end}}
                                 </div>
                             </div>
                             <div class="btn-group flex-shrink-0 ms-2">
