@@ -57,6 +57,28 @@
            wrap and bound it to the block it lives in. */
         .history-mobile-card .history-card-badges{flex-wrap:wrap;max-width:100%;min-width:0}
         .history-mobile-card .history-card-badges .badge{max-width:100%}
+        /* Readable floors for touch. Measured before choosing: .proto-badge is
+           .72em (~11.5px), .proto-badge--compact is .62em of a `small` parent
+           (~8.7px), .source-tag .6875rem (11px), .history-change .75rem (12px),
+           .col-date .8125rem (13px). Apple's floor is 11pt with 17pt for body, so
+           several of these sit under the line on a phone or a tablet held at arm's
+           length — which is why the page had to be zoomed by hand to be usable.
+           Sizes are rem here, not em, so they cannot compound down again inside a
+           `small` ancestor the way the compact badge did. Desktop (>=1200px) keeps
+           its density: it is read closer and the extra rows are worth more there. */
+        @media (max-width: 1199.98px) {
+            .history-table .fw-medium,
+            .history-mobile-card .fw-medium{font-size:1.05rem}
+            .history-table .proto-badge,
+            .history-mobile-card .proto-badge{font-size:.8rem;padding:.34em .62em}
+            .history-table .col-date,
+            .history-mobile-card .text-muted{font-size:.875rem}
+            .history-change{font-size:.85rem}
+            .history-mobile-card .badge{font-size:.78rem}
+            .source-tag{font-size:.78rem}
+            .history-actions .history-act{padding:.42rem .6rem}
+            .history-actions .history-act svg{width:1.05em;height:1.05em}
+        }
         .source-tag{display:inline-flex;align-items:center;gap:.3em;font-size:.6875rem;font-weight:600;color:#a78bfa;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.25);border-radius:.25rem;padding:.1em .45em;white-space:nowrap;vertical-align:middle;letter-spacing:.01em;text-decoration:none;cursor:pointer;transition:background .2s,border-color .2s}
         .source-tag:hover{background:rgba(167,139,250,.22);border-color:rgba(167,139,250,.4);color:#c4b5fd}
         .source-tag svg{width:.75em;height:.75em;fill:currentColor;flex-shrink:0}
