@@ -31,6 +31,45 @@ docker run --rm -p 5000:5000 \
 
 (Adjust `-p` if port 5000 is taken on your host — see the AirPlay note above.)
 
+### Reading your own data
+
+Your scans are yours, and they live in a real PostgreSQL 16 database that
+persists across restarts in the `dnstool-pgdata` volume. Compose publishes it on
+the host **loopback only** so you can open it with `psql`, TablePlus, DataGrip or
+anything else that speaks Postgres:
+
+| | |
+|---|---|
+| Host | `127.0.0.1` |
+| Port | `5434` (default — see below) |
+| Database | `dnstool` |
+| User | `dnstool` |
+| Password | `dnstool_local_only` |
+
+```bash
+psql "postgres://dnstool:dnstool_local_only@127.0.0.1:5434/dnstool"
+```
+
+**If 5434 is taken**, override it without editing any file:
+
+```bash
+DNSTOOL_DB_PORT=15432 docker compose up
+```
+
+Rather than assuming, ask Docker what it actually bound:
+
+```bash
+docker compose port db 5432
+```
+
+5432 is deliberately avoided because you probably already run Postgres there, and
+5433 because it collides on developer machines often enough to matter.
+
+The bind is `127.0.0.1` on purpose. Published on `0.0.0.0` instead, a laptop on
+conference wifi would be serving its scan history to everyone on the network.
+These credentials are fixed and disposable by design — this database is for local
+evaluation, so never point it at anything you care about.
+
 ### Required environment
 
 | Variable | Required | Notes |
