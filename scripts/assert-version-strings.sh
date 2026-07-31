@@ -118,22 +118,91 @@ for f in "${DEPOSIT_VERSION_FILES[@]}"; do
 done
 
 # --- Step 3: unconditional WARNING for unmanifested version-keyed 26.x.y ------
-# Discovery without a gate. A file carrying a version-keyed 26.N.N that is NOT
-# in the manifest might be a deposit file nobody declared — surface it, never
-# fail. A citation (non-keyed) does not match this pattern by construction.
+# DISCOVERY IS INVERTED (2026-07-31): sweep for the VALUE `26.N.N` first — a
+# match that cannot miss any markup style — then CLASSIFY each hit. The narrow
+# part is the classification, never the discovery. A discovery regex that must
+# anticipate every markup style is always one style behind (the gate found 2
+# files, a manual sweep found 6, a wide sweep finds 31 — three layers of the
+# same miss). The classification is DOI-based, not markup-based:
+#
+#   1. Manifest member              -> asserted = deposit version (step 1+2)
+#   2. Distinct Version DOI         -> CITATION of a past deposit (exempt)
+#   3. Record-type exemption list   -> exempt, each with a stated reason
+#   4. everything else with 26.N.N  -> WARN (human reads; a NEW record-type file
+#                                      lands here until someone declares it)
+#
+# The exemption list IS the mechanism. The assertion-vs-record proxy ("a version
+# is an assertion iff it is the subject's own current version, a record iff it
+# is about a past/incident version") is the RATIONALE, not something the gate
+# evaluates. Do NOT replace this list with a pattern that implements the proxy —
+# that is the same move one iteration later. Record-type files are declared here
+# with reasons; a new one fails loudly into WARN until declared.
+CONCEPT_DOI="19468134"
+
+# Record-type files/paths: their version strings RECORD a past version or pin a
+# historical shape; bumping them would destroy the record or falsify a fixture.
+# Path-rules (trailing /) cover dated logs and scan captures that accrete.
+RECORD_TYPE_EXEMPT=(
+  "docs/ARCHIVED_BUILD_TAG_HISTORY.md|historical build-tag archive; versions record past releases"
+  "docs/evolution/|dated evolution logs; versions are historical records (new logs accrete)"
+  "dns-eval/|recorded scan-capture fixtures; bumping falsifies the captures"
+  "go-server/internal/icsae/testdata/|recorded scan-capture fixtures; bumping falsifies the captures"
+  "go-server/internal/handlers/agentpkg/agent_test.go|test fixture pinning a historical response shape"
+  "go-server/internal/handlers/corpus_pdf_integrity_test.go|test comments recording incident history"
+  "scripts/verify-zenodo-release.sh|comments narrating past release incidents"
+)
+
+is_record_exempt() {
+  local f="$1" entry path
+  for entry in "${RECORD_TYPE_EXEMPT[@]}"; do
+    path="${entry%%|*}"
+    case "$path" in
+      */) case "$f" in "$path"*) return 0;; esac ;;
+      *)  [ "$f" = "$path" ] && return 0 ;;
+    esac
+  done
+  return 1
+}
+
+# A file is a CITATION of a past deposit (not the current one) when it carries a
+# Version DOI distinct from the deposit concept DOI — e.g. REPRODUCTION.md
+# documents an archived v26.50.05 with its own version DOI 20777315.
+has_distinct_version_doi() {
+  grep -oiE 'Version DOI[^0-9]*10\.5281/zenodo\.[0-9]+' "$1" 2>/dev/null \
+    | grep -oE '[0-9]+' | tail -1 | grep -qvE "^${CONCEPT_DOI}$" \
+    && grep -qiE 'Version DOI' "$1" 2>/dev/null
+}
+
+# Stage 2 of classification: is any 26.N.N in this file in a VERSION-KEYED
+# position (a declaration), versus an incidental occurrence (a test fixture, a
+# dependency version, a date, a comment citing a past incident)? Discovery
+# (the value sweep) cannot miss; this keyed-position test keeps the warning
+# signal-clean. Only keyed occurrences are version declarations a human must
+# see; incidental matches are not classified as version-bearing at all.
+has_version_keyed_26() {
+  grep -qE '("version"[[:space:]]*:[[:space:]]*"?26\.[0-9]|^version[[:space:]]*:[[:space:]]*"?26\.[0-9]|version[[:space:]]*=[[:space:]]*\{26\.[0-9]|Version[[:space:]]+26\.[0-9]|\*\*Version:\*\*[[:space:]]*v?26\.[0-9]|Version</span>&ensp;26\.[0-9]|version(&nbsp;)+[[:space:]]*=[[:space:]]*\{26\.[0-9]|DNS Tool v26\.[0-9]|Enforced values as of v26\.[0-9])' "$1" 2>/dev/null
+}
+
 MANIFEST_RE=$(printf '|%s' "${DEPOSIT_VERSION_FILES[@]}"); MANIFEST_RE="${MANIFEST_RE:1}"
-UNMANIFESTED=$(git ls-files \
-  | grep -vE "^(${MANIFEST_RE})$" \
-  | grep -vE 'node_modules|package-lock|/tools/|\.claude/|skills-lock\.json|dependabot\.yml|sqlc\.yaml|registry\.yaml|pyproject\.toml|/package\.json$|pipeline-config\.json' \
-  | while read -r f; do
-      [ -f "$f" ] || continue
-      if grep -qE '("version"[[:space:]]*:[[:space:]]*"|^version[[:space:]]*:[[:space:]]*"|^Version[[:space:]]+|DNS Tool v)26\.[0-9]+\.[0-9]+' "$f" 2>/dev/null; then
-        echo "$f"
-      fi
-    done)
-if [ -n "$UNMANIFESTED" ]; then
-  echo -e "${YELLOW}WARN${NC} — files with a version-keyed 26.x.y NOT in the manifest (add to scripts/version-files.sh if any declares the deposit version):"
-  echo "$UNMANIFESTED" | sed 's/^/       - /'
+WARN_FILES=()
+while IFS= read -r f; do
+  # value sweep: any tracked text file containing 26.N.N (discovery cannot miss)
+  case "$f" in
+    node_modules/*|*/tools/*|.claude/*|*/skills-lock.json|*/dependabot.yml|*/sqlc.yaml|*/registry.yaml|*/pyproject.toml|*/pipeline-config.json|*/uv.lock|package-lock.json|*/package-lock.json|package.json|*/package.json|*.pdf) continue ;;
+  esac
+  echo "$f" | grep -qE "^(${MANIFEST_RE})$" && continue   # manifest members handled above
+  [ -f "$f" ] || continue
+  grep -qE '26\.[0-9]+\.[0-9]+' "$f" 2>/dev/null || continue  # stage 1: the value sweep
+  # classification
+  has_distinct_version_doi "$f" && continue                 # CITATION of a past deposit
+  is_record_exempt "$f" && continue                         # declared record-type
+  has_version_keyed_26 "$f" || continue                     # incidental 26.N.N, not a declaration
+  WARN_FILES+=("$f")
+done < <(git ls-files)
+
+if [ "${#WARN_FILES[@]}" -gt 0 ]; then
+  echo -e "${YELLOW}WARN${NC} — files carrying a 26.x.y version NOT in the manifest and NOT exempt (a deposit file nobody declared, or a record-type file to declare in scripts/assert-version-strings.sh):"
+  printf '       - %s\n' "${WARN_FILES[@]}"
 fi
 
 if [ "$FAILED" -eq 1 ]; then
