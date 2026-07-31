@@ -178,7 +178,7 @@ Confidence calibration uses a reliability-weighted shrinkage estimator. For each
 2. **Resolver agreement ratio**: The fraction of queried resolvers that return consistent results, used as measurement quality weight
 3. **Shrinkage toward prior**: When resolver agreement is low, the calibrated score is pulled toward the prior mean; when agreement is high, the observation dominates
 
-This produces a calibrated confidence score per protocol, distinct from the raw detection score. The calibration formula is a shrinkage estimator — not a true Bayesian posterior (see EDE-006 for the correction history on this distinction).
+This produces a severity-weighted score per protocol, distinct from the raw detection score. The formula is a reliability-weighted shrinkage estimator — verdict severity (pass/warning/fail/indeterminate encoded on a 0–1 scale) shaded by resolver agreement and protocol-specific priors. It is not a probability and not a true Bayesian posterior (see EDE-006 for the correction history on this distinction).
 
 ### 4.3 Overall Posture Score
 
@@ -190,20 +190,22 @@ When structural corrections to the confidence model are identified — such as r
 
 ### 4.5 Calibration Validation
 
-The ICAE confidence scoring model is empirically validated through a calibration framework that measures the statistical reliability of predicted confidence levels against observed outcomes.
+The ICAE confidence scoring model is evaluated against a deterministic test corpus that measures the behavior of the shrinkage formula under controlled resolver-degradation scenarios.
 
 **Test Corpus**: 129 golden test cases are evaluated across 5 resolver scenarios (Google, Cloudflare, Quad9, authoritative, and mixed-resolver), producing 645 individual predictions per calibration run.
 
 **Calibration Metrics**:
 
-- **Brier Score**: 0.0018 (excellent). The Brier Score measures the mean squared error between predicted confidence probabilities and actual outcomes. Values closer to 0 indicate better calibration; the ICAE score of 0.0018 demonstrates near-perfect probability estimation.
-- **Expected Calibration Error (ECE)**: 0.031 (good). ECE measures the weighted average gap between predicted confidence and observed accuracy across probability bins. An ECE of 0.031 indicates that predicted confidence levels closely match empirical correctness rates.
+- **Brier Score**: 0.0018. The Brier Score measures the mean squared error between the shrinkage formula's output and the all-pass fixture outcomes. In this corpus every fixture passes, so the score measures formula agreement with a constant outcome class — it is not evidence of outcome calibration (see the limitation below).
+- **Expected Calibration Error (ECE)**: 0.031. ECE measures the weighted average gap between formula output and observed accuracy across probability bins. Under the same single-outcome-class constraint, it describes shrinkage behavior, not predictive reliability.
 
 **Methodology**: The calibration framework employs a shrinkage estimator that blends observed per-bin accuracy with the global base rate, regularized toward conservatism. This approach prevents overconfident predictions in low-sample bins while preserving sensitivity in well-populated confidence ranges. The calibration function uses a fixed `rawConfidence=1.0` (the engine always starts from "this prediction is correct") and varies only the resolver agreement ratio to degrade measurement quality. This tests whether the shrinkage formula degrades confidence appropriately when measurement quality drops, but does not test whether the engine correctly identifies failure scenarios.
 
-**Known Limitation — Success-Regime-Only Validation**: All 129 golden test cases currently pass (outcome=1.0). The Brier and ECE metrics above are validated in the success regime only — they confirm the system is well-calibrated when findings are correct, but do not yet validate behavior when outcomes diverge from confident predictions. When future test cases introduce expected failures, the calibration module will automatically incorporate those into the Brier/ECE computation, extending validation to the failure regime.
+**Known Limitation — Single-Outcome-Class Corpus**: All 129 golden test cases currently pass (outcome=1.0). The Brier and ECE metrics above therefore measure the shrinkage formula's agreement with a constant outcome, not calibration against diverging outcomes. A refit against real scan outcomes was attempted (2026-07-30) and came back negative: the outcome a probability would predict is 99.6% one class across 52,053 observations, so no meaningful probability can be fitted — a logistic fit gained within the noise band, and a gradient-boosted alternative performed materially worse than a constant predictor. The stored value is a severity encoding (pass/warning/fail/indeterminate on a 0–1 scale), not a probability. When future test cases introduce expected failures, the calibration module will incorporate those into the Brier/ECE computation, extending measurement to the failure regime.
 
-**Conclusion**: The ICAE confidence model is conservatively calibrated — when the system reports high confidence, findings are correct at or above the stated rate. This conservative bias is an intentional design choice aligned with intelligence community analytic standards (ODNI ICD 203), where understating confidence is preferable to overstating it.
+**Field Replication**: Independent of the fixture corpus, 99.6% of consecutive observations of the same domain and protocol reproduce, across 52,053 pairs on 275 domains over 167 days (2026-02-08 → 2026-07-26), with measurable decay over the first week. This is the engine's real-world stability number: consecutive live scans of the same domain produce the same verdict 99.6% of the time.
+
+**Conclusion**: The ICAE scoring model is conservatively shrinkage-weighted — when the system reports high severity-weighted confidence, findings agree with the fixture corpus and reproduce in the field at the stated rate. Outcome calibration is not established; the conservative bias is an intentional design choice aligned with intelligence community analytic standards (ODNI ICD 203), where understating confidence is preferable to overstating it.
 
 ---
 
@@ -253,7 +255,7 @@ DNS Tool is designed for reproducible analysis:
 - The software is version-controlled with semantic versioning
 - This methodology document is versioned alongside the software
 - The software artifact is archived with a persistent DOI
-- The confidence scoring model is empirically calibrated against 129 golden test cases across 5 resolver scenarios (645 predictions), with calibration quality measured via Brier Score and Expected Calibration Error (see Section 4.5)
+- The confidence scoring model is evaluated against 129 golden test cases across 5 resolver scenarios (645 predictions), with shrinkage-formula behavior measured via Brier Score and Expected Calibration Error under single-outcome-class conditions (see Section 4.5)
 
 ### 7.1 Epistemic Correction and Integrity Verification
 
