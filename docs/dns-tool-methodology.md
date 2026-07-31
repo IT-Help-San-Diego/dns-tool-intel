@@ -3,7 +3,7 @@
 **Carey James Balboa**
 ORCID: [0009-0000-5237-9065](https://orcid.org/0009-0000-5237-9065)
 
-Version 26.46.14
+Version 26.46.15
 DOI: [10.5281/zenodo.19468134](https://doi.org/10.5281/zenodo.19468134)
 
 *Independent research artifact accompanying the DNS Tool software platform.*
@@ -311,7 +311,7 @@ If DNS Tool contributes to research or analysis, please cite:
   author       = {Balboa, Carey James},
   title        = {{DNS Tool}: Domain Security Audit Platform},
   year         = {2026},
-  version      = {10},
+  version      = {26.46.15},
   doi          = {10.5281/zenodo.19468134},
   url          = {https://dnstool.it-help.tech},
   license      = {BUSL-1.1}
@@ -320,7 +320,7 @@ If DNS Tool contributes to research or analysis, please cite:
 
 ---
 
-DNS Tool v10 · IT Help San Diego Inc.
+DNS Tool v26.46.15 · IT Help San Diego Inc.
 
 **This document is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)** — you may share, adapt, translate, and build upon it for any purpose, including commercially, with attribution (© 2024–2026 IT Help San Diego Inc. / Carey James Balboa). The DNS Tool software itself remains licensed under [BUSL-1.1](../LICENSE).
 
