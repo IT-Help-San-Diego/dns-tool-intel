@@ -288,16 +288,16 @@ func TestProtocolRawConfidence_AllStatuses_Ext2(t *testing.T) {
         }
         for status, want := range statusTests {
                 results := map[string]any{"test": map[string]any{"status": status}}
-                conf := protocolRawConfidence(results, "test")
+                conf := protocolVerdictSeverity(results, "test")
                 if conf != want {
-                        t.Errorf("protocolRawConfidence(status=%q) = %f, want %f", status, conf, want)
+                        t.Errorf("protocolVerdictSeverity(status=%q) = %f, want %f", status, conf, want)
                 }
         }
 }
 
 func TestProtocolRawConfidence_NotMap_Ext2(t *testing.T) {
         results := map[string]any{"test": "not_a_map"}
-        conf := protocolRawConfidence(results, "test")
+        conf := protocolVerdictSeverity(results, "test")
         if conf != 0.0 {
                 t.Errorf("expected 0.0 for non-map, got %f", conf)
         }

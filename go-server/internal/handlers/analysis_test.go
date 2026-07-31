@@ -101,22 +101,22 @@ func TestProtocolRawConfidence(t *testing.T) {
                         results := map[string]any{
                                 "test_section": map[string]any{"status": tt.status},
                         }
-                        got := protocolRawConfidence(results, "test_section")
+                        got := protocolVerdictSeverity(results, "test_section")
                         if got != tt.want {
-                                t.Errorf("protocolRawConfidence status=%q = %f, want %f", tt.status, got, tt.want)
+                                t.Errorf("protocolVerdictSeverity status=%q = %f, want %f", tt.status, got, tt.want)
                         }
                 })
         }
 
         t.Run("missing_section", func(t *testing.T) {
-                got := protocolRawConfidence(map[string]any{}, "nonexistent")
+                got := protocolVerdictSeverity(map[string]any{}, "nonexistent")
                 if got != 0.0 {
                         t.Errorf("expected 0.0 for missing section, got %f", got)
                 }
         })
 
         t.Run("non_map_section", func(t *testing.T) {
-                got := protocolRawConfidence(map[string]any{"test": "not a map"}, "test")
+                got := protocolVerdictSeverity(map[string]any{"test": "not a map"}, "test")
                 if got != 0.0 {
                         t.Errorf("expected 0.0 for non-map section, got %f", got)
                 }
