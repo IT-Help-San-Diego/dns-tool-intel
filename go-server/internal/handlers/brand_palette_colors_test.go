@@ -498,7 +498,7 @@ func TestExtractRootDomainCB2(t *testing.T) {
                 {"com", false, ""},
         }
         for _, tt := range tests {
-                isSub, root := extractRootDomain(tt.domain)
+                isSub, root, _ := extractRootDomain(tt.domain)
                 if isSub != tt.isSub {
                         t.Errorf("extractRootDomain(%q) isSub=%v, want %v", tt.domain, isSub, tt.isSub)
                 }
