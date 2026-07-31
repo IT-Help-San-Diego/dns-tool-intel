@@ -12,7 +12,10 @@
 //	non_normative — advisory signal: posture recommendations / monitoring
 //	                entries and protocol sections with status "info".
 //	critical      — posture critical_issues, protocol sections with status
-//	                "error", and Critical-severity remediation fixes.
+//	                "error", Critical-severity remediation fixes, and a stored
+//	                posture spoof_door of "open" (the analyzer's
+//	                operational-consequence axis: spoofed mail is delivered
+//	                with nothing blocking it).
 //	metacognitive — protocol sections with status "indeterminate" and
 //	                protocols whose calibrated confidence falls below the
 //	                moderate threshold (unified.ThresholdModerate = 50.0,
@@ -128,6 +131,22 @@ func owlPostureCounts(results map[string]any) (rec, mon, crit int, seen bool) {
 		true
 }
 
+// owlSpoofDoorOpen reads the stored posture spoof_door axis — the
+// operational-consequence producer written by the analyzer since the
+// consequence-derived grade colour landed. "open" means the stored posture
+// records that a spoofed message claiming this domain is delivered with
+// nothing blocking it. Older scans lack the key and return false — honestly
+// absent, never inferred from record presence (the re-derivation this
+// producer exists to prevent).
+func owlSpoofDoorOpen(results map[string]any) bool {
+	posture, pOk := results[mapKeyPosture].(map[string]any)
+	if !pOk {
+		return false
+	}
+	door, _ := posture["spoof_door"].(string) //nolint:errcheck // zero-value fallback is intentional
+	return door == "open"
+}
+
 // owlCriticalFixCount counts remediation fixes stored with severity_label
 // "Critical".
 func owlCriticalFixCount(results map[string]any) int {
@@ -191,10 +210,13 @@ func owlNonNormativeState(recCount, monCount int, infos []string) map[string]any
 	return owlState(true, total, "Advisory findings recorded — "+strings.Join(parts, "; ")+".")
 }
 
-func owlCriticalState(critIssueCount int, errored []string, critFixCount int) map[string]any {
+func owlCriticalState(critIssueCount int, errored []string, critFixCount int, spoofDoorOpen bool) map[string]any {
 	total := critIssueCount + len(errored) + critFixCount
+	if spoofDoorOpen {
+		total++
+	}
 	if total == 0 {
-		return owlState(false, 0, "Not triggered — no critical issues, failed evaluation statuses, or Critical-severity fixes recorded.")
+		return owlState(false, 0, "Not triggered — no critical issues, failed evaluation statuses, Critical-severity fixes, or open email-spoofing door recorded.")
 	}
 	var parts []string
 	if critIssueCount > 0 {
@@ -205,6 +227,9 @@ func owlCriticalState(critIssueCount int, errored []string, critFixCount int) ma
 	}
 	if critFixCount > 0 {
 		parts = append(parts, owlPlural(critFixCount, "Critical-severity remediation fix", "Critical-severity remediation fixes"))
+	}
+	if spoofDoorOpen {
+		parts = append(parts, "the stored posture records the email-spoofing door as open — a spoofed message claiming this domain is delivered with nothing blocking it")
 	}
 	return owlState(true, total, "Critical signal recorded — "+strings.Join(parts, "; ")+".")
 }
@@ -246,7 +271,7 @@ func computeOwlSemaphore(fullResults any) map[string]any {
 		"version":       1,
 		"normative":     owlNormativeState(sections.passed),
 		"non_normative": owlNonNormativeState(recCount, monCount, sections.infos),
-		"critical":      owlCriticalState(critIssueCount, sections.errored, critFixCount),
+		"critical":      owlCriticalState(critIssueCount, sections.errored, critFixCount, owlSpoofDoorOpen(results)),
 		"metacognitive": owlMetacognitiveState(sections.indeterminate, lowConf),
 	}
 }

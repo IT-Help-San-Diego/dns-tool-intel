@@ -122,6 +122,51 @@ func TestComputeOwlSemaphore_AllDarkWithReasons(t *testing.T) {
 	}
 }
 
+func TestComputeOwlSemaphore_SpoofDoorOpenLightsCritical(t *testing.T) {
+	// The wearetma.com shape: High Risk, open spoofing door, but no
+	// critical_issues, no error statuses, no Critical fixes — the exact scan
+	// that used to leave the Critical owl dark while history showed High
+	// Risk. The stored spoof_door axis is the producer; the owl reads it.
+	results := map[string]any{
+		"dmarc_analysis": map[string]any{"status": "warning"},
+		"posture": map[string]any{
+			"critical_issues": []string{},
+			"spoof_door":      "open",
+		},
+	}
+	sem := computeOwlSemaphore(results)
+	if sem == nil {
+		t.Fatal("expected owl semaphore, got nil")
+	}
+	if !owlLit(t, sem, "critical") {
+		t.Fatal("critical must light when the stored spoof_door is open")
+	}
+	if r := owlReason(t, sem, "critical"); !strings.Contains(r, "email-spoofing door as open") {
+		t.Errorf("reason must state the open-door consequence, got %q", r)
+	}
+}
+
+func TestComputeOwlSemaphore_SpoofDoorGuardedOrAbsentStaysDark(t *testing.T) {
+	// guarded is not open, and old scans without the key must not light —
+	// honestly absent, never inferred from record presence.
+	for _, posture := range []map[string]any{
+		{"critical_issues": []string{}, "spoof_door": "guarded"},
+		{"critical_issues": []string{}},
+	} {
+		results := map[string]any{
+			"dmarc_analysis": map[string]any{"status": "success"},
+			"posture":        posture,
+		}
+		sem := computeOwlSemaphore(results)
+		if sem == nil {
+			t.Fatal("expected owl semaphore, got nil")
+		}
+		if owlLit(t, sem, "critical") {
+			t.Errorf("critical must stay dark for posture %v: %q", posture, owlReason(t, sem, "critical"))
+		}
+	}
+}
+
 func TestComputeOwlSemaphore_ThresholdBoundary(t *testing.T) {
 	// Exactly 0.50 is NOT below the moderate threshold — must not trigger.
 	results := map[string]any{
