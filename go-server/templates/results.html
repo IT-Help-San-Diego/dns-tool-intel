@@ -96,6 +96,16 @@
         </div>
         {{end}}
 
+        {{if .PSLIndeterminate}}
+        <div class="alert alert-secondary border-0 mb-3">
+            <div class="d-flex align-items-start">
+                {{icon "question-circle" "me-2 mt-1 text-accent-gold"}}
+                <div>
+                    <span>Organizational domain for <strong>{{.Domain}}</strong> could not be determined — the Public Suffix List compiled into this build does not recognize the suffix. Email-security scope below is <strong>not determinable</strong>; this is not a finding that the domain is or is not a subdomain. Re-run when the PSL snapshot is updated.</span>
+                </div>
+            </div>
+        </div>
+        {{end}}
         {{if .IsSubdomain}}
         <div class="alert alert-info border-0 mb-3 u-bg-info-soft">
             <div class="d-flex align-items-start">
@@ -104,6 +114,11 @@
                     <span>You are analyzing the subdomain <strong>{{.Domain}}</strong>.
                     <a href="/topology?domain={{.RootDomain | urlquery}}" class="alert-link text-info">Analyze the root domain <strong>{{.RootDomain}}</strong> instead?</a></span>
                     {{with .SubdomainEmailScope}}
+                    {{if .Indeterminate}}
+                    <div class="mt-2 small">
+                        <span class="badge bg-secondary bg-opacity-25 border border-secondary border-opacity-25">{{icon "question-circle" "me-1"}}Email scope: not determinable (suffix not in PSL)</span>
+                    </div>
+                    {{else}}
                     <div class="mt-2 small">
                         <div class="d-flex flex-wrap gap-2 align-items-center mb-1">
                             <span class="text-info-emphasis fw-semibold">Email Security Scope:</span>
@@ -136,6 +151,7 @@
                             </div>
                         {{end}}
                     </div>
+                    {{end}}
                     {{else}}
                     <div class="mt-1 small text-info-emphasis u-opacity-75">
                         Email security records (SPF, DMARC, DKIM, MTA-STS) are typically configured at the root domain level.
@@ -1362,7 +1378,9 @@
                                         <span class="badge bg-{{if gt $lookupCount 10}}danger{{else if gte $lookupCount 8}}warning{{else}}secondary{{end}} ms-1" data-bs-toggle="tooltip" title="DNS lookup limit is 10">{{formatFloat 0 $lookupCount}}/10 lookups</span>
                                     {{end}}
                                     {{with $.SubdomainEmailScope}}
-                                        {{if eq .SPFScope "local"}}
+                                        {{if .Indeterminate}}
+                                            <span class="badge bg-secondary bg-opacity-10 border border-secondary border-opacity-25 ms-1 u-fs-060rem" data-bs-toggle="tooltip" title="SPF scope not determinable — suffix not in the Public Suffix List compiled into this build">{{icon "question-circle" "me-1"}}Scope N/A</span>
+                                        {{else if eq .SPFScope "local"}}
                                             <span class="badge bg-success bg-opacity-10 border border-success border-opacity-25 ms-1 u-fs-060rem" data-bs-toggle="tooltip" title="{{.SPFNote}}">{{icon "check" "me-1"}}Local</span>
                                         {{end}}
                                     {{end}}
@@ -1576,7 +1594,9 @@
                                         <span class="badge bg-warning ms-1">{{formatFloat 0 $dmarcPct}}% enforced</span>
                                     {{end}}
                                     {{with $.SubdomainEmailScope}}
-                                        {{if eq .DMARCScope "local"}}
+                                        {{if .Indeterminate}}
+                                            <span class="badge bg-secondary bg-opacity-10 border border-secondary border-opacity-25 ms-1 u-fs-060rem" data-bs-toggle="tooltip" title="DMARC scope not determinable — suffix not in the Public Suffix List compiled into this build">{{icon "question-circle" "me-1"}}Scope N/A</span>
+                                        {{else if eq .DMARCScope "local"}}
                                             <span class="badge bg-success bg-opacity-10 border border-success border-opacity-25 ms-1 u-fs-060rem" data-bs-toggle="tooltip" title="{{.DMARCNote}}">{{icon "check" "me-1"}}Local</span>
                                         {{else if eq .DMARCScope "inherited"}}
                                             <span class="badge bg-info bg-opacity-10 border border-info border-opacity-25 ms-1 u-fs-060rem" data-bs-toggle="tooltip" title="{{.DMARCNote}}">{{icon "arrow-up" "me-1"}}Inherited</span>

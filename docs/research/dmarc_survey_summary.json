@@ -1,0 +1,61 @@
+{
+ "measured_utc": "2026-07-31",
+ "n_total": 339,
+ "n_provider": 75,
+ "n_tenant": 264,
+ "lookup_errors": 0,
+ "class_correction": "6 mailbox-provider domains (hotmail.com, mailbox.org, proton.me, tuta.io, yahoo.com, zoho.com) appeared in both classes; removed from tenant. n 345->339.",
+ "publishes_dmarc": {
+  "provider": 0.96,
+  "tenant": 0.659,
+  "chi2": 25.1,
+  "p": 5.51e-07
+ },
+ "enforces": {
+  "provider": 0.587,
+  "tenant": 0.477,
+  "chi2": 2.4,
+  "p": 0.123
+ },
+ "transport": {
+  "dnssec": {
+   "provider": 0.227,
+   "tenant": 0.258
+  },
+  "mta_sts": {
+   "provider": 0.36,
+   "tenant": 0.091
+  },
+  "tls_rpt": {
+   "provider": 0.373,
+   "tenant": 0.125
+  },
+  "bimi": {
+   "provider": 0.12,
+   "tenant": 0.095
+  }
+ },
+ "rules": {
+  "sp stricter than p (inverted ramp)": 13,
+  "MTA-STS present + DMARC p=none/absent": 11,
+  "strict alignment + soft disposition": 10,
+  "DNSSEC absent AND MTA-STS absent (real transport gap)": 232,
+  "pct<100 (partial enforcement)": 3,
+  "BIMI present + apex not enforcing": 1
+ },
+ "inverted_ramp_domains": [
+  "apple.com",
+  "dpsg-radolfzell.de",
+  "github.com",
+  "gmail.com",
+  "isc.org",
+  "live.com",
+  "msn.com",
+  "outlook.com",
+  "posteo.de",
+  "rediffmail.com",
+  "seznam.cz",
+  "spitalulorasenescbaicoi.ro",
+  "terra.com.br"
+ ]
+}

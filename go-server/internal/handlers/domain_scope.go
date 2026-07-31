@@ -11,16 +11,26 @@ import (
 	"golang.org/x/net/publicsuffix"
 )
 
-func extractRootDomain(domain string) (isSubdomain bool, root string) {
+// extractRootDomain reports whether domain is a subdomain of a registrable
+// organizational domain, per the Public Suffix List.
+//
+// Tri-state (Zero-Fabrication): the PSL lookup either resolves or it does not.
+// When EffectiveTLDPlusOne errors (unlisted/unknown suffix in the snapshot
+// compiled into golang.org/x/net/publicsuffix), indeterminate is true and
+// isSubdomain/root are NOT meaningful — the caller must not render
+// "not a subdomain" from a lookup that never completed. Absence in the local
+// snapshot is not absence in the world; isSubdomain=false would be a claim
+// the code did not earn.
+func extractRootDomain(domain string) (isSubdomain bool, root string, indeterminate bool) {
 	domain = strings.TrimRight(domain, ".")
 	registrable, err := publicsuffix.EffectiveTLDPlusOne(domain)
 	if err != nil {
-		return false, ""
+		return false, "", true
 	}
 	if strings.EqualFold(domain, registrable) {
-		return false, ""
+		return false, "", false
 	}
-	return true, registrable
+	return true, registrable, false
 }
 
 func isPublicSuffixDomain(domain string) bool {
@@ -57,6 +67,11 @@ type subdomainEmailScope struct {
 	SPFNote       string `json:"spf_note"`
 	DMARCNote     string `json:"dmarc_note"`
 	HasLocalEmail bool   `json:"has_local_email"`
+	// Indeterminate is true when the Public Suffix List could not resolve the
+	// domain's organizational root (unlisted/unknown suffix in the compiled-in
+	// snapshot). All other fields are then unset — rendering anything from them
+	// would be a claim the lookup did not earn.
+	Indeterminate bool `json:"indeterminate,omitempty"`
 }
 
 func isActiveStatus(status string) bool {

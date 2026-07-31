@@ -25,6 +25,32 @@ if [ -n "$VERSION" ]; then
   "$SED" -i -E "s/DNS Tool v[0-9]+\.[0-9]+\.[0-9]+/DNS Tool v${VERSION}/" docs/philosophical-foundations.md
 
   echo "Version updated in .html and .md"
+
+  # Post-write assertion: the foundations .md/.html are deposit documents in
+  # the shared manifest (scripts/version-files.sh). Each sed above has its own
+  # pattern and a sed that matches nothing exits 0 — so verify from the files,
+  # not the patterns. Fail if any version key in these two files disagrees.
+  echo "Verifying version strings..."
+  FAILED=0
+  for f in docs/philosophical-foundations.md docs/philosophical-foundations.html; do
+    if [ -f "$f" ]; then
+      MISMATCH=$(grep -v '^cff-version:' "$f" | sed -nE \
+        -e 's/.*"version"[[:space:]]*:[[:space:]]*"([^"]*)".*/\1/p' \
+        -e 's/^Version[[:space:]]+([^[:space:]]+).*/\1/p' \
+        -e 's/.*Version<\/span>&ensp;([^&<]*).*/\1/p' \
+        -e 's/.*DNS Tool v([^[:space:]]+).*/\1/p' \
+        | sed -E 's/["{},]//g' | grep -v "^${VERSION}$" | head -1 || true)
+      if [ -n "$MISMATCH" ]; then
+        echo "VERSION MISMATCH in $f: found $MISMATCH, expected $VERSION"
+        FAILED=1
+      fi
+    fi
+  done
+  if [ "$FAILED" -eq 1 ]; then
+    echo "FAIL: version strings disagree. Fix the mismatches above and re-run."
+    exit 1
+  fi
+  echo "Version strings verified"
 fi
 
 echo "Generating philosophical foundations PDF..."

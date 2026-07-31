@@ -98,35 +98,59 @@ func (a *Analyzer) ValidateDMARCExternalAuth(ctx context.Context, domain string,
 
 func collectExternalDomains(domain, ruaStr, rufStr string) map[string][]string {
         external := make(map[string][]string)
-        domainOrg := orgDomain(domain)
+        domainOrg, domainOrgIndeterminate := orgDomain(domain)
 
         for _, d := range ExtractMailtoDomains(ruaStr) {
-                if !sameOrgDomain(d, domain, domainOrg) {
+                if !sameOrgDomain(d, domain, domainOrg, domainOrgIndeterminate) {
                         external[d] = appendUnique(external[d], "rua")
                 }
         }
         for _, d := range ExtractMailtoDomains(rufStr) {
-                if !sameOrgDomain(d, domain, domainOrg) {
+                if !sameOrgDomain(d, domain, domainOrg, domainOrgIndeterminate) {
                         external[d] = appendUnique(external[d], "ruf")
                 }
         }
         return external
 }
 
-func orgDomain(d string) string {
-        d = strings.TrimRight(d, ".")
-        reg, err := publicsuffix.EffectiveTLDPlusOne(d)
-        if err != nil {
-                return strings.ToLower(d)
-        }
-        return strings.ToLower(reg)
+// orgDomain returns the registrable organizational domain for d per the
+// Public Suffix List.
+//
+// Tri-state (Zero-Fabrication): when EffectiveTLDPlusOne errors (unlisted/
+// unknown suffix in the compiled-in PSL snapshot), indeterminate is true and
+// the returned string is NOT a derived organizational domain — it is the
+// caller's input, lowercased, as a safe fallback key. The caller must not
+// treat that as a real organizational-domain derivation; doing so would
+// silently collapse distinct domains into one org bucket (a fabricated
+// grouping) and report a subdomain as an apex. Absence in the local snapshot
+// is not absence in the world.
+func orgDomain(d string) (org string, indeterminate bool) {
+	d = strings.TrimRight(d, ".")
+	reg, err := publicsuffix.EffectiveTLDPlusOne(d)
+	if err != nil {
+		return strings.ToLower(d), true
+	}
+	return strings.ToLower(reg), false
 }
 
-func sameOrgDomain(a, b, bOrg string) bool {
-        if strings.EqualFold(a, b) {
-                return true
-        }
-        return strings.EqualFold(orgDomain(a), bOrg)
+// sameOrgDomain reports whether a and b share an organizational domain.
+// bOrg is orgDomain(b) when that derivation is determinate; it is ignored
+// when indeterminate (the org-domain relationship could not be established).
+// Conservative on uncertainty: an indeterminate lookup is never treated as
+// proof of a shared org domain, and EqualFold(a,b) already covered the
+// exact-match case — so uncertain input cannot fabricate a "same org" claim.
+func sameOrgDomain(a, b, bOrg string, bOrgIndeterminate bool) bool {
+	if strings.EqualFold(a, b) {
+		return true
+	}
+	if bOrgIndeterminate {
+		return false
+	}
+	aOrg, aIndeterminate := orgDomain(a)
+	if aIndeterminate {
+		return false
+	}
+	return strings.EqualFold(aOrg, bOrg)
 }
 
 func appendUnique(slice []string, val string) []string {

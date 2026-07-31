@@ -211,7 +211,7 @@ func TestRecordDailyStats_NilDB_B7(t *testing.T) {
 }
 
 func TestExtractRootDomain_B7(t *testing.T) {
-        isSub, root := extractRootDomain("sub.example.com")
+        isSub, root, _ := extractRootDomain("sub.example.com")
         if !isSub {
                 t.Error("sub.example.com should be a subdomain")
         }
@@ -219,7 +219,7 @@ func TestExtractRootDomain_B7(t *testing.T) {
                 t.Errorf("root should be example.com, got %s", root)
         }
 
-        isSub2, _ := extractRootDomain("example.com")
+        isSub2, _, _ := extractRootDomain("example.com")
         if isSub2 {
                 t.Error("example.com should not be a subdomain")
         }
