@@ -24,6 +24,29 @@ if [ ! -f "$MANIFEST" ]; then
     exit 1
 fi
 
+# ---------------------------------------------------------------------------
+# SUBJECT CONSTRAINT — read before adding a domain to the manifest.
+#
+# Fixture subjects must be LARGE PUBLIC INSTITUTIONS OR COMPANIES.
+#
+# These captures are committed to the repository and published in the Zenodo
+# deposit, which is immutable and carries a DOI. Freezing a domain's
+# spoofability into a permanent public archive is a different act from
+# analyzing it privately: the subject did not consent, and the record cannot
+# be withdrawn. A small business that fails DMARC is not a research subject
+# just because its failure is the state you needed.
+#
+# The state-coverage requirement (see tests/golden_fixtures/manifest.json and
+# TestGoldenFixtureStateCoverage) will pressure you to add whatever domain
+# exhibits a missing state. It does not license this. If the only domain at
+# hand that exhibits a state is a private party, leave the state uncovered by
+# live capture, document it in documentedUncoveredStates with the reason, and
+# cover it with a unit test that constructs the state directly.
+#
+# Applied 2026-07-30: wearetma.com exhibited the open-door state and was
+# deliberately excluded on these grounds; ietf.org and red.com supplied the
+# same state as public subjects.
+# ---------------------------------------------------------------------------
 DOMAINS=$(python3 -c "import json,sys; m=json.load(open('$MANIFEST')); print('\n'.join(m['domains']))")
 OLD_CAPTURED_AT=$(python3 -c "import json; m=json.load(open('$MANIFEST')); print(m.get('captured_at','unknown'))")
 DOMAIN_COUNT=$(echo "$DOMAINS" | wc -l | tr -d ' ')

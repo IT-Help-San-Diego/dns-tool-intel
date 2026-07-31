@@ -1,0 +1,2797 @@
+{
+  "_analysis_provenance": {
+    "analysis_scope": "owned_dns",
+    "input_kind": "dns_domain"
+  },
+  "_icae_snapshot": {
+    "overall_maturity": "development",
+    "unified_confidence": {
+      "accuracy_factor": 60.9,
+      "currency_factor": 76.7,
+      "explanation": "The measurement system is still accumulating scan history. Accuracy and currency are adequate but the system has not yet reached full maturity.",
+      "level": "MODERATE",
+      "maturity_ceiling": 60,
+      "maturity_level": "development",
+      "protocol_count": 9,
+      "score": 60,
+      "weakest_detail": "System maturity is capping the confidence score \u2014 the scan data is strong but more scan history is needed to unlock higher tiers",
+      "weakest_link": "maturity"
+    }
+  },
+  "_schema_version": 2,
+  "_tool_version": "dev",
+  "ai_surface": {
+    "evidence": [
+      {
+        "confidence": "Observed",
+        "detail": "robots.txt found but no AI-specific blocking directives",
+        "severity": "low",
+        "source": "https://cia.gov/robots.txt",
+        "type": "robots_txt_no_ai_blocks"
+      }
+    ],
+    "hidden_prompts": {
+      "artifact_count": 0,
+      "artifacts": [],
+      "evidence": [],
+      "message": "No hidden prompt-like artifacts detected",
+      "status": "success"
+    },
+    "llms_txt": {
+      "content": "",
+      "evidence": [],
+      "fields": {},
+      "found": false,
+      "full_content": "",
+      "full_found": false,
+      "full_url": null,
+      "url": null
+    },
+    "message": "No AI governance measures detected",
+    "poisoning": {
+      "evidence": [],
+      "ioc_count": 0,
+      "iocs": [],
+      "message": "No AI recommendation poisoning indicators found",
+      "status": "success"
+    },
+    "robots_txt": {
+      "allowed_crawlers": null,
+      "allows_ai_crawlers": true,
+      "blocked_crawlers": null,
+      "blocks_ai_crawlers": false,
+      "content_usage": {
+        "ai_denied": false,
+        "found": false,
+        "parameters": {},
+        "raw": ""
+      },
+      "directives": null,
+      "evidence": [],
+      "found": true,
+      "url": "https://cia.gov/robots.txt"
+    },
+    "status": "info",
+    "summary": {
+      "allows_ai": true,
+      "blocks_ai": false,
+      "has_content_usage": false,
+      "has_llms_txt": false,
+      "hidden_count": 0,
+      "message": "No AI governance measures detected",
+      "poisoning_count": 0,
+      "status": "info",
+      "total_evidence": 1
+    }
+  },
+  "analysis_scope": "owned_dns",
+  "asn_info": {
+    "ipv4_asn": [
+      {
+        "confidence": {
+          "label": "Third-party data",
+          "level": "third_party",
+          "method": "Team Cymru DNS-based ASN lookup"
+        },
+        "error": "no ASN data",
+        "ip": "173.223.234.143"
+      },
+      {
+        "confidence": {
+          "label": "Third-party data",
+          "level": "third_party",
+          "method": "Team Cymru DNS-based ASN lookup"
+        },
+        "error": "no ASN data",
+        "ip": "173.223.234.147"
+      }
+    ],
+    "ipv6_asn": [
+      {
+        "confidence": {
+          "label": "Third-party data",
+          "level": "third_party",
+          "method": "Team Cymru DNS-based ASN lookup"
+        },
+        "error": "no ASN data",
+        "ip": "2600:1406:5e00:9f::17d2:d890"
+      },
+      {
+        "confidence": {
+          "label": "Third-party data",
+          "level": "third_party",
+          "method": "Team Cymru DNS-based ASN lookup"
+        },
+        "error": "no ASN data",
+        "ip": "2600:1406:5e00:9f::17d2:d89c"
+      }
+    ],
+    "issues": [],
+    "message": "Resolved 0 unique ASN(s) across 4 IP address(es)",
+    "status": "success",
+    "unique_asns": null
+  },
+  "auth_query_status": {},
+  "auth_ttl": {
+    "A": 20,
+    "AAAA": 20,
+    "CAA": 1800,
+    "MX": 7200,
+    "NS": 86400,
+    "SOA": 14400,
+    "TXT": 300
+  },
+  "authoritative_records": {
+    "A": [
+      "173.223.234.147",
+      "173.223.234.143"
+    ],
+    "AAAA": [
+      "2600:1406:5e00:9f::17d2:d890",
+      "2600:1406:5e00:9f::17d2:d89c"
+    ],
+    "CAA": [
+      "0 iodef \"mailto:caanotices@uce.cia.gov\"",
+      "0 issue \"digicert.com\""
+    ],
+    "DMARC": [
+      "v=DMARC1; p=quarantine; sp=quarantine; pct=100; rua=mailto:demarcreports@uce.cia.gov; ruf=mailto:demarcfailures@uce.cia.gov; ri=86400; aspf=s; adkim=s; fo=1"
+    ],
+    "MTA-STS": [],
+    "MX": [
+      "10 mail3.cia.gov.",
+      "10 mail4.cia.gov."
+    ],
+    "NS": [
+      "a1-22.akam.net.",
+      "a3-64.akam.net.",
+      "a22-66.akam.net.",
+      "a13-65.akam.net.",
+      "a16-67.akam.net.",
+      "a12-65.akam.net."
+    ],
+    "SOA": [
+      "a1-22.akam.net. monrpt.cia.gov. 2015111813 7200 3600 2419200 14400"
+    ],
+    "TLS-RPT": [],
+    "TXT": [
+      "v=spf1 mx -all"
+    ]
+  },
+  "basic_records": {
+    "A": [
+      "173.223.234.143",
+      "173.223.234.147"
+    ],
+    "AAAA": [
+      "2600:1406:5e00:9f::17d2:d890",
+      "2600:1406:5e00:9f::17d2:d89c"
+    ],
+    "CAA": [
+      "0 issue \"digicert.com\"",
+      "0 iodef \"mailto:caanotices@uce.cia.gov\""
+    ],
+    "CNAME": null,
+    "DMARC": [
+      "v=DMARC1; p=quarantine; sp=quarantine; pct=100; rua=mailto:demarcreports@uce.cia.gov; ruf=mailto:demarcfailures@uce.cia.gov; ri=86400; aspf=s; adkim=s; fo=1"
+    ],
+    "MX": [
+      "10 mail3.cia.gov.",
+      "10 mail4.cia.gov."
+    ],
+    "NS": [
+      "a1-22.akam.net.",
+      "a12-65.akam.net.",
+      "a13-65.akam.net.",
+      "a16-67.akam.net.",
+      "a22-66.akam.net.",
+      "a3-64.akam.net."
+    ],
+    "SOA": [
+      "a1-22.akam.net. monrpt.cia.gov. 2015111813 7200 3600 2419200 14400"
+    ],
+    "SRV": [],
+    "TXT": [
+      "v=spf1 mx -all"
+    ]
+  },
+  "bimi_analysis": {
+    "bimi_state": "absent_confirmed",
+    "logo_error": null,
+    "logo_format": null,
+    "logo_url": null,
+    "logo_valid": null,
+    "message": "No BIMI record found",
+    "record": null,
+    "status": "warning",
+    "vmc_error": null,
+    "vmc_issuer": null,
+    "vmc_subject": null,
+    "vmc_url": null,
+    "vmc_valid": null
+  },
+  "caa_analysis": {
+    "caa_state": "present",
+    "has_iodef": true,
+    "has_wildcard": false,
+    "issuers": [
+      "DigiCert"
+    ],
+    "message": "CAA configured - only DigiCert can issue certificates",
+    "mpic_note": "Since September 2025, all public CAs must verify domain control from multiple geographic locations (Multi-Perspective Issuance Corroboration, CA/B Forum Ballot SC-067). CAA records are now checked from multiple network perspectives before certificate issuance.",
+    "records": [
+      "0 iodef \"mailto:caanotices@uce.cia.gov\"",
+      "0 issue \"digicert.com\""
+    ],
+    "status": "success",
+    "wildcard_issuers": null
+  },
+  "calibrated_confidence": {
+    "BIMI": 0.71125,
+    "CAA": 0.528125,
+    "DANE": 0.709375,
+    "DKIM": 0.525,
+    "DMARC": 0.529375,
+    "DNSSEC": 0.52625,
+    "MTA_STS": 0.7125,
+    "SPF": 0.528125,
+    "TLS_RPT": 0.714375
+  },
+  "cds_cdnskey": {
+    "automation": "none",
+    "cdnskey_records": [],
+    "cds_records": [],
+    "has_cdnskey": false,
+    "has_cds": false,
+    "issues": [],
+    "message": "No CDS/CDNSKEY records found \u2014 no automated DNSSEC key rollover signaling",
+    "status": "info"
+  },
+  "cross_reference": {
+    "comparisons": {
+      "cloudflare": [
+        {
+          "match": "mismatch",
+          "our_records": [
+            "173.223.234.143",
+            "173.223.234.147"
+          ],
+          "record_type": "A",
+          "their_records": [
+            "23.32.152.108",
+            "23.32.152.110"
+          ]
+        },
+        {
+          "match": "mismatch",
+          "our_records": [
+            "2600:1406:5e00:9f::17d2:d890",
+            "2600:1406:5e00:9f::17d2:d89c"
+          ],
+          "record_type": "AAAA",
+          "their_records": [
+            "2600:1406:5400::170f:f15a",
+            "2600:1406:5400::170f:f161"
+          ]
+        },
+        {
+          "match": "match",
+          "our_records": [
+            "10 mail3.cia.gov.",
+            "10 mail4.cia.gov."
+          ],
+          "record_type": "MX",
+          "their_records": [
+            "10 mail3.cia.gov",
+            "10 mail4.cia.gov"
+          ]
+        },
+        {
+          "match": "match",
+          "our_records": [
+            "a1-22.akam.net.",
+            "a12-65.akam.net.",
+            "a13-65.akam.net.",
+            "a16-67.akam.net.",
+            "a22-66.akam.net.",
+            "a3-64.akam.net."
+          ],
+          "record_type": "NS",
+          "their_records": [
+            "a1-22.akam.net",
+            "a12-65.akam.net",
+            "a13-65.akam.net",
+            "a16-67.akam.net",
+            "a22-66.akam.net",
+            "a3-64.akam.net"
+          ]
+        },
+        {
+          "match": "match",
+          "our_records": [
+            "v=spf1 mx -all"
+          ],
+          "record_type": "TXT",
+          "their_records": [
+            "v=spf1 mx -all"
+          ]
+        },
+        {
+          "match": "match",
+          "our_records": null,
+          "record_type": "CNAME",
+          "their_records": []
+        }
+      ],
+      "google": [
+        {
+          "match": "match",
+          "our_records": [
+            "173.223.234.143",
+            "173.223.234.147"
+          ],
+          "record_type": "A",
+          "their_records": [
+            "173.223.234.143",
+            "173.223.234.147"
+          ]
+        },
+        {
+          "match": "match",
+          "our_records": [
+            "2600:1406:5e00:9f::17d2:d890",
+            "2600:1406:5e00:9f::17d2:d89c"
+          ],
+          "record_type": "AAAA",
+          "their_records": [
+            "2600:1406:5e00:9f::17d2:d890",
+            "2600:1406:5e00:9f::17d2:d89c"
+          ]
+        },
+        {
+          "match": "match",
+          "our_records": [
+            "10 mail3.cia.gov.",
+            "10 mail4.cia.gov."
+          ],
+          "record_type": "MX",
+          "their_records": [
+            "10 mail3.cia.gov",
+            "10 mail4.cia.gov"
+          ]
+        },
+        {
+          "match": "match",
+          "our_records": [
+            "a1-22.akam.net.",
+            "a12-65.akam.net.",
+            "a13-65.akam.net.",
+            "a16-67.akam.net.",
+            "a22-66.akam.net.",
+            "a3-64.akam.net."
+          ],
+          "record_type": "NS",
+          "their_records": [
+            "a1-22.akam.net",
+            "a12-65.akam.net",
+            "a13-65.akam.net",
+            "a16-67.akam.net",
+            "a22-66.akam.net",
+            "a3-64.akam.net"
+          ]
+        },
+        {
+          "match": "match",
+          "our_records": [
+            "v=spf1 mx -all"
+          ],
+          "record_type": "TXT",
+          "their_records": [
+            "v=spf1 mx -all"
+          ]
+        },
+        {
+          "match": "match",
+          "our_records": null,
+          "record_type": "CNAME",
+          "their_records": []
+        }
+      ]
+    },
+    "domain": "cia.gov",
+    "generated_at": "2026-07-31T06:08:11Z",
+    "manual_verify": {
+      "cloudflare_doh": "https://cloudflare-dns.com/dns-query?name=cia.gov&type=A",
+      "google_dig_a": "https://toolbox.googleapps.com/apps/dig/#A/cia.gov",
+      "google_dig_mx": "https://toolbox.googleapps.com/apps/dig/#MX/cia.gov",
+      "google_dig_ns": "https://toolbox.googleapps.com/apps/dig/#NS/cia.gov",
+      "google_dig_txt": "https://toolbox.googleapps.com/apps/dig/#TXT/cia.gov",
+      "google_doh": "https://dns.google/resolve?name=cia.gov&type=A"
+    },
+    "providers": {
+      "cloudflare": {
+        "endpoint": "https://cloudflare-dns.com/dns-query",
+        "latency_ms": 4419,
+        "name": "cloudflare",
+        "query_urls": {
+          "A": "https://cloudflare-dns.com/dns-query?name=cia.gov&type=A",
+          "AAAA": "https://cloudflare-dns.com/dns-query?name=cia.gov&type=AAAA",
+          "CNAME": "https://cloudflare-dns.com/dns-query?name=cia.gov&type=CNAME",
+          "MX": "https://cloudflare-dns.com/dns-query?name=cia.gov&type=MX",
+          "NS": "https://cloudflare-dns.com/dns-query?name=cia.gov&type=NS",
+          "TXT": "https://cloudflare-dns.com/dns-query?name=cia.gov&type=TXT"
+        },
+        "records": {
+          "A": [
+            "23.32.152.108",
+            "23.32.152.110"
+          ],
+          "AAAA": [
+            "2600:1406:5400::170f:f15a",
+            "2600:1406:5400::170f:f161"
+          ],
+          "CNAME": [],
+          "MX": [
+            "10 mail3.cia.gov",
+            "10 mail4.cia.gov"
+          ],
+          "NS": [
+            "a1-22.akam.net",
+            "a12-65.akam.net",
+            "a13-65.akam.net",
+            "a16-67.akam.net",
+            "a22-66.akam.net",
+            "a3-64.akam.net"
+          ],
+          "TXT": [
+            "v=spf1 mx -all"
+          ]
+        },
+        "status": "ok"
+      },
+      "google": {
+        "endpoint": "https://dns.google/resolve",
+        "latency_ms": 3972,
+        "name": "google",
+        "query_urls": {
+          "A": "https://dns.google/resolve?name=cia.gov&type=A",
+          "AAAA": "https://dns.google/resolve?name=cia.gov&type=AAAA",
+          "CNAME": "https://dns.google/resolve?name=cia.gov&type=CNAME",
+          "MX": "https://dns.google/resolve?name=cia.gov&type=MX",
+          "NS": "https://dns.google/resolve?name=cia.gov&type=NS",
+          "TXT": "https://dns.google/resolve?name=cia.gov&type=TXT"
+        },
+        "records": {
+          "A": [
+            "173.223.234.143",
+            "173.223.234.147"
+          ],
+          "AAAA": [
+            "2600:1406:5e00:9f::17d2:d890",
+            "2600:1406:5e00:9f::17d2:d89c"
+          ],
+          "CNAME": [],
+          "MX": [
+            "10 mail3.cia.gov",
+            "10 mail4.cia.gov"
+          ],
+          "NS": [
+            "a1-22.akam.net",
+            "a12-65.akam.net",
+            "a13-65.akam.net",
+            "a16-67.akam.net",
+            "a22-66.akam.net",
+            "a3-64.akam.net"
+          ],
+          "TXT": [
+            "v=spf1 mx -all"
+          ]
+        },
+        "status": "ok"
+      }
+    },
+    "record_types": [
+      "A",
+      "AAAA",
+      "MX",
+      "NS",
+      "TXT",
+      "CNAME"
+    ],
+    "schema_version": "1.0",
+    "summary": {
+      "matched": 10,
+      "mismatched": 2,
+      "total_checks": 12,
+      "unavailable": 0,
+      "verdict": "discrepancy_detected"
+    }
+  },
+  "ct_subdomains": {
+    "ca_summary": [
+      {
+        "active": true,
+        "cert_count": 7,
+        "first_seen": "2025-08-13",
+        "last_seen": "2026-07-29",
+        "name": "DigiCert Inc"
+      }
+    ],
+    "caveat": "Subdomains discovered via CT logs (RFC 6962), DNS probing of common service names, and CNAME chain traversal.",
+    "cname_count": 0,
+    "cname_discovered_count": 0,
+    "ct_available": true,
+    "ct_source": "live",
+    "current_count": "15",
+    "displayed_count": 15,
+    "expired_count": "0",
+    "providers_found": 0,
+    "source": "Certificate Transparency + DNS Intelligence",
+    "status": "success",
+    "subdomains": [
+      {
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
+        "name": "appsen.cia.gov",
+        "source": "external_tools"
+      },
+      {
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
+        "name": "comm.cia.gov",
+        "source": "external_tools"
+      },
+      {
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
+        "name": "crypt.cia.gov",
+        "source": "external_tools"
+      },
+      {
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
+        "name": "crypt1.cia.gov",
+        "source": "external_tools"
+      },
+      {
+        "cert_count": "1",
+        "first_seen": "2026-03-26T00:00:00",
+        "is_current": true,
+        "issuers": [
+          "DigiCert Inc"
+        ],
+        "name": "mail3.cia.gov",
+        "source": "ct"
+      },
+      {
+        "cert_count": "1",
+        "first_seen": "2026-03-26T00:00:00",
+        "is_current": true,
+        "issuers": [
+          "DigiCert Inc"
+        ],
+        "name": "mail4.cia.gov",
+        "source": "ct"
+      },
+      {
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
+        "name": "mivsp.cia.gov",
+        "source": "external_tools"
+      },
+      {
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
+        "name": "relay1.cia.gov",
+        "source": "dns"
+      },
+      {
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
+        "name": "relay201.net.cia.gov",
+        "source": "external_tools"
+      },
+      {
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
+        "name": "relay202.net.cia.gov",
+        "source": "external_tools"
+      },
+      {
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
+        "name": "relay203.net.cia.gov",
+        "source": "external_tools"
+      },
+      {
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
+        "name": "relay204.net.cia.gov",
+        "source": "external_tools"
+      },
+      {
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
+        "name": "relay301.net.cia.gov",
+        "source": "external_tools"
+      },
+      {
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
+        "name": "res.cia.gov",
+        "source": "external_tools"
+      },
+      {
+        "cert_count": "6",
+        "cname_target": "cia.gov.edgekey.net",
+        "first_seen": "2026-07-29T00:00:00",
+        "is_current": true,
+        "issuers": [
+          "DigiCert Inc"
+        ],
+        "name": "www.cia.gov",
+        "source": "ct"
+      }
+    ],
+    "total_certs": 8,
+    "unique_certs": 7,
+    "unique_subdomains": 15
+  },
+  "currency_report": {
+    "overall_grade": "good",
+    "overall_score": 76.6547619047619,
+    "dimensions": [
+      {
+        "dimension": "currentness",
+        "standard": "ISO/IEC 25012",
+        "grade": "excellent",
+        "score": 100,
+        "details": "All record data is within its TTL validity window",
+        "record_types_evaluated": 7
+      },
+      {
+        "dimension": "ttl_compliance",
+        "standard": "RFC 8767",
+        "grade": "excellent",
+        "score": 100,
+        "details": "All resolver TTLs are within authoritative limits (RFC 8767 compliant)",
+        "record_types_evaluated": 7
+      },
+      {
+        "dimension": "completeness",
+        "standard": "NIST SP 800-53 SI-7",
+        "grade": "degraded",
+        "score": 46.666666666666664,
+        "details": "8 of 15 expected record types are missing TTL data",
+        "record_types_evaluated": 7
+      },
+      {
+        "dimension": "source_credibility",
+        "standard": "ISO/IEC 25012 + SPJ",
+        "grade": "excellent",
+        "score": 93.75,
+        "details": "All resolvers return consistent data \u2014 high source credibility",
+        "record_types_evaluated": 4
+      },
+      {
+        "dimension": "ttl_relevance",
+        "standard": "NIST SP 800-53 SI-7",
+        "grade": "degraded",
+        "score": 42.857142857142854,
+        "details": "Multiple TTLs significantly deviate from standards \u2014 review DNS configuration",
+        "record_types_evaluated": 7,
+        "findings": [
+          {
+            "record_type": "TXT",
+            "observed_ttl": 300,
+            "typical_ttl": 3600,
+            "ratio": 0.08333333333333333,
+            "severity": "high",
+            "standard": "NIST SP 800-53 SI-7",
+            "recommendation": "TXT TTL is below typical \u2014 observed 5 minutes (300s), typical value is 1 hour (3600s). Short TTLs increase DNS query volume but enable faster propagation. If you are preparing for a migration or need rapid failover, this may be intentional (RFC 1035 \u00a73.2.1). For steady-state production, consider 3600 seconds per NIST SP 800-53 SI-7 relevance guidance. Use the TTL Tuner for profile-specific recommendations."
+          },
+          {
+            "record_type": "NS",
+            "observed_ttl": 21600,
+            "typical_ttl": 86400,
+            "ratio": 0.25,
+            "severity": "medium",
+            "standard": "NIST SP 800-53 SI-7",
+            "recommendation": "NS TTL is below typical \u2014 observed 6 hours (21600s), typical value is 1 day (86400s). Short TTLs increase DNS query volume but enable faster propagation. If you are preparing for a migration or need rapid failover, this may be intentional (RFC 1035 \u00a73.2.1). For steady-state production, consider 86400 seconds per NIST SP 800-53 SI-7 relevance guidance. Use the TTL Tuner for profile-specific recommendations."
+          },
+          {
+            "record_type": "AAAA",
+            "observed_ttl": 20,
+            "typical_ttl": 3600,
+            "ratio": 0.005555555555555556,
+            "severity": "high",
+            "standard": "NIST SP 800-53 SI-7",
+            "recommendation": "AAAA TTL is below typical \u2014 observed 20s, typical value is 1 hour (3600s). Short TTLs increase DNS query volume but enable faster propagation. If you are preparing for a migration or need rapid failover, this may be intentional (RFC 1035 \u00a73.2.1). For steady-state production, consider 3600 seconds per NIST SP 800-53 SI-7 relevance guidance. Use the TTL Tuner for profile-specific recommendations."
+          },
+          {
+            "record_type": "A",
+            "observed_ttl": 20,
+            "typical_ttl": 3600,
+            "ratio": 0.005555555555555556,
+            "severity": "high",
+            "standard": "NIST SP 800-53 SI-7",
+            "recommendation": "A TTL is below typical \u2014 observed 20s, typical value is 1 hour (3600s). Short TTLs increase DNS query volume but enable faster propagation. If you are preparing for a migration or need rapid failover, this may be intentional (RFC 1035 \u00a73.2.1). For steady-state production, consider 3600 seconds per NIST SP 800-53 SI-7 relevance guidance. Use the TTL Tuner for profile-specific recommendations."
+          },
+          {
+            "record_type": "SOA",
+            "observed_ttl": 14400,
+            "typical_ttl": 3600,
+            "ratio": 4,
+            "severity": "medium",
+            "standard": "NIST SP 800-53 SI-7",
+            "recommendation": "SOA TTL is above typical \u2014 observed 4 hours (14400s), typical value is 1 hour (3600s). Long TTLs reduce DNS query volume but slow propagation when records change. Consider 3600 seconds for a balance of performance and flexibility per NIST SP 800-53 SI-7 relevance guidance."
+          }
+        ]
+      }
+    ],
+    "resolver_count": 5,
+    "record_count": 7,
+    "guidance": "DNS data is mostly current with minor gaps \u2014 good intelligence currency",
+    "soa_compliance": {
+      "provider": "",
+      "has_soa": true,
+      "serial": "2015111813",
+      "refresh": 7200,
+      "retry": 3600,
+      "expire": 2419200,
+      "min_ttl": 14400,
+      "primary_ns": "a1-22.akam.net",
+      "admin_email": "monrpt.cia.gov"
+    }
+  },
+  "dane_analysis": {
+    "dane_deployable": true,
+    "dane_state": "absent_confirmed",
+    "dnssec_authenticated": false,
+    "dnssec_chain_status": "unknown",
+    "dnssec_required_note": "DANE requires DNSSEC (RFC 6698 \u00a71). TLSA records are only validated when the zone is DNSSEC-signed.",
+    "has_dane": false,
+    "indeterminate_hosts": [],
+    "issues": null,
+    "message": "No DANE/TLSA records found (checked 2 MX hosts)",
+    "mx_hosts_checked": 2,
+    "mx_hosts_indeterminate": 0,
+    "mx_hosts_with_dane": 0,
+    "mx_provider": null,
+    "requires_dnssec": true,
+    "status": "info",
+    "tlsa_records": null
+  },
+  "dangling_dns": {
+    "checked": true,
+    "dangling_count": 0,
+    "dangling_records": null,
+    "issues": [],
+    "message": "No dangling DNS records detected",
+    "status": "success"
+  },
+  "delegation_consistency": {
+    "ds_key_alignment": {
+      "aligned": false,
+      "issues": [
+        "DNSKEY records missing at child \u2014 DS records at parent have no matching keys"
+      ],
+      "matched_pairs": [],
+      "unmatched_ds": [
+        {
+          "algorithm": 8,
+          "digest_type": 2,
+          "key_tag": 1015,
+          "raw": "cia.gov.\t3600\tIN\tDS\t1015 8 2 66B64EA16CD54EEC14BDEF2ECA16E1BCC62A2DD7A95FE64A24CBAF2A7E411436"
+        },
+        {
+          "algorithm": 8,
+          "digest_type": 2,
+          "key_tag": 25534,
+          "raw": "cia.gov.\t3600\tIN\tDS\t25534 8 2 4F6E9F886A649976127D3A4746108C2461E2D9198F1D24C869CFD9E91E2CF5B3"
+        },
+        {
+          "algorithm": 8,
+          "digest_type": 2,
+          "key_tag": 48959,
+          "raw": "cia.gov.\t3600\tIN\tDS\t48959 8 2 DEB2A237884DDCFD20BDFF8E8FA81F4A4B7ED069E1E4E2ED79CAE7707D1CFFFC"
+        },
+        {
+          "algorithm": 8,
+          "digest_type": 2,
+          "key_tag": 62599,
+          "raw": "cia.gov.\t3600\tIN\tDS\t62599 8 2 E51AE54018E41619F97076A56C969D10A71B4D0050DBF1E6AB8DE2F8CF023AE5"
+        }
+      ],
+      "unmatched_keys": []
+    },
+    "glue_analysis": {
+      "complete": true,
+      "glue_missing": 0,
+      "glue_present": 0,
+      "in_bailiwick_count": 0,
+      "issues": [],
+      "nameservers": [
+        {
+          "complete": true,
+          "has_ipv4_glue": false,
+          "has_ipv6_glue": false,
+          "in_bailiwick": false,
+          "ns": "a1-22.akam.net"
+        },
+        {
+          "complete": true,
+          "has_ipv4_glue": false,
+          "has_ipv6_glue": false,
+          "in_bailiwick": false,
+          "ns": "a12-65.akam.net"
+        },
+        {
+          "complete": true,
+          "has_ipv4_glue": false,
+          "has_ipv6_glue": false,
+          "in_bailiwick": false,
+          "ns": "a13-65.akam.net"
+        },
+        {
+          "complete": true,
+          "has_ipv4_glue": false,
+          "has_ipv6_glue": false,
+          "in_bailiwick": false,
+          "ns": "a16-67.akam.net"
+        },
+        {
+          "complete": true,
+          "has_ipv4_glue": false,
+          "has_ipv6_glue": false,
+          "in_bailiwick": false,
+          "ns": "a22-66.akam.net"
+        },
+        {
+          "complete": true,
+          "has_ipv4_glue": false,
+          "has_ipv6_glue": false,
+          "in_bailiwick": false,
+          "ns": "a3-64.akam.net"
+        }
+      ]
+    },
+    "issues": [
+      "DNSKEY records missing at child \u2014 DS records at parent have no matching keys",
+      "Could not retrieve NS TTL from parent zone"
+    ],
+    "message": "Delegation consistency: 2 issue(s) found",
+    "soa_consistency": {
+      "consistent": true,
+      "issues": [],
+      "serials": {
+        "a1-22.akam.net": 2015111813,
+        "a12-65.akam.net": 2015111813,
+        "a13-65.akam.net": 2015111813,
+        "a16-67.akam.net": 2015111813,
+        "a22-66.akam.net": 2015111813,
+        "a3-64.akam.net": 2015111813
+      },
+      "unique_count": 1
+    },
+    "status": "warning",
+    "ttl_comparison": {
+      "child_ttl": 86400,
+      "drift_secs": 0,
+      "issues": [
+        "Could not retrieve NS TTL from parent zone"
+      ],
+      "match": false
+    }
+  },
+  "dkim_analysis": {
+    "domainkey_delegation": null,
+    "found_providers": null,
+    "key_issues": null,
+    "key_strengths": [
+      "2048-bit"
+    ],
+    "message": "Found DKIM for 1 selector(s) with strong keys (2048-bit)",
+    "mx_legacy_note": "",
+    "primary_dkim_note": "",
+    "primary_has_dkim": false,
+    "primary_provider": "Unknown",
+    "security_gateway": null,
+    "selectors": {
+      "s1._domainkey": {
+        "key_info": [
+          {
+            "issues": [],
+            "key_bits": 2048,
+            "key_strength": "adequate",
+            "key_strength_label": "Adequate",
+            "key_strength_observation": "2048-bit RSA \u2014 recommended standard (RFC 8301, NIST guidance)",
+            "key_strength_rfc": "RFC 8301",
+            "key_type": "rsa",
+            "revoked": false,
+            "test_mode": false
+          }
+        ],
+        "provider": "Unknown",
+        "records": [
+          "v=DKIM1; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDWKDG6o+aUX3ov7h3zsv1mjQ5oTy8kFUYXMtgRQxrk3BHfM7cEXysehX3MaOgf/1JuN1dzmbwTMG9WqY1ikhQTjWbi0qVP0LMw7QSXmkdpmGl/QXEKp5LJDNGTuE3yPtD/068WPe1wYI2Oqx/ODOkxF4LUx7tbhjBBgzXtl8/Z5QIDAQAB;"
+        ],
+        "user_hint": false
+      }
+    },
+    "spf_ancillary_note": "",
+    "status": "success",
+    "third_party_only": false,
+    "wildcard_dkim": false
+  },
+  "dmarc_analysis": {
+    "adkim": "strict",
+    "aspf": "strict",
+    "dmarc_like": null,
+    "dmarc_state": "present",
+    "dmarcbis_tags": {},
+    "issues": null,
+    "message": "DMARC policy quarantine (100%) - good protection",
+    "np_policy": null,
+    "pct": 100,
+    "policy": "quarantine",
+    "psd_flag": null,
+    "records": [
+      "v=DMARC1; p=quarantine; sp=quarantine; pct=100; rua=mailto:demarcreports@uce.cia.gov; ruf=mailto:demarcfailures@uce.cia.gov; ri=86400; aspf=s; adkim=s; fo=1"
+    ],
+    "rua": "mailto:demarcreports@uce.cia.gov",
+    "ruf": "mailto:demarcfailures@uce.cia.gov",
+    "ruf_note": {
+      "detail": "RFC 7489 \u00a77.3 warns that forensic reports can expose PII (full message headers or bodies). Google, Microsoft, and Yahoo do not honour ruf= requests. The DMARCbis draft (draft-ietf-dmarc-dmarcbis) has formally removed ruf= from the specification. Consider removing this tag to simplify your record.",
+      "status": "present",
+      "summary": "Forensic reporting (ruf) is configured, but most major providers do not send forensic reports."
+    },
+    "status": "success",
+    "subdomain_policy": "quarantine",
+    "t_testing": null,
+    "unknown_tags": null,
+    "valid_records": [
+      "v=DMARC1; p=quarantine; sp=quarantine; pct=100; rua=mailto:demarcreports@uce.cia.gov; ruf=mailto:demarcfailures@uce.cia.gov; ri=86400; aspf=s; adkim=s; fo=1"
+    ]
+  },
+  "dmarc_report_auth": {
+    "checked": false,
+    "external_domains": [],
+    "issues": [],
+    "message": "No external reporting domains detected",
+    "status": "success"
+  },
+  "dns_infrastructure": {
+    "alt_security_items": [
+      "CAA records configured",
+      "DNSSEC validated"
+    ],
+    "assessment": "Enterprise-grade DNS infrastructure",
+    "explains_no_dnssec": false,
+    "is_government": false,
+    "provider": "Akamai Edge DNS",
+    "provider_features": [
+      "Global Anycast",
+      "DDoS protection",
+      "Enterprise security"
+    ],
+    "provider_tier": "enterprise"
+  },
+  "dnssec_analysis": {
+    "ad_flag": true,
+    "ad_resolver": "1.1.1.1",
+    "algorithm": 3597,
+    "algorithm_name": "Algorithm 3597",
+    "algorithm_observation": {
+      "label": "Adequate",
+      "observation": "Algorithm 3597 \u2014 not classified in RFC 8624",
+      "quantum_note": "All current DNSSEC algorithms use classical cryptography. Post-quantum DNSSEC standards are in active IETF development (draft-sheth-pqc-dnssec-strategy) but no PQC algorithms have been standardized for DNSSEC yet.",
+      "rfc": "RFC 8624 / RFC 9157",
+      "strength": "adequate"
+    },
+    "chain_of_trust": "complete",
+    "dnskey_records": [
+      "cia.gov.\t7200\tIN\tDNSKEY\t256 3 8 AwEAAZwSq7zzwVQPSvdAEScPc6XhZkmKY2FI2RqSIe4zCFO6tu9mBgLKnZh3wTKnGomk...",
+      "cia.gov.\t7200\tIN\tDNSKEY\t256 3 8 AwEAAbMJzW7lEPwhmzXxqXATt9vbAX49qji3fDnK55EyI+VRVzv2kzUoQeyc5dgY7+5N...",
+      "cia.gov.\t7200\tIN\tDNSKEY\t257 3 8 AwEAAbKbY60FP57sJs5TPohdiRc3JgR9Ge3RNmMuAI5KNHBR54Kfcjsc17OYfjne0hyD..."
+    ],
+    "dnssec_state": "present",
+    "ds_records": [
+      "cia.gov.\t3597\tIN\tDS\t1015 8 2 66B64EA16CD54EEC14BDEF2ECA16E1BCC62A2DD7A95FE64A24CBAF2A7E411436",
+      "cia.gov.\t3597\tIN\tDS\t48959 8 2 DEB2A237884DDCFD20BDFF8E8FA81F4A4B7ED069E1E4E2ED79CAE7707D1CFFFC",
+      "cia.gov.\t3597\tIN\tDS\t62599 8 2 E51AE54018E41619F97076A56C969D10A71B4D0050DBF1E6AB8DE2F8CF023AE5"
+    ],
+    "has_dnskey": true,
+    "has_ds": true,
+    "message": "DNSSEC fully configured and validated \u2014 AD (Authenticated Data) flag set by resolver 1.1.1.1 confirming cryptographic chain of trust from root to zone (RFC 4035 \u00a73.2.3)",
+    "status": "success"
+  },
+  "dnssec_ops": {
+    "denial_of_existence": {
+      "method": "NSEC3",
+      "nsec3_flags": 0,
+      "nsec3_hash_algorithm": 1,
+      "nsec3_high_iterations": false,
+      "nsec3_iterations": 0,
+      "nsec3_salt_length": 0
+    },
+    "issues": [
+      "RRSIG for NS (key tag 33780) expires in 58h30m0s \u2014 less than the time resolvers may keep it cached (TTL 86400s)",
+      "Single KSK with no CDS/CDNSKEY automation \u2014 manual rollover required"
+    ],
+    "key_count": 3,
+    "keys": [
+      {
+        "algorithm": 8,
+        "algorithm_name": "RSA/SHA-256",
+        "flags": 256,
+        "key_role": "ZSK",
+        "key_size": 1056,
+        "key_tag": 33780,
+        "protocol": 3
+      },
+      {
+        "algorithm": 8,
+        "algorithm_name": "RSA/SHA-256",
+        "flags": 256,
+        "key_role": "ZSK",
+        "key_size": 1056,
+        "key_tag": 45988,
+        "protocol": 3
+      },
+      {
+        "algorithm": 8,
+        "algorithm_name": "RSA/SHA-256",
+        "flags": 257,
+        "key_role": "KSK",
+        "key_size": 2088,
+        "key_tag": 1015,
+        "protocol": 3
+      }
+    ],
+    "ksk_algorithms": [
+      "RSA/SHA-256"
+    ],
+    "message": "DNSSEC operational notes: 2 item(s) to review",
+    "rollover_readiness": {
+      "automation": "none",
+      "has_cdnskey": false,
+      "has_cds": false,
+      "multiple_ksks": false,
+      "readiness": "not_ready"
+    },
+    "signature_count": 7,
+    "signatures": [
+      {
+        "algorithm": 8,
+        "expiration": "2026-08-02T16:37:05Z",
+        "expired": false,
+        "expiring_soon": false,
+        "inception": "2026-07-30T15:37:05Z",
+        "key_tag": 33780,
+        "labels": 2,
+        "signer": "cia.gov.",
+        "time_to_expiry": "58h29m49.434843s",
+        "ttl": 14400,
+        "type_covered": "NSEC3PARAM"
+      },
+      {
+        "algorithm": 8,
+        "expiration": "2026-08-02T16:37:05Z",
+        "expired": false,
+        "expiring_soon": false,
+        "inception": "2026-07-30T15:37:05Z",
+        "key_tag": 33780,
+        "labels": 2,
+        "signer": "cia.gov.",
+        "time_to_expiry": "58h29m49.434843s",
+        "ttl": 1800,
+        "type_covered": "CAA"
+      },
+      {
+        "algorithm": 8,
+        "expiration": "2026-08-02T16:37:05Z",
+        "expired": false,
+        "expiring_soon": false,
+        "inception": "2026-07-30T15:37:05Z",
+        "key_tag": 33780,
+        "labels": 2,
+        "signer": "cia.gov.",
+        "time_to_expiry": "58h29m49.434843s",
+        "ttl": 300,
+        "type_covered": "TXT"
+      },
+      {
+        "algorithm": 8,
+        "expiration": "2026-08-02T16:37:05Z",
+        "expired": false,
+        "expiring_soon": false,
+        "inception": "2026-07-30T15:37:05Z",
+        "key_tag": 33780,
+        "labels": 2,
+        "signer": "cia.gov.",
+        "time_to_expiry": "58h29m49.434843s",
+        "ttl": 14400,
+        "type_covered": "SOA"
+      },
+      {
+        "algorithm": 8,
+        "expiration": "2026-08-02T16:37:05Z",
+        "expired": false,
+        "expiring_soon": false,
+        "inception": "2026-07-30T15:37:05Z",
+        "key_tag": 1015,
+        "labels": 2,
+        "signer": "cia.gov.",
+        "time_to_expiry": "58h29m49.434843s",
+        "ttl": 7200,
+        "type_covered": "DNSKEY"
+      },
+      {
+        "algorithm": 8,
+        "expiration": "2026-08-02T16:37:05Z",
+        "expired": false,
+        "expiring_soon": false,
+        "inception": "2026-07-30T15:37:05Z",
+        "key_tag": 33780,
+        "labels": 2,
+        "signer": "cia.gov.",
+        "time_to_expiry": "58h29m49.434843s",
+        "ttl": 7200,
+        "type_covered": "MX"
+      },
+      {
+        "algorithm": 8,
+        "expiration": "2026-08-02T16:37:05Z",
+        "expired": false,
+        "expiring_soon": false,
+        "inception": "2026-07-30T15:37:05Z",
+        "key_tag": 33780,
+        "labels": 2,
+        "signer": "cia.gov.",
+        "time_to_expiry": "58h29m49.434843s",
+        "ttl": 86400,
+        "type_covered": "NS"
+      }
+    ],
+    "status": "warning",
+    "zsk_algorithms": [
+      "RSA/SHA-256",
+      "RSA/SHA-256"
+    ]
+  },
+  "domain": "cia.gov",
+  "domain_exists": true,
+  "domain_status": "active",
+  "domain_status_message": null,
+  "edge_cdn": {
+    "cdn_indicators": [],
+    "cdn_provider": "",
+    "is_behind_cdn": false,
+    "issues": [],
+    "message": "Domain appears to use direct origin hosting",
+    "origin_visible": true,
+    "status": "success"
+  },
+  "email_security_mgmt": {
+    "actively_managed": false,
+    "confidence": {
+      "label": "Inferred",
+      "level": "inferred",
+      "method": "DMARC rua/ruf domain matching"
+    },
+    "provider_count": 0,
+    "providers": [],
+    "spf_flattening": null
+  },
+  "ewma_drift": {
+    "ChainCompleteness": {
+      "Value": 47.733333333333334,
+      "UCL": 57.68374908491942,
+      "LCL": 42.31625091508058,
+      "OutOfControl": false,
+      "Trend": "stable",
+      "Period": 2
+    },
+    "ResolverConsensus": {
+      "Value": 44.57142857142858,
+      "UCL": 57.68374908491942,
+      "LCL": 42.31625091508058,
+      "OutOfControl": false,
+      "Trend": "stable",
+      "Period": 2
+    },
+    "SourceCredibility": {
+      "Value": 66.75,
+      "UCL": 57.68374908491942,
+      "LCL": 42.31625091508058,
+      "OutOfControl": true,
+      "Trend": "stable",
+      "Period": 2
+    },
+    "TTLCompliance": {
+      "Value": 68,
+      "UCL": 57.68374908491942,
+      "LCL": 42.31625091508058,
+      "OutOfControl": true,
+      "Trend": "stable",
+      "Period": 2
+    },
+    "TemporalValidity": {
+      "Value": 68,
+      "UCL": 57.68374908491942,
+      "LCL": 42.31625091508058,
+      "OutOfControl": true,
+      "Trend": "stable",
+      "Period": 2
+    }
+  },
+  "freshness_matrix": {
+    "entries": [
+      {
+        "record_type": "A",
+        "observed_ttl_seconds": 20,
+        "typical_ttl_seconds": 300,
+        "rescan_after_seconds": 30,
+        "rescan_label": "30 seconds",
+        "propagation_note": "A records typically propagate within 5 minutes. Some resolvers may cache up to the TTL value."
+      },
+      {
+        "record_type": "AAAA",
+        "observed_ttl_seconds": 20,
+        "typical_ttl_seconds": 300,
+        "rescan_after_seconds": 30,
+        "rescan_label": "30 seconds",
+        "propagation_note": "AAAA records follow the same propagation pattern as A records."
+      },
+      {
+        "record_type": "MX",
+        "observed_ttl_seconds": 7200,
+        "typical_ttl_seconds": 3600,
+        "rescan_after_seconds": 7921,
+        "rescan_label": "2 hours",
+        "propagation_note": "MX record changes may take up to 1 hour to propagate. Mail delivery may be affected during transition."
+      },
+      {
+        "record_type": "TXT",
+        "observed_ttl_seconds": 300,
+        "typical_ttl_seconds": 3600,
+        "rescan_after_seconds": 330,
+        "rescan_label": "5 minutes",
+        "propagation_note": "TXT records (including SPF) typically propagate within 1 hour. Verify with multiple resolvers."
+      },
+      {
+        "record_type": "NS",
+        "observed_ttl_seconds": 21600,
+        "typical_ttl_seconds": 86400,
+        "rescan_after_seconds": 23761,
+        "rescan_label": "6 hours",
+        "propagation_note": "Nameserver changes can take 24\u201348 hours for full global propagation due to parent zone TTLs."
+      },
+      {
+        "record_type": "CNAME",
+        "observed_ttl_seconds": 0,
+        "typical_ttl_seconds": 300,
+        "rescan_after_seconds": 330,
+        "rescan_label": "5 minutes",
+        "propagation_note": "CNAME changes propagate quickly but downstream records inherit the CNAME TTL."
+      },
+      {
+        "record_type": "CAA",
+        "observed_ttl_seconds": 1800,
+        "typical_ttl_seconds": 3600,
+        "rescan_after_seconds": 1981,
+        "rescan_label": "33 minutes",
+        "propagation_note": "CAA record changes take effect within TTL. Certificate authorities check at issuance time."
+      },
+      {
+        "record_type": "SOA",
+        "observed_ttl_seconds": 14400,
+        "typical_ttl_seconds": 3600,
+        "rescan_after_seconds": 15841,
+        "rescan_label": "4 hours",
+        "propagation_note": "SOA changes propagate to secondaries based on the Refresh interval in the SOA record."
+      },
+      {
+        "record_type": "SPF",
+        "observed_ttl_seconds": 0,
+        "typical_ttl_seconds": 3600,
+        "rescan_after_seconds": 3961,
+        "rescan_label": "1 hour",
+        "propagation_note": "SPF record changes propagate within the TXT record TTL. Test with dig before relying on scan results."
+      },
+      {
+        "record_type": "DMARC",
+        "observed_ttl_seconds": 0,
+        "typical_ttl_seconds": 3600,
+        "rescan_after_seconds": 3961,
+        "rescan_label": "1 hour",
+        "propagation_note": "DMARC policy changes at _dmarc subdomain propagate within TTL. Reporting changes take 24\u201348h to reflect in aggregate reports."
+      },
+      {
+        "record_type": "DKIM",
+        "observed_ttl_seconds": 0,
+        "typical_ttl_seconds": 3600,
+        "rescan_after_seconds": 3961,
+        "rescan_label": "1 hour",
+        "propagation_note": "DKIM selector records propagate within TTL. New selectors are available immediately once published; key rotation requires overlap period."
+      },
+      {
+        "record_type": "MTA-STS",
+        "observed_ttl_seconds": 0,
+        "typical_ttl_seconds": 86400,
+        "rescan_after_seconds": 86400,
+        "rescan_label": "24 hours",
+        "propagation_note": "MTA-STS policy changes require updating both the DNS TXT record AND the policy file at /.well-known/mta-sts.txt. The max_age directive in the policy controls how long senders cache it."
+      },
+      {
+        "record_type": "TLS-RPT",
+        "observed_ttl_seconds": 0,
+        "typical_ttl_seconds": 3600,
+        "rescan_after_seconds": 3961,
+        "rescan_label": "1 hour",
+        "propagation_note": "TLS-RPT changes propagate within TTL. Report delivery changes take effect in the next reporting period (typically 24 hours)."
+      },
+      {
+        "record_type": "BIMI",
+        "observed_ttl_seconds": 0,
+        "typical_ttl_seconds": 3600,
+        "rescan_after_seconds": 3961,
+        "rescan_label": "1 hour",
+        "propagation_note": "BIMI record changes propagate within TTL. VMC certificate validation by mail providers may take additional time."
+      },
+      {
+        "record_type": "TLSA",
+        "observed_ttl_seconds": 0,
+        "typical_ttl_seconds": 3600,
+        "rescan_after_seconds": 3961,
+        "rescan_label": "1 hour",
+        "propagation_note": "TLSA/DANE records must be published BEFORE rotating TLS certificates. Premature certificate rotation breaks DANE validation."
+      },
+      {
+        "record_type": "DNSSEC",
+        "observed_ttl_seconds": 0,
+        "typical_ttl_seconds": 86400,
+        "rescan_after_seconds": 86400,
+        "rescan_label": "24 hours",
+        "propagation_note": "DNSSEC signing changes (DS record updates at registrar) can take 24\u201348 hours. Key rollovers require careful timing per RFC 7583."
+      },
+      {
+        "record_type": "DANE",
+        "observed_ttl_seconds": 0,
+        "typical_ttl_seconds": 3600,
+        "rescan_after_seconds": 3961,
+        "rescan_label": "1 hour",
+        "propagation_note": "DANE/TLSA record updates follow the TLSA TTL. Coordinate with TLS certificate lifecycle."
+      }
+    ],
+    "entry_count": 17,
+    "guidance": "Re-scan times are based on observed TTL values from authoritative and resolver responses. After making DNS changes, wait at least the recommended interval before re-scanning for updated results.",
+    "max_rescan": 86400,
+    "min_rescan": 30
+  },
+  "has_null_mx": false,
+  "hosting_summary": {
+    "dns_confidence": {},
+    "dns_from_parent": false,
+    "dns_hosting": "Akamai Edge DNS",
+    "domain": "cia.gov",
+    "email_confidence": {},
+    "email_hosting": "Unknown",
+    "hosting": "Unknown",
+    "hosting_confidence": {}
+  },
+  "https_svcb": {
+    "has_https": false,
+    "has_svcb": false,
+    "https_records": [],
+    "issues": [],
+    "message": "No HTTPS or SVCB records found",
+    "status": "info",
+    "supports_ech": false,
+    "supports_http3": false,
+    "svcb_records": []
+  },
+  "icsae_classification": {
+    "real_fix_count": 1,
+    "color": "danger",
+    "real_fixes": [
+      "DMARC_ENFORCEMENT"
+    ],
+    "by_design": null,
+    "platform_limited": null,
+    "couldnt_verify": [
+      "DKIM_PRESENT",
+      "DELEGATION_CONSISTENT"
+    ],
+    "hygiene": [
+      "DNSSEC_KEY_ROLLOVER",
+      "DANE_DEPLOYED",
+      "BIMI_CONFIGURED",
+      "SECURITY_TXT_PRESENT",
+      "HTTPS_SVCB_MODERN"
+    ]
+  },
+  "icsae_evaluation": {
+    "schema_version": 8,
+    "total_controls": 16,
+    "passed_count": 7,
+    "failed_count": 8,
+    "na_count": 1,
+    "high_failures": [
+      "DMARC_ENFORCEMENT"
+    ],
+    "medium_failures": [
+      "DNSSEC_KEY_ROLLOVER",
+      "DKIM_PRESENT",
+      "DELEGATION_CONSISTENT"
+    ],
+    "low_failures": [
+      "DANE_DEPLOYED",
+      "BIMI_CONFIGURED",
+      "SECURITY_TXT_PRESENT",
+      "HTTPS_SVCB_MODERN"
+    ],
+    "passed": [
+      "DNSSEC_AUTHENTICATED",
+      "DNSSEC_CHAIN_TRUSTED",
+      "SPF_EFFECTIVE_POLICY",
+      "MAIL_POLICY_SIGNALING",
+      "CAA_RESTRICTION_PRESENT",
+      "DANGLING_DNS_CLEAN",
+      "SECRET_EXPOSURE_CLEAN"
+    ],
+    "not_applicable": [
+      "NO_MAIL_HARDENED"
+    ],
+    "results": [
+      {
+        "id": "DNSSEC_AUTHENTICATED",
+        "title": "DNSSEC Authentication",
+        "status": "passed",
+        "severity": "high",
+        "standards": [
+          "ISO_27002_2022:8.24",
+          "INCITS_585_2025:PW.6"
+        ],
+        "rfcs": [
+          "RFC4033",
+          "RFC4034",
+          "RFC4035"
+        ],
+        "weakness_refs": {
+          "cwe": [
+            "CWE-345",
+            "CWE-300"
+          ],
+          "capec": [
+            "CAPEC-142",
+            "CAPEC-141"
+          ],
+          "vrt": [
+            "VRT:missing_dnssec"
+          ],
+          "mapping_confidence": "high",
+          "mapping_rationale": "Absent DNSSEC means resolvers cannot verify the authenticity of DNS data (CWE-345), exposing the resolution path to on-path forgery (CWE-300) and cache poisoning (CAPEC-142/141). Mapping verified against MITRE CWE/CAPEC and Bugcrowd VRT."
+        }
+      },
+      {
+        "id": "DNSSEC_CHAIN_TRUSTED",
+        "title": "DNSSEC Chain of Trust Validated",
+        "status": "passed",
+        "severity": "high",
+        "standards": [
+          "ISO_27002_2022:8.24"
+        ],
+        "rfcs": [
+          "RFC4033",
+          "RFC4035"
+        ],
+        "weakness_refs": {
+          "cwe": [
+            "CWE-345"
+          ],
+          "capec": [
+            "CAPEC-142"
+          ],
+          "vrt": [
+            "VRT:missing_dnssec"
+          ],
+          "mapping_confidence": "high",
+          "mapping_rationale": "A broken or unvalidated chain of trust leaves DNS answers unauthenticated (CWE-345), the precondition for DNS cache poisoning (CAPEC-142). Mapping verified against MITRE CWE/CAPEC and Bugcrowd VRT."
+        }
+      },
+      {
+        "id": "DNSSEC_KEY_ROLLOVER",
+        "title": "DNSSEC Key Rollover Readiness",
+        "status": "failed",
+        "severity": "medium",
+        "standards": [
+          "ISO_27002_2022:8.24",
+          "INCITS_585_2025:PS.3"
+        ],
+        "rfcs": [
+          "RFC8078"
+        ],
+        "fail_explanation": "No CDS/CDNSKEY automation \u2014 DNSSEC key rollover requires manual registrar coordination. Per RFC 8078, CDS and CDNSKEY records enable automated, authenticated DS updates at the parent."
+      },
+      {
+        "id": "NO_MAIL_HARDENED",
+        "title": "No-Mail Domain Hardening",
+        "status": "not_applicable",
+        "severity": "medium",
+        "standards": [
+          "ISO_27002_2022:8.23",
+          "NIST_800_177:\u00a74.3"
+        ],
+        "rfcs": [
+          "RFC7208",
+          "RFC7489",
+          "RFC5321"
+        ]
+      },
+      {
+        "id": "SPF_EFFECTIVE_POLICY",
+        "title": "SPF Effective Authorization Policy",
+        "status": "passed",
+        "severity": "medium",
+        "standards": [
+          "ISO_27002_2022:8.23",
+          "NIST_800_177:\u00a74.3.1"
+        ],
+        "rfcs": [
+          "RFC7208",
+          "RFC7489"
+        ],
+        "weakness_refs": {
+          "cwe": [
+            "CWE-290"
+          ],
+          "capec": [
+            "CAPEC-194",
+            "CAPEC-151"
+          ],
+          "vrt": null,
+          "mapping_confidence": "medium",
+          "mapping_rationale": "Permissive SPF without DMARC enforcement lets a forged sender bypass origin authentication (CWE-290) by faking the source domain (CAPEC-194/151). SPF is contributory, so confidence is medium; VRT files this failure mode under the DMARC entry. CWE/CAPEC verified against MITRE."
+        }
+      },
+      {
+        "id": "DMARC_ENFORCEMENT",
+        "title": "DMARC Policy Enforcement",
+        "status": "failed",
+        "severity": "high",
+        "standards": [
+          "ISO_27002_2022:8.23",
+          "NIST_800_177:\u00a74.6.1"
+        ],
+        "rfcs": [
+          "RFC7489"
+        ],
+        "fail_explanation": "DMARC policy is not set to reject. Per RFC 7489 \u00a76.3, only p=reject instructs receivers to discard unauthenticated messages. NIST SP 800-177 Rev. 1 \u00a74.6.1 recommends reject for all production domains.",
+        "weakness_refs": {
+          "cwe": [
+            "CWE-290"
+          ],
+          "capec": [
+            "CAPEC-151",
+            "CAPEC-194",
+            "CAPEC-163"
+          ],
+          "vrt": [
+            "VRT:email_spoofing_to_inbox_due_to_missing_or_misconfigured_dmarc_on_email_domain"
+          ],
+          "mapping_confidence": "high",
+          "mapping_rationale": "p=none and p=quarantine do not instruct receivers to reject unauthenticated mail, so sender authentication is effectively bypassed (CWE-290), enabling domain identity spoofing (CAPEC-151), forged-source mail (CAPEC-194) and spear phishing (CAPEC-163). This is the flagship false-green-checkmark gap: tools mark DMARC present as compliant while the domain remains spoofable. Mapping verified against MITRE CWE/CAPEC and Bugcrowd VRT."
+        }
+      },
+      {
+        "id": "DKIM_PRESENT",
+        "title": "DKIM Signature Availability",
+        "status": "failed",
+        "severity": "medium",
+        "standards": [
+          "ISO_27002_2022:8.24",
+          "NIST_800_177:\u00a74.5"
+        ],
+        "rfcs": [
+          "RFC6376",
+          "RFC8301"
+        ],
+        "fail_explanation": "DKIM not discoverable for this mail-sending domain. Per RFC 6376, DKIM provides cryptographic proof of message origin. Without DKIM, email from this domain cannot be cryptographically verified by receivers."
+      },
+      {
+        "id": "MAIL_POLICY_SIGNALING",
+        "title": "Mail Transport Policy Signaling",
+        "status": "passed",
+        "severity": "low",
+        "standards": [
+          "ISO_27002_2022:8.20",
+          "NIST_800_177:\u00a75.2"
+        ],
+        "rfcs": [
+          "RFC8461",
+          "RFC8460"
+        ]
+      },
+      {
+        "id": "CAA_RESTRICTION_PRESENT",
+        "title": "CAA Certificate Issuance Restriction",
+        "status": "passed",
+        "severity": "medium",
+        "standards": [
+          "ISO_27002_2022:8.24"
+        ],
+        "rfcs": [
+          "RFC8659",
+          "RFC9495"
+        ]
+      },
+      {
+        "id": "DANE_DEPLOYED",
+        "title": "DANE / TLSA Deployment",
+        "status": "failed",
+        "severity": "low",
+        "standards": [
+          "ISO_27002_2022:8.24",
+          "ISO_27002_2022:8.20"
+        ],
+        "rfcs": [
+          "RFC6698",
+          "RFC7672"
+        ],
+        "fail_explanation": "DANE/TLSA not deployed. Per RFC 6698, DANE binds TLS server certificates to DNS names using DNSSEC, providing authentication independent of the Certificate Authority system."
+      },
+      {
+        "id": "BIMI_CONFIGURED",
+        "title": "BIMI Brand Indicator",
+        "status": "failed",
+        "severity": "low",
+        "standards": [],
+        "rfcs": [],
+        "fail_explanation": "BIMI not configured or logo invalid. BIMI requires DMARC p=reject and a valid SVG logo to display brand indicators in supporting email clients."
+      },
+      {
+        "id": "SECURITY_TXT_PRESENT",
+        "title": "security.txt Vulnerability Disclosure",
+        "status": "failed",
+        "severity": "low",
+        "standards": [
+          "ISO_27002_2022:5.5",
+          "INCITS_585_2025:RV.1"
+        ],
+        "rfcs": [],
+        "fail_explanation": "No security.txt found or file has expired. Per RFC 9116, security.txt provides a standardized location for vulnerability disclosure contact information."
+      },
+      {
+        "id": "DANGLING_DNS_CLEAN",
+        "title": "No Dangling DNS Records",
+        "status": "passed",
+        "severity": "high",
+        "standards": [
+          "ISO_27002_2022:8.20",
+          "INCITS_585_2025:PW.4"
+        ],
+        "rfcs": [
+          "RFC1035"
+        ],
+        "weakness_refs": {
+          "cwe": null,
+          "capec": null,
+          "vrt": [
+            "VRT:subdomain_takeover"
+          ],
+          "mapping_confidence": "high",
+          "mapping_rationale": "Dangling records pointing to unclaimed infrastructure are the direct precondition for subdomain takeover. Bugcrowd VRT classifies this explicitly; no single authoritative CWE/CAPEC ID is cited to avoid an unverified mapping."
+        }
+      },
+      {
+        "id": "DELEGATION_CONSISTENT",
+        "title": "DNS Delegation Consistency",
+        "status": "failed",
+        "severity": "medium",
+        "standards": [
+          "ISO_27002_2022:8.20"
+        ],
+        "rfcs": [
+          "RFC1035"
+        ],
+        "fail_explanation": "DNS delegation inconsistency detected. Parent and child zone NS records, glue records, or SOA serials do not agree. This can cause intermittent resolution failures and makes the zone vulnerable to hijacking."
+      },
+      {
+        "id": "SECRET_EXPOSURE_CLEAN",
+        "title": "No Exposed Secrets",
+        "status": "passed",
+        "severity": "high",
+        "standards": [
+          "ISO_27002_2022:8.4",
+          "INCITS_585_2025:PW.6"
+        ],
+        "rfcs": []
+      },
+      {
+        "id": "HTTPS_SVCB_MODERN",
+        "title": "HTTPS/SVCB Record Deployment",
+        "status": "failed",
+        "severity": "low",
+        "standards": [
+          "ISO_27002_2022:8.20"
+        ],
+        "rfcs": [
+          "RFC9460"
+        ],
+        "fail_explanation": "No HTTPS or SVCB records found. Per RFC 9460, these records enable clients to discover HTTP/3, ECH, and alternative endpoints via DNS, improving connection performance and privacy."
+      }
+    ],
+    "mapped_controls": 5
+  },
+  "icsae_remediation_queue": {
+    "items": [
+      {
+        "rank": 1,
+        "control_id": "DMARC_ENFORCEMENT",
+        "title": "DMARC Policy Enforcement",
+        "severity": "high",
+        "exploit_class": "exploitable_now",
+        "exploit_basis": "Sender / identity spoofing requires no privileged position: an attacker forges mail or impersonates the domain with off-the-shelf tooling (CWE-290 / CAPEC identity-spoofing patterns).",
+        "blast_radius": "external",
+        "blast_basis": "Customers, partners and brand: recipients are phished using the domain's identity.",
+        "confidence": "high",
+        "confidence_basis": "Directly observed DNS records (ICIE Tier 1 evidence); verdict determinate. Weakness mapping verified at high confidence (CWE/CAPEC/VRT).",
+        "rfcs": [
+          "RFC7489"
+        ],
+        "weakness_refs": {
+          "cwe": [
+            "CWE-290"
+          ],
+          "capec": [
+            "CAPEC-151",
+            "CAPEC-194",
+            "CAPEC-163"
+          ],
+          "vrt": [
+            "VRT:email_spoofing_to_inbox_due_to_missing_or_misconfigured_dmarc_on_email_domain"
+          ],
+          "mapping_confidence": "high",
+          "mapping_rationale": "p=none and p=quarantine do not instruct receivers to reject unauthenticated mail, so sender authentication is effectively bypassed (CWE-290), enabling domain identity spoofing (CAPEC-151), forged-source mail (CAPEC-194) and spear phishing (CAPEC-163). This is the flagship false-green-checkmark gap: tools mark DMARC present as compliant while the domain remains spoofable. Mapping verified against MITRE CWE/CAPEC and Bugcrowd VRT."
+        },
+        "attacker_action": "DMARC policy is not set to reject. Per RFC 7489 \u00a76.3, only p=reject instructs receivers to discard unauthenticated messages. NIST SP 800-177 Rev. 1 \u00a74.6.1 recommends reject for all production domains.",
+        "priority_score": 166
+      }
+    ],
+    "real_fix_count": 1,
+    "mapped_count": 1
+  },
+  "is_no_mail_domain": false,
+  "is_tld": false,
+  "mail_posture": {
+    "badge": "Moderately Protected",
+    "classification": "partial",
+    "color": "warning",
+    "icon": "exclamation-triangle",
+    "is_no_mail": false,
+    "label": "Moderately Protected",
+    "missing_steps": null,
+    "present_count": 1,
+    "signals": {
+      "dmarc_reject": {
+        "description": "DMARC reject policy active",
+        "label": "DMARC reject",
+        "missing_risk": "Spoofed mail may be delivered",
+        "present": false,
+        "rfc": "RFC 7489",
+        "rfc_url": "https://www.rfc-editor.org/rfc/rfc7489.html"
+      },
+      "null_mx": {
+        "description": "Null MX record published",
+        "label": "Null MX",
+        "missing_risk": "Domain may receive unwanted mail",
+        "present": false,
+        "rfc": "RFC 7505",
+        "rfc_url": "https://www.rfc-editor.org/rfc/rfc7505.html"
+      },
+      "spf_deny": {
+        "description": "SPF hard fail configured",
+        "label": "SPF -all",
+        "missing_risk": "Unauthorized senders not explicitly rejected",
+        "present": true,
+        "rfc": "RFC 7208",
+        "rfc_url": "https://www.rfc-editor.org/rfc/rfc7208.html"
+      }
+    },
+    "summary": "Core email authentication controls observed but DMARC enforcement could be strengthened.",
+    "total_signals": 3,
+    "verdict": "partial"
+  },
+  "mta_sts_analysis": {
+    "dns_id": null,
+    "hosting_cname": null,
+    "message": "No MTA-STS record found",
+    "mode": null,
+    "mta_sts_state": "absent_confirmed",
+    "policy": null,
+    "policy_error": null,
+    "policy_fetched": false,
+    "policy_max_age": null,
+    "policy_mode": null,
+    "policy_mx": [],
+    "record": null,
+    "status": "warning"
+  },
+  "nmap_dns": {
+    "cache_snoop": {
+      "message": "Test inconclusive",
+      "nameserver": "a13-65.akam.net",
+      "vulnerable": false
+    },
+    "issues": [],
+    "message": "No DNS server misconfigurations found on a13-65.akam.net",
+    "nameservers": [
+      "a13-65.akam.net",
+      "a22-66.akam.net",
+      "a12-65.akam.net",
+      "a3-64.akam.net",
+      "a16-67.akam.net",
+      "a1-22.akam.net"
+    ],
+    "nsid": {
+      "found": false,
+      "id": "",
+      "message": "Test inconclusive",
+      "nameserver": "a13-65.akam.net",
+      "version": ""
+    },
+    "recursion": {
+      "message": "Test inconclusive",
+      "nameserver": "a13-65.akam.net",
+      "open": false
+    },
+    "scan_duration_ms": 104,
+    "status": "good",
+    "zone_transfer": {
+      "message": "Test inconclusive",
+      "nameserver": "a13-65.akam.net",
+      "record_count": 0,
+      "vulnerable": false
+    }
+  },
+  "ns_delegation_analysis": {
+    "child_ns": [
+      "a1-22.akam.net",
+      "a12-65.akam.net",
+      "a13-65.akam.net",
+      "a16-67.akam.net",
+      "a22-66.akam.net",
+      "a3-64.akam.net"
+    ],
+    "delegation_ok": true,
+    "dns_providers": [
+      "Akamai"
+    ],
+    "enterprise_detail": "All 6 nameservers hosted by Akamai. Managed DNS provides reliable resolution with provider-maintained infrastructure.",
+    "enterprise_label": "Managed DNS",
+    "enterprise_pattern": "managed",
+    "match": null,
+    "message": "6 nameserver(s) configured",
+    "nameservers": [
+      "a1-22.akam.net",
+      "a12-65.akam.net",
+      "a13-65.akam.net",
+      "a16-67.akam.net",
+      "a22-66.akam.net",
+      "a3-64.akam.net"
+    ],
+    "note": "Parent zone delegation could not be verified",
+    "ns_count": 6,
+    "parent_ns": [],
+    "status": "success"
+  },
+  "ns_fleet": {
+    "diversity": {
+      "asn_list": [
+        "21342"
+      ],
+      "operator_list": null,
+      "score": "fair",
+      "score_detail": "1 ASN(s), 6 /24 prefix(es) \u2014 consider adding diversity",
+      "unique_asns": 1,
+      "unique_operators": 0,
+      "unique_prefix24s": 6
+    },
+    "issues": null,
+    "message": "Analyzed 6 nameserver(s) for cia.gov",
+    "nameservers": [
+      {
+        "aa_flag": true,
+        "as_name": "",
+        "asn": "21342",
+        "hostname": "a1-22.akam.net",
+        "ipv4": [
+          "193.108.91.22"
+        ],
+        "ipv6": [
+          "2600:1401:2::16"
+        ],
+        "is_lame": false,
+        "prefix": "193.108.91.0/24",
+        "soa_serial": 2015111813,
+        "soa_serial_ok": true,
+        "tcp_reachable": true,
+        "udp_reachable": true
+      },
+      {
+        "aa_flag": true,
+        "as_name": "",
+        "asn": "21342",
+        "hostname": "a13-65.akam.net",
+        "ipv4": [
+          "2.22.230.65"
+        ],
+        "ipv6": [
+          "2600:1480:800::41"
+        ],
+        "is_lame": false,
+        "prefix": "2.22.230.0/24",
+        "soa_serial": 2015111813,
+        "soa_serial_ok": true,
+        "tcp_reachable": true,
+        "udp_reachable": true
+      },
+      {
+        "aa_flag": true,
+        "as_name": "",
+        "asn": "21342",
+        "hostname": "a16-67.akam.net",
+        "ipv4": [
+          "23.211.132.67"
+        ],
+        "ipv6": [
+          "2600:1406:1b::43"
+        ],
+        "is_lame": false,
+        "prefix": "23.211.132.0/24",
+        "soa_serial": 2015111813,
+        "soa_serial_ok": true,
+        "tcp_reachable": true,
+        "udp_reachable": true
+      },
+      {
+        "aa_flag": true,
+        "as_name": "",
+        "asn": "21342",
+        "hostname": "a12-65.akam.net",
+        "ipv4": [
+          "184.26.160.65"
+        ],
+        "ipv6": [
+          "2600:1480:f000::41"
+        ],
+        "is_lame": false,
+        "prefix": "184.26.160.0/24",
+        "soa_serial": 2015111813,
+        "soa_serial_ok": true,
+        "tcp_reachable": true,
+        "udp_reachable": true
+      },
+      {
+        "aa_flag": true,
+        "as_name": "",
+        "asn": "21342",
+        "hostname": "a22-66.akam.net",
+        "ipv4": [
+          "23.211.61.66"
+        ],
+        "ipv6": [
+          "2600:1480:7800::42"
+        ],
+        "is_lame": false,
+        "prefix": "23.211.61.0/24",
+        "soa_serial": 2015111813,
+        "soa_serial_ok": true,
+        "tcp_reachable": true,
+        "udp_reachable": true
+      },
+      {
+        "aa_flag": true,
+        "as_name": "",
+        "asn": "21342",
+        "hostname": "a3-64.akam.net",
+        "ipv4": [
+          "96.7.49.64"
+        ],
+        "ipv6": [
+          "2600:1408:1c::40"
+        ],
+        "is_lame": false,
+        "prefix": "96.7.49.0/24",
+        "soa_serial": 2015111813,
+        "soa_serial_ok": true,
+        "tcp_reachable": true,
+        "udp_reachable": true
+      }
+    ],
+    "serial_consensus": true,
+    "status": "success"
+  },
+  "posture": {
+    "absent": [
+      "MTA-STS",
+      "TLS-RPT",
+      "BIMI",
+      "DANE"
+    ],
+    "color": "success",
+    "configured": [
+      "SPF (hard fail)",
+      "DMARC (quarantine, 100%)",
+      "DKIM",
+      "DNSSEC",
+      "CAA"
+    ],
+    "critical_issues": null,
+    "deliberate_monitoring": true,
+    "deliberate_monitoring_note": "DMARC quarantine is fully enforced (100%) with aggregate reporting (RFC 7489 \u00a76.3). Unlike p=reject, which refuses unauthenticated mail at delivery, quarantine still accepts it for inspection. This is not a default configuration: the record also carries forensic reporting (ruf=), which DMARCbis removed and most large receivers no longer honour and strict alignment on both SPF and DKIM, where relaxed is the default, and the domain separately deploys a validating DNSSEC chain, CAA, and an SPF -all hard fail. It's possible this organization values that retained message-level visibility over pure rejection. What this means if you receive mail from this domain: messages that fail authentication are still delivered \u2014 typically to a spam or junk folder \u2014 not refused. A domain at p=quarantine is not a domain from which spoofed mail cannot reach you. p=reject remains the strongest anti-spoofing posture if message-level inspection is not a deliberate requirement; aggregate reporting is unaffected by either policy.",
+    "grade": "Low Risk",
+    "icon": "shield-alt",
+    "issues": [],
+    "label": "Low Risk",
+    "message": "5 protocols configured, 4 not configured",
+    "monitoring": [],
+    "provider_limited": [],
+    "recommendations": [
+      "Upgrade DMARC policy from quarantine to reject (p=reject) for maximum spoofing protection"
+    ],
+    "score": 75,
+    "spoof_door": "closed",
+    "state": "Low Risk",
+    "verdicts": {
+      "ai_crawler_governance": {
+        "answer": "No",
+        "color": "warning",
+        "reason": "robots.txt present but does not block AI crawlers \u2014 content may be freely scraped"
+      },
+      "ai_hidden_prompts": {
+        "answer": "No",
+        "color": "success",
+        "reason": "No hidden prompt artifacts found in page source"
+      },
+      "ai_llms_txt": {
+        "answer": "No",
+        "color": "secondary",
+        "reason": "No llms.txt file detected \u2014 AI models have no structured instructions for this domain"
+      },
+      "ai_poisoning": {
+        "answer": "No",
+        "color": "success",
+        "reason": "No indicators of AI recommendation manipulation found"
+      },
+      "brand_impersonation": {
+        "answer": "Likely",
+        "color": "warning",
+        "icon": "exclamation-triangle",
+        "label": "Partially Protected",
+        "reason": "DMARC quarantine flags but does not reject spoofed mail (RFC 7489 \u00a76.3), and no BIMI brand verification \u2014 lookalike domains display identically in inboxes; CAA restricts certificate issuance (RFC 8659 \u00a74) but visual brand faking remains open"
+      },
+      "certificate_control": {
+        "answer": "Yes",
+        "color": "success",
+        "icon": "shield-alt",
+        "label": "Configured",
+        "reason": "CAA records restrict which certificate authorities may issue certificates"
+      },
+      "dns_tampering": {
+        "answer": "No",
+        "color": "success",
+        "icon": "shield-alt",
+        "label": "Protected",
+        "reason": "DNSSEC signed; a validating resolver confirmed the cryptographic chain of trust via the AD flag (RFC 4035 \u00a73.2.3)"
+      },
+      "email_answer": "Partly \u2014 DMARC quarantine is enforced at 100%, but quarantined mail is delivered to spam rather than refused",
+      "email_answer_color": "success",
+      "email_answer_reason": "SPF and DMARC are enforced at p=quarantine, 100% (RFC 7489 \u00a76.3) \u2014 receivers accept failing mail and set it aside, so a spoofed message still reaches the mailbox in spam or junk rather than being refused",
+      "email_answer_short": "Partly",
+      "email_spoofing": {
+        "answer": "Unlikely",
+        "color": "success",
+        "icon": "shield-halved",
+        "label": "Quarantined",
+        "reason": "SPF and DMARC are enforced at p=quarantine, 100% (RFC 7489 \u00a76.3). Quarantine asks receivers to accept failing mail and set it aside rather than refuse it, so a spoofed message is still delivered \u2014 typically to a spam or junk folder \u2014 where a recipient can open it. Some operators choose quarantine deliberately to retain that message-level visibility; p=reject is the posture that stops the message reaching the mailbox at all."
+      },
+      "transport": {
+        "answer": "No",
+        "color": "secondary",
+        "label": "Not Enforced",
+        "reason": "No MTA-STS or DANE \u2014 mail transport encryption is opportunistic only"
+      }
+    }
+  },
+  "propagation_status": {
+    "A": {
+      "mismatch": false,
+      "status": "synchronized",
+      "synced": true
+    },
+    "AAAA": {
+      "mismatch": false,
+      "status": "synchronized",
+      "synced": true
+    },
+    "CAA": {
+      "mismatch": false,
+      "status": "synchronized",
+      "synced": true
+    },
+    "CNAME": {
+      "mismatch": false,
+      "status": "unknown",
+      "synced": false
+    },
+    "DMARC": {
+      "mismatch": false,
+      "status": "synchronized",
+      "synced": true
+    },
+    "MX": {
+      "mismatch": false,
+      "status": "synchronized",
+      "synced": true
+    },
+    "NS": {
+      "mismatch": false,
+      "status": "synchronized",
+      "synced": true
+    },
+    "SOA": {
+      "mismatch": false,
+      "status": "synchronized",
+      "synced": true
+    },
+    "SRV": {
+      "mismatch": false,
+      "status": "unknown",
+      "synced": false
+    },
+    "TXT": {
+      "mismatch": false,
+      "status": "synchronized",
+      "synced": true
+    }
+  },
+  "registrar_info": {
+    "confidence": {
+      "label": "Observed",
+      "level": "observed",
+      "method": "RDAP registry lookup"
+    },
+    "registrar": "get.gov (Registrant: REDACTED FOR PRIVACY)",
+    "source": "RDAP",
+    "status": "success"
+  },
+  "remediation": {
+    "all_fixes": [
+      {
+        "dns_host": "_dmarc.cia.gov",
+        "dns_host_help": "(update existing DMARC record)",
+        "dns_purpose": "A reject policy provides the strongest protection against domain spoofing.",
+        "dns_type": "TXT",
+        "dns_value": "v=DMARC1; p=reject; rua=mailto:dmarc-reports@cia.gov",
+        "fix": "Your DMARC policy is set to quarantine. Upgrade to p=reject for maximum protection \u2014 reject instructs receivers to discard spoofed mail entirely rather than quarantining it.",
+        "rfc": "RFC 7489 \u00a76.3",
+        "rfc_obsolete": false,
+        "rfc_status": "Informational",
+        "rfc_title": "Domain-based Message Authentication, Reporting, and Conformance (DMARC)",
+        "rfc_url": "https://www.rfc-editor.org/rfc/rfc7489.html#section-6.3:~:text=DMARC%20records%20follow%20the%20extensible%20%22tag-value%22%20syntax",
+        "section": "DMARC",
+        "severity_color": "info",
+        "severity_label": "Medium",
+        "title": "Upgrade DMARC to Reject"
+      },
+      {
+        "dns_host": "_25._tcp.mail.yourdomain.com",
+        "dns_host_help": "(TLSA record for primary MX \u2014 generate hash from your server certificate)",
+        "dns_purpose": "TLSA pins your mail server's TLS certificate in DNS, verified via DNSSEC.",
+        "dns_type": "TLSA",
+        "dns_value": "3 1 1 <certificate-sha256-hash>",
+        "fix": "DNSSEC is active \u2014 adding TLSA records enables DANE, which cryptographically binds your mail server certificates to DNS and prevents certificate-based MITM attacks.",
+        "rfc": "RFC 7672",
+        "rfc_obsolete": false,
+        "rfc_status": "Proposed Standard",
+        "rfc_title": "SMTP Security via Opportunistic DNS-Based Authentication of Named Entities (DANE) Transport Layer Security (TLS)",
+        "rfc_url": "https://www.rfc-editor.org/rfc/rfc7672.html",
+        "section": "DANE",
+        "severity_color": "secondary",
+        "severity_label": "Low",
+        "title": "Add DANE/TLSA Records"
+      },
+      {
+        "dns_host": "_smtp._tls.cia.gov",
+        "dns_host_help": "(SMTP TLS reporting record)",
+        "dns_purpose": "TLS-RPT sends you reports about TLS connection failures to your mail servers.",
+        "dns_type": "TXT",
+        "dns_value": "v=TLSRPTv1; rua=mailto:tls-reports@cia.gov",
+        "fix": "TLS-RPT (TLS Reporting) sends you reports about TLS connection failures when other servers try to deliver mail to your domain.",
+        "rfc": "RFC 8460",
+        "rfc_obsolete": false,
+        "rfc_status": "Proposed Standard",
+        "rfc_title": "SMTP TLS Reporting",
+        "rfc_url": "https://www.rfc-editor.org/rfc/rfc8460.html",
+        "section": "TLS-RPT",
+        "severity_color": "secondary",
+        "severity_label": "Low",
+        "title": "Add TLS-RPT Reporting"
+      },
+      {
+        "dns_host": "_mta-sts.cia.gov",
+        "dns_host_help": "(MTA-STS policy record)",
+        "dns_purpose": "MTA-STS tells sending servers to require TLS when delivering mail to your domain.",
+        "dns_type": "TXT",
+        "dns_value": "v=STSv1; id=cia.gov",
+        "fix": "MTA-STS enforces TLS encryption for inbound mail delivery, preventing downgrade attacks on your mail transport.",
+        "rfc": "RFC 8461",
+        "rfc_obsolete": false,
+        "rfc_status": "Proposed Standard",
+        "rfc_title": "SMTP MTA Strict Transport Security (MTA-STS)",
+        "rfc_url": "https://www.rfc-editor.org/rfc/rfc8461.html",
+        "section": "MTA-STS",
+        "severity_color": "secondary",
+        "severity_label": "Low",
+        "title": "Deploy MTA-STS"
+      }
+    ],
+    "fix_count": 4,
+    "per_section": {
+      "DANE": [
+        {
+          "dns_host": "_25._tcp.mail.yourdomain.com",
+          "dns_host_help": "(TLSA record for primary MX \u2014 generate hash from your server certificate)",
+          "dns_purpose": "TLSA pins your mail server's TLS certificate in DNS, verified via DNSSEC.",
+          "dns_type": "TLSA",
+          "dns_value": "3 1 1 <certificate-sha256-hash>",
+          "fix": "DNSSEC is active \u2014 adding TLSA records enables DANE, which cryptographically binds your mail server certificates to DNS and prevents certificate-based MITM attacks.",
+          "rfc": "RFC 7672",
+          "rfc_obsolete": false,
+          "rfc_title": "RFC 7672",
+          "rfc_url": "https://www.rfc-editor.org/rfc/rfc7672.html",
+          "section": "DANE",
+          "severity_color": "secondary",
+          "severity_label": "Low",
+          "title": "Add DANE/TLSA Records"
+        }
+      ],
+      "DMARC": [
+        {
+          "dns_host": "_dmarc.cia.gov",
+          "dns_host_help": "(update existing DMARC record)",
+          "dns_purpose": "A reject policy provides the strongest protection against domain spoofing.",
+          "dns_type": "TXT",
+          "dns_value": "v=DMARC1; p=reject; rua=mailto:dmarc-reports@cia.gov",
+          "fix": "Your DMARC policy is set to quarantine. Upgrade to p=reject for maximum protection \u2014 reject instructs receivers to discard spoofed mail entirely rather than quarantining it.",
+          "rfc": "RFC 7489 \u00a76.3",
+          "rfc_obsolete": false,
+          "rfc_title": "RFC 7489 \u00a76.3",
+          "rfc_url": "https://www.rfc-editor.org/rfc/rfc7489.html#section-6.3:~:text=DMARC%20records%20follow%20the%20extensible%20%22tag-value%22%20syntax",
+          "section": "DMARC",
+          "severity_color": "info",
+          "severity_label": "Medium",
+          "title": "Upgrade DMARC to Reject"
+        }
+      ],
+      "MTA-STS": [
+        {
+          "dns_host": "_mta-sts.cia.gov",
+          "dns_host_help": "(MTA-STS policy record)",
+          "dns_purpose": "MTA-STS tells sending servers to require TLS when delivering mail to your domain.",
+          "dns_type": "TXT",
+          "dns_value": "v=STSv1; id=cia.gov",
+          "fix": "MTA-STS enforces TLS encryption for inbound mail delivery, preventing downgrade attacks on your mail transport.",
+          "rfc": "RFC 8461",
+          "rfc_obsolete": false,
+          "rfc_title": "RFC 8461",
+          "rfc_url": "https://www.rfc-editor.org/rfc/rfc8461.html",
+          "section": "MTA-STS",
+          "severity_color": "secondary",
+          "severity_label": "Low",
+          "title": "Deploy MTA-STS"
+        }
+      ],
+      "TLS-RPT": [
+        {
+          "dns_host": "_smtp._tls.cia.gov",
+          "dns_host_help": "(SMTP TLS reporting record)",
+          "dns_purpose": "TLS-RPT sends you reports about TLS connection failures to your mail servers.",
+          "dns_type": "TXT",
+          "dns_value": "v=TLSRPTv1; rua=mailto:tls-reports@cia.gov",
+          "fix": "TLS-RPT (TLS Reporting) sends you reports about TLS connection failures when other servers try to deliver mail to your domain.",
+          "rfc": "RFC 8460",
+          "rfc_obsolete": false,
+          "rfc_title": "RFC 8460",
+          "rfc_url": "https://www.rfc-editor.org/rfc/rfc8460.html",
+          "section": "TLS-RPT",
+          "severity_color": "secondary",
+          "severity_label": "Low",
+          "title": "Add TLS-RPT Reporting"
+        }
+      ]
+    },
+    "posture_achievable": "Secure",
+    "rfc_metadata_enriched": true,
+    "top_fixes": [
+      {
+        "dns_host": "_dmarc.cia.gov",
+        "dns_host_help": "(update existing DMARC record)",
+        "dns_purpose": "A reject policy provides the strongest protection against domain spoofing.",
+        "dns_type": "TXT",
+        "dns_value": "v=DMARC1; p=reject; rua=mailto:dmarc-reports@cia.gov",
+        "fix": "Your DMARC policy is set to quarantine. Upgrade to p=reject for maximum protection \u2014 reject instructs receivers to discard spoofed mail entirely rather than quarantining it.",
+        "rfc": "RFC 7489 \u00a76.3",
+        "rfc_obsolete": false,
+        "rfc_status": "Informational",
+        "rfc_title": "Domain-based Message Authentication, Reporting, and Conformance (DMARC)",
+        "rfc_url": "https://www.rfc-editor.org/rfc/rfc7489.html#section-6.3:~:text=DMARC%20records%20follow%20the%20extensible%20%22tag-value%22%20syntax",
+        "section": "DMARC",
+        "severity_color": "info",
+        "severity_label": "Medium",
+        "title": "Upgrade DMARC to Reject"
+      },
+      {
+        "dns_host": "_25._tcp.mail.yourdomain.com",
+        "dns_host_help": "(TLSA record for primary MX \u2014 generate hash from your server certificate)",
+        "dns_purpose": "TLSA pins your mail server's TLS certificate in DNS, verified via DNSSEC.",
+        "dns_type": "TLSA",
+        "dns_value": "3 1 1 <certificate-sha256-hash>",
+        "fix": "DNSSEC is active \u2014 adding TLSA records enables DANE, which cryptographically binds your mail server certificates to DNS and prevents certificate-based MITM attacks.",
+        "rfc": "RFC 7672",
+        "rfc_obsolete": false,
+        "rfc_status": "Proposed Standard",
+        "rfc_title": "SMTP Security via Opportunistic DNS-Based Authentication of Named Entities (DANE) Transport Layer Security (TLS)",
+        "rfc_url": "https://www.rfc-editor.org/rfc/rfc7672.html",
+        "section": "DANE",
+        "severity_color": "secondary",
+        "severity_label": "Low",
+        "title": "Add DANE/TLSA Records"
+      },
+      {
+        "dns_host": "_smtp._tls.cia.gov",
+        "dns_host_help": "(SMTP TLS reporting record)",
+        "dns_purpose": "TLS-RPT sends you reports about TLS connection failures to your mail servers.",
+        "dns_type": "TXT",
+        "dns_value": "v=TLSRPTv1; rua=mailto:tls-reports@cia.gov",
+        "fix": "TLS-RPT (TLS Reporting) sends you reports about TLS connection failures when other servers try to deliver mail to your domain.",
+        "rfc": "RFC 8460",
+        "rfc_obsolete": false,
+        "rfc_status": "Proposed Standard",
+        "rfc_title": "SMTP TLS Reporting",
+        "rfc_url": "https://www.rfc-editor.org/rfc/rfc8460.html",
+        "section": "TLS-RPT",
+        "severity_color": "secondary",
+        "severity_label": "Low",
+        "title": "Add TLS-RPT Reporting"
+      }
+    ]
+  },
+  "resolver_consensus": {
+    "checks_performed": 4,
+    "consensus_reached": false,
+    "discrepancies": [
+      "A: Cloudflare returned different results: [23.32.152.108 23.32.152.110]",
+      "A: DNS4EU returned different results: [23.47.144.140 23.47.144.141]"
+    ],
+    "per_record_consensus": {
+      "A": {
+        "consensus": false,
+        "discrepancies": [
+          "Cloudflare returned different results: [23.32.152.108 23.32.152.110]",
+          "DNS4EU returned different results: [23.47.144.140 23.47.144.141]"
+        ],
+        "resolver_count": 4
+      },
+      "MX": {
+        "consensus": true,
+        "discrepancies": null,
+        "resolver_count": 4
+      },
+      "NS": {
+        "consensus": true,
+        "discrepancies": null,
+        "resolver_count": 4
+      },
+      "TXT": {
+        "consensus": true,
+        "discrepancies": null,
+        "resolver_count": 4
+      }
+    },
+    "resolvers_queried": 5
+  },
+  "resolver_ttl": {
+    "A": 20,
+    "AAAA": 20,
+    "CAA": 1800,
+    "MX": 7200,
+    "NS": 21600,
+    "SOA": 14400,
+    "TXT": 300
+  },
+  "rfc_metadata": {
+    "1035": {
+      "is_obsolete": false,
+      "number": "1035",
+      "status": "Internet Standard",
+      "title": "Domain names - implementation and specification"
+    },
+    "3207": {
+      "is_obsolete": false,
+      "number": "3207",
+      "status": "Proposed Standard",
+      "title": "SMTP Service Extension for Secure SMTP over Transport Layer Security"
+    },
+    "3596": {
+      "is_obsolete": false,
+      "number": "3596",
+      "status": "Internet Standard",
+      "title": "DNS Extensions to Support IP Version 6"
+    },
+    "4033": {
+      "is_obsolete": false,
+      "number": "4033",
+      "status": "Proposed Standard",
+      "title": "DNS Security Introduction and Requirements"
+    },
+    "4034": {
+      "is_obsolete": false,
+      "number": "4034",
+      "status": "Proposed Standard",
+      "title": "Resource Records for the DNS Security Extensions"
+    },
+    "4035": {
+      "is_obsolete": false,
+      "number": "4035",
+      "status": "Proposed Standard",
+      "title": "Protocol Modifications for the DNS Security Extensions"
+    },
+    "5321": {
+      "is_obsolete": false,
+      "number": "5321",
+      "status": "Draft Standard",
+      "title": "Simple Mail Transfer Protocol"
+    },
+    "6376": {
+      "is_obsolete": false,
+      "number": "6376",
+      "status": "Internet Standard",
+      "title": "DomainKeys Identified Mail (DKIM) Signatures"
+    },
+    "6698": {
+      "is_obsolete": false,
+      "number": "6698",
+      "status": "Proposed Standard",
+      "title": "The DNS-Based Authentication of Named Entities (DANE) Transport Layer Security (TLS) Protocol: TLSA"
+    },
+    "6962": {
+      "is_obsolete": false,
+      "number": "6962",
+      "status": "Experimental",
+      "title": "Certificate Transparency"
+    },
+    "7208": {
+      "is_obsolete": false,
+      "number": "7208",
+      "status": "Proposed Standard",
+      "title": "Sender Policy Framework (SPF) for Authorizing Use of Domains in Email, Version 1"
+    },
+    "7489": {
+      "is_obsolete": false,
+      "number": "7489",
+      "status": "Informational",
+      "title": "Domain-based Message Authentication, Reporting, and Conformance (DMARC)"
+    },
+    "7672": {
+      "is_obsolete": false,
+      "number": "7672",
+      "status": "Proposed Standard",
+      "title": "SMTP Security via Opportunistic DNS-Based Authentication of Named Entities (DANE) Transport Layer Security (TLS)"
+    },
+    "8078": {
+      "is_obsolete": false,
+      "number": "8078",
+      "status": "Proposed Standard",
+      "title": "Managing DS Records from the Parent via CDS/CDNSKEY"
+    },
+    "8301": {
+      "is_obsolete": false,
+      "number": "8301",
+      "status": "Proposed Standard",
+      "title": "Cryptographic Algorithm and Key Usage Update to DomainKeys Identified Mail (DKIM)"
+    },
+    "8460": {
+      "is_obsolete": false,
+      "number": "8460",
+      "status": "Proposed Standard",
+      "title": "SMTP TLS Reporting"
+    },
+    "8461": {
+      "is_obsolete": false,
+      "number": "8461",
+      "status": "Proposed Standard",
+      "title": "SMTP MTA Strict Transport Security (MTA-STS)"
+    },
+    "8659": {
+      "is_obsolete": false,
+      "number": "8659",
+      "status": "Proposed Standard",
+      "title": "DNS Certification Authority Authorization (CAA) Resource Record"
+    },
+    "9083": {
+      "is_obsolete": false,
+      "number": "9083",
+      "status": "Internet Standard",
+      "title": "JSON Responses for the Registration Data Access Protocol (RDAP)"
+    },
+    "9460": {
+      "is_obsolete": false,
+      "number": "9460",
+      "status": "Proposed Standard",
+      "title": "Service Binding and Parameter Specification via the DNS (SVCB and HTTPS Resource Records)"
+    },
+    "9495": {
+      "is_obsolete": false,
+      "number": "9495",
+      "status": "Proposed Standard",
+      "title": "Certification Authority Authorization (CAA) Processing for Email Addresses"
+    }
+  },
+  "saas_txt": {
+    "issues": [],
+    "message": "No SaaS verification records detected",
+    "service_count": 0,
+    "services": [],
+    "status": "success"
+  },
+  "secret_exposure": {
+    "finding_count": 0,
+    "findings": [],
+    "message": "No exposed secrets detected in public page source",
+    "scanned_urls": [],
+    "status": "clear"
+  },
+  "section_status": {
+    "ai_surface": {
+      "status": "ok"
+    },
+    "auth": {
+      "status": "ok"
+    },
+    "basic": {
+      "status": "ok"
+    },
+    "bimi": {
+      "status": "ok"
+    },
+    "caa": {
+      "status": "ok"
+    },
+    "cds_cdnskey": {
+      "status": "ok"
+    },
+    "ct_subdomains": {
+      "status": "ok"
+    },
+    "dane": {
+      "status": "ok"
+    },
+    "delegation_consistency": {
+      "status": "ok"
+    },
+    "dkim": {
+      "status": "ok"
+    },
+    "dmarc": {
+      "status": "ok"
+    },
+    "dnssec": {
+      "status": "ok"
+    },
+    "dnssec_ops": {
+      "status": "ok"
+    },
+    "https_svcb": {
+      "status": "ok"
+    },
+    "mta_sts": {
+      "status": "ok"
+    },
+    "nmap_dns": {
+      "status": "ok"
+    },
+    "ns_delegation": {
+      "status": "ok"
+    },
+    "ns_fleet": {
+      "status": "ok"
+    },
+    "registrar": {
+      "status": "ok"
+    },
+    "resolver_consensus": {
+      "status": "ok"
+    },
+    "secret_exposure": {
+      "status": "ok"
+    },
+    "security_txt": {
+      "status": "ok"
+    },
+    "smimea_openpgpkey": {
+      "status": "ok"
+    },
+    "spf": {
+      "status": "ok"
+    },
+    "tlsrpt": {
+      "status": "ok"
+    }
+  },
+  "security_txt": {
+    "ack": [],
+    "canonical": [],
+    "contacts": [],
+    "encryption": [],
+    "expired": false,
+    "expires": null,
+    "fetch_error": null,
+    "found": false,
+    "hiring": [],
+    "issues": [],
+    "languages": null,
+    "message": "No security.txt found",
+    "policy": [],
+    "signed": false,
+    "status": "info",
+    "url": null
+  },
+  "smimea_openpgpkey": {
+    "has_openpgpkey": false,
+    "has_smimea": false,
+    "issues": [],
+    "message": "No SMIMEA or OPENPGPKEY records found \u2014 email encryption keys not published via DNS",
+    "openpgpkey_records": [],
+    "smimea_records": [],
+    "status": "info"
+  },
+  "smtp_transport": {
+    "dns_inferred": true,
+    "inference_note": "Transport security assessed via DNS policy records (MTA-STS, DANE, TLS-RPT) \u2014 the standards-aligned primary method per NIST SP 800-177 Rev. 1 and RFC 8461. Direct SMTP probing is a supplementary verification step.",
+    "inference_signals": [],
+    "issues": [],
+    "message": "No transport encryption policy detected \u2014 mail delivery relies on opportunistic TLS",
+    "policy": {
+      "dane": {
+        "present": false
+      },
+      "mta_sts": {
+        "mode": "none",
+        "present": false
+      },
+      "provider": {
+        "identified": false
+      },
+      "signals": null,
+      "tlsrpt": {
+        "present": false
+      },
+      "verdict": "none"
+    },
+    "probe": {
+      "observations": [],
+      "probe_method": "skip",
+      "reason": "SMTP probe skipped \u2014 outbound TCP port 25 is blocked upstream. This is standard for all major cloud platforms (AWS, GCP, Azure, Replit) and most residential ISPs as an anti-spam measure. Transport security is assessed via DNS policy records above, which is the standards-aligned primary method per NIST SP 800-177 Rev. 1.",
+      "status": "skipped"
+    },
+    "servers": [],
+    "status": "info",
+    "summary": {
+      "expiring_soon": 0,
+      "reachable": 0,
+      "starttls_supported": 0,
+      "tls_1_2": 0,
+      "tls_1_3": 0,
+      "total_servers": 0,
+      "valid_certs": 0
+    },
+    "telemetry": {
+      "observability": false,
+      "reporting_uris": [],
+      "tlsrpt_configured": false
+    },
+    "version": 2
+  },
+  "spf_analysis": {
+    "all_mechanism": "-all",
+    "includes": null,
+    "issues": [
+      "RFC 7489: -all may cause rejection before DMARC evaluation, preventing DKIM from being checked"
+    ],
+    "lookup_count": 1,
+    "lookup_mechanisms": [
+      "mx mechanism"
+    ],
+    "message": "SPF valid with strict enforcement (-all), 1/10 lookups",
+    "no_mail_intent": false,
+    "permissiveness": "STRICT",
+    "records": [
+      "v=spf1 mx -all"
+    ],
+    "redirect_chain": [],
+    "resolved_spf": "",
+    "spf_like": null,
+    "spf_state": "present",
+    "status": "success",
+    "valid_records": [
+      "v=spf1 mx -all"
+    ]
+  },
+  "tlsrpt_analysis": {
+    "message": "No TLS-RPT record found",
+    "record": null,
+    "rua": null,
+    "status": "warning",
+    "tlsrpt_state": "absent_confirmed"
+  },
+  "web3_analysis": {
+    "detected": false,
+    "dnssec_trust": {
+      "dnssec_present": true,
+      "dnssec_valid": true,
+      "status": "validated"
+    },
+    "dnssec_trust_note": "DNSSEC validated \u2014 DNS records are cryptographically signed, supporting trustless Web3 resolution",
+    "indicator_count": 0,
+    "indicators": [],
+    "status": "not_detected"
+  }
+}

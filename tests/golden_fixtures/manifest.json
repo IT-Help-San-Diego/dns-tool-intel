@@ -1,12 +1,17 @@
 {
-  "captured_at": "2026-02-10T07:00:00Z",
+  "captured_at": "2026-07-31T06:18:20Z",
   "tool_version": "go-server",
   "domains": [
     "google.com",
     "example.com",
     "thisdoesnotexist-xz9q.com",
     "whitehouse.gov",
-    "cloudflare.com"
+    "cloudflare.com",
+    "cia.gov",
+    "ietf.org",
+    "red.com"
   ],
-  "total": 5
+  "total": 8,
+  "coverage_note": "Domains are chosen to cover the STATE SPACE, not merely to be real captures: a corpus missing a state cannot detect a regression in it. TestGoldenFixtureStateCoverage enforces the states listed there.",
+  "subject_constraint": "Fixture subjects must be large public institutions or companies. These captures are published in an immutable DOI-bearing Zenodo deposit; freezing a private party's spoofability into a permanent public archive is not licensed by the state-coverage requirement. If only a private domain exhibits a needed state, leave it uncovered by live capture and unit-test the state directly. See scripts/refresh-golden-fixtures.sh."
 }
