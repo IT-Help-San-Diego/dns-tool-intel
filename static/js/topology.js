@@ -1281,13 +1281,24 @@
             // Rotation needs nothing special: this runs inside layoutAll(), which
             // resize() calls, so 852x393 re-derives from scratch.
             if (VERTICAL_FLOW) {
+                // Portrait is a column you TRAVEL THROUGH, not a canvas you take in
+                // at once, so it is ordered by what the reader came for rather than
+                // by data lineage. On a wide canvas source -> hub -> engine ->
+                // confidence -> storage -> protocol -> output reads correctly
+                // because it is all visible simultaneously; stacked on a phone the
+                // same order buries the verdicts — SPF, DKIM, DMARC, DNSSEC, DANE —
+                // six bands down, below PostgreSQL and the Internet Archive.
+                //
+                // Answer first, then what produced it, then where it came from:
+                // protocols, engine, confidence, hub, sources, storage, outputs.
+                // Horizontal flow is untouched.
                 let order = [
-                    { key: 'source', members: SOURCES },
-                    { key: 'hub', members: [HUB] },
+                    { key: 'protocol', members: PROTOCOLS },
                     { key: 'engine', members: [ENGINE] },
                     { key: 'confidence', members: CONFIDENCE },
+                    { key: 'hub', members: [HUB] },
+                    { key: 'source', members: SOURCES },
                     { key: 'storage', members: STORAGE },
-                    { key: 'protocol', members: PROTOCOLS },
                     { key: 'output', members: layoutOutputs }
                 ].filter(function(s) { return s.members.length > 0; });
 
