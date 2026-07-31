@@ -1,3 +1,4 @@
+-- +goose Up
 -- Migration 005: CT Subdomain Cache + SecurityTrails Budget Tracking
 --
 -- PHILOSOPHY NOTE: Certificate Transparency logs (RFC 6962) are append-only,

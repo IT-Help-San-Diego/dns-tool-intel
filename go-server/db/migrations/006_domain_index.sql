@@ -1,3 +1,4 @@
+-- +goose Up
 -- Migration 006: Domain Index + Priority Domains
 -- Creates a registry of every domain ever analyzed with the tool,
 -- plus a priority_domains table for domains that always get CT enrichment first.

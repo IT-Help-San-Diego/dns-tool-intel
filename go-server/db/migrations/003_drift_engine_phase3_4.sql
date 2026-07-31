@@ -1,3 +1,4 @@
+-- +goose Up
 -- Migration 003: Drift Engine Phase 3–4 — Timeline, Watchlist, Notifications
 -- Applied: 2026-02-22
 -- Operator: admin

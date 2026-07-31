@@ -17,11 +17,14 @@ services:
       POSTGRES_USER: dnstool
       POSTGRES_PASSWORD: dnstool_local_only
       POSTGRES_DB: dnstool
-    # The base schema is NOT applied by the server: RunSeedMigrations only runs
-    # files whose names contain "seed". Postgres executes anything mounted in
-    # docker-entrypoint-initdb.d on first start, which covers it.
+    # No schema is mounted here on purpose. Postgres only ever executes
+    # docker-entrypoint-initdb.d against an EMPTY volume, so that path could
+    # create a database but never upgrade one: keeping dnstool-pgdata across a
+    # rebuild used to hand a newer binary an older schema with nothing to
+    # upgrade it and nothing that noticed. The app container now owns schema
+    # creation AND upgrade through one versioned path, so this volume can be
+    # kept across upgrades and your scan history survives them.
     volumes:
-      - ./go-server/db/schema/schema.sql:/docker-entrypoint-initdb.d/00-schema.sql:ro
       - dnstool-pgdata:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U dnstool -d dnstool"]
