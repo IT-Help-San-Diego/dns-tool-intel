@@ -950,6 +950,18 @@ func (a *Analyzer) CalculatePosture(results map[string]any) map[string]any {
 
         state, icon, color, message := determineGrade(ps, ds, gi)
 
+        // The email-spoofing consequence axis, exposed so consumers (history rows,
+        // the critical owl, report surfaces) can read the consequence from its
+        // producer instead of re-deriving it from record presence. "open" means a
+        // spoofed message is delivered with nothing blocking it. It describes the
+        // spoofing door ONLY: a DNSSEC-broken grade colours danger on the
+        // DNS-integrity axis and can coexist with spoof_door "closed". TLDs are
+        // graded on the registry axis, so the door does not apply.
+        spoofDoorState := "not_applicable"
+        if !isTLD {
+                spoofDoorState = doorString(classifySpoofDoor(ps, hasSPF, hasDMARC))
+        }
+
         score := computeInternalScore(ps, ds)
 
         vi := verdictInput{ps: ps, ds: ds, hasSPF: hasSPF, hasDMARC: hasDMARC, hasDKIM: hasDKIM}
@@ -976,6 +988,7 @@ func (a *Analyzer) CalculatePosture(results map[string]any) map[string]any {
                 "state":                      state,
                 mapKeyIcon:                   icon,
                 mapKeyColor:                  color,
+                "spoof_door":                 spoofDoorState,
                 "message":                    message,
                 mapKeyIssues:                 acc.issues,
                 "critical_issues":            criticalIssues,
@@ -1019,6 +1032,91 @@ func classifyGrade(ps protocolState, gi gradeInput) (string, string, string, str
         return classifyMailGrade(ps, gi)
 }
 
+// spoofDoor is the operational-consequence axis of the email-security grade:
+// not "which records exist" (compliance) but "what happens to a spoofed
+// message today" (operation). The mail-grade colour derives from this axis,
+// never from the spec's tone — RFC-optional does not mean operationally mild,
+// and the two had drifted: a domain whose own spoofability verdict renders
+// "Yes" in danger was carrying a warning-amber grade because its missing
+// record is optional per RFC 7208. (DNSSEC-broken and registry grades colour
+// on their own axes — this one is about the spoofing door.)
+type spoofDoor int
+
+const (
+        // doorUnknown: an SPF/DMARC lookup did not complete — consequence unknowable.
+        doorUnknown spoofDoor = iota
+        // doorClosed: enforcement is requested for the full mail stream (p=reject,
+        // or p=quarantine at 100%).
+        doorClosed
+        // doorGuarded: enforcement exists but with a gap a spoofed message can
+        // exploit (partial quarantine pct, or enforcement resting on DKIM alone).
+        doorGuarded
+        // doorOpen: nothing blocks a spoofed message — no policy, or p=none.
+        // Delivered to the inbox exactly as if no records existed.
+        doorOpen
+        // doorNoMail: null-MX / no-mail domain — spoofability is graded by the
+        // dedicated no-mail branch instead.
+        doorNoMail
+)
+
+// classifySpoofDoor derives the door state from the same producer the
+// spoofability verdict uses, so the grade colour and the "Can email be
+// spoofed?" answer can never disagree again. emailSpoofDMARCOnly needs the
+// policy split the verdict class does not carry: DMARC without SPF still
+// enforces when DKIM aligns (guarded), but at p=none it enforces nothing
+// (open).
+func classifySpoofDoor(ps protocolState, hasSPF, hasDMARC bool) spoofDoor {
+        switch classifyEmailSpoofability(ps, hasSPF, hasDMARC) {
+        case emailSpoofIndeterminate:
+                return doorUnknown
+        case emailSpoofNoMail:
+                return doorNoMail
+        case emailSpoofReject, emailSpoofQuarantineFull:
+                return doorClosed
+        case emailSpoofQuarantinePartial:
+                return doorGuarded
+        case emailSpoofDMARCOnly:
+                if ps.dmarcPolicy == mapKeyReject || ps.dmarcPolicy == mapKeyQuarantine {
+                        return doorGuarded
+                }
+                return doorOpen
+        default: // unprotected, monitorOnly, spfOnly, uncertain
+                return doorOpen
+        }
+}
+
+// doorColor maps the consequence axis to the display colour. This is the only
+// place grade colour and spoofing consequence meet — branches below must use
+// it rather than hand-assigning a colour token, so a future branch cannot
+// reintroduce the optional-therefore-amber drift.
+func doorColor(d spoofDoor) string {
+        switch d {
+        case doorClosed:
+                return mapKeySuccess
+        case doorGuarded:
+                return mapKeyWarning
+        case doorOpen:
+                return mapKeyDanger
+        default:
+                return mapKeySecondary
+        }
+}
+
+func doorString(d spoofDoor) string {
+        switch d {
+        case doorClosed:
+                return "closed"
+        case doorGuarded:
+                return "guarded"
+        case doorOpen:
+                return "open"
+        case doorNoMail:
+                return "no_mail"
+        default:
+                return "unknown"
+        }
+}
+
 func classifyMailGrade(ps protocolState, gi gradeInput) (string, string, string, string) {
         // A transient SPF/DMARC lookup failure leaves hasSPF/hasDMARC false, but
         // that is "unknown", not "absent". Grading absence-based risk off an
@@ -1032,7 +1130,7 @@ func classifyMailGrade(ps protocolState, gi gradeInput) (string, string, string,
         }
 
         if !gi.hasSPF || !gi.hasDMARC {
-                return classifyMailPartial(gi)
+                return classifyMailPartial(ps, gi)
         }
 
         return classifyMailCorePresent(ps, gi)
@@ -1052,28 +1150,47 @@ func classifyMailCorePresent(ps protocolState, gi gradeInput) (string, string, s
         }
 
         if gi.dmarcPartialEnforcing {
+                // doorGuarded: the uncovered pct is delivered normally — a real gap,
+                // so the colour is warning, not the informational tone it carried
+                // when colour followed the spec's optionality rather than the gap.
+                // pct=0 is zero enforcement, not a gap — the door classifier returns
+                // open for it, and the colour follows.
                 state := riskMedium
                 msg := fmt.Sprintf("DMARC quarantine at %d%% — not fully enforcing", ps.dmarcPct)
-                return applyMonitoringSuffix(state, gi.monitoring), iconShieldAlt, statusInfoPosture, msg
+                if ps.dmarcPct <= 0 {
+                        msg = "DMARC quarantine at 0% — requests no enforcement at all"
+                }
+                return applyMonitoringSuffix(state, gi.monitoring), iconShieldAlt, doorColor(classifySpoofDoor(ps, gi.hasSPF, gi.hasDMARC)), msg
         }
 
         if ps.dmarcPolicy == statusNone {
                 if ps.dmarcHasRua {
+                        // Tier stays Medium (monitoring maturity is real posture), but the
+                        // colour follows the consequence: p=none blocks nothing, and the
+                        // spoofability verdict for this exact shape already answers "Yes"
+                        // in danger. Grade and verdict must not disagree on one screen.
                         state := riskMedium
-                        msg := "DMARC is in monitoring mode (p=none) with reporting enabled"
-                        return applyMonitoringSuffix(state, gi.monitoring), iconShieldAlt, statusInfoPosture, msg
+                        msg := "DMARC is in monitoring mode (p=none) with reporting enabled — no enforcement is requested, so a spoofed message is delivered as if no DMARC existed (RFC 7489 §6.3)"
+                        return applyMonitoringSuffix(state, gi.monitoring), iconShieldAlt, mapKeyDanger, msg
                 }
-                return riskHigh, iconExclamationTriangle, mapKeyWarning, "DMARC policy is 'none' with no reporting — no protection or visibility"
+                return riskHigh, iconExclamationTriangle, mapKeyDanger, "DMARC policy is 'none' with no reporting — no protection or visibility"
         }
 
         state := riskMedium
         msg := buildDescriptiveMessage(ps, gi.configured, gi.absent, gi.monitoring)
-        return applyMonitoringSuffix(state, gi.monitoring), iconShieldAlt, statusInfoPosture, msg
+        return applyMonitoringSuffix(state, gi.monitoring), iconShieldAlt, doorColor(classifySpoofDoor(ps, gi.hasSPF, gi.hasDMARC)), msg
 }
 
-func classifyMailPartial(gi gradeInput) (string, string, string, string) {
+func classifyMailPartial(ps protocolState, gi gradeInput) (string, string, string, string) {
         if gi.hasSPF && !gi.hasDMARC {
-                return riskHigh, iconExclamationTriangle, mapKeyWarning, "SPF present but no DMARC — spoofed emails may still be delivered"
+                // No DMARC means no policy for failures at all — the door is open
+                // (emailSpoofSPFOnly answers "Likely" in danger), so the grade colour
+                // says so too.
+                return riskHigh, iconExclamationTriangle, mapKeyDanger, "SPF present but no DMARC — spoofed emails may still be delivered"
+        }
+        door := classifySpoofDoor(ps, gi.hasSPF, gi.hasDMARC)
+        if door == doorOpen {
+                return riskHigh, iconExclamationTriangle, mapKeyDanger, "DMARC present but no SPF, and the policy requests no enforcement — nothing is authenticated and nothing is blocked, so mail claiming this domain is delivered unchecked"
         }
         return riskHigh, iconExclamationTriangle, mapKeyWarning, "DMARC present but no SPF — mail authentication is incomplete"
 }
@@ -1090,10 +1207,23 @@ func classifyNoMailGrade(ps protocolState, gi gradeInput) (string, string, strin
                 if gi.dmarcStrict || gi.dmarcFullEnforcing {
                         return riskLow, iconShieldAlt, mapKeySuccess, "No-mail domain properly configured with SPF and DMARC reject policy"
                 }
-                return riskMedium, iconShieldAlt, statusInfoPosture, "No-mail domain has SPF and DMARC but policy is not reject"
+                // Same open-door rule as the partial branch below: quarantine still
+                // enforces on the covered fraction (guarded), but p=none or pct=0
+                // enforces nothing — records alone must not soften the colour, or
+                // adding one record to a danger shape would flip it to info.
+                if ps.dmarcPolicy == mapKeyQuarantine && ps.dmarcPct > 0 {
+                        return riskMedium, iconShieldAlt, mapKeyWarning, "No-mail domain has SPF and DMARC but policy is quarantine, not reject"
+                }
+                return riskMedium, iconShieldAlt, mapKeyDanger, "No-mail domain has SPF and DMARC but the policy requests no enforcement — mail claiming this domain is delivered unchecked"
         }
         if gi.hasSPF || gi.hasDMARC {
-                return riskHigh, iconExclamationTriangle, mapKeyWarning, "No-mail domain is missing SPF or DMARC"
+                // Same consequence rule as mail domains: with no enforcing DMARC,
+                // nothing instructs a receiver to refuse mail claiming this domain —
+                // parked domains are spoofed precisely because nobody is watching.
+                if gi.dmarcFullEnforcing || gi.dmarcStrict {
+                        return riskHigh, iconExclamationTriangle, mapKeyWarning, "No-mail domain is missing SPF or DMARC"
+                }
+                return riskHigh, iconExclamationTriangle, mapKeyDanger, "No-mail domain is missing SPF or DMARC and has no enforcing policy — mail claiming this domain is delivered unchecked"
         }
         return riskCritical, iconExclamationTriangle, mapKeyDanger, "No-mail domain has no email authentication records"
 }
@@ -1239,6 +1369,12 @@ func classifyDMARCPolicy(ps protocolState) emailSpoofClass {
         case mapKeyQuarantine:
                 if ps.dmarcPct >= 100 {
                         return emailSpoofQuarantineFull
+                }
+                // pct=0 requests enforcement on 0% of the stream — operationally
+                // monitor-only, not "partial": nothing is quarantined, so classing it
+                // partial would colour zero enforcement as a guarded door.
+                if ps.dmarcPct <= 0 {
+                        return emailSpoofMonitorOnly
                 }
                 return emailSpoofQuarantinePartial
         case statusNone:

@@ -398,24 +398,34 @@ func TestCountMissing(t *testing.T) {
         }
 }
 
+// Covert copy is keyed on the grade COLOUR (the operational-consequence
+// channel), so the words can never contradict the colour rendered on the same
+// badge line: a Medium Risk p=none domain (colour danger) reads "Exposed",
+// and a guarded High Risk (colour warning) reads "Partial".
 func TestCovertLabels(t *testing.T) {
         tests := []struct {
+                name       string
+                color      string
                 risk       string
                 wantLabel  string
                 wantTag    string
         }{
-                {"Low Risk", "Hardened", "Good luck with that."},
-                {"Medium Risk", "Partial", "Gaps in the armor."},
-                {"High Risk", "Exposed", "Door's open."},
-                {"Critical Risk", "Wide Open", "Free real estate."},
+                {"low", "success", "Low Risk", "Hardened", "Good luck with that."},
+                {"guarded medium", "warning", "Medium Risk", "Partial", "Gaps in the armor."},
+                {"guarded high (dmarc-only enforcing)", "warning", "High Risk", "Partial", "Gaps in the armor."},
+                {"open medium (p=none with rua)", "danger", "Medium Risk", "Exposed", "Door's open."},
+                {"open high (no spf, p=none)", "danger", "High Risk", "Exposed", "Door's open."},
+                {"critical", "danger", "Critical Risk", "Wide Open", "Free real estate."},
+                {"info tier", "info", "Medium Risk", "Partial", "Gaps in the armor."},
+                {"indeterminate: no verdict invented", "secondary", "Medium Risk", "Medium Risk", ""},
         }
         for _, tt := range tests {
-                t.Run(tt.risk, func(t *testing.T) {
-                        if got := badgepkg.CovertRiskLabel(tt.risk); got != tt.wantLabel {
-                                t.Errorf("badgepkg.CovertRiskLabel(%q) = %q, want %q", tt.risk, got, tt.wantLabel)
+                t.Run(tt.name, func(t *testing.T) {
+                        if got := badgepkg.CovertRiskLabel(tt.color, tt.risk); got != tt.wantLabel {
+                                t.Errorf("badgepkg.CovertRiskLabel(%q, %q) = %q, want %q", tt.color, tt.risk, got, tt.wantLabel)
                         }
-                        if got := badgepkg.CovertTagline(tt.risk); got != tt.wantTag {
-                                t.Errorf("badgepkg.CovertTagline(%q) = %q, want %q", tt.risk, got, tt.wantTag)
+                        if got := badgepkg.CovertTagline(tt.color, tt.risk); got != tt.wantTag {
+                                t.Errorf("badgepkg.CovertTagline(%q, %q) = %q, want %q", tt.color, tt.risk, got, tt.wantTag)
                         }
                 })
         }

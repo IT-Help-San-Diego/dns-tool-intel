@@ -254,8 +254,14 @@ func RiskColorToHex(color string) string {
 }
 
 func NormalizeRiskColor(label, color string) string {
+        // info and secondary are deliberate producer choices, not noise: secondary
+        // means "measurement did not complete — no risk claim", info means an
+        // informational tier. Both must pass through so downstream hex maps render
+        // them neutral; re-deriving amber from the label here would convert "no
+        // conclusion" into a risk assertion. The label fallback below is only for
+        // legacy rows whose stored colour is missing or unrecognized.
         switch color {
-        case "success", "warning", "danger":
+        case "success", "warning", "danger", "info", "secondary":
                 return color
         }
         ll := strings.ToLower(label)
@@ -417,31 +423,42 @@ func RiskColorToShields(color string) string {
         }
 }
 
-func CovertRiskLabel(riskLabel string) string {
-        switch riskLabel {
-        case "Low Risk":
+// CovertRiskLabel keys the covert copy on the stored grade COLOUR — the
+// operational-consequence channel — not the tier string. The tier no longer
+// determines the colour (a Medium Risk p=none domain is danger; a guarded
+// High Risk is warning), so copy derived from the tier would contradict the
+// colour rendered on the same line: "Partial" in red, "Door's open." in
+// amber. The tier string breaks the one tie inside danger: Critical keeps
+// its own copy.
+func CovertRiskLabel(riskColorName, riskLabel string) string {
+        switch riskColorName {
+        case "success":
                 return "Hardened"
-        case "Medium Risk":
+        case "warning", "info":
                 return "Partial"
-        case "High Risk":
+        case "danger":
+                if riskLabel == "Critical Risk" {
+                        return "Wide Open"
+                }
                 return "Exposed"
-        case "Critical Risk":
-                return "Wide Open"
         default:
+                // secondary / unknown: no measurement, no swagger — show the
+                // producer's own label rather than inventing a verdict.
                 return riskLabel
         }
 }
 
-func CovertTagline(riskLabel string) string {
-        switch riskLabel {
-        case "Low Risk":
+func CovertTagline(riskColorName, riskLabel string) string {
+        switch riskColorName {
+        case "success":
                 return "Good luck with that."
-        case "Medium Risk":
+        case "warning", "info":
                 return "Gaps in the armor."
-        case "High Risk":
+        case "danger":
+                if riskLabel == "Critical Risk" {
+                        return "Free real estate."
+                }
                 return "Door's open."
-        case "Critical Risk":
-                return "Free real estate."
         default:
                 return ""
         }

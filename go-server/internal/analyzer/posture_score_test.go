@@ -1,6 +1,7 @@
 package analyzer
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -194,9 +195,12 @@ func TestClassifyMailGrade_CorePresent_Reject_NoDKIM(t *testing.T) {
 func TestClassifyMailGrade_PartialEnforcing(t *testing.T) {
 	ps := protocolState{dmarcPolicy: "quarantine", dmarcPct: 50}
 	gi := gradeInput{hasSPF: true, hasDMARC: true, corePresent: true, dmarcPartialEnforcing: true}
-	state, _, _, msg := classifyMailCorePresent(ps, gi)
+	state, _, color, msg := classifyMailCorePresent(ps, gi)
 	if state != riskMedium {
 		t.Errorf("state = %q, want %q", state, riskMedium)
+	}
+	if color != "warning" {
+		t.Errorf("color = %q, want warning — the uncovered pct is a real gap (doorGuarded)", color)
 	}
 	if msg == "" {
 		t.Error("expected non-empty message")
@@ -206,9 +210,17 @@ func TestClassifyMailGrade_PartialEnforcing(t *testing.T) {
 func TestClassifyMailGrade_PolicyNone_WithRua(t *testing.T) {
 	ps := protocolState{dmarcPolicy: "none", dmarcHasRua: true}
 	gi := gradeInput{hasSPF: true, hasDMARC: true, corePresent: true}
-	state, _, _, _ := classifyMailCorePresent(ps, gi)
+	state, _, color, msg := classifyMailCorePresent(ps, gi)
 	if state != riskMedium {
 		t.Errorf("state = %q, want %q", state, riskMedium)
+	}
+	// The spoofability verdict for this exact shape answers "Yes" in danger —
+	// the grade colour must agree with it (doorOpen), whatever the tier says.
+	if color != "danger" {
+		t.Errorf("color = %q, want danger — p=none blocks nothing", color)
+	}
+	if !strings.Contains(msg, "spoofed") {
+		t.Errorf("message must state the delivery consequence, got %q", msg)
 	}
 }
 
@@ -219,8 +231,8 @@ func TestClassifyMailGrade_PolicyNone_NoRua(t *testing.T) {
 	if state != riskHigh {
 		t.Errorf("state = %q, want %q", state, riskHigh)
 	}
-	if color != "warning" {
-		t.Errorf("color = %q, want warning", color)
+	if color != "danger" {
+		t.Errorf("color = %q, want danger — p=none with no reporting is an open door", color)
 	}
 }
 
@@ -234,20 +246,83 @@ func TestClassifyMailGrade_DefaultCase(t *testing.T) {
 }
 
 func TestClassifyMailPartial(t *testing.T) {
-	state, _, _, msg := classifyMailPartial(gradeInput{hasSPF: true})
+	// SPF without DMARC: no failure policy exists at all — open door, danger.
+	state, _, color, msg := classifyMailPartial(protocolState{}, gradeInput{hasSPF: true})
 	if state != riskHigh {
 		t.Errorf("state = %q, want %q", state, riskHigh)
+	}
+	if color != "danger" {
+		t.Errorf("SPF-only color = %q, want danger — no DMARC means nothing blocks a spoofed message", color)
 	}
 	if msg == "" {
 		t.Error("expected non-empty message")
 	}
 
-	state, _, _, msg = classifyMailPartial(gradeInput{hasDMARC: true})
+	// DMARC p=none without SPF (the wearetma.com shape): nothing authenticates
+	// AND nothing is blocked — the open door must render danger, and the message
+	// must say the consequence, not "authentication is incomplete".
+	state, _, color, msg = classifyMailPartial(protocolState{dmarcPolicy: "none"}, gradeInput{hasDMARC: true})
 	if state != riskHigh {
 		t.Errorf("state = %q, want %q", state, riskHigh)
 	}
+	if color != "danger" {
+		t.Errorf("DMARC-only p=none color = %q, want danger", color)
+	}
+	if !strings.Contains(msg, "delivered unchecked") {
+		t.Errorf("message must state the open-door consequence, got %q", msg)
+	}
+
+	// DMARC enforcing without SPF: DKIM alignment can still enforce — guarded,
+	// not open. The colour distinguishes it from the p=none shape above.
+	state, _, color, msg = classifyMailPartial(protocolState{dmarcPolicy: "reject"}, gradeInput{hasDMARC: true})
+	if state != riskHigh {
+		t.Errorf("state = %q, want %q", state, riskHigh)
+	}
+	if color != "warning" {
+		t.Errorf("DMARC-only p=reject color = %q, want warning", color)
+	}
 	if msg == "" {
 		t.Error("expected non-empty message for DMARC only")
+	}
+}
+
+// TestClassifySpoofDoor pins the consequence axis to the spoofability
+// producer: every class where a spoofed message is delivered with nothing
+// blocking it must map to doorOpen/danger, and the DMARC-without-SPF split
+// must depend on whether the policy actually enforces.
+func TestClassifySpoofDoor(t *testing.T) {
+	tests := []struct {
+		name     string
+		ps       protocolState
+		hasSPF   bool
+		hasDMARC bool
+		want     spoofDoor
+	}{
+		{"unprotected", protocolState{}, false, false, doorOpen},
+		{"monitor only (red.com shape)", protocolState{dmarcPolicy: "none", dmarcHasRua: true}, true, true, doorOpen},
+		{"spf only", protocolState{}, true, false, doorOpen},
+		{"dmarc p=none no spf (wearetma shape)", protocolState{dmarcPolicy: "none"}, false, true, doorOpen},
+		{"dmarc reject no spf", protocolState{dmarcPolicy: "reject"}, false, true, doorGuarded},
+		{"quarantine partial", protocolState{dmarcPolicy: "quarantine", dmarcPct: 50}, true, true, doorGuarded},
+		{"quarantine pct=0 is zero enforcement", protocolState{dmarcPolicy: "quarantine", dmarcPct: 0}, true, true, doorOpen},
+		{"quarantine full", protocolState{dmarcPolicy: "quarantine", dmarcPct: 100}, true, true, doorClosed},
+		{"reject", protocolState{dmarcPolicy: "reject"}, true, true, doorClosed},
+		{"indeterminate lookup", protocolState{spfIndeterminate: true}, false, true, doorUnknown},
+		{"no-mail", protocolState{isNoMailDomain: true}, false, false, doorNoMail},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := classifySpoofDoor(tc.ps, tc.hasSPF, tc.hasDMARC); got != tc.want {
+				t.Errorf("door = %v, want %v", got, tc.want)
+			}
+		})
+	}
+
+	if doorColor(doorOpen) != "danger" || doorColor(doorGuarded) != "warning" || doorColor(doorClosed) != "success" || doorColor(doorUnknown) != "secondary" {
+		t.Error("doorColor mapping drifted from the consequence scale")
+	}
+	if doorString(doorOpen) != "open" || doorString(doorNoMail) != "no_mail" {
+		t.Error("doorString mapping drifted")
 	}
 }
 
