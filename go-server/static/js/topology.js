@@ -1664,7 +1664,14 @@
             if (typeof debugBounds !== 'undefined' && debugBounds) {
                 try {
                     window.__topoDbg = {
+                        // Bump on every change to registration or placement
+                        // logic: the pane's HTTP cache and the boot-time asset
+                        // hash make "which build is this page running" a real
+                        // question, and identifier-based checks are blind to it
+                        // (minification renames locals). inkRev survives.
+                        inkRev: 4,
                         W: W, H: H, scl: SCL, solver: SOLVER_ACTIVE,
+                        edgeLabelTrace: function() { return edgeLabelTrace.slice(); },
                         zones: (function() {
                             let z = {};
                             for (let k in zones) { z[k] = zones[k].bounds; }
@@ -1982,10 +1989,25 @@
                 let pw = tw + 10 * SCL;
                 let ph = edgeFontSize + 8 * SCL;
 
+                // The pill's natural anchor after endpoint avoidance — the
+                // perpendicular-escape fallback measures candidates from here,
+                // in every mode, so debug and production place identically.
+                let anchorLX = lx, anchorLY = ly;
+                let _trace = null;
+                if (typeof debugBounds !== 'undefined' && debugBounds) {
+                    _trace = { edge: (from.id || '?') + '→' + (to.id || '?') + ':' + e.label,
+                               afterAvoid: [lx, ly], obstacleCount: edgeLabelObstacles.length };
+                    edgeLabelTrace.push(_trace);
+                }
+
                 for (let llPass = 0; llPass < 3; llPass++) {
                     let llMoved = false;
-                    for (let pli = 0; pli < placedEdgeLabels.length; pli++) {
-                        let pl = placedEdgeLabels[pli];
+                    // Nodes and already-placed pills are one obstacle set —
+                    // resolving against pills alone let a pill settle onto a
+                    // node with both placements reporting success.
+                    let obstacles = edgeLabelObstacles.concat(placedEdgeLabels);
+                    for (let pli = 0; pli < obstacles.length; pli++) {
+                        let pl = obstacles[pli];
                         let olx = Math.min(lx + pw / 2, pl.x + pl.w / 2) - Math.max(lx - pw / 2, pl.x - pl.w / 2);
                         let oly = Math.min(ly + ph / 2, pl.y + pl.h / 2) - Math.max(ly - ph / 2, pl.y - pl.h / 2);
                         if (olx > 0 && oly > 0) {
@@ -1997,11 +2019,54 @@
                             llMoved = true;
                         }
                     }
+                    // Clamp inside the pass, not after it: a post-loop clamp
+                    // could shove a resolved pill straight back onto an
+                    // obstacle with nothing left to notice.
+                    ly = Math.max(20, Math.min(H - 20, ly));
+                    lx = Math.max(30, Math.min(W - 30, lx));
                     if (!llMoved) break;
                 }
 
-                ly = Math.max(20, Math.min(H - 20, ly));
-                lx = Math.max(30, Math.min(W - 30, lx));
+                // Convergence check. The pass structure translates along one
+                // axis per collision, so a pill whose edge corridor is
+                // narrower than the pill oscillates between its own endpoint
+                // boxes and exits the pass budget still colliding (measured:
+                // the dmarc→spf alignment pill, trapped at 8.8px of travel).
+                // The escape that corridor geometry cannot fight is
+                // PERPENDICULAR to the edge: slide sideways from the pill's
+                // natural anchor to the first free spot. If no candidate in
+                // budget is free, keep the least-overlapping one — drawn ink
+                // and registered ink stay identical either way, so the sweep
+                // still sees whatever remains.
+                let stillHits = function(cx, cy) {
+                    let obs = edgeLabelObstacles.concat(placedEdgeLabels);
+                    let total = 0;
+                    for (let oi = 0; oi < obs.length; oi++) {
+                        let ob = obs[oi];
+                        let ox = Math.min(cx + pw / 2, ob.x + ob.w / 2) - Math.max(cx - pw / 2, ob.x - ob.w / 2);
+                        let oy = Math.min(cy + ph / 2, ob.y + ob.h / 2) - Math.max(cy - ph / 2, ob.y - ob.h / 2);
+                        if (ox > 0 && oy > 0) total += ox * oy;
+                    }
+                    return total;
+                };
+                if (stillHits(lx, ly) > 0) {
+                    let ex = to.x - from.x, ey = to.y - from.y;
+                    let elen = Math.sqrt(ex * ex + ey * ey) || 1;
+                    let perpX = -ey / elen, perpY = ex / elen;
+                    let anchorX = anchorLX;
+                    let anchorY = anchorLY;
+                    let bestX = lx, bestY = ly, bestArea = stillHits(lx, ly);
+                    for (let esc = 1; esc <= 8 && bestArea > 0; esc++) {
+                        for (let side = 1; side >= -1; side -= 2) {
+                            let cx = Math.max(30, Math.min(W - 30, anchorX + perpX * side * esc * 12));
+                            let cy = Math.max(20, Math.min(H - 20, anchorY + perpY * side * esc * 12));
+                            let area = stillHits(cx, cy);
+                            if (area < bestArea) { bestArea = area; bestX = cx; bestY = cy; }
+                        }
+                    }
+                    lx = bestX; ly = bestY;
+                    if (_trace) { _trace.escapedArea = bestArea; }
+                }
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
 
@@ -2049,6 +2114,7 @@
 
                 ctx.fillStyle = 'rgba(255,255,255,' + (isHL ? 0.92 : 0.6) + ')';
                 ctx.fillText(e.label, lx, ly);
+                if (_trace) { _trace.final = [lx, ly, pw, ph]; }
                 placedEdgeLabels.push({ x: lx, y: ly, w: pw, h: ph });
             }
         }
@@ -2524,6 +2590,14 @@
         }
 
         let placedEdgeLabels = [];
+        // Node AABBs as obstacles for edge-pill resolution, rebuilt once per
+        // frame. placedEdgeLabels and the node boxes were two lists that never
+        // consulted each other, so a pill could land on a node with both
+        // placements reporting success — the first full ink() sweep caught
+        // exactly that (spf×edgeLabel, dane×edgeLabel). Center-based {x,y,w,h}
+        // to match the pill entries; the pad matches the +6 push offsets.
+        let edgeLabelObstacles = [];
+        let edgeLabelTrace = [];
         // Ink registry classes 3-5 (the __topoDbg comment names all five):
         // globe ink (city tags + probe tags) and scan-overlay ink (timing
         // badges), re-registered at their DRAW sites each frame so registered
@@ -2542,6 +2616,12 @@
 
             placedEdgeLabels = [];
             scanInkCurrent = [];
+            edgeLabelTrace = [];
+            edgeLabelObstacles = [];
+            allLayoutNodes.forEach(function(n) {
+                let hw = n._halfW || n.radius, hh = n._halfH || n.radius;
+                edgeLabelObstacles.push({ x: n.x, y: n.y, w: hw * 2 + 12, h: hh * 2 + 12 });
+            });
             FLOW_EDGES.forEach(function(e) { drawFlowEdge(e); });
             PROTO_EDGES.forEach(function(e) { drawFlowEdge(e); });
             drawFlowParticles();
