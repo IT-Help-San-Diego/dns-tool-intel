@@ -83,6 +83,9 @@ func Load() (*Config, error) {
 	smtpProbeMode, probeAPIURL := resolveProbeMode()
 	probes := loadProbeEndpoints(probeAPIURL)
 	tuning := loadSectionTuning()
+	if err := assertDeploymentEnvironment(); err != nil {
+		return nil, err
+	}
 	baseURL, isDevEnv := resolveBaseURL()
 	googleRedirectURL := envOrDefault("GOOGLE_REDIRECT_URL", baseURL+"/auth/callback")
 	betaPages := copyBetaPages()
@@ -241,6 +244,35 @@ func resolveBaseURL() (string, bool) {
 	replitDevDomain := os.Getenv("REPLIT_DEV_DOMAIN")
 	isDevEnv := replitDevDomain != ""
 	return baseURL, isDevEnv
+}
+
+// AssertDeploymentEnvironment fails loudly — before the router builds or any
+// listener binds — when a dev-environment variable has leaked into a published
+// deployment. These are the same class as the helium database-host guard in
+// db.go: a mis-set secret that is silently corrected (or silently widens the
+// CSP) produces a running system that is wrong in ways nobody sees.
+//
+// Each message names the offending variable, what it currently holds, and the
+// action to take — matching the helium guard's "say what to fix, not just
+// what's wrong" shape, because an operator reading a deploy log at 3am should
+// not have to find the source to know which secret to change.
+//
+// Called from config.Load(), which runs before the early listener binds, so a
+// failing deployment never accepts traffic in a bad configuration.
+func assertDeploymentEnvironment() error {
+	if os.Getenv("REPLIT_DEPLOYMENT") == "" {
+		return nil
+	}
+
+	if os.Getenv("REPLIT_DEV_BANNER") == "1" {
+		return fmt.Errorf("misconfiguration: REPLIT_DEV_BANNER=1 is set in a published deployment, which widens script-src/connect-src/frame-src with the Replit dev-banner wildcard in production; remove REPLIT_DEV_BANNER from the deployment's secrets (it belongs only in the dev workspace)")
+	}
+
+	if raw := os.Getenv("BASE_URL"); raw != "" && isReplitEphemeralBaseURL(raw) {
+		return fmt.Errorf("misconfiguration: BASE_URL=%q in a published deployment carries a Replit-ephemeral hostname; set BASE_URL to %q in the deployment's secrets or delete it and let the canonical default apply (resolveBaseURL currently corrects this silently, which is why the leak went unreported)", raw, canonicalBaseURL)
+	}
+
+	return nil
 }
 
 func copyBetaPages() map[string]bool {
