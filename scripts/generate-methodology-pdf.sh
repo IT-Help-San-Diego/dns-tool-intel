@@ -29,6 +29,39 @@ if [ -n "$VERSION" ]; then
   "$SED" -i -E "s/DNS Tool v[0-9]+\.[0-9]+\.[0-9]+/DNS Tool v${VERSION}/" docs/dns-tool-methodology.html
 
   echo "Version updated in .md and .html"
+
+  # Post-write assertion: enumerate every version-bearing file and fail if
+  # any string isn't the requested version. Each sed above has its own
+  # pattern, and a sed that matches nothing exits 0 — which is why {10} and
+  # "DNS Tool v10" sat wrong since April. Deriving the check from the files
+  # rather than the patterns makes the next missed pattern a build failure
+  # instead of a silent skip.
+  echo "Verifying version strings..."
+  VERSION_FILES=(
+    docs/dns-tool-methodology.md
+    docs/dns-tool-methodology.html
+    .zenodo.json
+    codemeta.json
+    CITATION.cff
+  )
+  FAILED=0
+  for f in "${VERSION_FILES[@]}"; do
+    if [ -f "$f" ]; then
+      # Check for version-like strings that ISN'T the requested version,
+      # scoped to version fields (not RFC sections, Go versions, schema versions,
+      # cff-version which is the citation format schema, not the software version)
+      MISMATCH=$(grep -oE '(version[^0-9]*|v)[0-9]+\.[0-9]+\.[0-9]+' "$f" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | grep -v "^${VERSION}$" | grep -v "^1\.2\.0$" | head -1)
+      if [ -n "$MISMATCH" ]; then
+        echo "VERSION MISMATCH in $f: found $MISMATCH, expected $VERSION"
+        FAILED=1
+      fi
+    fi
+  done
+  if [ "$FAILED" -eq 1 ]; then
+    echo "FAIL: version strings disagree. Fix the mismatches above and re-run."
+    exit 1
+  fi
+  echo "Version strings verified"
 fi
 
 # Prose sync check: the .md and .html are parallel hand-maintained copies of
