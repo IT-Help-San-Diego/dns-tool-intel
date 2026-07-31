@@ -278,8 +278,8 @@
   Pages: _footer, approach, architecture, privacy, security_policy
 - https://github.com/IT-Help-San-Diego/dns-tool-intel/blob/main/LICENSE
   Pages: _footer, privacy, security_policy
-- https://github.com/IT-Help-San-Diego/dns-tool-intel/blob/main/docs/BLACK-SITE-INTERROGATIONS.md
-  Pages: black_site
+- https://github.com/IT-Help-San-Diego/dns-tool-intel/blob/main/docs/FAILURE-REGISTRY.md
+  Pages: failure_registry
 - https://github.com/IT-Help-San-Diego/dns-tool-intel/issues/1
   Pages: about
 - https://github.com/silvia-odwyer

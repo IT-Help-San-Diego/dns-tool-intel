@@ -302,7 +302,7 @@ func TestCoverageBoost16_marshalOrderedJSON(t *testing.T) {
         })
 }
 
-func TestCoverageBoost16_protocolRawConfidence(t *testing.T) {
+func TestCoverageBoost16_protocolVerdictSeverity(t *testing.T) {
         tests := []struct {
                 name   string
                 status string
@@ -330,16 +330,16 @@ func TestCoverageBoost16_protocolRawConfidence(t *testing.T) {
                                         "status": tt.status,
                                 },
                         }
-                        got := protocolRawConfidence(results, "test_section")
+                        got := protocolVerdictSeverity(results, "test_section")
                         if got != tt.want {
-                                t.Errorf("protocolRawConfidence status=%q: got %f, want %f", tt.status, got, tt.want)
+                                t.Errorf("protocolVerdictSeverity status=%q: got %f, want %f", tt.status, got, tt.want)
                         }
                 })
         }
 
         t.Run("missing section", func(t *testing.T) {
                 results := map[string]any{}
-                got := protocolRawConfidence(results, "nonexistent")
+                got := protocolVerdictSeverity(results, "nonexistent")
                 if got != 0.0 {
                         t.Errorf("expected 0.0, got %f", got)
                 }
@@ -347,14 +347,14 @@ func TestCoverageBoost16_protocolRawConfidence(t *testing.T) {
 
         t.Run("section not a map", func(t *testing.T) {
                 results := map[string]any{"section": "string"}
-                got := protocolRawConfidence(results, "section")
+                got := protocolVerdictSeverity(results, "section")
                 if got != 0.0 {
                         t.Errorf("expected 0.0, got %f", got)
                 }
         })
 
         t.Run("nil results", func(t *testing.T) {
-                got := protocolRawConfidence(nil, "any")
+                got := protocolVerdictSeverity(nil, "any")
                 if got != 0.0 {
                         t.Errorf("expected 0.0, got %f", got)
                 }
@@ -364,7 +364,7 @@ func TestCoverageBoost16_protocolRawConfidence(t *testing.T) {
                 results := map[string]any{
                         "section": map[string]any{"other": "value"},
                 }
-                got := protocolRawConfidence(results, "section")
+                got := protocolVerdictSeverity(results, "section")
                 if got != 0.0 {
                         t.Errorf("expected 0.0 for missing status, got %f", got)
                 }
@@ -504,12 +504,12 @@ func TestCoverageBoost16_aggregateResolverAgreement(t *testing.T) {
 func TestProtocolRawConfidence_Indeterminate(t *testing.T) {
         for _, status := range []string{"indeterminate", "inconclusive"} {
                 results := map[string]any{"s": map[string]any{"status": status}}
-                if got := protocolRawConfidence(results, "s"); got != 0.5 {
+                if got := protocolVerdictSeverity(results, "s"); got != 0.5 {
                         t.Errorf("status=%q: got %f, want 0.5 (neutral, not penalized as confirmed absence)", status, got)
                 }
         }
-        indet := protocolRawConfidence(map[string]any{"s": map[string]any{"status": "indeterminate"}}, "s")
-        confirmedErr := protocolRawConfidence(map[string]any{"s": map[string]any{"status": "error"}}, "s")
+        indet := protocolVerdictSeverity(map[string]any{"s": map[string]any{"status": "indeterminate"}}, "s")
+        confirmedErr := protocolVerdictSeverity(map[string]any{"s": map[string]any{"status": "error"}}, "s")
         if indet <= confirmedErr {
                 t.Errorf("indeterminate (%f) must score strictly higher than confirmed error (%f)", indet, confirmedErr)
         }

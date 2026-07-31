@@ -106,12 +106,25 @@ if [ "$CONFIG_VERSION" != "dev" ]; then
 fi
 pass "config.go Version is the \"dev\" fallback — version comes from the git tag ${VERSION} via ldflags"
 
-info "Gate 6: Version bump — sonar-project.properties (DORMANT)"
-# SonarCloud SaaS decoupled April 2026; properties file is dormant but
-# we still bump the version field so it stays accurate when local
-# SonarQube CE is brought online and reads the file as-is.
-"$SED" -i "s/^sonar.projectVersion=.*/sonar.projectVersion=${VERSION}/" sonar-project.properties
-pass "sonar-project.properties → ${VERSION} (dormant, no upload)"
+info "Gate 6: Version bump — sonar-project.properties (DORMANT, optional)"
+# SonarCloud SaaS decoupled April 2026; the properties file is dormant. When it
+# is present we still bump its version field so it stays accurate if a local
+# SonarQube CE instance is brought online and reads the file as-is.
+#
+# The file was deleted from main (commit 52d96ca32). The unguarded sed below
+# aborted the whole release under `set -euo pipefail` — GNU sed exits 4 and BSD
+# sed exits 1 on a missing input file, and the ERR trap turns that into a failed
+# gate run. A dormant, optional artifact must not be able to block a release, so
+# the bump is now conditional, matching the guarded pattern used by Gates 4 and
+# 4b for codemeta.json and .zenodo.json.
+if [ -f sonar-project.properties ]; then
+  "$SED" -i "s/^sonar.projectVersion=.*/sonar.projectVersion=${VERSION}/" sonar-project.properties
+  grep -q "^sonar.projectVersion=${VERSION}$" sonar-project.properties \
+    || fail "sonar-project.properties exists but sonar.projectVersion was not updated to ${VERSION} (sed did not match)"
+  pass "sonar-project.properties → ${VERSION} (dormant, no upload)"
+else
+  info "sonar-project.properties absent — skipping (dormant artifact, not required for release)"
+fi
 
 info "Gate 7: Methodology PDF regeneration"
 bash scripts/generate-methodology-pdf.sh "$VERSION"

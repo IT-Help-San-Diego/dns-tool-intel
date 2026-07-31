@@ -32,7 +32,7 @@ func TestPriorityLabels(t *testing.T) {
 }
 
 func TestStatusDisplay(t *testing.T) {
-        for _, status := range []string{"DETAINED", "VERIFIED", "UNDER_INTERROGATION", "CONTAINED", "RENDERED", "REGRESSED", "EXTRADITED", "DISMISSED"} {
+        for _, status := range []string{"OPEN", "VERIFIED", "UNDER_ANALYSIS", "CONTAINED", "RESOLVED", "REGRESSED", "REFERRED", "DISMISSED"} {
                 if _, ok := statusDisplay[status]; !ok {
                         t.Errorf("missing statusDisplay[%q]", status)
                 }
@@ -98,11 +98,11 @@ func TestBuildKindMap(t *testing.T) {
 
 func TestBuildStatusMap(t *testing.T) {
         counts := []dbq.CountFindingsByStatusRow{
-                {Status: "DETAINED", Count: 7},
+                {Status: "OPEN", Count: 7},
         }
         m := buildStatusMap(counts)
-        if m["DETAINED"] != 7 {
-                t.Errorf("m[DETAINED] = %d, want 7", m["DETAINED"])
+        if m["OPEN"] != 7 {
+                t.Errorf("m[OPEN] = %d, want 7", m["OPEN"])
         }
 }
 
@@ -114,7 +114,7 @@ func TestBuildEventViews_Empty(t *testing.T) {
 }
 
 func TestBuildEventViews_WithData(t *testing.T) {
-        toStatus := "RENDERED"
+        toStatus := "RESOLVED"
         eventsRaw := []dbq.ListFindingEventsRow{
                 {
                         PublicID:  "BSI-001",
@@ -130,8 +130,8 @@ func TestBuildEventViews_WithData(t *testing.T) {
         if len(events) != 1 {
                 t.Fatalf("expected 1 event, got %d", len(events))
         }
-        if events[0].ToStatus != "RENDERED" {
-                t.Errorf("ToStatus = %q, want RENDERED", events[0].ToStatus)
+        if events[0].ToStatus != "RESOLVED" {
+                t.Errorf("ToStatus = %q, want RESOLVED", events[0].ToStatus)
         }
         if events[0].CreatedAt != "" {
                 t.Errorf("CreatedAt should be empty for invalid timestamp")

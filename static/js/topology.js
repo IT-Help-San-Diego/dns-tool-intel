@@ -380,7 +380,14 @@
 
                 let rawTagX = cached.curX;
                 let rawTagY = cached.curY;
-                placedBoxes.push({ x: rawTagX, y: rawTagY, w: tagW, h: tagH });
+                // Placement obstacles use the IDEAL position — the box this
+                // label is travelling to — so later labels avoid its
+                // destination, not a transient mid-lerp spot they would
+                // collide with on arrival. Ink registers the DRAWN position:
+                // what is actually on screen this frame. Two consumers, two
+                // truths; conflating them was why registered boxes trailed
+                // drawn ones during motion.
+                placedBoxes.push({ x: cached.idealX, y: cached.idealY, w: tagW, h: tagH });
                 globeInkCurrent.push({ kind: 'cityLabel', id: cacheKey, x: rawTagX, y: rawTagY, w: tagW, h: tagH });
                 popHitAreas.push({ x: rawTagX, y: rawTagY, w: tagW, h: tagH, dotX: p2.x, dotY: p2.y, idx: vp.idx });
 
@@ -579,7 +586,9 @@
                 pCached.curY += (pCached.idealY - pCached.curY) * LABEL_LERP;
 
                 let pPos = { x: pCached.curX, y: pCached.curY };
-                placedBoxes.push({ x: pPos.x, y: pPos.y, w: pTagW, h: pTagH });
+                // Same split as the city tags: obstacles at the destination,
+                // ink at the drawn position.
+                placedBoxes.push({ x: pCached.idealX, y: pCached.idealY, w: pTagW, h: pTagH });
                 globeInkCurrent.push({ kind: 'probeTag', id: pCacheKey, x: pPos.x, y: pPos.y, w: pTagW, h: pTagH });
 
                 // Same pinning rule as the resolver leaders: land on the
@@ -1669,7 +1678,7 @@
                         // hash make "which build is this page running" a real
                         // question, and identifier-based checks are blind to it
                         // (minification renames locals). inkRev survives.
-                        inkRev: 4,
+                        inkRev: 6,
                         W: W, H: H, scl: SCL, solver: SOLVER_ACTIVE,
                         edgeLabelTrace: function() { return edgeLabelTrace.slice(); },
                         zones: (function() {

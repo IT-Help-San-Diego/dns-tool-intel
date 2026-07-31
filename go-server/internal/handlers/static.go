@@ -222,7 +222,7 @@ func (h *StaticHandler) SitemapXML(c *gin.Context) {
                 {h.BaseURL + "/remediation", mapKeyMonthly, sitemapPriorityLow},
                 {h.BaseURL + "/faq/subdomains", mapKeyMonthly, sitemapPriorityLow},
                 {h.BaseURL + "/topology", mapKeyMonthly, sitemapPriorityLow},
-                {h.BaseURL + "/black-site", mapKeyMonthly, sitemapPriorityLow},
+                {h.BaseURL + "/failure-registry", mapKeyMonthly, sitemapPriorityLow},
                 {h.BaseURL + "/agent/plugin", mapKeyMonthly, sitemapPriorityLow},
         }
 

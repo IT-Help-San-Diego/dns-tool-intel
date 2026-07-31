@@ -279,8 +279,6 @@
         var candidateDists = opts.candidateDists || [globeR * 0.15 + labelGap, globeR * 0.25 + labelGap, globeR * 0.35 + labelGap];
 
         var maxLabelRight = globeCx + globeR + labelBand + labelGap;
-        var maxLabelLeft = globeCx - globeR - labelBand - labelGap;
-        var maxLabelTop = globeCy - globeR - labelBand;
         var maxLabelBottom = globeCy + globeR + labelBand;
 
         var baseAngle = Math.atan2(dotY - globeCy, dotX - globeCx);
@@ -295,8 +293,19 @@
 
                 if (Math.cos(ca) < 0) cx -= tagW;
 
-                cx = Math.max(Math.max(4, maxLabelLeft), Math.min(cx, maxLabelRight - tagW));
-                cy = Math.max(Math.max(4, maxLabelTop), Math.min(cy, maxLabelBottom - tagH));
+                // REJECT candidates that do not fit; never CLAMP them. Clamping
+                // was the pile-up: maxLabelLeft evaluates NEGATIVE at every
+                // viewport (only 41-77px of canvas sits west of the globe
+                // against a ~104px tag), so Math.max(4, maxLabelLeft) collapsed
+                // every westward candidate onto x=4 — where they all "fit",
+                // stacked on each other. Rejection pushes the search into the
+                // corridors that genuinely are free: above and below the globe.
+                // (Ported from topology.js's inline city-tag path — this shared
+                // path kept the clamp, which is why probe tags and the
+                // standalone globes still piled up while city tags stayed
+                // clean.)
+                if (cx < 4 || cx + tagW > maxLabelRight) continue;
+                if (cy < 4 || cy + tagH > maxLabelBottom) continue;
 
                 var hasCollision = false;
                 for (var pi = 0; pi < placedBoxes.length; pi++) {
@@ -317,6 +326,16 @@
                     bestY = cy;
                 }
             }
+        }
+
+        // Every candidate was rejected as non-fitting — park in the corridor
+        // below the globe rather than leaving the label nowhere. A parked tag
+        // is still drawn and still registered; omission would be absence
+        // presented as a result.
+        if (bestX === null) {
+            bestX = Math.min(Math.max(4, dotX - tagW / 2), maxLabelRight - tagW);
+            bestY = Math.min(globeCy + globeR + labelGap, maxLabelBottom - tagH);
+            bestScore = 10000;
         }
 
         if (bestScore >= 10000) {
@@ -341,7 +360,11 @@
             bestY = Math.max(4, Math.min(bestY, maxLabelBottom - tagH));
         }
 
-        return { x: bestX, y: bestY, score: bestScore };
+        // collided: this placement ended in a park or an unresolved overlap.
+        // Callers were ignoring the raw score; a named flag lets them mark the
+        // tag (dim it, badge it) without re-deriving the threshold — never
+        // skip drawing on it.
+        return { x: bestX, y: bestY, score: bestScore, collided: bestScore >= 10000 };
     }
 
     globalThis.GlobeCore = {
