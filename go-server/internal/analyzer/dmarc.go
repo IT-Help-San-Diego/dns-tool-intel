@@ -430,10 +430,21 @@ func (a *Analyzer) AnalyzeDMARC(ctx context.Context, domain string) map[string]a
 //   - Multiple valid records at the org domain mean receivers treat it as no
 //     DMARC (RFC 7489 §6.6.3), so absence stands.
 func (a *Analyzer) applyOrgDomainDMARCFallback(ctx context.Context, domain string, baseResult map[string]any) map[string]any {
-        org := orgDomain(domain)
+        org, orgIndeterminate := orgDomain(domain)
+        if orgIndeterminate {
+                // Tri-state honesty: the Public Suffix List could not derive an
+                // organizational domain (unlisted/unknown suffix in the compiled-in
+                // snapshot). Without it we cannot name the org-domain DMARC target,
+                // so we cannot distinguish "no coverage" from "inherited coverage".
+                // Indeterminate — never report absence from a lookup that did not
+                // complete. Absence in the local snapshot is not absence in the world.
+                baseResult[mapKeyStatus] = statusIndeterminate
+                baseResult[mapKeyDmarcState] = dmarcStateIndeterminate
+                baseResult[mapKeyMessage] = fmt.Sprintf("No DMARC record at _dmarc.%s, and the organizational domain could not be derived from the Public Suffix List (unlisted/unknown suffix) — subdomain coverage per RFC 7489 §6.6.3 could not be verified. This is not a finding that DMARC is absent; re-run before drawing a conclusion.", domain)
+                return baseResult
+        }
         if strings.EqualFold(org, strings.TrimRight(domain, ".")) {
-                // Apex (or public-suffix parse failure, where orgDomain returns the
-                // input): there is no higher organizational domain to fall back to.
+                // Apex: there is no higher organizational domain to fall back to.
                 return baseResult
         }
 

@@ -662,7 +662,7 @@ func TestExtractRootDomain(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.domain, func(t *testing.T) {
-			isSub, root := extractRootDomain(tt.domain)
+			isSub, root, _ := extractRootDomain(tt.domain)
 			if isSub != tt.isSub {
 				t.Errorf("isSubdomain = %v, want %v", isSub, tt.isSub)
 			}

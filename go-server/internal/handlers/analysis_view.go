@@ -146,8 +146,8 @@ func (h *AnalysisHandler) viewAnalysisWithMode(c *gin.Context, mode string) {
 	rfcCount := analyzer.CountVerifiedStandards(results)
 	currentHash := derefString(analysis.PostureHash)
 	drift := h.detectHistoricalDrift(ctx, currentHash, analysis.Domain, analysis.ID, results)
-	isSub, rootDom := extractRootDomain(analysis.AsciiDomain)
-	emailScope := h.resolveEmailScope(ctx, isSub, rootDom, analysis.AsciiDomain, results)
+	isSub, rootDom, pslIndeterminate := extractRootDomain(analysis.AsciiDomain)
+	emailScope := h.resolveEmailScope(ctx, isSub, rootDom, pslIndeterminate, analysis.AsciiDomain, results)
 
 	viewData := NewTemplateData(c, h.Config, "")
 	viewData["Domain"] = analysis.Domain
@@ -167,6 +167,7 @@ func (h *AnalysisHandler) viewAnalysisWithMode(c *gin.Context, mode string) {
 	viewData["VerificationCommands"] = verifyCommands
 	viewData["IsSubdomain"] = isSub
 	viewData["RootDomain"] = rootDom
+	viewData["PSLIndeterminate"] = pslIndeterminate
 	viewData["SecurityTrailsKey"] = ""
 	viewData["IntegrityHash"] = integrityHash
 	viewData["RFCCount"] = rfcCount
@@ -399,7 +400,20 @@ func computeIntegrityHash(analysis dbq.DomainAnalysis, timestamp, toolVersion, a
 	return analyzer.ReportIntegrityHash(analysis.AsciiDomain, analysis.ID, timestamp, hashVersion, results)
 }
 
-func (h *AnalysisHandler) resolveEmailScope(ctx context.Context, isSub bool, rootDom, asciiDomain string, results map[string]any) *subdomainEmailScope {
+func (h *AnalysisHandler) resolveEmailScope(ctx context.Context, isSub bool, rootDom string, pslIndeterminate bool, asciiDomain string, results map[string]any) *subdomainEmailScope {
+	if pslIndeterminate {
+		// The Public Suffix List could not resolve this name (unlisted/unknown
+		// suffix in the compiled-in snapshot). Do not compute an email scope —
+		// isSubdomain and rootDom are not meaningful. Return a scope flagged
+		// indeterminate so the template can say "not determinable" rather than
+		// render a fabricated "not a subdomain / no coverage" claim. Absence in
+		// the local snapshot is not absence in the world.
+		es := subdomainEmailScope{
+			Indeterminate: true,
+			ParentDomain:  "",
+		}
+		return &es
+	}
 	if !isSub || rootDom == "" {
 		return nil
 	}
@@ -427,8 +441,8 @@ func (h *AnalysisHandler) buildAnalyzeViewData(c *gin.Context, v viewDataInput) 
 	integrityHash := analyzer.ReportIntegrityHash(v.asciiDomain, v.analysisID, v.timestamp, h.Config.AppVersion, v.results)
 	rfcCount := analyzer.CountVerifiedStandards(v.results)
 
-	isSub, rootDom := extractRootDomain(v.asciiDomain)
-	emailScope := h.resolveEmailScope(ctx, isSub, rootDom, v.asciiDomain, v.results)
+	isSub, rootDom, pslIndeterminate := extractRootDomain(v.asciiDomain)
+	emailScope := h.resolveEmailScope(ctx, isSub, rootDom, pslIndeterminate, v.asciiDomain, v.results)
 
 	analyzeData := NewTemplateData(c, h.Config, "")
 	analyzeData["Domain"] = v.domain
@@ -444,6 +458,7 @@ func (h *AnalysisHandler) buildAnalyzeViewData(c *gin.Context, v viewDataInput) 
 	analyzeData["VerificationCommands"] = verifyCommands
 	analyzeData["IsSubdomain"] = isSub
 	analyzeData["RootDomain"] = rootDom
+	analyzeData["PSLIndeterminate"] = pslIndeterminate
 	analyzeData["SecurityTrailsKey"] = ""
 	analyzeData["IntegrityHash"] = integrityHash
 	analyzeData["RFCCount"] = rfcCount

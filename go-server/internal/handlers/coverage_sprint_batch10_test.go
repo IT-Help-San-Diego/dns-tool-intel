@@ -984,7 +984,7 @@ func TestResolveEmailScope_NotSubdomain_B10(t *testing.T) {
                 Config:   &config.Config{},
                 Analyzer: analyzer.New(analyzer.WithInitialIANAFetch(false)),
         }
-        es := h.resolveEmailScope(nil, false, "", "example.com", map[string]any{})
+        es := h.resolveEmailScope(nil, false, "", false, "example.com", map[string]any{})
         if es != nil {
                 t.Fatal("expected nil for non-subdomain")
         }
@@ -995,7 +995,7 @@ func TestResolveEmailScope_EmptyRoot_B10(t *testing.T) {
                 Config:   &config.Config{},
                 Analyzer: analyzer.New(analyzer.WithInitialIANAFetch(false)),
         }
-        es := h.resolveEmailScope(nil, true, "", "sub.example.com", map[string]any{})
+        es := h.resolveEmailScope(nil, true, "", false, "sub.example.com", map[string]any{})
         if es != nil {
                 t.Fatal("expected nil for empty root domain")
         }

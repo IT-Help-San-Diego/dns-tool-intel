@@ -331,3 +331,91 @@ func TestCoverageBoost17_ComputeSubdomainEmailScope_WarningStatus(t *testing.T) 
 		t.Error("expected HasLocalEmail=true with string MX")
 	}
 }
+
+// TestExtractRootDomain_IndeterminateOnBareSuffix pins the Zero-Fabrication
+// contract in the always-on (untagged) suite: when the Public Suffix List
+// cannot derive a registrable eTLD+1 (a bare public suffix like com/co.uk),
+// extractRootDomain must surface indeterminate=true, NOT the fabricated claim
+// isSubdomain=false it previously returned. Absence in the local PSL snapshot
+// is not absence in the world.
+func TestExtractRootDomain_IndeterminateOnBareSuffix(t *testing.T) {
+	for _, domain := range []string{"com", "co.uk", "web3", "localhost"} {
+		isSub, root, indeterminate := extractRootDomain(domain)
+		if !indeterminate {
+			t.Errorf("extractRootDomain(%q): indeterminate = false, want true (no eTLD+1 derivable)", domain)
+		}
+		if isSub {
+			t.Errorf("extractRootDomain(%q): isSub = true, want false (meaningless under indeterminate)", domain)
+		}
+		if root != "" {
+			t.Errorf("extractRootDomain(%q): root = %q, want empty", domain, root)
+		}
+	}
+}
+
+// TestExtractRootDomain_DeterminateOnNormalDomains guards the regression: a
+// normal registrable domain and its subdomain must NOT be flagged
+// indeterminate — the third state is only for lookups that did not complete.
+func TestExtractRootDomain_DeterminateOnNormalDomains(t *testing.T) {
+	cases := []struct {
+		domain   string
+		wantSub  bool
+		wantRoot string
+	}{
+		{"example.com", false, ""},
+		{"www.example.com", true, "example.com"},
+		{"a.b.example.co.uk", true, "example.co.uk"},
+	}
+	for _, tc := range cases {
+		isSub, root, indeterminate := extractRootDomain(tc.domain)
+		if indeterminate {
+			t.Errorf("extractRootDomain(%q): indeterminate = true, want false", tc.domain)
+		}
+		if isSub != tc.wantSub {
+			t.Errorf("extractRootDomain(%q): isSub = %v, want %v", tc.domain, isSub, tc.wantSub)
+		}
+		if root != tc.wantRoot {
+			t.Errorf("extractRootDomain(%q): root = %q, want %q", tc.domain, root, tc.wantRoot)
+		}
+	}
+}
+
+// TestResolveEmailScope_IndeterminateReturnsScopedNil verifies the render
+// contract: when PSL is indeterminate, resolveEmailScope must return a scope
+// flagged Indeterminate (so the template says "not determinable") rather than
+// nil (which would render nothing) or a populated scope (a fabricated claim).
+func TestResolveEmailScope_IndeterminateReturnsScopedFlag(t *testing.T) {
+	h := &AnalysisHandler{}
+	results := map[string]any{}
+	scope := h.resolveEmailScope(context.Background(), false, "", true, "com", results)
+	if scope == nil {
+		t.Fatal("resolveEmailScope(indeterminate) returned nil — template would render nothing instead of 'not determinable'")
+	}
+	if !scope.Indeterminate {
+		t.Error("scope.Indeterminate = false, want true")
+	}
+	if scope.IsSubdomain {
+		t.Error("scope.IsSubdomain = true under indeterminate — fabricated claim")
+	}
+	if scope.ParentDomain != "" {
+		t.Errorf("scope.ParentDomain = %q under indeterminate, want empty", scope.ParentDomain)
+	}
+}
+
+// TestResolveEmailScope_BareSuffixStillAnalyzedElsewhere documents the product
+// invariant the user stated: entering a root TLD like com must still produce a
+// report. extractRootDomain being indeterminate does NOT gate the analysis —
+// the isPublicSuffixDomain / IsTLDInput paths drive the Registry Zone Health
+// view independently. This test only asserts the email-scope derivation stays
+// honest; it does not suppress the report.
+func TestResolveEmailScope_BareSuffixStillAnalyzedElsewhere(t *testing.T) {
+	if !isPublicSuffixDomain("com") {
+		t.Error("com must remain a recognized public suffix (Registry Zone Health path)")
+	}
+	if !isPublicSuffixDomain("co.uk") {
+		t.Error("co.uk must remain a recognized public suffix (Registry Zone Health path)")
+	}
+	if isPublicSuffixDomain("example.com") {
+		t.Error("example.com must NOT be a public suffix")
+	}
+}
