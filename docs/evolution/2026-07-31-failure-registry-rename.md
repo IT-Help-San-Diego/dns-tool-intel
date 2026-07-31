@@ -68,3 +68,35 @@ migration, the queries, and `ListFindings` — renaming it would be a separate c
 benefit), the `legacy_bsi_id` / `legacy_threat_level` columns, and the practice of
 publishing defects against ourselves. The adversarial, red-team stance is the point of the
 page and survives intact. Only the torture vocabulary was retired.
+
+---
+
+## Addendum: `/corpus` retired from the machine-readable manifests
+
+`llms.txt` and `llms-full.txt` exist to tell AI agents what this site offers. Both advertised a
+**Research Corpus** page at `/corpus` — "inline PDF reading with split-pane layout for all published
+research documents" — which returns 404 in production. The page was deliberately removed in
+`e76521be1` ("Remove research corpus page and update publications information"); the manifests were
+not updated with it.
+
+The defect is not the missing page. It is a manifest asserting something the server cannot serve, in
+a document whose entire purpose is machine-readable accuracy — the same class as a methodology
+document describing calibration the code does not perform. An agent following `llms.txt` was handed a
+dead link by the file that exists to prevent exactly that.
+
+The claim is removed rather than deferred: the page was retired by decision, not postponed, and
+`llms.txt` may describe a roadmap item as a roadmap item but never as a live page.
+
+**The two mirror copies disagreed, and reality decided the direction in both cases** — no hand-picked
+canonical copy was needed:
+
+* `/corpus`: only the served (`static/`) copies carried the claim; the embedded
+  (`go-server/static/`) copies were already clean. The served copies were wrong.
+* `/fragment/topology` and `/fragment/icons.js`: only the embedded copy documented them, and both
+  routes genuinely exist (`main.go:561-562`). The served copy was incomplete.
+
+Each claim was resolved toward what the router actually serves. With both fixed, `llms.txt` and
+`llms-full.txt` became byte-identical across the trees and were removed from
+`knownDivergentMirrors` in `TestStaticMirrorsAgree` — which failed until they were, because that
+ratchet fails in both directions by design. Seven divergent pairs remain, each still awaiting the
+same treatment: decide from the producer, then delete the entry.

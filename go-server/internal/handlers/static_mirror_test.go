@@ -34,8 +34,6 @@ var knownDivergentMirrors = map[string]string{
 	"css/print.min.css":                   "unreviewed drift — decide which tree is canonical, then delete this entry",
 	"images/owl-signature-160.png":        "unreviewed drift",
 	"images/owl-signature-240.png":        "unreviewed drift",
-	"llms-full.txt":                       "unreviewed drift",
-	"llms.txt":                            "unreviewed drift",
 	"manifest.json":                       "may be intentional: served vs embedded tree",
 	"robots.txt":                          "may be intentional: served vs embedded tree",
 	"sw.js":                               "may be intentional: service worker scope differs by tree",
