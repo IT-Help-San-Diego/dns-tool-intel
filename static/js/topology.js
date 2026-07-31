@@ -1293,10 +1293,13 @@
                 // protocols, engine, confidence, hub, sources, storage, outputs.
                 // Horizontal flow is untouched.
                 let order = [
+                    // The hub leads because the globe leads: those dots ARE the
+                    // resolver fleet, so DNS Resolvers is the globe's caption. Five
+                    // bands of separation left the globe arriving unexplained.
+                    { key: 'hub', members: [HUB] },
                     { key: 'protocol', members: PROTOCOLS },
                     { key: 'engine', members: [ENGINE] },
                     { key: 'confidence', members: CONFIDENCE },
-                    { key: 'hub', members: [HUB] },
                     { key: 'source', members: SOURCES },
                     { key: 'storage', members: STORAGE },
                     { key: 'output', members: layoutOutputs }
