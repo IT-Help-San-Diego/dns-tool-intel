@@ -1,36 +1,36 @@
 <!DOCTYPE html>
-{{htmlComment " We don't just find bugs. We rendition them. "}}
+{{htmlComment " We find our own bugs before you do. "}}
 <html lang="en" data-bs-theme="dark">
 <head>
     {{template "head" .}}
     {{template "head_css" .}}
-    <title>Black Site — Bug Interrogation Facility — DNS Tool</title>
+    <title>Failure Registry — Defect Ledger — DNS Tool</title>
     <meta name="robots" content="index, follow">
-    <meta name="description" content="Every defect gets a hash, a severity, and a cell. Findings detained, classified, and tracked across five parallel audit strike teams.">
-    <meta property="og:url" content="https://dnstool.it-help.tech/black-site">
+    <meta name="description" content="Every defect gets a hash, a severity, and a status. Findings tracked, classified, and resolved across five parallel audit teams.">
+    <meta property="og:url" content="https://dnstool.it-help.tech/findings">
     <meta property="og:type" content="website">
-    <meta property="og:title" content="Black Site — Bug Interrogation Facility">
-    <meta property="og:description" content="Every defect gets a hash, a severity, and a cell. This is what it looks like when engineers actually give a damn.">
+    <meta property="og:title" content="Failure Registry — Defect Ledger">
+    <meta property="og:description" content="Every defect gets a hash, a severity, and a status. This is what it looks like when engineers actually give a damn.">
     <meta property="og:image" content="https://dnstool.it-help.tech/static/images/og-image.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:type" content="image/png">
-    <meta property="og:image:alt" content="DNS Tool — Black Site Bug Interrogation Facility">
+    <meta property="og:image:alt" content="DNS Tool — Failure Registry">
     <meta property="og:site_name" content="DNS Tool">
     <meta name="twitter:card" content="summary_large_image">
     <meta property="twitter:domain" content="dnstool.it-help.tech">
-    <meta property="twitter:url" content="https://dnstool.it-help.tech/black-site">
-    <meta name="twitter:title" content="Black Site — Bug Interrogation Facility">
-    <meta name="twitter:description" content="Every defect gets a hash, a severity, and a cell. This is what it looks like when engineers actually give a damn.">
+    <meta property="twitter:url" content="https://dnstool.it-help.tech/findings">
+    <meta name="twitter:title" content="Failure Registry — Defect Ledger">
+    <meta name="twitter:description" content="Every defect gets a hash, a severity, and a status. This is what it looks like when engineers actually give a damn.">
     <meta name="twitter:image" content="https://dnstool.it-help.tech/static/images/og-image.png">
-    <link rel="canonical" href="https://dnstool.it-help.tech/black-site">
+    <link rel="canonical" href="https://dnstool.it-help.tech/findings">
     <style nonce="{{.CspNonce}}">
-        .bsi-page {
+        .fr-page {
             background: #030306;
             min-height: 100vh;
             position: relative;
         }
-        .bsi-page::before {
+        .fr-page::before {
             content: '';
             position: fixed;
             top: 0;
@@ -47,16 +47,16 @@
             pointer-events: none;
             z-index: 1;
         }
-        .bsi-content {
+        .fr-content {
             position: relative;
             z-index: 2;
         }
-        .bsi-facility-header {
+        .fr-registry-header {
             border-bottom: 1px solid rgba(255,0,0,0.15);
             padding: 3rem 0 2rem;
             text-align: center;
         }
-        .bsi-facility-header h1 {
+        .fr-registry-header h1 {
             font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'JetBrains Mono', ui-monospace, monospace;
             font-size: 2.2rem;
             font-weight: 700;
@@ -66,12 +66,12 @@
             margin-bottom: 0.5rem;
         }
         @media (max-width: 767.98px) {
-            .bsi-facility-header h1 {
+            .fr-registry-header h1 {
                 font-size: 1.4rem;
                 letter-spacing: 0.08em;
             }
         }
-        .bsi-facility-status {
+        .fr-registry-status {
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
@@ -81,7 +81,7 @@
             text-transform: uppercase;
             letter-spacing: 0.2em;
         }
-        .bsi-status-dot {
+        .fr-status-dot {
             width: 8px;
             height: 8px;
             border-radius: 50%;
@@ -89,11 +89,11 @@
             display: inline-block;
         }
         @media (prefers-reduced-motion: no-preference) {
-            .bsi-status-dot {
-                animation: bsi-pulse 2s ease-in-out infinite;
+            .fr-status-dot {
+                animation: fr-pulse 2s ease-in-out infinite;
             }
         }
-        @keyframes bsi-pulse {
+        @keyframes fr-pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.3; }
         }
@@ -104,7 +104,7 @@
                 transition-duration: 0.01ms !important;
             }
         }
-        .bsi-epigraph {
+        .fr-epigraph {
             font-style: italic;
             color: #8b949e;
             font-size: 0.85rem;
@@ -112,7 +112,7 @@
             margin: 1rem auto 0;
             line-height: 1.6;
         }
-        .bsi-section {
+        .fr-section {
             background: linear-gradient(145deg, #06060a 0%, #0a0a12 50%, #080810 100%);
             border: 1px solid rgba(125,142,168,0.08);
             border-radius: 8px;
@@ -120,11 +120,11 @@
             margin-bottom: 1.5rem;
         }
         @media (max-width: 767.98px) {
-            .bsi-section {
+            .fr-section {
                 padding: 1.25rem 1rem;
             }
         }
-        .bsi-section-title {
+        .fr-section-title {
             font-family: ui-monospace, monospace;
             font-size: 0.7rem;
             font-weight: 600;
@@ -135,54 +135,54 @@
             padding-bottom: 0.5rem;
             border-bottom: 1px solid rgba(125,142,168,0.06);
         }
-        .bsi-hash {
+        .fr-hash {
             font-family: 'SF Mono', ui-monospace, monospace;
             font-size: 0.75rem;
             color: #7d8590;
             user-select: all;
         }
-        .bsi-id {
+        .fr-id {
             font-family: ui-monospace, monospace;
             font-size: 0.8rem;
             font-weight: 600;
         }
-        .bsi-sev-s0 { color: #ff1744; border-left-color: rgba(255,23,68,0.4); }
-        .bsi-sev-s1 { color: #f85149; border-left-color: rgba(248,81,73,0.4); }
-        .bsi-sev-s2 { color: #d29922; border-left-color: rgba(210,153,34,0.4); }
-        .bsi-sev-s3 { color: #c8956a; border-left-color: rgba(200,149,106,0.3); }
-        .bsi-sev-s4 { color: #8b949e; border-left-color: rgba(139,148,158,0.15); }
-        .bsi-detainee {
+        .fr-sev-s0 { color: #ff1744; border-left-color: rgba(255,23,68,0.4); }
+        .fr-sev-s1 { color: #f85149; border-left-color: rgba(248,81,73,0.4); }
+        .fr-sev-s2 { color: #d29922; border-left-color: rgba(210,153,34,0.4); }
+        .fr-sev-s3 { color: #c8956a; border-left-color: rgba(200,149,106,0.3); }
+        .fr-sev-s4 { color: #8b949e; border-left-color: rgba(139,148,158,0.15); }
+        .fr-finding {
             border-left: 3px solid;
             padding: 1rem 1.25rem;
             margin-bottom: 1.25rem;
             background: rgba(0,0,0,0.3);
             border-radius: 0 6px 6px 0;
         }
-        .bsi-detainee h3 {
+        .fr-finding h3 {
             font-size: 0.95rem;
             font-weight: 600;
             color: #c9d1d9;
             margin-bottom: 0.75rem;
         }
-        .bsi-detainee-meta {
+        .fr-finding-meta {
             font-size: 0.78rem;
             color: #8b949e;
             margin-bottom: 0.4rem;
         }
-        .bsi-detainee-meta code {
+        .fr-finding-meta code {
             font-size: 0.72rem;
             color: #7d8590;
             background: rgba(125,142,168,0.1);
             padding: 0.1em 0.4em;
             border-radius: 3px;
         }
-        .bsi-detainee p {
+        .fr-finding p {
             color: #9ca3af;
             font-size: 0.85rem;
             line-height: 1.6;
             margin-bottom: 0.5rem;
         }
-        .bsi-witness {
+        .fr-witness {
             font-style: italic;
             color: #8b949e;
             border-left: 2px solid rgba(125,142,168,0.15);
@@ -190,12 +190,12 @@
             margin: 0.75rem 0;
             font-size: 0.82rem;
         }
-        .bsi-damage {
+        .fr-damage {
             font-size: 0.82rem;
             color: #f85149;
             font-weight: 500;
         }
-        .bsi-badge {
+        .fr-badge {
             display: inline-block;
             font-family: ui-monospace, monospace;
             font-size: 0.6rem;
@@ -208,7 +208,7 @@
             line-height: 1;
             vertical-align: middle;
         }
-        .bsi-badge-s0 {
+        .fr-badge-s0 {
             color: #ff1744;
             border-color: rgba(255,23,68,0.5);
             background: rgba(255,23,68,0.12);
@@ -219,78 +219,78 @@
             0%, 100% { box-shadow: 0 0 4px rgba(255,23,68,0.2); }
             50% { box-shadow: 0 0 12px rgba(255,23,68,0.4); }
         }
-        .bsi-badge-s1 {
+        .fr-badge-s1 {
             color: #f85149;
             border-color: rgba(248,81,73,0.3);
             background: rgba(248,81,73,0.08);
         }
-        .bsi-badge-s2 {
+        .fr-badge-s2 {
             color: #d29922;
             border-color: rgba(210,153,34,0.3);
             background: rgba(210,153,34,0.08);
         }
-        .bsi-badge-s3 {
+        .fr-badge-s3 {
             color: #c8956a;
             border-color: rgba(200,149,106,0.3);
             background: rgba(200,149,106,0.08);
         }
-        .bsi-badge-s4 {
+        .fr-badge-s4 {
             color: #8b949e;
             border-color: rgba(139,148,158,0.2);
             background: rgba(139,148,158,0.06);
         }
-        .bsi-badge-detained {
+        .fr-badge-open {
             color: #f85149;
             border-color: rgba(248,81,73,0.2);
             background: rgba(248,81,73,0.05);
             font-size: 0.55rem;
         }
-        .bsi-badge-verified {
+        .fr-badge-verified {
             color: #d29922;
             border-color: rgba(210,153,34,0.2);
             background: rgba(210,153,34,0.05);
             font-size: 0.55rem;
         }
-        .bsi-badge-interrogation {
+        .fr-badge-analysis {
             color: #bc8cff;
             border-color: rgba(188,140,255,0.2);
             background: rgba(188,140,255,0.05);
             font-size: 0.55rem;
         }
-        .bsi-badge-contained {
+        .fr-badge-contained {
             color: #c8956a;
             border-color: rgba(200,149,106,0.2);
             background: rgba(200,149,106,0.05);
             font-size: 0.55rem;
         }
-        .bsi-badge-rendered {
+        .fr-badge-resolved {
             color: #3fb950;
             border-color: rgba(63,185,80,0.2);
             background: rgba(63,185,80,0.05);
             font-size: 0.55rem;
         }
-        .bsi-badge-regressed {
+        .fr-badge-regressed {
             color: #ff1744;
             border-color: rgba(255,23,68,0.3);
             background: rgba(255,23,68,0.08);
             font-size: 0.55rem;
             animation: redNotice 2s ease-in-out infinite;
         }
-        .bsi-badge-extradited {
+        .fr-badge-referred {
             color: #8b949e;
             border-color: rgba(139,148,158,0.2);
             background: rgba(139,148,158,0.05);
             font-size: 0.55rem;
             text-decoration: line-through;
         }
-        .bsi-badge-dismissed {
+        .fr-badge-dismissed {
             color: #484f58;
             border-color: rgba(72,79,88,0.2);
             background: rgba(72,79,88,0.05);
             font-size: 0.55rem;
             text-decoration: line-through;
         }
-        .bsi-badge-kind {
+        .fr-badge-kind {
             font-size: 0.55rem;
             font-weight: 500;
             letter-spacing: 0.1em;
@@ -298,7 +298,7 @@
             border-color: rgba(125,142,168,0.15);
             background: rgba(125,142,168,0.05);
         }
-        .bsi-census-grid {
+        .fr-census-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
             gap: 1rem;
@@ -306,33 +306,33 @@
             padding: 0;
             margin: 0;
         }
-        .bsi-census-card {
+        .fr-census-card {
             text-align: center;
             padding: 1rem;
             border-radius: 6px;
             border: 1px solid rgba(125,142,168,0.06);
             background: rgba(0,0,0,0.3);
         }
-        .bsi-census-count {
+        .fr-census-count {
             font-family: ui-monospace, monospace;
             font-size: 2rem;
             font-weight: 700;
             line-height: 1;
             margin-bottom: 0.25rem;
         }
-        .bsi-census-label {
+        .fr-census-label {
             font-family: ui-monospace, monospace;
             font-size: 0.6rem;
             text-transform: uppercase;
             letter-spacing: 0.2em;
             color: #8b949e;
         }
-        .bsi-team-table {
+        .fr-team-table {
             width: 100%;
             border-collapse: collapse;
             font-size: 0.8rem;
         }
-        .bsi-team-table th {
+        .fr-team-table th {
             font-family: ui-monospace, monospace;
             font-size: 0.65rem;
             text-transform: uppercase;
@@ -343,23 +343,23 @@
             text-align: left;
             font-weight: 600;
         }
-        .bsi-team-table td {
+        .fr-team-table td {
             padding: 0.5rem 0.75rem;
             color: #9ca3af;
             border-bottom: 1px solid rgba(125,142,168,0.04);
             vertical-align: top;
         }
-        .bsi-team-table td:first-child {
+        .fr-team-table td:first-child {
             font-family: ui-monospace, monospace;
             color: #7d8590;
             white-space: nowrap;
         }
-        .bsi-compact-table {
+        .fr-compact-table {
             width: 100%;
             border-collapse: collapse;
             font-size: 0.78rem;
         }
-        .bsi-compact-table th {
+        .fr-compact-table th {
             font-family: ui-monospace, monospace;
             font-size: 0.6rem;
             text-transform: uppercase;
@@ -370,31 +370,31 @@
             text-align: left;
             font-weight: 600;
         }
-        .bsi-compact-table td {
+        .fr-compact-table td {
             padding: 0.5rem;
             color: #9ca3af;
             border-bottom: 1px solid rgba(125,142,168,0.03);
             vertical-align: top;
         }
-        .bsi-rendition-log {
+        .fr-event-log {
             min-height: 80px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
-        .bsi-rendition-empty {
+        .fr-event-empty {
             font-family: ui-monospace, monospace;
             font-size: 0.75rem;
             color: #7d8590;
             text-transform: uppercase;
             letter-spacing: 0.2em;
         }
-        .bsi-scores-grid {
+        .fr-scores-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 0.75rem;
         }
-        .bsi-score-item {
+        .fr-score-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -403,33 +403,33 @@
             background: rgba(0,0,0,0.2);
             border: 1px solid rgba(125,142,168,0.04);
         }
-        .bsi-score-label {
+        .fr-score-label {
             font-size: 0.75rem;
             color: #8b949e;
         }
-        .bsi-score-value {
+        .fr-score-value {
             font-family: ui-monospace, monospace;
             font-size: 0.75rem;
             font-weight: 600;
         }
-        .bsi-grade-a { color: #3fb950; }
-        .bsi-grade-b { color: #c8956a; }
-        .bsi-grade-c { color: #d29922; }
-        .bsi-grade-f { color: #f85149; }
-        .bsi-colophon {
+        .fr-grade-a { color: #3fb950; }
+        .fr-grade-b { color: #c8956a; }
+        .fr-grade-c { color: #d29922; }
+        .fr-grade-f { color: #f85149; }
+        .fr-colophon {
             text-align: center;
             padding: 2rem 0;
             border-top: 1px solid rgba(125,142,168,0.06);
             margin-top: 2rem;
         }
-        .bsi-colophon p {
+        .fr-colophon p {
             font-size: 0.78rem;
             color: #7d8590;
             line-height: 1.7;
             max-width: 520px;
             margin: 0 auto;
         }
-        .bsi-github-link {
+        .fr-github-link {
             display: inline-flex;
             align-items: center;
             gap: 0.4rem;
@@ -443,30 +443,30 @@
             margin-top: 0.75rem;
             transition: color 0.2s ease, border-color 0.2s ease;
         }
-        .bsi-github-link:hover,
-        .bsi-github-link:focus-visible {
+        .fr-github-link:hover,
+        .fr-github-link:focus-visible {
             color: #79c0ff;
             border-color: rgba(200,149,106,0.35);
         }
-        .bsi-classification-table {
+        .fr-classification-table {
             width: 100%;
             border-collapse: collapse;
         }
-        .bsi-classification-table td {
+        .fr-classification-table td {
             padding: 0.6rem 0.75rem;
             vertical-align: top;
             border-bottom: 1px solid rgba(125,142,168,0.04);
         }
-        .bsi-classification-table td:first-child {
+        .fr-classification-table td:first-child {
             white-space: nowrap;
             width: 100px;
         }
-        .bsi-classification-desc {
+        .fr-classification-desc {
             font-size: 0.8rem;
             color: #8b949e;
             line-height: 1.5;
         }
-        .bsi-canonical {
+        .fr-canonical {
             font-size: 0.72rem;
             color: #7d8590;
             display: flex;
@@ -476,15 +476,15 @@
             padding-top: 0.5rem;
             border-top: 1px dashed rgba(125,142,168,0.08);
         }
-        .bsi-canonical span {
+        .fr-canonical span {
             display: inline-flex;
             gap: 0.25rem;
         }
-        .bsi-canonical strong {
+        .fr-canonical strong {
             color: #8b949e;
             font-weight: 500;
         }
-        .bsi-collapse-toggle {
+        .fr-collapse-toggle {
             display: block;
             width: 100%;
             text-align: left;
@@ -501,62 +501,61 @@
             letter-spacing: 0.25em;
             line-height: inherit;
         }
-        .bsi-collapse-toggle:focus-visible {
+        .fr-collapse-toggle:focus-visible {
             outline: 2px solid #58a6ff;
             outline-offset: 2px;
             border-radius: 3px;
         }
         @media print {
-            .bsi-page::before { display: none; }
-            .bsi-page { background: #fff; }
-            .bsi-facility-header h1 { color: #000; }
-            .bsi-section { border-color: #ddd; background: #fafafa; }
-            .bsi-detainee { background: #f5f5f5; }
-            .bsi-detainee h3, .bsi-section-title { color: #333; }
-            .bsi-detainee p, .bsi-detainee-meta { color: #555; }
+            .fr-page::before { display: none; }
+            .fr-page { background: #fff; }
+            .fr-registry-header h1 { color: #000; }
+            .fr-section { border-color: #ddd; background: #fafafa; }
+            .fr-finding { background: #f5f5f5; }
+            .fr-finding h3, .fr-section-title { color: #333; }
+            .fr-finding p, .fr-finding-meta { color: #555; }
         }
 
-        .bsi-epigraph-sub { font-size: 0.78rem; letter-spacing: 0.15em; text-transform: uppercase; }
-        .bsi-census-c-default { color: #c9d1d9; }
-        .bsi-census-c-red { color: #f85149; }
-        .bsi-census-c-green { color: #3fb950; }
-        .bsi-s0-border { border: 1px solid rgba(255,23,68,0.15); border-radius: 8px; background: rgba(255,23,68,0.02); }
-        .bsi-s0-title { color: #ff1744; }
-        .bsi-severity-desc { font-size: 0.82rem; color: #7d8590; font-style: italic; }
-        .bsi-collapse-title { margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
-        .bsi-count-s3 { font-weight: 400; color: #c8956a; }
-        .bsi-count-s4 { font-weight: 400; color: #8b949e; }
-        .bsi-chevron { float: right; font-size: 0.6rem; color: #7d8590; }
-        .bsi-rendition-event-count { color: #c9d1d9; }
-        .bsi-btn-mono { font-family: ui-monospace, monospace; font-size: 0.7rem; color: #7d8590; border: 1px solid rgba(125,142,168,0.15); letter-spacing: 0.1em; text-transform: uppercase; }
-        .bsi-audit-label { font-family: ui-monospace, monospace; font-size: 0.65rem; color: #7d8590; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 0.75rem; }
-        .bsi-footer-note { font-size: 0.68rem; color: #484f58; }
+        .fr-epigraph-sub { font-size: 0.78rem; letter-spacing: 0.15em; text-transform: uppercase; }
+        .fr-census-c-default { color: #c9d1d9; }
+        .fr-census-c-red { color: #f85149; }
+        .fr-census-c-green { color: #3fb950; }
+        .fr-s0-border { border: 1px solid rgba(255,23,68,0.15); border-radius: 8px; background: rgba(255,23,68,0.02); }
+        .fr-s0-title { color: #ff1744; }
+        .fr-severity-desc { font-size: 0.82rem; color: #7d8590; font-style: italic; }
+        .fr-collapse-title { margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
+        .fr-count-s3 { font-weight: 400; color: #c8956a; }
+        .fr-count-s4 { font-weight: 400; color: #8b949e; }
+        .fr-chevron { float: right; font-size: 0.6rem; color: #7d8590; }
+        .fr-event-event-count { color: #c9d1d9; }
+        .fr-btn-mono { font-family: ui-monospace, monospace; font-size: 0.7rem; color: #7d8590; border: 1px solid rgba(125,142,168,0.15); letter-spacing: 0.1em; text-transform: uppercase; }
+        .fr-audit-label { font-family: ui-monospace, monospace; font-size: 0.65rem; color: #7d8590; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 0.75rem; }
+        .fr-footer-note { font-size: 0.68rem; color: #484f58; }
     </style>
 </head>
-<body class="bsi-page">
+<body class="fr-page">
     {{template "nav" .}}
     <a href="#main-content" class="u-skip-link">Skip to content</a>
-    <main id="main-content" class="bsi-content">
+    <main id="main-content" class="fr-content">
 
-    <header class="bsi-facility-header">
+    <header class="fr-registry-header">
         <div class="container">
-            <p class="bsi-facility-status" aria-label="Facility status: active">
-                <span class="bsi-status-dot" aria-hidden="true"></span>
-                Facility Active
+            <p class="fr-registry-status" aria-label="Facility status: active">
+                <span class="fr-status-dot" aria-hidden="true"></span>
+                Registry Active
             </p>
-            <h1>{{icon "crosshairs" "me-2"}}Black Site</h1>
-            <p class="bsi-epigraph">We don&rsquo;t just find bugs. We rendition them. Every defect in this codebase gets a hash, a severity, and a cell. They don&rsquo;t leave until we&rsquo;ve extracted everything they know and eliminated them from the system.</p>
-            <p class="bsi-epigraph mt-2 bsi-epigraph-sub">We proudly use enhanced interrogation tactics.</p>
+            <h1>{{icon "crosshairs" "me-2"}}Failure Registry</h1>
+            <p class="fr-epigraph">We find our own bugs before you do. Every defect in this codebase gets a hash, a severity, and a status. They don't leave until they're fixed, verified, and the fix is on main.</p>
         </div>
     </header>
 
-    <section class="container py-4" aria-label="Facility overview">
+    <section class="container py-4" aria-label="Registry overview">
 
-        <div class="bsi-section">
-            <h2 class="bsi-section-title">{{icon "satellite-dish" "me-1"}} Strike Teams Deployed</h2>
+        <div class="fr-section">
+            <h2 class="fr-section-title">{{icon "satellite-dish" "me-1"}} Audit Teams</h2>
             <div class="table-responsive">
-            <table class="bsi-team-table" aria-label="Audit strike teams">
-                <thead><tr><th scope="col">Designation</th><th scope="col">Codename</th><th scope="col">Mission</th></tr></thead>
+            <table class="fr-team-table" aria-label="Audit teams">
+                <thead><tr><th scope="col">Designation</th><th scope="col">Codename</th><th scope="col">Scope</th></tr></thead>
                 <tbody>
                     <tr><td>T001</td><td>SquirrelScan</td><td>Automated full-spectrum technical audit &mdash; SEO, security, accessibility, performance</td></tr>
                     <tr><td>T002</td><td>Ghost Protocol</td><td>Interactive UX hunt &mdash; Engineer&rsquo;s Report flows, every click, every pixel</td></tr>
@@ -568,91 +567,91 @@
             </div>
         </div>
 
-        <div class="bsi-section">
-            <h2 class="bsi-section-title">{{icon "shield-halved" "me-1"}} Severity Classification</h2>
-            <table class="bsi-classification-table" aria-label="Severity level definitions">
+        <div class="fr-section">
+            <h2 class="fr-section-title">{{icon "shield-halved" "me-1"}} Severity Classification</h2>
+            <table class="fr-classification-table" aria-label="Severity level definitions">
                 <thead><tr><th class="visually-hidden">Severity</th><th class="visually-hidden">Description</th></tr></thead>
                 <tbody>
                     <tr>
-                        <td><span class="bsi-badge bsi-badge-s0">S0</span></td>
-                        <td class="bsi-classification-desc"><strong>Red Notice.</strong> Internal regression. Something we fixed turned against us &mdash; a mole in the codebase. When a rendered finding resurfaces or a fix introduces a new defect, it gets a Red Notice. These are treated as betrayals, not bugs.</td>
+                        <td><span class="fr-badge fr-badge-s0">S0</span></td>
+                        <td class="fr-classification-desc"><strong>Red Notice.</strong> Internal regression. Something we fixed turned against us &mdash; a mole in the codebase. When a rendered finding resurfaces or a fix introduces a new defect, it gets a Red Notice. These are treated as betrayals, not bugs.</td>
                     </tr>
                     <tr>
-                        <td><span class="bsi-badge bsi-badge-s1">S1</span></td>
-                        <td class="bsi-classification-desc"><strong>Critical Path.</strong> High-impact, actively causing damage. Users are hitting this right now. No workaround exists.</td>
+                        <td><span class="fr-badge fr-badge-s1">S1</span></td>
+                        <td class="fr-classification-desc"><strong>Critical Path.</strong> High-impact, actively causing damage. Users are hitting this right now. No workaround exists.</td>
                     </tr>
                     <tr>
-                        <td><span class="bsi-badge bsi-badge-s2">S2</span></td>
-                        <td class="bsi-classification-desc"><strong>Major.</strong> Documented weakness being exploited. We know the damage. We haven&rsquo;t patched it yet.</td>
+                        <td><span class="fr-badge fr-badge-s2">S2</span></td>
+                        <td class="fr-classification-desc"><strong>Major.</strong> Documented weakness being exploited. We know the damage. We haven&rsquo;t patched it yet.</td>
                     </tr>
                     <tr>
-                        <td><span class="bsi-badge bsi-badge-s3">S3</span></td>
-                        <td class="bsi-classification-desc"><strong>Contained.</strong> Design debt with a known attack surface. Not actively exploited but attackable. Track and remediate.</td>
+                        <td><span class="fr-badge fr-badge-s3">S3</span></td>
+                        <td class="fr-classification-desc"><strong>Contained.</strong> Design debt with a known attack surface. Not actively exploited but attackable. Track and remediate.</td>
                     </tr>
                     <tr>
-                        <td><span class="bsi-badge bsi-badge-s4">S4</span></td>
-                        <td class="bsi-classification-desc"><strong>Minor.</strong> Indicator that something isn&rsquo;t right. Left unaddressed, it metastasizes.</td>
+                        <td><span class="fr-badge fr-badge-s4">S4</span></td>
+                        <td class="fr-classification-desc"><strong>Minor.</strong> Indicator that something isn&rsquo;t right. Left unaddressed, it metastasizes.</td>
                     </tr>
                 </tbody>
             </table>
         </div>
 
-        <div class="bsi-section">
-            <h2 class="bsi-section-title">{{icon "chart-bar" "me-1"}} Census</h2>
-            <ul class="bsi-census-grid" aria-label="Findings census by severity">
-                <li class="bsi-census-card">
-                    <div class="bsi-census-count bsi-sev-s0">{{.S0Count}}</div>
-                    <div class="bsi-census-label">S0 Red Notice</div>
+        <div class="fr-section">
+            <h2 class="fr-section-title">{{icon "chart-bar" "me-1"}} Census</h2>
+            <ul class="fr-census-grid" aria-label="Findings census by severity">
+                <li class="fr-census-card">
+                    <div class="fr-census-count fr-sev-s0">{{.S0Count}}</div>
+                    <div class="fr-census-label">S0 Red Notice</div>
                 </li>
-                <li class="bsi-census-card">
-                    <div class="bsi-census-count bsi-sev-s1">{{.S1Count}}</div>
-                    <div class="bsi-census-label">S1 Critical</div>
+                <li class="fr-census-card">
+                    <div class="fr-census-count fr-sev-s1">{{.S1Count}}</div>
+                    <div class="fr-census-label">S1 Critical</div>
                 </li>
-                <li class="bsi-census-card">
-                    <div class="bsi-census-count bsi-sev-s2">{{.S2Count}}</div>
-                    <div class="bsi-census-label">S2 Major</div>
+                <li class="fr-census-card">
+                    <div class="fr-census-count fr-sev-s2">{{.S2Count}}</div>
+                    <div class="fr-census-label">S2 Major</div>
                 </li>
-                <li class="bsi-census-card">
-                    <div class="bsi-census-count bsi-sev-s3">{{.S3Count}}</div>
-                    <div class="bsi-census-label">S3 Contained</div>
+                <li class="fr-census-card">
+                    <div class="fr-census-count fr-sev-s3">{{.S3Count}}</div>
+                    <div class="fr-census-label">S3 Contained</div>
                 </li>
-                <li class="bsi-census-card">
-                    <div class="bsi-census-count bsi-sev-s4">{{.S4Count}}</div>
-                    <div class="bsi-census-label">S4 Minor</div>
+                <li class="fr-census-card">
+                    <div class="fr-census-count fr-sev-s4">{{.S4Count}}</div>
+                    <div class="fr-census-label">S4 Minor</div>
                 </li>
-                <li class="bsi-census-card">
-                    <div class="bsi-census-count bsi-census-c-default">{{.TotalCount}}</div>
-                    <div class="bsi-census-label">Total Detained</div>
+                <li class="fr-census-card">
+                    <div class="fr-census-count fr-census-c-default">{{.TotalCount}}</div>
+                    <div class="fr-census-label">Total Findings</div>
                 </li>
             </ul>
-            <ul class="bsi-census-grid mt-3" aria-label="Findings census by status">
-                <li class="bsi-census-card">
-                    <div class="bsi-census-count bsi-census-c-red">{{.DetainedCount}}</div>
-                    <div class="bsi-census-label">Detained</div>
+            <ul class="fr-census-grid mt-3" aria-label="Findings census by status">
+                <li class="fr-census-card">
+                    <div class="fr-census-count fr-census-c-red">{{.DetainedCount}}</div>
+                    <div class="fr-census-label">Open</div>
                 </li>
-                <li class="bsi-census-card">
-                    <div class="bsi-census-count bsi-census-c-green">{{.RenderedCount}}</div>
-                    <div class="bsi-census-label">Rendered</div>
+                <li class="fr-census-card">
+                    <div class="fr-census-count fr-census-c-green">{{.RenderedCount}}</div>
+                    <div class="fr-census-label">Resolved</div>
                 </li>
             </ul>
         </div>
 
         {{if .S0Findings}}
-        <div class="bsi-section bsi-s0-border">
-            <h2 class="bsi-section-title bsi-s0-title">{{icon "exclamation-triangle" "me-1"}} S0 &mdash; Red Notice</h2>
-            <p class="mb-3 bsi-severity-desc">Internal regressions. Findings that were rendered but came back &mdash; moles in the codebase. Something we fixed turned against us. Treated as betrayals, not bugs.</p>
+        <div class="fr-section fr-s0-border">
+            <h2 class="fr-section-title fr-s0-title">{{icon "exclamation-triangle" "me-1"}} S0 &mdash; Red Notice</h2>
+            <p class="mb-3 fr-severity-desc">Internal regressions. Findings that were rendered but came back &mdash; moles in the codebase. Something we fixed turned against us. Treated as betrayals, not bugs.</p>
             {{range .S0Findings}}
-            <div class="bsi-detainee bsi-sev-s0">
+            <div class="fr-finding fr-sev-s0">
                 <h3>
-                    <span class="bsi-badge bsi-badge-s0">S0</span>
-                    <span class="bsi-badge bsi-badge-{{.StatusCSS}}">{{.StatusDisplay}}</span>
-                    <span class="bsi-badge bsi-badge-kind">{{.Kind}}</span>
+                    <span class="fr-badge fr-badge-s0">S0</span>
+                    <span class="fr-badge fr-badge-{{.StatusCSS}}">{{.StatusDisplay}}</span>
+                    <span class="fr-badge fr-badge-kind">{{.Kind}}</span>
                     {{.PublicID}}: {{.Title}}
                 </h3>
                 <p>{{.SymptomMD}}</p>
-                {{if .HypothesisMD}}<p class="bsi-witness">&ldquo;{{.HypothesisMD}}&rdquo;</p>{{end}}
-                {{if .RootCauseMD}}<p class="bsi-damage">Root cause: {{.RootCauseMD}}</p>{{end}}
-                <div class="bsi-canonical">
+                {{if .HypothesisMD}}<p class="fr-witness">&ldquo;{{.HypothesisMD}}&rdquo;</p>{{end}}
+                {{if .RootCauseMD}}<p class="fr-damage">Root cause: {{.RootCauseMD}}</p>{{end}}
+                <div class="fr-canonical">
                     <span><strong>Fingerprint:</strong> <code>{{.FingerprintSHA}}</code></span>
                     <span><strong>Domain:</strong> {{.Domain}}</span>
                     <span><strong>Evidence:</strong> {{.EvidenceGrade}}</span>
@@ -667,21 +666,21 @@
         {{end}}
 
         {{if .S1Findings}}
-        <div class="bsi-section">
-            <h2 class="bsi-section-title">{{icon "bug" "me-1"}} S1 &mdash; Critical Path Threats</h2>
-            <p class="mb-3 bsi-severity-desc">These findings orchestrated the whole operation against our codebase. They don&rsquo;t just cause one problem &mdash; they corrupt trust in the entire system.</p>
+        <div class="fr-section">
+            <h2 class="fr-section-title">{{icon "bug" "me-1"}} S1 &mdash; Critical Path Threats</h2>
+            <p class="mb-3 fr-severity-desc">These findings orchestrated the whole operation against our codebase. They don&rsquo;t just cause one problem &mdash; they corrupt trust in the entire system.</p>
             {{range .S1Findings}}
-            <div class="bsi-detainee bsi-sev-s1">
+            <div class="fr-finding fr-sev-s1">
                 <h3>
-                    <span class="bsi-badge bsi-badge-s1">S1</span>
-                    <span class="bsi-badge bsi-badge-{{.StatusCSS}}">{{.StatusDisplay}}</span>
-                    <span class="bsi-badge bsi-badge-kind">{{.Kind}}</span>
+                    <span class="fr-badge fr-badge-s1">S1</span>
+                    <span class="fr-badge fr-badge-{{.StatusCSS}}">{{.StatusDisplay}}</span>
+                    <span class="fr-badge fr-badge-kind">{{.Kind}}</span>
                     {{.PublicID}}: {{.Title}}
                 </h3>
                 <p>{{.SymptomMD}}</p>
-                {{if .HypothesisMD}}<p class="bsi-witness">&ldquo;{{.HypothesisMD}}&rdquo;</p>{{end}}
-                {{if .RootCauseMD}}<p class="bsi-damage">Root cause: {{.RootCauseMD}}</p>{{end}}
-                <div class="bsi-canonical">
+                {{if .HypothesisMD}}<p class="fr-witness">&ldquo;{{.HypothesisMD}}&rdquo;</p>{{end}}
+                {{if .RootCauseMD}}<p class="fr-damage">Root cause: {{.RootCauseMD}}</p>{{end}}
+                <div class="fr-canonical">
                     <span><strong>Fingerprint:</strong> <code>{{.FingerprintSHA}}</code></span>
                     <span><strong>Domain:</strong> {{.Domain}}</span>
                     <span><strong>Evidence:</strong> {{.EvidenceGrade}}</span>
@@ -696,21 +695,21 @@
         {{end}}
 
         {{if .S2Findings}}
-        <div class="bsi-section">
-            <h2 class="bsi-section-title">{{icon "bolt" "me-1"}} S2 &mdash; Major Findings</h2>
-            <p class="mb-3 bsi-severity-desc">Documented weaknesses actively causing damage. We know the impact. Patches pending.</p>
+        <div class="fr-section">
+            <h2 class="fr-section-title">{{icon "bolt" "me-1"}} S2 &mdash; Major Findings</h2>
+            <p class="mb-3 fr-severity-desc">Documented weaknesses actively causing damage. We know the impact. Patches pending.</p>
             {{range .S2Findings}}
-            <div class="bsi-detainee bsi-sev-s2">
+            <div class="fr-finding fr-sev-s2">
                 <h3>
-                    <span class="bsi-badge bsi-badge-s2">S2</span>
-                    <span class="bsi-badge bsi-badge-{{.StatusCSS}}">{{.StatusDisplay}}</span>
-                    <span class="bsi-badge bsi-badge-kind">{{.Kind}}</span>
+                    <span class="fr-badge fr-badge-s2">S2</span>
+                    <span class="fr-badge fr-badge-{{.StatusCSS}}">{{.StatusDisplay}}</span>
+                    <span class="fr-badge fr-badge-kind">{{.Kind}}</span>
                     {{.PublicID}}: {{.Title}}
                 </h3>
                 <p>{{.SymptomMD}}</p>
-                {{if .HypothesisMD}}<p class="bsi-witness">&ldquo;{{.HypothesisMD}}&rdquo;</p>{{end}}
-                {{if .RootCauseMD}}<p class="bsi-damage">Root cause: {{.RootCauseMD}}</p>{{end}}
-                <div class="bsi-canonical">
+                {{if .HypothesisMD}}<p class="fr-witness">&ldquo;{{.HypothesisMD}}&rdquo;</p>{{end}}
+                {{if .RootCauseMD}}<p class="fr-damage">Root cause: {{.RootCauseMD}}</p>{{end}}
+                <div class="fr-canonical">
                     <span><strong>Fingerprint:</strong> <code>{{.FingerprintSHA}}</code></span>
                     <span><strong>Domain:</strong> {{.Domain}}</span>
                     <span><strong>Evidence:</strong> {{.EvidenceGrade}}</span>
@@ -725,26 +724,26 @@
         {{end}}
 
         {{if .S3Findings}}
-        <div class="bsi-section">
-            <h2 class="bsi-section-title bsi-collapse-title">
-                <button type="button" class="bsi-collapse-toggle" data-bs-toggle="collapse" data-bs-target="#s3Findings" aria-expanded="false" aria-controls="s3Findings">
-                    {{icon "shield-alt" "me-1"}} S3 &mdash; Contained Findings <span class="bsi-count-s3">({{len .S3Findings}})</span>
-                    <span class="bsi-chevron">{{icon "chevron-down" ""}}</span>
+        <div class="fr-section">
+            <h2 class="fr-section-title fr-collapse-title">
+                <button type="button" class="fr-collapse-toggle" data-bs-toggle="collapse" data-bs-target="#s3Findings" aria-expanded="false" aria-controls="s3Findings">
+                    {{icon "shield-alt" "me-1"}} S3 &mdash; Contained Findings <span class="fr-count-s3">({{len .S3Findings}})</span>
+                    <span class="fr-chevron">{{icon "chevron-down" ""}}</span>
                 </button>
             </h2>
             <div class="collapse" id="s3Findings">
             <div class="table-responsive">
-            <table class="bsi-compact-table" aria-label="S3 contained findings">
+            <table class="fr-compact-table" aria-label="S3 contained findings">
                 <thead><tr><th scope="col">FP</th><th scope="col">ID</th><th scope="col">Kind</th><th scope="col">Finding</th><th scope="col">Domain</th><th scope="col">Status</th></tr></thead>
                 <tbody>
                     {{range .S3Findings}}
                     <tr>
-                        <td><code class="bsi-hash">{{.FingerprintSHA}}</code></td>
-                        <td class="bsi-id bsi-sev-s3">{{.PublicID}}</td>
-                        <td><span class="bsi-badge bsi-badge-kind">{{.Kind}}</span></td>
+                        <td><code class="fr-hash">{{.FingerprintSHA}}</code></td>
+                        <td class="fr-id fr-sev-s3">{{.PublicID}}</td>
+                        <td><span class="fr-badge fr-badge-kind">{{.Kind}}</span></td>
                         <td>{{.Title}}</td>
                         <td>{{.Domain}}</td>
-                        <td><span class="bsi-badge bsi-badge-{{.StatusCSS}}">{{.StatusDisplay}}</span></td>
+                        <td><span class="fr-badge fr-badge-{{.StatusCSS}}">{{.StatusDisplay}}</span></td>
                     </tr>
                     {{end}}
                 </tbody>
@@ -755,26 +754,26 @@
         {{end}}
 
         {{if .S4Findings}}
-        <div class="bsi-section">
-            <h2 class="bsi-section-title bsi-collapse-title">
-                <button type="button" class="bsi-collapse-toggle" data-bs-toggle="collapse" data-bs-target="#s4Findings" aria-expanded="false" aria-controls="s4Findings">
-                    {{icon "eye" "me-1"}} S4 &mdash; Minor Indicators <span class="bsi-count-s4">({{len .S4Findings}})</span>
-                    <span class="bsi-chevron">{{icon "chevron-down" ""}}</span>
+        <div class="fr-section">
+            <h2 class="fr-section-title fr-collapse-title">
+                <button type="button" class="fr-collapse-toggle" data-bs-toggle="collapse" data-bs-target="#s4Findings" aria-expanded="false" aria-controls="s4Findings">
+                    {{icon "eye" "me-1"}} S4 &mdash; Minor Indicators <span class="fr-count-s4">({{len .S4Findings}})</span>
+                    <span class="fr-chevron">{{icon "chevron-down" ""}}</span>
                 </button>
             </h2>
             <div class="collapse" id="s4Findings">
             <div class="table-responsive">
-            <table class="bsi-compact-table" aria-label="S4 minor indicators">
+            <table class="fr-compact-table" aria-label="S4 minor indicators">
                 <thead><tr><th scope="col">FP</th><th scope="col">ID</th><th scope="col">Kind</th><th scope="col">Finding</th><th scope="col">Domain</th><th scope="col">Status</th></tr></thead>
                 <tbody>
                     {{range .S4Findings}}
                     <tr>
-                        <td><code class="bsi-hash">{{.FingerprintSHA}}</code></td>
-                        <td class="bsi-id bsi-sev-s4">{{.PublicID}}</td>
-                        <td><span class="bsi-badge bsi-badge-kind">{{.Kind}}</span></td>
+                        <td><code class="fr-hash">{{.FingerprintSHA}}</code></td>
+                        <td class="fr-id fr-sev-s4">{{.PublicID}}</td>
+                        <td><span class="fr-badge fr-badge-kind">{{.Kind}}</span></td>
                         <td>{{.Title}}</td>
                         <td>{{.Domain}}</td>
-                        <td><span class="bsi-badge bsi-badge-{{.StatusCSS}}">{{.StatusDisplay}}</span></td>
+                        <td><span class="fr-badge fr-badge-{{.StatusCSS}}">{{.StatusDisplay}}</span></td>
                     </tr>
                     {{end}}
                 </tbody>
@@ -784,17 +783,17 @@
         </div>
         {{end}}
 
-        <div class="bsi-section">
-            <h2 class="bsi-section-title">{{icon "crosshairs" "me-1"}} Rendition Log</h2>
-            <p class="mb-3 bsi-severity-desc">When a finding is eliminated, we record the kill. Date, commit hash, who pulled the trigger. {{if .HasEvents}}<span class="bsi-rendition-event-count">{{.TotalEventCount}} events recorded.</span>{{end}}</p>
+        <div class="fr-section">
+            <h2 class="fr-section-title">{{icon "crosshairs" "me-1"}} Resolution Log</h2>
+            <p class="mb-3 fr-severity-desc">When a finding is resolved, we record it. Date, commit hash, who shipped the fix. {{if .HasEvents}}<span class="fr-event-event-count">{{.TotalEventCount}} events recorded.</span>{{end}}</p>
             {{if .HasEvents}}
             <div class="table-responsive">
-            <table class="bsi-compact-table" aria-label="Recent rendition log entries">
-                <thead><tr><th scope="col">BSI</th><th scope="col">Finding</th><th scope="col">Action</th><th scope="col">Date</th><th scope="col">Commit</th><th scope="col">Operative</th></tr></thead>
+            <table class="fr-compact-table" aria-label="Recent resolution log entries">
+                <thead><tr><th scope="col">BSI</th><th scope="col">Finding</th><th scope="col">Status</th><th scope="col">Date</th><th scope="col">Commit</th><th scope="col">Resolved By</th></tr></thead>
                 <tbody>
                     {{range .RecentEvents}}
                     <tr>
-                        <td class="bsi-id">{{.PublicID}}</td>
+                        <td class="fr-id">{{.PublicID}}</td>
                         <td>{{.Title}}</td>
                         <td>{{.ToStatus}}</td>
                         <td>{{.CreatedAt}}</td>
@@ -807,18 +806,18 @@
             </div>
             {{if .ArchiveEvents}}
             <div class="text-center mt-3">
-                <button class="btn btn-sm bsi-btn-mono" type="button" data-bs-toggle="collapse" data-bs-target="#fullRenditionLog" aria-expanded="false" aria-controls="fullRenditionLog">
+                <button class="btn btn-sm fr-btn-mono" type="button" data-bs-toggle="collapse" data-bs-target="#fullEventLog" aria-expanded="false" aria-controls="fullEventLog">
                     {{icon "chevron-down" "me-1"}} {{.ArchiveEventCount}} earlier events
                 </button>
             </div>
-            <div class="collapse mt-3" id="fullRenditionLog">
+            <div class="collapse mt-3" id="fullEventLog">
                 <div class="table-responsive">
-                <table class="bsi-compact-table" aria-label="Full rendition log archive">
-                    <thead><tr><th scope="col">BSI</th><th scope="col">Finding</th><th scope="col">Action</th><th scope="col">Date</th><th scope="col">Commit</th><th scope="col">Operative</th></tr></thead>
+                <table class="fr-compact-table" aria-label="Full resolution log archive">
+                    <thead><tr><th scope="col">BSI</th><th scope="col">Finding</th><th scope="col">Status</th><th scope="col">Date</th><th scope="col">Commit</th><th scope="col">Resolved By</th></tr></thead>
                     <tbody>
                         {{range .ArchiveEvents}}
                         <tr>
-                            <td class="bsi-id">{{.PublicID}}</td>
+                            <td class="fr-id">{{.PublicID}}</td>
                             <td>{{.Title}}</td>
                             <td>{{.ToStatus}}</td>
                             <td>{{.CreatedAt}}</td>
@@ -832,48 +831,48 @@
             </div>
             {{end}}
             {{else}}
-            <div class="bsi-rendition-log">
-                <p class="bsi-rendition-empty">No renditions yet. The interrogations have just begun.</p>
+            <div class="fr-event-log">
+                <p class="fr-event-empty">No status changes recorded yet.</p>
             </div>
             {{end}}
         </div>
 
-        <div class="bsi-section">
-            <h2 class="bsi-section-title">{{icon "chart-bar" "me-1"}} Audit Scores</h2>
+        <div class="fr-section">
+            <h2 class="fr-section-title">{{icon "chart-bar" "me-1"}} Audit Scores</h2>
             <div class="row g-4">
                 <div class="col-md-6">
-                    <p class="bsi-audit-label">External Audit &mdash; SquirrelScan</p>
-                    <div class="bsi-scores-grid">
-                        <div class="bsi-score-item"><span class="bsi-score-label">Overall</span><span class="bsi-score-value bsi-grade-c">72 C</span></div>
-                        <div class="bsi-score-item"><span class="bsi-score-label">Core SEO</span><span class="bsi-score-value bsi-grade-a">97 A</span></div>
-                        <div class="bsi-score-item"><span class="bsi-score-label">Accessibility</span><span class="bsi-score-value bsi-grade-a">95 A</span></div>
-                        <div class="bsi-score-item"><span class="bsi-score-label">Security</span><span class="bsi-score-value bsi-grade-a">91 A</span></div>
-                        <div class="bsi-score-item"><span class="bsi-score-label">Performance</span><span class="bsi-score-value bsi-grade-b">83 B</span></div>
-                        <div class="bsi-score-item"><span class="bsi-score-label">Links</span><span class="bsi-score-value bsi-grade-b">85 B</span></div>
-                        <div class="bsi-score-item"><span class="bsi-score-label">Video</span><span class="bsi-score-value bsi-grade-f">57 F</span></div>
+                    <p class="fr-audit-label">External Audit &mdash; SquirrelScan</p>
+                    <div class="fr-scores-grid">
+                        <div class="fr-score-item"><span class="fr-score-label">Overall</span><span class="fr-score-value fr-grade-c">72 C</span></div>
+                        <div class="fr-score-item"><span class="fr-score-label">Core SEO</span><span class="fr-score-value fr-grade-a">97 A</span></div>
+                        <div class="fr-score-item"><span class="fr-score-label">Accessibility</span><span class="fr-score-value fr-grade-a">95 A</span></div>
+                        <div class="fr-score-item"><span class="fr-score-label">Security</span><span class="fr-score-value fr-grade-a">91 A</span></div>
+                        <div class="fr-score-item"><span class="fr-score-label">Performance</span><span class="fr-score-value fr-grade-b">83 B</span></div>
+                        <div class="fr-score-item"><span class="fr-score-label">Links</span><span class="fr-score-value fr-grade-b">85 B</span></div>
+                        <div class="fr-score-item"><span class="fr-score-label">Video</span><span class="fr-score-value fr-grade-f">57 F</span></div>
                     </div>
                 </div>
                 <div class="col-md-6">
-                    <p class="bsi-audit-label">Internal Audit &mdash; Design Forensics</p>
-                    <div class="bsi-scores-grid">
-                        <div class="bsi-score-item"><span class="bsi-score-label">Color Tokens</span><span class="bsi-score-value bsi-grade-a">A</span></div>
-                        <div class="bsi-score-item"><span class="bsi-score-label">Glassmorphism</span><span class="bsi-score-value bsi-grade-a">A-</span></div>
-                        <div class="bsi-score-item"><span class="bsi-score-label">Print CSS</span><span class="bsi-score-value bsi-grade-a">A</span></div>
-                        <div class="bsi-score-item"><span class="bsi-score-label">Covert Mode</span><span class="bsi-score-value bsi-grade-a">A-</span></div>
-                        <div class="bsi-score-item"><span class="bsi-score-label">Responsive</span><span class="bsi-score-value bsi-grade-b">B+</span></div>
-                        <div class="bsi-score-item"><span class="bsi-score-label">Accessibility</span><span class="bsi-score-value bsi-grade-b">B-</span></div>
-                        <div class="bsi-score-item"><span class="bsi-score-label">Hover/Transitions</span><span class="bsi-score-value bsi-grade-b">B</span></div>
+                    <p class="fr-audit-label">Internal Audit &mdash; Design Forensics</p>
+                    <div class="fr-scores-grid">
+                        <div class="fr-score-item"><span class="fr-score-label">Color Tokens</span><span class="fr-score-value fr-grade-a">A</span></div>
+                        <div class="fr-score-item"><span class="fr-score-label">Glassmorphism</span><span class="fr-score-value fr-grade-a">A-</span></div>
+                        <div class="fr-score-item"><span class="fr-score-label">Print CSS</span><span class="fr-score-value fr-grade-a">A</span></div>
+                        <div class="fr-score-item"><span class="fr-score-label">Covert Mode</span><span class="fr-score-value fr-grade-a">A-</span></div>
+                        <div class="fr-score-item"><span class="fr-score-label">Responsive</span><span class="fr-score-value fr-grade-b">B+</span></div>
+                        <div class="fr-score-item"><span class="fr-score-label">Accessibility</span><span class="fr-score-value fr-grade-b">B-</span></div>
+                        <div class="fr-score-item"><span class="fr-score-label">Hover/Transitions</span><span class="fr-score-value fr-grade-b">B</span></div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="bsi-colophon">
-            <p>This facility is a living operation. Every bug gets a hash. Every hash gets a cell. They enter as <span class="bsi-badge bsi-badge-detained">Detained</span> &mdash; they leave as <span class="bsi-badge bsi-badge-rendered">Rendered</span> &mdash; or they don&rsquo;t leave at all.</p>
+        <div class="fr-colophon">
+            <p>This registry is a living operation. Every bug gets a hash. Every hash gets a status. They enter as <span class="fr-badge fr-badge-open">Open</span> &mdash; they leave as <span class="fr-badge fr-badge-resolved">Resolved</span> &mdash; or they stay open until someone ships the fix.</p>
             <p class="mt-2">This is what happens when you build software like you mean it.</p>
-            <p class="mt-3 bsi-footer-note">This page queries PostgreSQL on every request. What you see is the live state of the operation &mdash; not a static report.</p>
-            <a href="https://github.com/IT-Help-San-Diego/dns-tool-intel/blob/main/docs/BLACK-SITE-INTERROGATIONS.md" target="_blank" rel="noopener" class="bsi-github-link mt-2">
-                {{icon "file-alt" "me-1"}} Declassified Archive
+            <p class="mt-3 fr-footer-note">This page queries PostgreSQL on every request. What you see is the live state of the operation &mdash; not a static report.</p>
+            <a href="https://github.com/IT-Help-San-Diego/dns-tool-intel/blob/main/docs/FINDINGS-REGISTRY.md" target="_blank" rel="noopener" class="fr-github-link mt-2">
+                {{icon "file-alt" "me-1"}} Registry Documentation
             </a>
         </div>
 

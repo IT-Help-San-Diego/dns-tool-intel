@@ -116,8 +116,8 @@ func GetChangelog() []ChangelogEntry {
 			Version:     ver263535,
 			Date:        dateMar08,
 			Category:    catIntelligence,
-			Title:       "Black Site — Adversarial Testing Framework",
-			Description: "New /black-site page implementing a bug tracking system styled as a detainee interrogation facility. Findings (BSI entries) are tracked with severity classification, rendition status, and resolution tracking. Integrated with PostgreSQL for persistent storage. EDE (Extended DNS Errors) data seeded on startup with auto-applied findings.",
+			Title:       "Failure Registry — Adversarial Testing Framework",
+			Description: "New /findings page implementing a public defect ledger. Findings (BSI entries) are tracked with severity classification, resolution status, and event logging. Integrated with PostgreSQL for persistent storage. EDE (Epistemic Disclosure Events) data seeded on startup with auto-applied findings.",
 			Icon:        iconSatDish,
 		},
 		{

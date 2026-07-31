@@ -99,86 +99,6 @@ COMMENT ON TABLE public.analytics_meta IS 'Server-side singleton config for anal
 
 
 --
--- Name: black_site_detainees; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.black_site_detainees (
-    id integer NOT NULL,
-    bsi_id character varying(10) NOT NULL,
-    sha_hash character varying(6) NOT NULL,
-    title text NOT NULL,
-    threat_level character varying(20) NOT NULL,
-    status character varying(30) DEFAULT 'DETAINED'::character varying NOT NULL,
-    captured_by text DEFAULT ''::text NOT NULL,
-    file_references text DEFAULT ''::text NOT NULL,
-    interrogation_notes text DEFAULT ''::text NOT NULL,
-    witness_statement text DEFAULT ''::text NOT NULL,
-    damage_assessment text DEFAULT ''::text NOT NULL,
-    recommended_remedy text DEFAULT ''::text NOT NULL,
-    created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    CONSTRAINT black_site_detainees_status_check CHECK (((status)::text = ANY ((ARRAY['DETAINED'::character varying, 'UNDER INTERROGATION'::character varying, 'RENDERED'::character varying, 'EXTRADITED'::character varying])::text[]))),
-    CONSTRAINT black_site_detainees_threat_level_check CHECK (((threat_level)::text = ANY ((ARRAY['APT'::character varying, 'ZERO-DAY'::character varying, 'EXPLOIT'::character varying, 'CVE'::character varying, 'IOC'::character varying])::text[])))
-);
-
-
---
--- Name: black_site_detainees_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.black_site_detainees_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: black_site_detainees_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.black_site_detainees_id_seq OWNED BY public.black_site_detainees.id;
-
-
---
--- Name: black_site_renditions; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.black_site_renditions (
-    id integer NOT NULL,
-    detainee_id integer NOT NULL,
-    rendered_at timestamp without time zone DEFAULT now() NOT NULL,
-    commit_hash character varying(40) NOT NULL,
-    rendered_by text DEFAULT ''::text NOT NULL,
-    method text DEFAULT ''::text NOT NULL,
-    notes text DEFAULT ''::text NOT NULL,
-    created_at timestamp without time zone DEFAULT now() NOT NULL
-);
-
-
---
--- Name: black_site_renditions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.black_site_renditions_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: black_site_renditions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.black_site_renditions_id_seq OWNED BY public.black_site_renditions.id;
-
-
---
 -- Name: confidence_scores; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1153,20 +1073,6 @@ ALTER TABLE ONLY public.analysis_stats ALTER COLUMN id SET DEFAULT nextval('publ
 
 
 --
--- Name: black_site_detainees id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.black_site_detainees ALTER COLUMN id SET DEFAULT nextval('public.black_site_detainees_id_seq'::regclass);
-
-
---
--- Name: black_site_renditions id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.black_site_renditions ALTER COLUMN id SET DEFAULT nextval('public.black_site_renditions_id_seq'::regclass);
-
-
---
 -- Name: data_governance_events id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1321,30 +1227,6 @@ ALTER TABLE ONLY public.analysis_stats
 
 ALTER TABLE ONLY public.analytics_meta
     ADD CONSTRAINT analytics_meta_pkey PRIMARY KEY (key);
-
-
---
--- Name: black_site_detainees black_site_detainees_bsi_id_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.black_site_detainees
-    ADD CONSTRAINT black_site_detainees_bsi_id_key UNIQUE (bsi_id);
-
-
---
--- Name: black_site_detainees black_site_detainees_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.black_site_detainees
-    ADD CONSTRAINT black_site_detainees_pkey PRIMARY KEY (id);
-
-
---
--- Name: black_site_renditions black_site_renditions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.black_site_renditions
-    ADD CONSTRAINT black_site_renditions_pkey PRIMARY KEY (id);
 
 
 --
@@ -1672,41 +1554,6 @@ ALTER TABLE ONLY public.zone_imports
 --
 
 CREATE UNIQUE INDEX findings_canonical_uq ON public.findings USING btree (canonical_rule_id, fingerprint_version, fingerprint_sha256) WHERE (duplicate_of IS NULL);
-
-
---
--- Name: idx_bsd_bsi_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_bsd_bsi_id ON public.black_site_detainees USING btree (bsi_id);
-
-
---
--- Name: idx_bsd_status; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_bsd_status ON public.black_site_detainees USING btree (status);
-
-
---
--- Name: idx_bsd_threat_level; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_bsd_threat_level ON public.black_site_detainees USING btree (threat_level);
-
-
---
--- Name: idx_bsr_detainee_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_bsr_detainee_id ON public.black_site_renditions USING btree (detainee_id);
-
-
---
--- Name: idx_bsr_rendered_at; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_bsr_rendered_at ON public.black_site_renditions USING btree (rendered_at DESC);
 
 
 --
@@ -2127,14 +1974,6 @@ CREATE INDEX ix_zone_imports_user_domain ON public.zone_imports USING btree (use
 --
 
 CREATE UNIQUE INDEX uq_confidence_scores_analysis_protocol ON public.confidence_scores USING btree (analysis_id, protocol) WHERE (analysis_id IS NOT NULL);
-
-
---
--- Name: black_site_renditions black_site_renditions_detainee_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.black_site_renditions
-    ADD CONSTRAINT black_site_renditions_detainee_id_fkey FOREIGN KEY (detainee_id) REFERENCES public.black_site_detainees(id);
 
 
 --

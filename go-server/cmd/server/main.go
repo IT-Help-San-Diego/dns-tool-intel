@@ -799,8 +799,13 @@ func registerContentRoutes(router *gin.Engine, cfg *config.Config, database *db.
 	roeHandler := contentpkg.NewROEHandler(cfg, tdf)
 	router.GET("/roe", roeHandler.ROE)
 
-	blackSiteHandler := handlers.NewBlackSiteHandler(database, cfg)
-	router.GET("/black-site", blackSiteHandler.BlackSite)
+	failureRegistryHandler := handlers.NewFailureRegistryHandler(database, cfg)
+	router.GET("/failure-registry", failureRegistryHandler.FailureRegistry)
+	// 301 redirect from the retired black-site path. The page is in the
+	// sitemap and indexed; dropping the route would 404 external links.
+	router.GET("/black-site", func(c *gin.Context) {
+		c.Redirect(http.StatusMovedPermanently, "/failure-registry")
+	})
 
 	brandColorsHandler := handlers.NewBrandColorsHandler(cfg)
 	router.GET("/brand-colors", brandColorsHandler.BrandColors)
