@@ -292,9 +292,13 @@
                         </div>
                         <div class="proto-badge-row small">
                             {{template "protocol_badges_compact" $a}}
-                            <span class="text-muted ms-auto u-fs-070rem">
+                            {{/* Same treatment as the desktop date cell: the duration
+                                 is context, not a headline, and on a phone card it was
+                                 competing with the chips for the one line they share.
+                                 It moves into the tooltip, where it also gains the
+                                 build it came from. */}}
+                            <span class="text-muted ms-auto u-fs-070rem"{{if or $a.ToolVersion $a.AnalysisDuration}} title="Scanned in {{formatFloat 1 $a.AnalysisDuration}}s{{if $a.ToolVersion}} by build {{$a.ToolVersion}}{{end}}"{{end}}>
                                 {{$a.CreatedDate}} {{$a.CreatedTime}}
-                                {{if $a.AnalysisDuration}} &middot; {{formatFloat 1 $a.AnalysisDuration}}s{{end}}
                             </span>
                         </div>
                     </div>
