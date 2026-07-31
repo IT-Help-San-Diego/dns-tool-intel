@@ -81,7 +81,7 @@ The tool performs RFC-compliant parsing and validation of these protocols:
 - Report integrity hash (SHA-3-512 fingerprint binding domain, analysis ID, timestamp, tool version, and results data) with copy-to-clipboard and header preview
 - Architecture page (/architecture) — interactive Mermaid diagrams of system architecture
 - Posture drift detection foundation (canonical SHA-3-512 hashing for longitudinal monitoring, backward-compatible legacy SHA-256 recomputation)
-- ICAE Intelligence Confidence Matrix with tier-colored next-tier progress labels and two-layer (Collection + Analysis) auditing, 129 deterministic test cases across 9 protocols, empirically validated via calibration metrics (Brier Score 0.0018, ECE 0.031, 645 predictions across 5 resolver scenarios)
+- ICAE Intelligence Confidence Matrix with tier-colored next-tier progress labels and two-layer (Collection + Analysis) auditing, 129 deterministic test cases across 9 protocols, shrinkage-formula behavior measured via Brier Score 0.0018 and ECE 0.031 under single-outcome-class conditions (645 predictions across 5 resolver scenarios)
 - Changelog page
 - Security policy page
 - Sources and methodology reference
