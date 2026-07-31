@@ -1678,7 +1678,7 @@
                         // hash make "which build is this page running" a real
                         // question, and identifier-based checks are blind to it
                         // (minification renames locals). inkRev survives.
-                        inkRev: 5,
+                        inkRev: 6,
                         W: W, H: H, scl: SCL, solver: SOLVER_ACTIVE,
                         edgeLabelTrace: function() { return edgeLabelTrace.slice(); },
                         zones: (function() {
