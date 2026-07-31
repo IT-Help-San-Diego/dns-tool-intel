@@ -13,8 +13,8 @@ import (
 )
 
 const (
-        confidenceMethodology    = "multi-factor geometric-mean confidence scoring"
-        confidenceMethodologyICD = confidenceMethodology + " aligned with ICD 203"
+        confidenceMethodology    = "multi-factor geometric-mean severity scoring"
+        confidenceMethodologyICD = confidenceMethodology + " with ICD 203-aligned epistemic practices"
 
         iwBody      = `font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#0d1117;color:#c9d1d9;margin:0;padding:2rem`
         iwContainer = `max-width:800px;margin:0 auto`

@@ -31,6 +31,24 @@ if [ -n "$VERSION" ]; then
   echo "Version updated in .md and .html"
 fi
 
+# Prose sync check: the .md and .html are parallel hand-maintained copies of
+# the same document. The PDF is built from the .html only. If the .md is
+# edited without the .html, the PDF republishes stale text under a new
+# version — the same class as the stale main.min.js that sat three months
+# behind its source. This check compares a fingerprint of the calibration
+# section in both files; it catches the case where one was edited and the
+# other wasn't, which is exactly what happened in PR #236.
+echo "Checking .md ↔ .html prose sync..."
+MD_SIGNALS=$(grep -c 'severity-weighted\|shrinkage-formula behavior\|single-outcome-class\|Field Replication' docs/dns-tool-methodology.md 2>/dev/null || echo 0)
+HTML_SIGNALS=$(grep -c 'severity-weighted\|shrinkage-formula behavior\|single-outcome-class\|Field Replication' docs/dns-tool-methodology.html 2>/dev/null || echo 0)
+if [ "$MD_SIGNALS" -ne "$HTML_SIGNALS" ]; then
+  echo "SYNC FAIL: .md has ${MD_SIGNALS} calibration-reframe signals, .html has ${HTML_SIGNALS}."
+  echo "The two sources disagree — one was edited without the other."
+  echo "Edit both docs/dns-tool-methodology.md AND docs/dns-tool-methodology.html, or the PDF will republish stale text."
+  exit 1
+fi
+echo "Prose sync OK (${MD_SIGNALS} signals match)"
+
 echo "Generating methodology PDF..."
 uv run python -c "
 import weasyprint
