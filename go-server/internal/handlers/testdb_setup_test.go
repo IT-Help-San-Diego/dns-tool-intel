@@ -4,7 +4,6 @@ package handlers_test
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -17,46 +16,13 @@ import (
 
 	"dnstool/go-server/internal/config"
 	"dnstool/go-server/internal/db"
-
-	"github.com/jackc/pgx/v5/pgconn"
 )
 
-// schemaAlreadyAppliedSQLStates are the Postgres SQLSTATE codes we treat as
-// "the schema is already loaded" — expected on dev-loop re-runs against a
-// long-lived Postgres that already has the tables/indexes from a previous
-// run. Any other error from applying schema.sql is a real failure (e.g. a
-// fresh CI service container that genuinely could not load the schema, or a
-// syntax error in schema.sql) and must fail the test loudly so the operator
-// is not left chasing downstream "relation does not exist" errors.
-var schemaAlreadyAppliedSQLStates = map[string]struct{}{
-	"42P07": {}, // duplicate_table
-	"42P06": {}, // duplicate_schema
-	"42710": {}, // duplicate_object (indexes, constraints, types, ...)
-	"42701": {}, // duplicate_column
-	"42723": {}, // duplicate_function
-}
-
-// isSchemaAlreadyAppliedError reports whether err is a Postgres error
-// indicating that some schema object already exists. It is used to
-// distinguish the expected "re-run against a populated dev database" case
-// from a genuine schema-apply failure.
-func isSchemaAlreadyAppliedError(err error) bool {
-	if err == nil {
-		return false
-	}
-	var pgErr *pgconn.PgError
-	if !errors.As(err, &pgErr) {
-		return false
-	}
-	_, ok := schemaAlreadyAppliedSQLStates[pgErr.Code]
-	return ok
-}
-
-// schemaCreateTableRE matches `CREATE TABLE [IF NOT EXISTS] <name>` in the
-// canonical schema.sql. It is intentionally tolerant of whitespace, case, and
-// the optional IF NOT EXISTS clause, but does not attempt to parse quoted or
-// schema-qualified table names — schema.sql does not currently use either.
-var schemaCreateTableRE = regexp.MustCompile(`(?im)^\s*CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*\(`)
+// schemaCreateTableRE matches `CREATE TABLE [IF NOT EXISTS] [schema.]<name> (`.
+// schema.sql is now `pg_dump --schema-only` output, which qualifies every table
+// as `public.<name>`; the optional qualifier and the optional IF NOT EXISTS
+// keep this working against hand-written SQL too.
+var schemaCreateTableRE = regexp.MustCompile(`(?im)^\s*CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?(?:[A-Za-z_][A-Za-z0-9_]*\.)?([A-Za-z_][A-Za-z0-9_]*)\s*\(`)
 
 // parseSchemaTableNames extracts the set of table names declared by
 // `CREATE TABLE` statements in schema.sql. It returns a sorted, deduplicated
@@ -78,15 +44,17 @@ func parseSchemaTableNames(schemaSQL string) []string {
 	return names
 }
 
-// findMissingTables returns the subset of expected tables that are NOT
-// present in the connected database's current schema. It is the dev-loop
-// safety net that detects a stale local database where new tables added to
-// schema.sql were silently never created (because Postgres aborted the
-// multi-statement schema apply on the first duplicate-table error).
-func findMissingTables(ctx context.Context, database *db.Database, expected []string) ([]string, error) {
-	if len(expected) == 0 {
-		return nil, nil
-	}
+// ledgerTables are created by the migration runner rather than by a migration,
+// so schema.sql does not document them and the drift check must not expect it
+// to. See go-server/internal/db/migrate.go.
+var ledgerTables = map[string]struct{}{
+	"goose_db_version":           {},
+	"schema_migration_checksums": {},
+}
+
+// databaseTableNames returns the base tables in the connected database, minus
+// the version ledger.
+func databaseTableNames(ctx context.Context, database *db.Database) ([]string, error) {
 	rows, err := database.Pool.Query(ctx,
 		`SELECT table_name
                    FROM information_schema.tables
@@ -97,72 +65,48 @@ func findMissingTables(ctx context.Context, database *db.Database, expected []st
 	}
 	defer rows.Close()
 
-	present := make(map[string]struct{})
+	var names []string
 	for rows.Next() {
 		var name string
 		if err := rows.Scan(&name); err != nil {
 			return nil, fmt.Errorf("scan existing tables: %w", err)
 		}
-		present[strings.ToLower(name)] = struct{}{}
+		name = strings.ToLower(name)
+		if _, skip := ledgerTables[name]; skip {
+			continue
+		}
+		names = append(names, name)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("iterate existing tables: %w", err)
 	}
-
-	var missing []string
-	for _, name := range expected {
-		if _, ok := present[name]; !ok {
-			missing = append(missing, name)
-		}
-	}
-	return missing, nil
+	sort.Strings(names)
+	return names, nil
 }
 
+func schemaDocPath() string {
+	_, thisFile, _, _ := runtime.Caller(0)
+	return filepath.Join(filepath.Dir(thisFile), "..", "..", "db", "schema", "schema.sql")
+}
+
+// setupTestDB brings the test database to the version the binary expects, using
+// exactly the path production uses.
+//
+// It used to apply go-server/db/schema/schema.sql directly and then tolerate
+// "already exists" errors, which meant a stale dev database silently kept an
+// old schema: Postgres aborts a multi-statement Exec on the first duplicate, so
+// every statement after that point was skipped. There is nothing to tolerate
+// now — the ledger records what has been applied, so an up-to-date database is
+// a no-op and a stale one is upgraded.
 func setupTestDB(t *testing.T) *db.Database {
 	t.Helper()
 	database := getTestDB(t)
 
-	_, thisFile, _, _ := runtime.Caller(0)
-	schemaPath := filepath.Join(filepath.Dir(thisFile), "..", "..", "db", "schema", "schema.sql")
-	schemaSQL, err := os.ReadFile(schemaPath)
-	if err != nil {
-		t.Fatalf("failed to read schema.sql: %v", err)
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
-	_, err = database.Pool.Exec(ctx, string(schemaSQL))
-	if err != nil {
-		if isSchemaAlreadyAppliedError(err) {
-			var pgErr *pgconn.PgError
-			_ = errors.As(err, &pgErr)
-			t.Logf("schema already applied (pg sqlstate %s: %s) — assuming dev-loop re-run against populated database", pgErr.Code, pgErr.Message)
-		} else {
-			t.Fatalf("could not load schema from %s against test database: %v", schemaPath, err)
-		}
-	}
-
-	// Stale-dev-database guard: Postgres aborts a multi-statement Exec on the
-	// FIRST duplicate-table error, which means every CREATE TABLE *after* that
-	// point in schema.sql is silently skipped on a long-lived dev database.
-	// Without this check, adding a new table to schema.sql and re-running the
-	// handler tests against an existing dev database fails downstream with a
-	// confusing "relation does not exist" error. Detect that case here and
-	// fail loudly with an actionable message instead.
-	expectedTables := parseSchemaTableNames(string(schemaSQL))
-	missing, mErr := findMissingTables(ctx, database, expectedTables)
-	if mErr != nil {
-		t.Fatalf("could not verify schema completeness against test database: %v", mErr)
-	}
-	if len(missing) > 0 {
-		t.Fatalf(
-			"local test database is stale: schema.sql declares %d table(s) that are missing from the connected database: %s\n"+
-				"This usually means tables were added to %s after the dev database was first created, "+
-				"and Postgres aborted the schema reload on a pre-existing duplicate before reaching the new statements.\n"+
-				"Drop and recreate the dev database (e.g. `psql \"$DATABASE_URL\" -c 'DROP SCHEMA public CASCADE; CREATE SCHEMA public;'` "+
-				"and re-run the tests, or recreate the Replit database from the Database pane) so schema.sql can be applied to a clean database.",
-			len(missing), strings.Join(missing, ", "), schemaPath)
+	if err := db.Migrate(ctx, os.Getenv("DATABASE_URL")); err != nil {
+		t.Fatalf("could not migrate the test database: %v", err)
 	}
 
 	return database
@@ -220,9 +164,69 @@ func TestGetTestDB(t *testing.T) {
 	cleanupTestDB(t, database)
 }
 
-// TestParseSchemaTableNames pins down the regex behavior used by the stale-DB
-// guard. It runs without a database, so it executes in CI and locally even
-// when DATABASE_URL is unset.
+// TestSchemaDocMatchesMigratedDatabase is the drift detector.
+//
+// schema.sql is generated documentation now, but generated files go stale the
+// moment someone adds a migration and forgets to re-run the generator — and a
+// stale schema.sql is exactly what caused two reviewers to misread this schema
+// in a single session. This compares the file against a database the chain
+// actually built, so the two cannot silently disagree.
+//
+// Regenerate with ./scripts/regen-schema-doc.sh.
+func TestSchemaDocMatchesMigratedDatabase(t *testing.T) {
+	database := setupTestDB(t)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
+	schemaSQL, err := os.ReadFile(schemaDocPath())
+	if err != nil {
+		t.Fatalf("failed to read schema.sql: %v", err)
+	}
+	documented := parseSchemaTableNames(string(schemaSQL))
+
+	actual, err := databaseTableNames(ctx, database)
+	if err != nil {
+		t.Fatalf("could not list tables in the test database: %v", err)
+	}
+
+	documentedSet := make(map[string]struct{}, len(documented))
+	for _, name := range documented {
+		documentedSet[name] = struct{}{}
+	}
+	actualSet := make(map[string]struct{}, len(actual))
+	for _, name := range actual {
+		actualSet[name] = struct{}{}
+	}
+
+	var undocumented, phantom []string
+	for _, name := range actual {
+		if _, ok := documentedSet[name]; !ok {
+			undocumented = append(undocumented, name)
+		}
+	}
+	for _, name := range documented {
+		if _, ok := actualSet[name]; !ok {
+			phantom = append(phantom, name)
+		}
+	}
+
+	if len(undocumented) > 0 {
+		t.Errorf("schema.sql is stale: the migration chain creates %d table(s) it does not document: %s\n"+
+			"Regenerate it with ./scripts/regen-schema-doc.sh",
+			len(undocumented), strings.Join(undocumented, ", "))
+	}
+	if len(phantom) > 0 {
+		t.Errorf("schema.sql documents %d table(s) the migration chain does not create: %s\n"+
+			"Either the table was dropped and schema.sql was not regenerated, or schema.sql was hand-edited. "+
+			"Regenerate it with ./scripts/regen-schema-doc.sh",
+			len(phantom), strings.Join(phantom, ", "))
+	}
+}
+
+// TestParseSchemaTableNames pins down the regex behavior used by the drift
+// check. It runs without a database, so it executes in CI and locally even when
+// DATABASE_URL is unset.
 func TestParseSchemaTableNames(t *testing.T) {
 	const sampleSQL = `
 -- header comment
@@ -244,6 +248,11 @@ CREATE TABLE Delta (
     id SERIAL PRIMARY KEY
 );
 
+-- pg_dump form: schema-qualified
+CREATE TABLE public.echo (
+    id integer NOT NULL
+);
+
 -- duplicate declaration should dedupe to one entry
 CREATE TABLE alpha (
     id SERIAL PRIMARY KEY
@@ -251,7 +260,7 @@ CREATE TABLE alpha (
 `
 
 	got := parseSchemaTableNames(sampleSQL)
-	want := []string{"alpha", "bravo", "charlie", "delta"}
+	want := []string{"alpha", "bravo", "charlie", "delta", "echo"}
 	if len(got) != len(want) {
 		t.Fatalf("parseSchemaTableNames returned %d names, want %d: %v", len(got), len(want), got)
 	}
@@ -263,14 +272,11 @@ CREATE TABLE alpha (
 }
 
 // TestParseSchemaTableNames_CanonicalSchema sanity-checks that the regex
-// actually finds every table the canonical schema.sql declares — at least the
-// well-known core tables that the cleanupTestDB truncate list also relies on.
-// If schema.sql is reformatted in a way that breaks parsing, this test fails
-// loudly instead of letting the stale-DB guard silently pass everything.
+// actually finds the tables the generated schema.sql declares. If the dump
+// format changes in a way that breaks parsing, this fails loudly instead of
+// letting the drift check silently pass everything.
 func TestParseSchemaTableNames_CanonicalSchema(t *testing.T) {
-	_, thisFile, _, _ := runtime.Caller(0)
-	schemaPath := filepath.Join(filepath.Dir(thisFile), "..", "..", "db", "schema", "schema.sql")
-	schemaSQL, err := os.ReadFile(schemaPath)
+	schemaSQL, err := os.ReadFile(schemaDocPath())
 	if err != nil {
 		t.Fatalf("failed to read schema.sql: %v", err)
 	}
@@ -285,10 +291,8 @@ func TestParseSchemaTableNames_CanonicalSchema(t *testing.T) {
 		gotSet[name] = struct{}{}
 	}
 
-	// Spot-check a handful of representative tables spanning the schema:
-	// the very first declaration, an `IF NOT EXISTS` declaration, and a
-	// table from late in the file (added in a later migration). If any of
-	// these is missing, parsing has regressed.
+	// Spot-check tables spanning the chain: one from the base schema, one
+	// added late by a migration, and one created with IF NOT EXISTS.
 	mustHave := []string{"domain_analyses", "analytics_meta", "confidence_scores"}
 	for _, name := range mustHave {
 		if _, ok := gotSet[name]; !ok {

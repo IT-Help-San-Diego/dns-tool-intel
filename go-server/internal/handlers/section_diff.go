@@ -36,6 +36,13 @@ var CompareSections = []CompareSectionDef{
 var compareSkipKeys = map[string]bool{
 	mapKeyStatus: true, mapKeyState: true, "_schema_version": true,
 	"_tool_version": true, "_captured_at": true,
+	// Presentation keys, not measurements: the grade colour/icon/message and the
+	// spoof_door axis are recomputed from the same facts on every scan, so a
+	// tool-version change re-words or re-colours them without anything about the
+	// DOMAIN changing. Diffing them would report "Mail Posture changed" for
+	// every pair of scans straddling a display change. Real posture movement
+	// still surfaces through issues/recommendations/configured/absent/grade.
+	"color": true, "icon": true, "message": true, "spoof_door": true,
 }
 
 type DetailChange struct {

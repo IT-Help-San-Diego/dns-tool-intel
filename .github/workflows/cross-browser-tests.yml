@@ -64,8 +64,9 @@ jobs:
           chmod +x build.sh
           ./build.sh
 
-      - name: Initialize database schema
-        run: PGPASSWORD=dnstool psql -h localhost -U dnstool -d dnstool -f go-server/db/schema/schema.sql
+      # No schema step: the server migrates the database itself at startup
+      # from the chain embedded in the binary. Loading schema.sql here would
+      # test a bootstrap path that no longer exists in production.
 
       - name: Start server and wait for ready
         run: |

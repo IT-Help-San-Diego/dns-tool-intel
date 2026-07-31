@@ -308,8 +308,8 @@ func BadgeSVGCovert(domain string, results map[string]any, scanTime time.Time, s
         vulnerable := CountVulnerable(nodes)
         exposure := ExtractExposure(results)
 
-        covertLabel := CovertRiskLabel(riskLabel)
-        tagline := CovertTagline(riskLabel)
+        covertLabel := CovertRiskLabel(riskColorName, riskLabel)
+        tagline := CovertTagline(riskColorName, riskLabel)
 
         domainDisplay := domain
         if len(domainDisplay) > 35 {

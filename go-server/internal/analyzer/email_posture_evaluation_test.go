@@ -309,7 +309,7 @@ func TestGetNumericValue_CB7(t *testing.T) {
 }
 
 func TestBuildEmailAnswer_CB7(t *testing.T) {
-        ps := protocolState{spfOK: true, dmarcOK: true, dmarcPolicy: "reject"}
+        ps := protocolState{spfOK: true, dmarcOK: true, dmarcPct: 100, dmarcPolicy: "reject"}
         result := buildEmailAnswer(ps, true, true)
         if result == "" {
                 t.Fatal("expected non-empty email answer")
@@ -555,7 +555,7 @@ func TestAppendProbableNoMailFixes_CB7(t *testing.T) {
 }
 
 func TestAppendBIMIFixes_CB7(t *testing.T) {
-        ps := protocolState{bimiOK: false, dmarcOK: true, dmarcPolicy: "reject"}
+        ps := protocolState{bimiOK: false, dmarcOK: true, dmarcPct: 100, dmarcPolicy: "reject"}
         fixes := appendBIMIFixes(nil, ps, "example.com")
         if len(fixes) == 0 {
                 t.Fatal("expected BIMI fixes for bimiOK=false")
@@ -640,8 +640,7 @@ func TestClassifyEmailSpoofability_CB7(t *testing.T) {
                 ps := protocolState{
                         spfOK:       true,
                         dmarcOK:     true,
-                        dmarcPolicy: "reject",
-                        dmarcPct:    100,
+                        dmarcPct: 100, dmarcPolicy: "reject",
                         dkimOK:      true,
                 }
                 result := classifyEmailSpoofability(ps, true, true)
@@ -663,8 +662,7 @@ func TestClassifyEmailSpoofability_CB7(t *testing.T) {
                 ps := protocolState{
                         spfOK:       true,
                         dmarcOK:     true,
-                        dmarcPolicy: "quarantine",
-                        dmarcPct:    50,
+                        dmarcPct: 50, dmarcPolicy: "quarantine",
                 }
                 result := classifyEmailSpoofability(ps, true, true)
                 if result == 0 {
@@ -688,8 +686,7 @@ func TestDetermineGrade_CB7(t *testing.T) {
         ps := protocolState{
                 spfOK:       true,
                 dmarcOK:     true,
-                dmarcPolicy: "reject",
-                dmarcPct:    100,
+                dmarcPct: 100, dmarcPolicy: "reject",
                 dkimOK:      true,
                 dnssecOK:    true,
                 daneOK:      true,

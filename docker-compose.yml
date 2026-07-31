@@ -17,20 +17,37 @@ services:
       POSTGRES_USER: dnstool
       POSTGRES_PASSWORD: dnstool_local_only
       POSTGRES_DB: dnstool
-    # The base schema is NOT applied by the server: RunSeedMigrations only runs
-    # files whose names contain "seed". Postgres executes anything mounted in
-    # docker-entrypoint-initdb.d on first start, which covers it.
+    # No schema is mounted here on purpose. Postgres only ever executes
+    # docker-entrypoint-initdb.d against an EMPTY volume, so that path could
+    # create a database but never upgrade one: keeping dnstool-pgdata across a
+    # rebuild used to hand a newer binary an older schema with nothing to
+    # upgrade it and nothing that noticed. The app container now owns schema
+    # creation AND upgrade through one versioned path, so this volume can be
+    # kept across upgrades and your scan history survives them.
     volumes:
-      - ./go-server/db/schema/schema.sql:/docker-entrypoint-initdb.d/00-schema.sql:ro
       - dnstool-pgdata:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U dnstool -d dnstool"]
       interval: 3s
       timeout: 5s
       retries: 20
-    # Not published to the host — only the app needs to reach it.
-    expose:
-      - "5432"
+    # Published to the HOST LOOPBACK ONLY so a researcher can point TablePlus,
+    # psql or DataGrip at their own scan history. This is the difference between
+    # a demo and an instrument: the data is theirs and they should be able to
+    # read it with their own tools.
+    #
+    # The 127.0.0.1 prefix is load-bearing. Without it Docker binds 0.0.0.0 and
+    # publishes the database to every interface — a laptop on conference wifi
+    # would be serving its scan history to the room.
+    #
+    # 5432 is skipped because a developer very likely already runs Postgres
+    # there, and 5433 because this project's own dev container uses it. 5434 is
+    # only a default: any collision is escaped without editing this file, e.g.
+    #   DNSTOOL_DB_PORT=15432 docker compose up
+    # Whatever it ends up as, this always reports the truth rather than assuming:
+    #   docker compose port db 5432
+    ports:
+      - "127.0.0.1:${DNSTOOL_DB_PORT:-5434}:5432"
 
   app:
     build:

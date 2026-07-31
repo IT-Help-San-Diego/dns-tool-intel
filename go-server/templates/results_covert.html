@@ -167,6 +167,13 @@
             </div>
         </div>
 
+        {{if .FixtureDisclosure}}
+        <div class="alert alert-warning border-warning mb-4" role="note" data-testid="fixture-disclosure">
+            {{icon "flask" "me-2"}}<strong>{{.FixtureDisclosure.Badge}}.</strong>
+            <span class="small">{{.FixtureDisclosure.Note}}</span>
+        </div>
+        {{end}}
+
         {{if not .DomainExists}}
         {{if eq (mapGetStr "domain_status" $results) "indeterminate"}}
         <div class="card border-warning mb-4">
@@ -253,7 +260,7 @@
                                     <span class="fw-semibold">{{icon "user-secret" "me-1"}}Target Assessment</span>
                                     <div class="d-flex align-items-center mt-1">
                                         <span class="fw-semibold me-2 font-monospace">Target Hardness:</span>
-                                        <span class="badge bg-{{$postureColor}} fs-6 px-3 py-2">{{if eq $postureColor "success"}}Hardened{{else if eq $postureColor "warning"}}Moderate{{else if eq $postureColor "danger"}}Soft Target{{else}}{{$postureState}}{{end}}</span>
+                                        <span class="badge bg-{{$postureColor}} fs-6 px-3 py-2">{{if eq $postureColor "success"}}Hardened{{else if eq $postureColor "warning"}}Moderate{{else if eq $postureColor "info"}}Moderate{{else if eq $postureColor "danger"}}Soft Target{{else if eq $postureColor "secondary"}}Unverified{{else}}{{$postureState}}{{end}}</span>
                                     </div>
                                     <small class="d-block mt-1 font-monospace">
                                         {{if gt $postureConfiguredCount 0}}<span class="text-success">{{icon "shield-alt" "me-1"}}{{$postureConfiguredCount}} defensive layers</span>{{end}}

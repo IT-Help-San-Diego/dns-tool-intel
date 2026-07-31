@@ -94,6 +94,13 @@ A third defect surfaced from the same trace: `RunSeedMigrations` only applies
 migration files whose names contain `seed` (two of fifteen), so the base schema
 is **not** created automatically on a fresh database.
 
+> **Superseded 2026-07-30.** `RunSeedMigrations` was replaced by a versioned
+> migration system. The server now creates the schema on an empty database and
+> upgrades an existing one, both from the chain embedded in the binary, and
+> Compose no longer mounts `schema.sql` into `docker-entrypoint-initdb.d`. The
+> log excerpts and findings below record the behaviour as it was on the dates
+> shown; see BUILD.md for current behaviour.
+
 Fixes: `BUILD.md` corrected on all three points, and `docker-compose.yml` added
 so `docker compose up` provisions PostgreSQL, loads `schema.sql`, and supplies
 both required variables.
@@ -328,10 +335,9 @@ go build ./go-server/cmd/server
 ./server --version
 
 # 5. Run it. BOTH variables are mandatory: the process exits 1 without either.
-#    Against a fresh database, load the schema first — the server does not.
+#    An empty database is fine — the server migrates it on startup.
 export DATABASE_URL="postgres://user:pass@localhost:5432/dnstool?sslmode=disable"
 export SESSION_SECRET="$(openssl rand -hex 32)"
-psql "$DATABASE_URL" -f go-server/db/schema/schema.sql
 PORT=5000 ./server
 
 # 6. Confirm it serves

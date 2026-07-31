@@ -464,7 +464,25 @@ func appendDMARCFixes(fixes []fix, ps protocolState, results map[string]any, dom
                         Section:       sectionDMARC,
                 })
         }
-        if ps.dmarcPolicy == "quarantine" && ps.dmarcPct < 100 && ps.dmarcPct > 0 {
+        // pct= applies to reject exactly as to quarantine (RFC 7489), and pct=0
+        // on either policy is zero enforcement — without these gates a
+        // reject-pct=0 record produced no remediation at all.
+        if (ps.dmarcPolicy == "quarantine" || ps.dmarcPolicy == "reject") && ps.dmarcPct <= 0 {
+                fixes = append(fixes, fix{
+                        Title:         "Raise DMARC pct from 0",
+                        Description:   fmt.Sprintf("Your DMARC policy is %s with pct=0 — it applies to 0%% of mail, so no enforcement is requested and spoofed mail is delivered as under p=none. Raise pct (remove the pct tag for the default of 100) to make the policy apply.", ps.dmarcPolicy),
+                        DNSHost:       dmarcHostPrefix + domain,
+                        DNSType:       dnsTypeTXT,
+                        DNSValue:      "v=DMARC1; p=" + ps.dmarcPolicy + "; rua=mailto:dmarc-reports@" + domain,
+                        DNSPurpose:    "A policy with pct=0 instructs receivers to enforce on none of the mail stream.",
+                        DNSHostHelp:   "(update existing DMARC record)",
+                        RFC:           remDMARCPolicy,
+                        RFCURL:        remDMARCPolicyURL,
+                        SeverityLevel: sevHigh,
+                        Section:       sectionDMARC,
+                })
+        }
+        if (ps.dmarcPolicy == "quarantine" || ps.dmarcPolicy == "reject") && ps.dmarcPct < 100 && ps.dmarcPct > 0 {
                 fixes = append(fixes, fix{
                         Title:         "Increase DMARC Coverage",
                         Description:   fmt.Sprintf("Your DMARC policy only applies to %d%% of mail. Increase pct to 100 for full protection.", ps.dmarcPct),

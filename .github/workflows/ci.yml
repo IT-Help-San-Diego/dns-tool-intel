@@ -227,9 +227,9 @@ jobs:
           POSTGRES_DB: dnstool_test
         ports:
           - 5432:5432
-        # The handler tests apply schema.sql via setupTestDB(), so we
-        # only need the service to be accepting connections before the
-        # `go test` invocation starts.
+        # setupTestDB() runs the migration chain against this service, so an
+        # empty database is the expected starting state and we only need the
+        # service accepting connections before `go test` starts.
         options: >-
           --health-cmd "pg_isready -U dnstool -d dnstool_test"
           --health-interval 5s

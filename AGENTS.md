@@ -28,6 +28,13 @@ License: **BUSL-1.1** (Business Source License — protected product path).
   here the way the AWS static sites do. Changes go live only after telling the
   Replit agent to import. DNS for dnstool.it-help.tech is on Hermes Route53.
 - `replit-verify` TXT record is LEGIT — do not remove it.
+- **An import must never drop, rebuild, or re-initialise the production
+  database.** It holds months of `scan_phase_telemetry` rows with no other copy.
+  Since 2026-07-30 there IS a migration system, so schema changes ship as
+  migrations and the server upgrades production in place on the next start —
+  which is why rebuilding is unnecessary, not why it is now safe. A brief saying
+  "this import needs no schema change" describes the diff; it is not permission
+  to rebuild. See `docs/DATABASE_MIGRATIONS.md`.
 
 ## Architecture (request path)
 

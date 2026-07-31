@@ -122,6 +122,27 @@
             letter-spacing: 0.15em;
             pointer-events: none;
         }
+        /* Subject + moment of the scan, stamped under the title where there is
+           open space, so the instrument says what it measured and when. */
+        .topo-scan-stamp {
+            margin-top: 10px;
+            font-size: 0.82rem;
+            letter-spacing: 0.06em;
+            text-transform: none;
+            color: rgba(255, 255, 255, 0.72);
+        }
+        .topo-scan-stamp .topo-stamp-domain {
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 1.05rem;
+            color: #ffc86e;
+            letter-spacing: 0.02em;
+        }
+        .topo-scan-stamp .topo-stamp-meta {
+            display: block;
+            margin-top: 2px;
+            font-size: 0.72rem;
+            color: rgba(255, 255, 255, 0.42);
+        }
         .topo-title-h1 {
             color: rgba(255, 255, 255, 0.6);
             font-size: 0.95rem;
@@ -170,8 +191,14 @@
             position: absolute;
             top: 13px;
             right: 13px;
-            width: 340px;
+            width: 360px;
             max-width: calc(100% - 26px);
+            /* Never clip the bottom of the console: it scrolls inside the
+               canvas wrap instead of overflowing past it. */
+            max-height: calc(100% - 26px);
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            scrollbar-width: thin;
             z-index: 6;
             font-size: 0.78rem;
             color: #c0c8d4;
@@ -323,9 +350,60 @@
         .topo-v-warn { color: #ffb74d; border-color: rgba(255, 183, 77, 0.5);  background: rgba(255, 183, 77, 0.08); }
         .topo-v-ind  { color: #9fb0c0; border-color: rgba(159, 176, 192, 0.4); background: rgba(159, 176, 192, 0.08); }
         .topo-v-bad  { color: #ef9a9a; border-color: rgba(239, 83, 80, 0.5);   background: rgba(239, 83, 80, 0.08); }
-        .topo-scan-links { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 5px 13px; }
+        .topo-scan-links { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px 13px; }
         .topo-scan-links a { font-size: 0.72rem; color: #6ecbf5; text-decoration: none; }
         .topo-scan-links a:hover { text-decoration: underline; }
+        /* Post-scan primary actions — the reports are the product; they get
+           real buttons, not 11px footnote links. */
+        .topo-scan-links a.topo-scan-cta { flex: 1 1 100%; display: block; padding: 9px 12px; border: 1px solid rgba(110,203,245,.4); border-radius: 8px; background: rgba(110,203,245,.08); color: #cfeeff; font-size: 0.86rem; font-weight: 600; letter-spacing: .02em; text-align: center; }
+        .topo-scan-links a.topo-scan-cta:hover { background: rgba(110,203,245,.18); text-decoration: none; }
+        .topo-scan-links a.topo-scan-cta--flagship { border-color: rgba(255,193,7,.55); background: rgba(255,193,7,.10); color: #ffe9ad; }
+        .topo-scan-links a.topo-scan-cta--flagship:hover { background: rgba(255,193,7,.18); }
+        /* CTA sub-labels render visibly: after a long scan the reader has to
+           be able to tell the two reports apart without hovering. */
+        .topo-scan-links a.topo-scan-cta { flex-direction: column; align-items: flex-start; gap: .12rem; }
+        .topo-scan-cta-label { font-weight: 600; }
+        .topo-scan-cta-sub { display: block; font-size: .66rem; line-height: 1.25;
+            opacity: .72; font-weight: 400; letter-spacing: .01em; }
+        /* Draw the eye to the next step once results land. */
+        @keyframes topoCtaArrive { 0% { box-shadow: 0 0 0 0 rgba(255,193,7,.45); }
+            70% { box-shadow: 0 0 0 7px rgba(255,193,7,0); }
+            100% { box-shadow: 0 0 0 0 rgba(255,193,7,0); } }
+        .topo-scan-links a.topo-scan-cta--flagship { animation: topoCtaArrive 1.9s ease-out 3; }
+        @media (prefers-reduced-motion: reduce) {
+            .topo-scan-links a.topo-scan-cta--flagship { animation: none; }
+        }
+        /* Restored-scan bar: a record of a previous scan, visually distinct
+           from live results so it is never read as the current state. */
+        .topo-scan-restored { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap;
+            margin-bottom: .5rem; padding: .35rem .55rem; border-radius: 4px;
+            border: 1px dashed rgba(255,255,255,.28); background: rgba(255,255,255,.04);
+            color: rgba(255,255,255,.72); font-size: .72rem; letter-spacing: .01em; }
+        .topo-scan-restored-clear { margin-left: auto; border: 1px solid rgba(255,255,255,.3);
+            background: transparent; color: rgba(255,255,255,.8); border-radius: 3px;
+            padding: .1rem .45rem; font-size: .68rem; cursor: pointer; }
+        .topo-scan-restored-clear:hover { background: rgba(255,255,255,.12); color: #fff; }
+        /* Remediation + Replay share one row as a split pair. */
+        .topo-scan-links a.topo-scan-cta--half { flex: 1 1 calc(50% - 7px); }
+        .topo-scan-links a.topo-scan-cta--fix { border-color: rgba(129,199,132,.5); background: rgba(129,199,132,.10); color: #cdeccf; }
+        .topo-scan-links a.topo-scan-cta--fix:hover { background: rgba(129,199,132,.18); }
+        /* Covert/red-team tier — the low-visibility path gets the red vibe. */
+        .topo-scan-links a.topo-scan-recon {
+            flex: 1 1 100%;
+            margin-top: 2px;
+            padding: 5px 10px;
+            border: 1px solid rgba(204,32,32,.45);
+            border-radius: 6px;
+            background: rgba(204,32,32,.09);
+            color: #ff8a8a;
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 0.7rem;
+            letter-spacing: 0.08em;
+            text-align: center;
+            text-transform: uppercase;
+        }
+        .topo-scan-links a.topo-scan-recon:hover { background: rgba(204,32,32,.2); color: #ffb3b3; text-decoration: none; }
+        .topo-scan-fixture { margin-top: 8px; padding: 7px 10px; border: 1px solid rgba(255,204,128,.5); border-radius: 6px; background: rgba(255,204,128,.08); color: #ffcc80; font-size: 0.72rem; line-height: 1.35; }
         .topo-scan-note { margin-top: 5px; font-size: 0.7rem; color: #a8b6c6; line-height: 1.4; }
         .topo-scan-ticker {
             margin-top: 8px;
@@ -396,6 +474,7 @@
                 <div class="topo-title-overlay">
                     <h1 class="topo-title-h1">Intelligence Topology <span class="topo-beta-badge">Beta</span></h1>
                     DNS Security Pipeline &amp; Dependency Graph
+                    <div class="topo-scan-stamp" id="topoScanStamp" hidden></div>
                 </div>
                 <div class="topo-scan-console" id="topoScanConsole">
                     <form id="topoScanForm" class="topo-scan-card" action="/analyze" method="POST" autocomplete="off">
@@ -443,12 +522,14 @@
                         <div class="topo-scan-meter"><span class="topo-scan-meter-label">Phases</span><span class="topo-scan-meter-track"><span class="topo-scan-meter-bar" id="topoMeterPhaseBar"></span></span></div>
                         <div class="topo-scan-meter"><span class="topo-scan-meter-label">Tasks</span><span class="topo-scan-meter-track"><span class="topo-scan-meter-bar topo-scan-meter-bar--tasks" id="topoMeterTaskBar"></span></span></div>
                         <div class="topo-scan-sub" id="topoScanLatency">acquisition &mdash;</div>
+                        <div class="topo-scan-fixture" id="topoScanFixtureHud" hidden></div>
                         <div class="topo-scan-ticker" id="topoScanTicker" aria-label="Scan event ticker" hidden></div>
                     </div>
                     <div class="topo-scan-card topo-scan-error" id="topoScanError" role="alert" hidden></div>
                     <div class="topo-scan-card" id="topoScanVerdict" hidden>
                         <div class="topo-scan-owls" id="topoScanOwls" aria-label="Epistemic owl semaphore" hidden></div>
                         <div class="topo-scan-owl-note" id="topoScanOwlNote" hidden></div>
+                        <div class="topo-scan-fixture" id="topoScanFixtureVerdict" hidden></div>
                         <div class="topo-scan-chips" id="topoScanChips"></div>
                         <div class="topo-scan-links" id="topoScanLinks"></div>
                         <div class="topo-scan-note" id="topoScanNote" hidden></div>
@@ -485,7 +566,7 @@
     </main>
     {{template "footer" .}}
     {{template "scripts" .}}
-    <script nonce="{{.CspNonce}}">window.__TOPO_SOLVER={{.SolverLayouts}};</script>
+    <script nonce="{{.CspNonce}}">window.__TOPO_SOLVER={{.SolverLayouts}};window.__FIXTURE_CORPUS={{.FixtureCorpusJSON}};</script>
     {{if .ReplayID}}<script nonce="{{.CspNonce}}">window.__TOPO_REPLAY={id:{{.ReplayID}},domain:{{.ReplayDomain}},totalMs:{{.ReplayTotalMs}}};</script>{{end}}
     <script nonce="{{.CspNonce}}" src="{{staticVersionURL "js/topology.min.js" .AppVersion}}" defer {{staticSRI "js/topology.min.js"}}></script>
 </body>

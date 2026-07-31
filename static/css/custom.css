@@ -752,6 +752,20 @@ body.covert-mode .hero-text-standard {
     color: var(--text-secondary);
 }
 
+/* "This is different now" — flags that a scan is watched live on the
+   topology rather than behind a modal spinner. */
+.search-live-badge {
+    display: inline-block;
+    margin-right: 0.4rem;
+    padding: 0.1rem 0.45rem;
+    border: 1px solid rgba(110, 203, 245, 0.4);
+    border-radius: 0.75rem;
+    background: rgba(110, 203, 245, 0.1);
+    color: var(--bs-info, #6ecbf5);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
 /* Trust Indicators */
 .hero-trust {
     position: relative;
@@ -1399,6 +1413,11 @@ html[data-bs-theme="dark"] .tooltip-inner {
     min-width: 0;
     text-decoration: none;
     white-space: nowrap;
+}
+
+.navbar-brand picture {
+    flex-shrink: 0;
+    line-height: 0;
 }
 
 .navbar-brand-owl {
@@ -2320,153 +2339,6 @@ html[data-bs-theme="dark"] .tooltip-inner {
 }
 
 /* ============================================
-   PRIVATE-IP / SSRF COMPENSATING-CONTROL CALLOUT
-   Surfaces when the analyzed apex resolves to
-   RFC1918 / loopback / link-local / cloud-metadata
-   space. Source: analyzer/orchestrator.go
-   annotatePrivateIPWarning. Visible in BOTH screen
-   and print so audit reviewers see the control in
-   exported PDFs (Qualys WAS QID 150258 evidence).
-   ============================================ */
-.private-ip-callout {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.85rem;
-    padding: 1rem 1.15rem;
-    border: 1px solid rgba(255, 165, 0, 0.55);
-    border-left: 5px solid #ff9a1f;
-    border-radius: 0.5rem;
-    background:
-        linear-gradient(
-            135deg,
-            rgba(255, 154, 31, 0.10) 0%,
-            rgba(255, 154, 31, 0.04) 100%
-        ),
-        rgba(28, 22, 12, 0.55);
-    color: var(--text-primary, #e8edf3);
-    box-shadow: 0 0 14px rgba(255, 154, 31, 0.18), inset 0 0 0 1px rgba(255, 154, 31, 0.06);
-    page-break-inside: avoid;
-    break-inside: avoid;
-}
-
-.private-ip-callout-icon {
-    font-size: 1.6rem;
-    line-height: 1;
-    color: #ffb347;
-    flex-shrink: 0;
-    margin-top: 0.1rem;
-}
-
-.private-ip-callout-body {
-    flex: 1;
-    min-width: 0;
-}
-
-.private-ip-callout-header {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-bottom: 0.4rem;
-}
-
-.private-ip-callout-badge {
-    display: inline-block;
-    padding: 0.18em 0.6em;
-    background-color: #ff9a1f;
-    color: #1a1207;
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    border-radius: 0.25rem;
-    white-space: nowrap;
-}
-
-.private-ip-callout-title {
-    margin: 0;
-    font-size: 1.05rem;
-    font-weight: 600;
-    color: #ffd28a;
-    line-height: 1.3;
-}
-
-.private-ip-callout-message {
-    margin: 0 0 0.55rem;
-    font-size: 0.92rem;
-    line-height: 1.45;
-}
-
-.private-ip-callout-addresses {
-    margin-bottom: 0.55rem;
-    font-size: 0.88rem;
-}
-
-.private-ip-callout-addresses-label {
-    font-weight: 600;
-    margin-right: 0.4em;
-    color: #ffd28a;
-}
-
-.private-ip-callout-addresses-list {
-    font-family: var(--bs-font-monospace, ui-monospace, SFMono-Regular, Menlo, monospace);
-    word-break: break-all;
-}
-
-.private-ip-callout-refs {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.35rem;
-    margin-bottom: 0.45rem;
-}
-
-.private-ip-callout-ref-chip {
-    display: inline-block;
-    padding: 0.15em 0.55em;
-    font-size: 0.72rem;
-    font-weight: 600;
-    color: #ffd28a;
-    background-color: rgba(255, 154, 31, 0.12);
-    border: 1px solid rgba(255, 154, 31, 0.45);
-    border-radius: 999px;
-    white-space: nowrap;
-}
-
-.private-ip-callout-citation {
-    margin: 0;
-    font-size: 0.78rem;
-    color: rgba(232, 237, 243, 0.65);
-    line-height: 1.4;
-}
-
-@media print {
-    .private-ip-callout {
-        background: #fff8eb !important;
-        color: #2a1a05 !important;
-        border: 1px solid #b76800 !important;
-        border-left: 5px solid #b76800 !important;
-        box-shadow: none !important;
-    }
-    .private-ip-callout-icon,
-    .private-ip-callout-title,
-    .private-ip-callout-addresses-label,
-    .private-ip-callout-ref-chip {
-        color: #7a3f00 !important;
-    }
-    .private-ip-callout-badge {
-        background-color: #b76800 !important;
-        color: #fff !important;
-    }
-    .private-ip-callout-ref-chip {
-        background-color: #fff !important;
-        border-color: #b76800 !important;
-    }
-    .private-ip-callout-citation {
-        color: #4a3010 !important;
-    }
-}
-
-/* ============================================
    TLP SELECTOR — Dropdown badge colors & button
    CSP-safe classes (no inline styles needed)
    ============================================ */
@@ -2663,6 +2535,15 @@ html[data-bs-theme="dark"] .tooltip-inner {
    Military red-light discipline for field ops.
    Deeper backgrounds + crimson/oxblood accents.
    Status/severity badge colors are immutable.
+   WCAG AA CONTRAST EXCEPTION (deliberate): Covert Mode and its
+   submarine/tactical/operator sub-environments intentionally use
+   reduced-luminance red on near-black for scotopic (night-vision)
+   preservation per MIL-STD-3009 / MIL-STD-1472H. Many covert text
+   tokens therefore fall below photopic WCAG AA (4.5:1) BY DESIGN;
+   forcing photopic AA here would defeat the documented purpose and
+   flatten the theme. The accessible baseline is the STANDARD theme,
+   which meets AA and is the Lighthouse-gated default. Covert Mode is
+   an opt-in low-light mode. See R009 COVERT_RED suppression.
    ============================================ */
 .u-covert-toggle {
     font-size: 1.1rem;
@@ -8461,4 +8342,27 @@ a.ftr-node:hover {
     .ftr-grid {
         grid-template-columns: repeat(2, 1fr);
     }
+}
+
+.drift-caveat-summary {
+    cursor: pointer;
+}
+
+.drift-table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+.drift-table th,
+.drift-table td {
+    vertical-align: top;
+}
+
+.drift-table .drift-value {
+    display: inline-block;
+    max-width: 100%;
+    white-space: normal;
+    word-break: break-all;
+    overflow-wrap: anywhere;
+    text-align: left;
 }

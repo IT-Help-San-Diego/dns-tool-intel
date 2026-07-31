@@ -432,7 +432,7 @@ func TestEvaluateProtocolStates_Empty(t *testing.T) {
 
 func TestBuildEnforcingEmailVerdict(t *testing.T) {
 	verdicts := map[string]any{}
-	buildEnforcingEmailVerdict(protocolState{dmarcPolicy: mapKeyReject}, DKIMSuccess, verdicts)
+	buildEnforcingEmailVerdict(protocolState{dmarcPct: 100, dmarcPolicy: mapKeyReject}, DKIMSuccess, verdicts)
 	v := verdicts[mapKeyEmailSpoofing].(map[string]any)
 	if v[mapKeyLabel] != strProtected {
 		t.Errorf("label = %v, want Protected", v[mapKeyLabel])
@@ -444,7 +444,7 @@ func TestBuildEnforcingEmailVerdict(t *testing.T) {
 
 func TestBuildEnforcingEmailVerdict_QuarantineDKIM(t *testing.T) {
 	verdicts := map[string]any{}
-	buildEnforcingEmailVerdict(protocolState{dmarcPolicy: mapKeyQuarantine}, DKIMSuccess, verdicts)
+	buildEnforcingEmailVerdict(protocolState{dmarcPct: 100, dmarcPolicy: mapKeyQuarantine}, DKIMSuccess, verdicts)
 	v := verdicts[mapKeyEmailSpoofing].(map[string]any)
 	if v[mapKeyColor] != mapKeySuccess {
 		t.Errorf("color = %v, want success for quarantine with DKIM", v[mapKeyColor])
@@ -453,7 +453,7 @@ func TestBuildEnforcingEmailVerdict_QuarantineDKIM(t *testing.T) {
 
 func TestBuildEnforcingEmailVerdict_NoDKIM(t *testing.T) {
 	verdicts := map[string]any{}
-	buildEnforcingEmailVerdict(protocolState{dmarcPolicy: mapKeyReject}, DKIMAbsent, verdicts)
+	buildEnforcingEmailVerdict(protocolState{dmarcPct: 100, dmarcPolicy: mapKeyReject}, DKIMAbsent, verdicts)
 	v := verdicts[mapKeyEmailSpoofing].(map[string]any)
 	if v[mapKeyLabel] != strProtected {
 		t.Errorf("label = %v, want Protected", v[mapKeyLabel])
@@ -466,7 +466,7 @@ func TestClassifyDMARCPolicyBranches(t *testing.T) {
 		ps   protocolState
 		want emailSpoofClass
 	}{
-		{"reject", protocolState{dmarcPolicy: mapKeyReject}, emailSpoofReject},
+		{"reject", protocolState{dmarcPct: 100, dmarcPolicy: mapKeyReject}, emailSpoofReject},
 		{"quarantine full", protocolState{dmarcPolicy: mapKeyQuarantine, dmarcPct: 100}, emailSpoofQuarantineFull},
 		{"quarantine partial", protocolState{dmarcPolicy: mapKeyQuarantine, dmarcPct: 50}, emailSpoofQuarantinePartial},
 		{"none", protocolState{dmarcPolicy: statusNone}, emailSpoofMonitorOnly},

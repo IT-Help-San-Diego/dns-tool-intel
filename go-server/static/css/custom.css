@@ -752,6 +752,20 @@ body.covert-mode .hero-text-standard {
     color: var(--text-secondary);
 }
 
+/* "This is different now" — flags that a scan is watched live on the
+   topology rather than behind a modal spinner. */
+.search-live-badge {
+    display: inline-block;
+    margin-right: 0.4rem;
+    padding: 0.1rem 0.45rem;
+    border: 1px solid rgba(110, 203, 245, 0.4);
+    border-radius: 0.75rem;
+    background: rgba(110, 203, 245, 0.1);
+    color: var(--bs-info, #6ecbf5);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
 /* Trust Indicators */
 .hero-trust {
     position: relative;
@@ -1399,6 +1413,11 @@ html[data-bs-theme="dark"] .tooltip-inner {
     min-width: 0;
     text-decoration: none;
     white-space: nowrap;
+}
+
+.navbar-brand picture {
+    flex-shrink: 0;
+    line-height: 0;
 }
 
 .navbar-brand-owl {

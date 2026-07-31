@@ -1,3 +1,4 @@
+-- +goose Up
 -- 014_site_analytics_hll.sql — True unique-visitor counting via HyperLogLog++
 --
 -- Why this exists:

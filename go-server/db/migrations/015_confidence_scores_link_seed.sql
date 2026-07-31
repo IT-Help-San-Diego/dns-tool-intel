@@ -1,7 +1,13 @@
+-- +goose Up
 -- 015_confidence_scores_link_seed.sql — Wire confidence_scores for real use
--- "seed" in the filename means RunSeedMigrations applies this at EVERY startup,
--- so every statement here MUST be idempotent. This also self-heals environments
--- where 012 (non-seed, never auto-applied) was never run.
+--
+-- "seed" in the filename is HISTORICAL. It used to mean RunSeedMigrations picked
+-- this file up (it matched on the substring "seed") and re-ran it at every single
+-- startup, which is why every statement is idempotent. Since the version ledger
+-- landed this file runs exactly once, like every other migration, and the
+-- self-healing CREATE TABLE IF NOT EXISTS below is redundant with 012 rather than
+-- load-bearing. It is left in place because rewriting an already-applied
+-- migration would change its checksum for no behavioural gain.
 
 CREATE TABLE IF NOT EXISTS confidence_scores (
     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
