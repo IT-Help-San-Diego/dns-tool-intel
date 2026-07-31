@@ -188,7 +188,11 @@ echo "▸ [11/13] gocyclo ratchet (complexity >15)..."
 if [ -f "$BASE_DIR/gocyclo.count" ]; then
   GC_BASE=$(cat "$BASE_DIR/gocyclo.count")
   GC_OUT=$(go run github.com/fzipp/gocyclo/cmd/gocyclo@v0.6.0 -over 15 go-server/cmd go-server/internal 2>&1 || true)
-  GC_CUR=$(printf '%s' "$GC_OUT" | grep -c . || true)
+  # Count only real finding lines ("<complexity> <pkg> <func> <file>:..."), which
+  # start with a digit. gocyclo exits 1 whenever it has findings, so `go run`
+  # appends "exit status 1" via stderr — counting that line inflates the total
+  # by one and fails the gate at exactly-baseline counts.
+  GC_CUR=$(printf '%s' "$GC_OUT" | grep -c '^[0-9]' || true)
   if [ "$GC_CUR" -le "$GC_BASE" ]; then
     echo "  ✓ gocyclo: $GC_CUR function(s) over 15 (baseline $GC_BASE)"
     if [ "$GC_CUR" -lt "$GC_BASE" ]; then
