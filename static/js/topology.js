@@ -195,6 +195,7 @@
             if (visChanged) _lastLayoutLon = globe.rotLon;
 
             let placedBoxes = [];
+            globeInkCurrent = [];
             allLayoutNodes.forEach(function(nd) {
                 if (!nd._boxW) measureNodeBox(nd);
                 let hw = nd._halfW || nd.radius;
@@ -380,6 +381,7 @@
                 let rawTagX = cached.curX;
                 let rawTagY = cached.curY;
                 placedBoxes.push({ x: rawTagX, y: rawTagY, w: tagW, h: tagH });
+                globeInkCurrent.push({ kind: 'cityLabel', id: cacheKey, x: rawTagX, y: rawTagY, w: tagW, h: tagH });
                 popHitAreas.push({ x: rawTagX, y: rawTagY, w: tagW, h: tagH, dotX: p2.x, dotY: p2.y, idx: vp.idx });
 
                 // The leader is the whole point of a floating tag: it must
@@ -578,6 +580,7 @@
 
                 let pPos = { x: pCached.curX, y: pCached.curY };
                 placedBoxes.push({ x: pPos.x, y: pPos.y, w: pTagW, h: pTagH });
+                globeInkCurrent.push({ kind: 'probeTag', id: pCacheKey, x: pPos.x, y: pPos.y, w: pTagW, h: pTagH });
 
                 // Same pinning rule as the resolver leaders: land on the
                 // nearest point of the tag, keep a visible alpha floor, and
@@ -1093,6 +1096,7 @@
             // reduces to the title band exactly as before.
             let titleSafe = Math.max(Math.max(H * 0.07, 42), consoleTopReserve);
             let legendSafe = H * 0.95;
+            _legendSafeY = legendSafe;
             let usableH = legendSafe - titleSafe;
 
             let globeR = VERTICAL_FLOW
@@ -1670,19 +1674,19 @@
                             return { id: n.id, zone: n.zone, hw: n._halfW || n.radius, hh: n._halfH || n.radius };
                         }),
                         globe: { cx: globe.cx, cy: globe.cy, R: globe.R },
-                        // First entry in the ink registry. Edge-label pills are
-                        // placed during DRAW, not layout, and placedEdgeLabels is
-                        // reassigned every pass — so a snapshot taken here would
-                        // always be empty. Expose a reader that samples the
-                        // CURRENT pass instead.
+                        // The ink registry, all five classes. Draw-time ink is
+                        // reassigned every pass — a snapshot taken here would
+                        // always be empty — so these are READERS that sample the
+                        // CURRENT pass. Registration happens at the draw call
+                        // sites, so registered ink equals drawn ink by
+                        // construction.
                         //
-                        // Why this matters: every "0 overlaps" measurement before
+                        // Why this exists: every "0 overlaps" measurement before
                         // this swept __topoDbg.nodes only — 23 node boxes — while
                         // city labels, probe tags, edge pills, timing badges and
                         // the legend were structurally invisible to it. Those
-                        // claims were true and nearly meaningless. This is class
-                        // 2 of 5; the rest still need registering the same way,
-                        // in {kind, id, x1, y1, x2, y2} form.
+                        // claims were true and nearly meaningless. Sweep ink(),
+                        // never a single class list.
                         edgeLabels: function() {
                             return placedEdgeLabels.map(function(p, i) {
                                 return {
@@ -1691,6 +1695,46 @@
                                     x2: p.x + p.w / 2, y2: p.y + p.h / 2
                                 };
                             });
+                        },
+                        // Classes 3+4: globe ink (city tags, probe tags) —
+                        // top-left anchored at the draw sites.
+                        globeInk: function() {
+                            return globeInkCurrent.map(function(p) {
+                                return { kind: p.kind, id: p.kind + '#' + p.id,
+                                         x1: p.x, y1: p.y, x2: p.x + p.w, y2: p.y + p.h };
+                            });
+                        },
+                        // Class 5a: scan-overlay timing badges under nodes.
+                        scanInk: function() {
+                            return scanInkCurrent.map(function(p) {
+                                return { kind: p.kind, id: p.kind + '#' + p.id,
+                                         x1: p.x, y1: p.y, x2: p.x + p.w, y2: p.y + p.h };
+                            });
+                        },
+                        // Class 5b: the DOM legend's reserved band. Canvas ink
+                        // with y2 beyond this rect's y1 is an invasion.
+                        legendReserve: function() {
+                            if (!(_legendSafeY > 0)) return [];
+                            return [{ kind: 'legendReserve', id: 'legendReserve',
+                                      x1: 0, y1: _legendSafeY, x2: W, y2: H }];
+                        },
+                        // THE sweep surface: every ink class in one list, in
+                        // drawn-position coordinates (nodes included at their
+                        // current animated position — the ink actually on
+                        // screen). An overlap sweep that consumes anything
+                        // narrower is measuring a subset and must say so.
+                        ink: function() {
+                            let out = [];
+                            allLayoutNodes.forEach(function(n) {
+                                let hw = n._halfW || n.radius, hh = n._halfH || n.radius;
+                                out.push({ kind: 'node', id: n.id,
+                                           x1: n.x - hw, y1: n.y - hh, x2: n.x + hw, y2: n.y + hh });
+                            });
+                            return out
+                                .concat(window.__topoDbg.edgeLabels())
+                                .concat(window.__topoDbg.globeInk())
+                                .concat(window.__topoDbg.scanInk())
+                                .concat(window.__topoDbg.legendReserve());
                         },
                         nodes: allLayoutNodes.map(function(n) {
                             return { id: n.id, zone: n.zone, x: Math.round(n.x), y: Math.round(n.y),
@@ -2480,6 +2524,15 @@
         }
 
         let placedEdgeLabels = [];
+        // Ink registry classes 3-5 (the __topoDbg comment names all five):
+        // globe ink (city tags + probe tags) and scan-overlay ink (timing
+        // badges), re-registered at their DRAW sites each frame so registered
+        // ink equals drawn ink by construction — never the layout's intent.
+        // _legendSafeY is the top of the DOM legend's reserved band; canvas
+        // ink below that line is an invasion the sweep must see.
+        let globeInkCurrent = [];
+        let scanInkCurrent = [];
+        let _legendSafeY = 0;
 
         function draw() {
             ctx.clearRect(0, 0, W, H);
@@ -2488,6 +2541,7 @@
             drawGlobe(time);
 
             placedEdgeLabels = [];
+            scanInkCurrent = [];
             FLOW_EDGES.forEach(function(e) { drawFlowEdge(e); });
             PROTO_EDGES.forEach(function(e) { drawFlowEdge(e); });
             drawFlowParticles();
@@ -2911,11 +2965,18 @@
         }
 
         function drawScanNodeLabel(n, text, color) {
-            ctx.font = '600 ' + Math.round(9 * SCL) + 'px ' + 'ui-monospace, SFMono-Regular, Menlo, monospace';
+            let fontPx = Math.round(9 * SCL);
+            ctx.font = '600 ' + fontPx + 'px ' + 'ui-monospace, SFMono-Regular, Menlo, monospace';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'top';
             ctx.fillStyle = color;
-            ctx.fillText(text, n.x, n.y + effRadius(n) + 9);
+            let badgeY = n.y + effRadius(n) + 9;
+            ctx.fillText(text, n.x, badgeY);
+            // Ink class 5a: the timing/task badge under a node. Measured at the
+            // draw site (a handful per frame, bounded by phase groups — no
+            // memoisation needed at this volume).
+            let bw = ctx.measureText(text).width;
+            scanInkCurrent.push({ kind: 'timingBadge', id: n.id, x: n.x - bw / 2, y: badgeY, w: bw, h: fontPx });
         }
 
         function scanPhaseLabel(ph) {
