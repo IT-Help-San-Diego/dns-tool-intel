@@ -136,13 +136,13 @@
                     {{if .Analyses}}
                     <h5 class="text-muted mb-2">Only 1 analysis on file for <strong class="text-light">{{.Domain}}</strong></h5>
                     <p class="text-muted mb-3">Comparison requires at least two analyses of the same domain.<br>Run another analysis, then come back to see what changed.</p>
-                    <a href="/topology?domain={{.Domain}}" class="btn btn-primary me-2">
+                    <a href="/topology?domain={{.Domain | urlquery}}" class="btn btn-primary me-2">
                         {{icon "search" "me-1"}}Analyze {{.Domain}} Again
                     </a>
                     {{else}}
                     <h5 class="text-muted mb-2">No analyses found for <strong class="text-light">{{.Domain}}</strong></h5>
                     <p class="text-muted mb-3">This domain hasn't been analyzed yet. Run your first analysis to get started.</p>
-                    <a href="/topology?domain={{.Domain}}" class="btn btn-primary me-2">
+                    <a href="/topology?domain={{.Domain | urlquery}}" class="btn btn-primary me-2">
                         {{icon "search" "me-1"}}Analyze {{.Domain}}
                     </a>
                     {{end}}

@@ -314,7 +314,7 @@
         <div class="xref-section text-center py-5">
             <p class="text-muted h5">Cross-reference data is not available for this analysis.</p>
             <p class="text-muted">This domain may have been analyzed before cross-reference verification was introduced, or the public DNS queries could not complete in time.</p>
-            <a href="/topology?domain={{.AsciiDomain}}" class="btn btn-outline-info mt-3">{{icon "sync-alt" "me-1"}}Re-analyze to generate cross-reference data</a>
+            <a href="/topology?domain={{.AsciiDomain | urlquery}}" class="btn btn-outline-info mt-3">{{icon "sync-alt" "me-1"}}Re-analyze to generate cross-reference data</a>
         </div>
         {{end}}
     </main>
