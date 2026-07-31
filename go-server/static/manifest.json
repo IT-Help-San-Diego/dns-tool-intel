@@ -2,7 +2,7 @@
   "id": "/",
   "name": "DNS Tool",
   "short_name": "DNS Tool",
-  "description": "Domain security audit — no login required. Engineer's DNS Intelligence Reports and Executive's DNS Intelligence Briefs. SPF, DKIM, DMARC, DANE/TLSA, DNSSEC, BIMI, MTA-STS, TLS-RPT, CAA. Email Header Analyzer, IP Intelligence, Field Tech Toolkit, TTL Tuner. ICD 203 confidence scoring. TLP classification.",
+  "description": "Domain security audit — no login required. Engineer's DNS Intelligence Reports and Executive's DNS Intelligence Briefs. SPF, DKIM, DMARC, DANE/TLSA, DNSSEC, BIMI, MTA-STS, TLS-RPT, CAA. Email Header Analyzer, IP Intelligence, Field Tech Toolkit, TTL Tuner. TLP classification.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
