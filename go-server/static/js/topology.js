@@ -742,9 +742,20 @@
 
         function computeScaling() {
             SCL = Math.max(0.65, Math.min(1.15, W / 1400));
-            FONT_LABEL = Math.round(Math.max(10, Math.min(15, 13 * SCL)));
-            FONT_SUB = Math.round(Math.max(8, Math.min(12, 10 * SCL)));
-            FONT_TAG = Math.round(Math.max(10, Math.min(15, 13 * SCL)));
+            // SCL scales GEOMETRY to the canvas, which is right: boxes have to
+            // fit. Type is a different question — a smaller screen is not a
+            // further-away viewer, so text should stop shrinking well before the
+            // layout does. These floors already existed; they were simply set
+            // below the readable line. At the iPad's SCL of 0.737 the old values
+            // produced 10px labels and 8px sub-labels while a desktop at SCL 1.15
+            // showed 15px and 12px — the same text at 64% the size, which is why
+            // the tablet had to be zoomed by hand. Apple's floor is 11pt.
+            // Node boxes are measured from their text (measureNodeBox), so the
+            // boxes grow with the type and the solver keeps laying out against
+            // real dimensions rather than assumed ones.
+            FONT_LABEL = Math.round(Math.max(12, Math.min(15, 13 * SCL)));
+            FONT_SUB = Math.round(Math.max(10, Math.min(12, 10 * SCL)));
+            FONT_TAG = Math.round(Math.max(12, Math.min(15, 13 * SCL)));
             MIN_SPACING = Math.round(Math.max(5, 8 * SCL));
             clearTextWidthCache();
         }
