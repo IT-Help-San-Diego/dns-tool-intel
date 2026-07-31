@@ -706,13 +706,13 @@
         <div class="alert alert-info" role="alert">
             
             No previous live DNS analysis found for <strong>{{.ParseResult.Domain}}</strong>. 
-            <a href="/analyze?domain={{.ParseResult.Domain}}" class="alert-link">Run a live analysis</a> first, then re-upload the zone file to generate a drift report.
+            <a href="/topology?domain={{.ParseResult.Domain}}" class="alert-link">Run a live analysis</a> first, then re-upload the zone file to generate a drift report.
         </div>
         {{end}}
 
         <div class="text-center mt-4">
             <a href="/zone" class="btn btn-outline-secondary me-2">{{icon "upload" "me-1"}}Upload Another File</a>
-            <a href="/analyze?domain={{.ParseResult.Domain}}" class="btn btn-outline-info">{{icon "search" "me-1"}}Analyze {{.ParseResult.Domain}}</a>
+            <a href="/topology?domain={{.ParseResult.Domain}}" class="btn btn-outline-info">{{icon "search" "me-1"}}Analyze {{.ParseResult.Domain}}</a>
         </div>
     </section>
     {{end}}
