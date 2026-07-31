@@ -3850,10 +3850,33 @@
         let AUTORUN_DOMAIN = null;
         if (!REPLAY && scanEls.form && scanEls.domain) {
             let raw = new URLSearchParams(location.search).get('domain') || '';
-            let d = raw.trim().toLowerCase().replace(/^\.+/, '').replace(/\.+$/, '');
+            // Permissive pre-clean ONLY, to decide whether this arrival should
+            // autorun. A pasted URL is the commonest way anyone enters a
+            // domain, and the strict test below would otherwise leave the page
+            // idle with a prefilled box that looks like it failed.
+            //
+            // This is deliberately NOT the authority: the server re-extracts
+            // with net/url and records what it scanned versus what was given
+            // (results._input_normalization). Duplicating the parse here would
+            // create a second answer that can disagree with the recorded one;
+            // this only has to be good enough to recognise "that is a URL".
+            let pre = raw.trim();
+            if (pre.indexOf('://') !== -1) { pre = pre.slice(pre.indexOf('://') + 3); }
+            if (pre.indexOf('@') !== -1) { pre = pre.slice(pre.lastIndexOf('@') + 1); }
+            pre = pre.split(/[/?#]/)[0].replace(/:\d+$/, '');
+            let d = pre.toLowerCase().replace(/^\.+/, '').replace(/\.+$/, '');
             if (d && d.length <= 253 && /^[a-z0-9-]+(\.[a-z0-9-]+)*$/.test(d)) {
-                AUTORUN_DOMAIN = d;
-                scanEls.domain.value = d;
+                // Send the RAW input, not the pre-cleaned form. The pre-clean
+                // decided whether to autorun; it must not become the value the
+                // server records, or the server sees already-clean input,
+                // reports no normalization, and the pasted URL disappears from
+                // the record — a silent substitution created by the very code
+                // meant to disclose one. (Measured: a userinfo URL scanned the
+                // right host and stored an EMPTY _input_normalization until
+                // this line sent raw.)
+                let rawTrimmed = raw.trim();
+                AUTORUN_DOMAIN = rawTrimmed;
+                scanEls.domain.value = rawTrimmed;
             }
         }
 

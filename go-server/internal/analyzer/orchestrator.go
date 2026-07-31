@@ -333,7 +333,7 @@ func (a *Analyzer) assembleResults(ctx context.Context, domain string, resultsMa
 	authTTL := extractAndRemove(auth, "_ttl")
 	authQueryStatus := extractAndRemove(auth, "_query_status")
 
-	isTLD := dnsclient.IsTLDInput(domain)
+	isTLD := dnsclient.IsRegistryZone(domain)
 
 	progressCb := options.OnPhaseProgress
 	var seqTimings []PhaseTiming
@@ -538,6 +538,8 @@ func populateTTLReports(results map[string]any) {
 // to a bare TLD: a registry zone carries no mail and publishes no
 // subdomain-level policy, so these are marked not-applicable rather than left
 // to read as measured absences.
+const incompleteNotCleanSuffix = "incomplete for a registry zone, not clean."
+
 var tldSkippedProtocolKeys = []string{
 	mapKeySpfOrch, mapKeyDmarc, mapKeyDkimOrch, mapKeyMtaSts, mapKeyTlsrpt,
 	mapKeyBimi, mapKeyCtSubdomains, mapKeySmimeaOpenpgpkey, mapKeySecurityTxt,
@@ -552,7 +554,19 @@ var tldSkippedProtocolKeys = []string{
 // check that cannot fail.
 func applyTLDNotApplicable(resultsMap map[string]any) {
 	for _, key := range tldSkippedProtocolKeys {
-		resultsMap[key] = map[string]any{mapKeyStatus: statusNA}
+		resultsMap[key] = map[string]any{
+			mapKeyStatus: statusNA,
+			// A suppressed section reading only "n/a" is indistinguishable
+			// from one that failed to measure. Name the layer and say why the
+			// control does not apply, so a reader never takes the blank for a
+			// finding — and never takes it for a completed registry-zone
+			// assessment either.
+			"reason": "Not applicable at this layer: the input is a registry zone apex, not a registrable domain. " +
+				"This control is published by domain owners, so its absence here is the namespace, not a gap. " +
+				"Zone-appropriate checks for registry operators are not yet implemented, so this report is " +
+				incompleteNotCleanSuffix,
+			"layer": "registry_zone",
+		}
 	}
 }
 
@@ -736,7 +750,7 @@ func (a *Analyzer) runScopedAnalyses(ctx context.Context, domain string, customD
 
 	tasks := a.buildCoreTasks(ctx, domain, resultsCh, analysisStart, progressCb)
 
-	if !dnsclient.IsTLDInput(domain) {
+	if !dnsclient.IsRegistryZone(domain) {
 		if scope == ScopeGatewayDerived {
 			gatewayTasks := a.buildGatewayDomainTasks(ctx, domain, resultsCh, analysisStart, progressCb)
 			tasks = append(tasks, gatewayTasks...)
@@ -766,7 +780,7 @@ func (a *Analyzer) runScopedAnalyses(ctx context.Context, domain string, customD
 	// resultsMap for gateway scope, and are not read for TLDs — so both
 	// gates provably fire in every scope.
 	wg.Add(2)
-	isTLD := dnsclient.IsTLDInput(domain)
+	isTLD := dnsclient.IsRegistryZone(domain)
 	launchGated := func(key string, fn func() any) {
 		task := timedTaskWithProgress(resultsCh, key, analysisStart, progressCb, fn)
 		go func() {

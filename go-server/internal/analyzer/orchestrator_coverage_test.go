@@ -3,6 +3,7 @@
 package analyzer
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -189,5 +190,39 @@ func TestExtractSaaSTXTFootprint_EmptyMap(t *testing.T) {
 	saas := ExtractSaaSTXTFootprint(results)
 	if saas == nil {
 		t.Fatal("expected SaaS footprint result even with no basic_records")
+	}
+}
+
+// A suppressed section must say WHY it is suppressed. "n/a" alone is
+// indistinguishable from a section that failed to measure, and a registry-zone
+// report with silent blanks reads as clean when it is merely incomplete —
+// zone-appropriate checks for registry operators do not exist yet.
+func TestTLDSuppressionStatesItsReason(t *testing.T) {
+	resultsMap := map[string]any{}
+	applyTLDNotApplicable(resultsMap)
+
+	for _, key := range tldSkippedProtocolKeys {
+		section, ok := resultsMap[key].(map[string]any)
+		if !ok {
+			t.Fatalf("%s was not filled", key)
+		}
+		if section[mapKeyStatus] != statusNA {
+			t.Errorf("%s status = %v, want %q", key, section[mapKeyStatus], statusNA)
+		}
+		reason, _ := section["reason"].(string)
+		if reason == "" {
+			t.Errorf("%s is suppressed with no reason — a blank section reads as a finding", key)
+			continue
+		}
+		if !strings.Contains(reason, "not a gap") {
+			t.Errorf("%s reason must say the absence is the namespace, got %q", key, reason)
+		}
+		// The load-bearing half: the report must not present as clean.
+		if !strings.Contains(reason, "not clean") {
+			t.Errorf("%s reason must state the report is incomplete rather than clean, got %q", key, reason)
+		}
+		if section["layer"] != "registry_zone" {
+			t.Errorf("%s must name the layer, got %v", key, section["layer"])
+		}
 	}
 }

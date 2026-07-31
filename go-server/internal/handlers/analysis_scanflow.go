@@ -76,6 +76,12 @@ type analyzeInput struct {
 	isAuthenticated              bool
 	userID                       int32
 	hasNovelSelectors, ephemeral bool
+	// inputAsGiven / inputDiscarded record that the scanned domain was
+	// EXTRACTED from what the user typed — a pasted URL, most often. Carried so
+	// the report can say what was scanned and what was dropped: an instrument
+	// that silently substitutes its input claims to have measured what the user
+	// asked for when it measured something else.
+	inputAsGiven, inputDiscarded string
 	// userAgent and clientIP are captured at request time so the async scan
 	// goroutine (which runs after the *gin.Context is gone) can still call
 	// botverify.Classify and tag the persisted row with provenance.
@@ -86,6 +92,17 @@ func extractAnalyzeInput(c *gin.Context) (analyzeInput, bool) {
 	domain := extractDomainInput(c)
 	if domain == "" {
 		return analyzeInput{}, false
+	}
+	// Accept what people actually paste. A URL is the commonest way anyone
+	// enters a domain, and rejecting it read as the tool being broken rather
+	// than strict. The disclosure below is not optional.
+	asGiven := domain
+	var discardedDesc string
+	if normalized, changed, discarded := dnsclient.NormalizeDomainInput(domain); changed && normalized != "" {
+		domain = normalized
+		discardedDesc = discarded
+	} else {
+		asGiven = ""
 	}
 	if !dnsclient.ValidateDomain(domain) && !analyzer.IsWeb3Input(domain) {
 		return analyzeInput{}, false
@@ -102,6 +119,7 @@ func extractAnalyzeInput(c *gin.Context) (analyzeInput, bool) {
 	ephemeral := devNull || (hasNovelSelectors && !isAuthenticated)
 	return analyzeInput{
 		domain: domain, asciiDomain: asciiDomain,
+		inputAsGiven: asGiven, inputDiscarded: discardedDesc,
 		customSelectors: customSelectors, exposureChecks: exposureChecks,
 		devNull: devNull, isAuthenticated: isAuthenticated, userID: userID,
 		hasNovelSelectors: hasNovelSelectors, ephemeral: ephemeral,
@@ -133,6 +151,19 @@ func (h *AnalysisHandler) tryServeFromCache(c *gin.Context, inp analyzeInput, no
 		return h.serveCachedAnalysis(c, inp.asciiDomain, inp.asciiDomain, nonce, csrfToken)
 	}
 	return cacheMiss
+}
+
+func annotateInputNormalization(results map[string]any, inp analyzeInput) {
+	if inp.inputAsGiven == "" {
+		return
+	}
+	results["_input_normalization"] = map[string]any{
+		"as_given":  inp.inputAsGiven,
+		"scanned":   inp.domain,
+		"discarded": inp.inputDiscarded,
+		"note": "The scanned name was extracted from the input as entered. " +
+			"Findings describe the extracted name only.",
+	}
 }
 
 func (h *AnalysisHandler) Analyze(c *gin.Context) {
@@ -212,6 +243,7 @@ func (h *AnalysisHandler) Analyze(c *gin.Context) {
 	}
 
 	isPrivate := inp.hasNovelSelectors && inp.isAuthenticated
+	annotateInputNormalization(results, inp)
 	analysisID, timestamp := h.persistOrLogEphemeral(c.Request.Context(), persistParams{
 		domain:            inp.domain,
 		asciiDomain:       inp.asciiDomain,
@@ -481,6 +513,7 @@ func (h *AnalysisHandler) runAsyncScan(token, traceID string, sp *scanProgress, 
 	delete(results, "_scan_telemetry")
 
 	isPrivate := inp.hasNovelSelectors && inp.isAuthenticated
+	annotateInputNormalization(results, inp)
 	analysisID, _ := h.persistOrLogEphemeral(ctx, persistParams{
 		domain:            inp.domain,
 		asciiDomain:       inp.asciiDomain,
@@ -545,6 +578,16 @@ func (h *AnalysisHandler) analyzeAsync(c *gin.Context, domain, asciiDomain strin
 
 	inp := buildAsyncInput(c.Request.UserAgent(), clientIP, domain, asciiDomain, customSelectors,
 		exposureChecks, devNull, isAuthenticated, userID, hasNovelSelectors, ephemeral)
+	// buildAsyncInput reconstructs analyzeInput from exploded parameters, so
+	// any field not in that parameter list is silently dropped — which is how
+	// the normalization disclosure went missing on the ONLY path the topology
+	// console uses. Re-derive it here from the same request rather than
+	// widening the parameter list further.
+	if asGiven, changed, discarded := dnsclient.NormalizeDomainInput(extractDomainInput(c)); changed {
+		inp.inputAsGiven = extractDomainInput(c)
+		inp.inputDiscarded = discarded
+		_ = asGiven
+	}
 	go h.runAsyncScan(token, traceID, sp, inp, clientIP, countryCode, countryName)
 }
 
