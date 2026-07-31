@@ -1,0 +1,340 @@
+class,domain,dmarc_status,policy,p,sp,pct,aspf,adkim,has_rua,has_ruf,spf_present,spf_includes,dnssec,mta_sts,tls_rpt,bimi,has_dmarc,enforcing
+provider,126.com,present,none,none,,100,r,r,False,False,True,spf.mail.163.com,False,False,False,False,True,False
+provider,163.com,present,none,none,,100,r,r,False,False,True,spf.mail.163.com,False,False,False,False,True,False
+provider,abv.bg,present,none,none,,100,r,r,True,False,True,,False,False,False,False,True,False
+provider,alice.it,absent,no DMARC,,,100,r,r,False,False,True,,False,False,False,False,False,False
+provider,aol.com,present,reject,reject,,100,r,r,True,True,True,_spf.mail.yahoo.com,False,False,False,False,True,True
+provider,att.net,present,quarantine,quarantine,,100,r,r,True,True,True,_ipspf.yahoo.com,False,False,False,False,True,True
+provider,bol.com.br,present,none,none,none,100,r,r,True,True,True,relays.uol.com.br spf.bol.com.br spfcloud.bol.com.br spfexcl.uol.com.br,False,False,False,False,True,False
+provider,bt.com,present,reject,reject,,100,r,r,True,True,False,,False,True,False,False,True,True
+provider,btinternet.com,present,reject,reject,reject,100,r,r,True,True,True,_spf.btinternet.com bt.com,False,False,False,False,True,True
+provider,charter.net,absent,no DMARC,,,100,r,r,False,False,True,,False,False,False,False,False,False
+provider,comcast.net,present,reject,reject,reject,100,r,r,True,False,True,_ipspf.yahoo.com _spf.mdp.comcast.net _spfv6.comcast.net,True,True,True,False,True,True
+provider,cox.net,present,none,none,,100,r,r,True,True,True,_ipspf.yahoo.com cxr.spf.a.cloudfilter.net,False,False,False,False,True,False
+provider,daum.net,present,none,none,,100,r,r,True,False,True,_external_smtp.daum.net _spf.daum.net,False,False,False,False,True,False
+provider,earthlink.net,present,none,none,,100,r,r,False,False,True,spf.earthlink-vadesecure.net,False,False,False,False,True,False
+provider,fastmail.com,present,none,none,,100,r,r,True,False,True,spf.messagingengine.com,False,True,True,False,True,False
+provider,fastmail.fm,present,none,none,,100,r,r,True,False,True,spf.messagingengine.com,False,True,True,False,True,False
+provider,free.fr,present,quarantine,quarantine,none,100,r,r,False,False,True,_spf.free.fr,False,False,False,False,True,True
+provider,gmail.com,present,none,none,quarantine,100,r,r,True,False,True,_spf.google.com,False,True,True,False,True,False
+provider,gmx.com,present,quarantine,quarantine,,100,r,r,True,False,True,_spf.gmx.net,True,True,True,False,True,True
+provider,gmx.de,present,quarantine,quarantine,,100,r,r,True,False,True,_spf.gmx.net,True,False,False,False,True,True
+provider,gmx.net,present,quarantine,quarantine,,100,r,r,True,False,True,_spf.gmx.net,True,True,True,False,True,True
+provider,googlemail.com,present,quarantine,quarantine,quarantine,100,r,r,True,False,True,_spf.google.com,False,True,True,False,True,True
+provider,hanmail.net,present,none,none,,100,r,r,True,False,True,_external_smtp.daum.net _spf.daum.net,False,False,False,False,True,False
+provider,hotmail.com,present,none,none,,100,r,r,True,True,True,spf2.outlook.com,False,True,True,False,True,False
+provider,hushmail.com,present,quarantine,quarantine,,100,r,r,True,False,True,4429584.spf01.hubspotemail.net,False,False,False,False,True,True
+provider,icloud.com,present,quarantine,quarantine,quarantine,100,r,r,True,True,True,_spf.icloud.com,False,False,False,True,True,True
+provider,interia.pl,present,none,none,,100,r,r,True,True,True,,False,False,False,False,True,False
+provider,laposte.net,present,reject,reject,reject,100,r,r,True,True,True,_spf.lpn.as8677.net _spfbloc2.laposte.net,False,False,False,False,True,True
+provider,libero.it,present,quarantine,quarantine,,100,r,r,True,False,True,_oxspf.libero.it mail.zendesk.com,False,False,False,True,True,True
+provider,live.com,present,none,none,quarantine,100,r,r,True,True,True,spf-a.hotmail.com spf-b.hotmail.com spf-c.hotmail.com spf-d.hotmail.com spf.protection.outlook.com,True,True,True,False,True,False
+provider,mac.com,present,quarantine,quarantine,quarantine,100,r,r,True,True,True,_spf.icloud.com,False,False,False,True,True,True
+provider,mail.com,present,quarantine,quarantine,,100,r,r,True,False,True,_spf.mail.com,True,True,True,False,True,True
+provider,mail.ru,present,reject,reject,,100,r,r,True,False,True,_spf.mail.ru,False,True,True,False,True,True
+provider,mailbox.org,present,reject,reject,,100,r,r,True,False,True,,True,True,True,False,True,True
+provider,me.com,present,quarantine,quarantine,quarantine,100,r,r,True,True,True,_spf.icloud.com,False,False,False,True,True,True
+provider,msn.com,present,none,none,quarantine,100,r,r,True,False,True,_spf-ssg-a.microsoft.com spf-a.hotmail.com spf-b.hotmail.com spf-c.hotmail.com spf-d.hotmail.com spf.protection.outlook.com,False,False,False,False,True,False
+provider,mynet.com,absent,no DMARC,,,100,r,r,False,False,True,,False,False,False,False,False,False
+provider,naver.com,present,none,none,,100,r,r,True,False,True,,False,False,False,False,True,False
+provider,o2.pl,present,none,none,,100,r,r,True,False,True,wp.pl,False,True,True,False,True,False
+provider,onet.pl,present,quarantine,quarantine,quarantine,100,r,r,True,True,True,amazonses.com,False,True,True,False,True,True
+provider,orange.fr,present,quarantine,quarantine,none,100,r,r,True,True,True,_spf_gp.orange.fr _spf_other.orange.fr spffed-ip.orange.com,False,False,False,False,True,True
+provider,outlook.com,present,none,none,quarantine,100,r,r,True,True,True,spf2.outlook.com,True,True,True,False,True,False
+provider,posteo.de,present,none,none,quarantine,100,s,s,False,False,True,,True,True,True,False,True,False
+provider,proton.me,present,quarantine,quarantine,,100,s,s,False,False,True,_spf.protonmail.ch,True,True,True,True,True,True
+provider,protonmail.com,present,quarantine,quarantine,,100,s,s,False,False,True,_spf.protonmail.ch,True,True,True,True,True,True
+provider,qq.com,present,quarantine,quarantine,,100,r,r,True,False,True,spf.mail.qq.com,False,False,False,False,True,True
+provider,rambler.ru,present,quarantine,quarantine,,100,r,r,True,True,True,,False,False,False,False,True,True
+provider,rediffmail.com,present,quarantine,quarantine,reject,100,r,r,True,True,True,,False,False,False,True,True,True
+provider,rocketmail.com,present,reject,reject,,100,r,r,True,True,True,_spf.mail.yahoo.com,False,False,False,False,True,True
+provider,runbox.com,present,quarantine,quarantine,,100,r,r,True,False,True,spf.runbox.com,True,True,True,False,True,True
+provider,sbcglobal.net,present,none,none,,100,r,r,True,True,True,_ipspf.yahoo.com,False,False,False,False,True,False
+provider,seznam.cz,present,none,none,reject,100,r,r,True,False,True,,True,False,False,False,True,False
+provider,sfr.fr,present,reject,reject,reject,100,r,s,True,True,True,spf1.sfr.fr,False,False,False,True,True,True
+provider,sina.com,present,none,none,,100,r,r,False,False,True,spf.sinamail.sina.com.cn,False,False,False,False,True,False
+provider,sohu.com,present,reject,reject,,100,r,r,True,True,True,spf.sohu.com,False,False,False,False,True,True
+provider,startmail.com,present,quarantine,quarantine,quarantine,100,r,r,False,False,True,mail.zendesk.com spf.startmail.com,True,True,True,False,True,True
+provider,t-online.de,present,none,none,,100,r,r,True,False,True,,False,True,True,False,True,False
+provider,terra.com.br,present,quarantine,quarantine,reject,100,s,r,True,True,True,mailaz-spf.terra.com.br registrarmail.net spf.protection.outlook.com ti-spf.terra.com.br,False,False,False,False,True,True
+provider,tiscali.it,present,none,none,,100,r,r,False,False,True,,False,False,False,False,True,False
+provider,tuta.io,present,quarantine,quarantine,,100,r,s,False,False,True,spf.tutanota.de,True,True,True,False,True,True
+provider,tutanota.com,present,quarantine,quarantine,,100,r,s,False,False,True,spf.tutanota.de,True,True,True,False,True,True
+provider,uol.com.br,present,none,none,none,100,r,r,True,True,True,relays.uol.com.br spf.uol.com.br spfexcl.uol.com.br,False,False,False,False,True,False
+provider,verizon.net,present,reject,reject,,100,r,r,True,True,True,_ipspf.yahoo.com verizon.com,False,False,False,False,True,True
+provider,virgilio.it,present,quarantine,quarantine,,100,r,r,True,False,True,mail.zendesk.com,False,False,False,True,True,True
+provider,wanadoo.fr,present,quarantine,quarantine,none,100,r,r,True,True,True,_spf_gp.wanadoo.fr _spf_other.wanadoo.fr spffed-ip.orange.com,False,False,False,False,True,True
+provider,web.de,present,quarantine,quarantine,,100,r,r,True,False,True,_spf.web.de,True,True,True,False,True,True
+provider,wp.pl,present,none,none,,100,r,r,True,False,True,,False,True,True,False,True,False
+provider,yahoo.co.jp,present,quarantine,quarantine,,100,r,r,True,False,True,spf.yahoo.co.jp,False,False,False,False,True,True
+provider,yahoo.co.uk,present,reject,reject,,100,r,r,True,True,True,_spf.mail.yahoo.com,False,False,False,False,True,True
+provider,yahoo.com,present,reject,reject,,100,r,r,True,True,True,_spf.mail.yahoo.com,False,True,True,False,True,True
+provider,yandex.com,present,none,none,,100,r,r,True,True,True,_spf.yandex.ru,False,False,False,False,True,False
+provider,yandex.ru,present,none,none,,100,r,r,True,True,True,_spf.yandex.ru,False,False,False,False,True,False
+provider,ymail.com,present,reject,reject,,100,r,r,True,True,True,_spf.mail.yahoo.com,False,False,False,False,True,True
+provider,zoho.com,present,reject,reject,reject,100,r,r,True,True,True,popspf.zohomail.com spf.zoho.com spf.zohomail.com zcsend.net,False,False,True,False,True,True
+provider,zohomail.com,present,reject,reject,reject,100,r,r,True,True,True,spf.zohomail.com,False,False,True,False,True,True
+tenant,198119799470.xyz,present,reject,reject,reject,100,s,s,False,False,True,,False,False,False,False,True,True
+tenant,1liner.com,absent,no DMARC,,,100,r,r,False,False,True,,False,False,False,False,False,False
+tenant,2911.us,present,reject,reject,reject,100,r,r,True,True,True,_spf.google.com mailgun.org servers.mcsv.net spf.intermedia.net spf.mandrillapp.com spf.protection.outlook.com,True,True,True,False,True,True
+tenant,932.moe,present,quarantine,quarantine,,100,r,r,True,False,True,_spf.mx.cloudflare.net spf1.dm.aliyun.com,True,False,False,False,True,True
+tenant,abc.co,present,none,none,,100,r,r,False,False,True,_spf.livemail.co.uk,False,False,False,False,True,False
+tenant,abc.com,present,none,none,,100,r,r,True,True,True,spf.disney.com,False,False,False,False,True,False
+tenant,abyt.es,present,none,none,,100,r,r,True,False,True,_spf.google.com,False,False,False,False,True,False
+tenant,aither.cc,present,quarantine,quarantine,none,100,s,s,True,True,True,,False,False,False,False,True,True
+tenant,almonds.com,absent,no DMARC,,,100,r,r,False,False,True,servers.mcsv.net sharepointonline.com spf-westus.emailsignatures365.com spf.protection.outlook.com,False,False,False,False,False,False
+tenant,amazon.com,present,quarantine,quarantine,,100,r,r,True,True,True,amazonses.com spf1.amazon.com spf2.amazon.com,False,False,False,True,True,True
+tenant,anva.ch,present,reject,reject,reject,100,r,r,True,False,True,,False,True,True,True,True,True
+tenant,apavil.ro,present,quarantine,quarantine,none,100,r,r,True,False,True,,False,False,False,False,True,True
+tenant,apple.com,present,quarantine,quarantine,reject,100,r,r,True,True,True,_spf-txn.apple.com _spf.apple.com,False,False,False,True,True,True
+tenant,arcadego.ph,present,reject,reject,,100,r,r,True,False,True,,False,False,False,False,True,True
+tenant,atelier13-usa.com,absent,no DMARC,,,100,r,r,False,False,True,_spf.google.com,False,False,False,False,False,False
+tenant,b621.org,absent,no DMARC,,,100,r,r,False,False,False,,True,False,False,False,False,False
+tenant,bakr.de,absent,no DMARC,,,100,r,r,False,False,True,_spf.webhosting.systems,False,False,False,False,False,False
+tenant,beechtreenews.com,present,none,none,none,100,r,r,True,True,True,netblocks.dreamhost.com relay.mailchannels.net,False,False,False,False,True,False
+tenant,benav.cc,absent,no DMARC,,,100,r,r,False,False,False,,False,False,False,False,False,False
+tenant,binaryflix.space,absent,no DMARC,,,100,r,r,False,False,False,,False,False,False,False,False,False
+tenant,bitch.com,absent,no DMARC,,,100,r,r,False,False,False,,False,False,False,False,False,False
+tenant,blauw-survey.com,present,none,none,,100,r,r,False,True,True,confirmit.de euro.confirmit.com spf.protection.outlook.com,False,False,False,False,True,False
+tenant,blauw.com,present,quarantine,quarantine,,40,r,r,False,True,True,_spf.act-on.net _spf.atlassian.net autotask.net spf-eu.emailsignatures365.com spf.ess.de.barracudanetworks.com spf.protection.outlook.com,False,False,False,False,True,True
+tenant,blauwsurvey.com,present,quarantine,quarantine,,100,r,r,True,False,True,confirmit.de euro.confirmit.com spf-eu.emailsignatures365.com spf.protection.outlook.com,False,False,False,False,True,True
+tenant,blue.com,absent,no DMARC,,,100,r,r,False,False,True,,False,False,False,False,False,False
+tenant,blueberries.com,present,reject,reject,,100,r,r,True,True,True,mail.zendesk.com spf.constantcontact.com spf.protection.outlook.com,False,False,False,False,True,True
+tenant,burghele.ro,present,none,none,,100,r,r,False,False,True,relay.romarg.net,False,False,False,False,True,False
+tenant,business29.web-hosting.com,absent,no DMARC,,,100,r,r,False,False,False,,False,False,False,False,False,False
+tenant,buythisdomainname.com,absent,no DMARC,,,100,r,r,False,False,True,,False,False,False,False,False,False
+tenant,calibrationscope.com,present,reject,reject,reject,100,s,s,False,False,True,,True,False,False,False,True,True
+tenant,caloocanservices.online,present,quarantine,quarantine,,100,s,s,True,False,True,secureserver.net,True,False,False,False,True,True
+tenant,caolt.ro,present,reject,reject,,100,s,s,False,False,True,amazonses.com relay.romarg.net,False,False,False,False,True,True
+tenant,cheetap.tech,present,none,none,,100,r,r,False,False,True,_spf.mail.hostinger.com,False,False,False,False,True,False
+tenant,cia.gov,present,quarantine,quarantine,quarantine,100,s,s,True,True,True,,True,False,False,False,True,True
+tenant,cioviews.com,present,none,none,,100,r,r,True,True,True,beyondsmtp.com spf.protection.outlook.com,True,False,False,False,True,False
+tenant,cirsa.com,present,quarantine,quarantine,,100,s,s,True,False,True,_spf.eu.messagegears.net amazonses.com mailer.g-stock.net servers.mcsv.net spf.protection.outlook.com spfa.alinto.net,False,False,False,False,True,True
+tenant,cisa.gov,present,reject,reject,,100,r,r,True,False,True,spf-00376703.gpphosted.com spf.dhs.gov spf.protection.outlook.com,True,False,False,False,True,True
+tenant,civicforms.info,absent,no DMARC,,,100,r,r,False,False,False,,False,False,False,False,False,False
+tenant,civicpermits.com,absent,no DMARC,,,100,r,r,False,False,True,mail.zendesk.com spf.protection.outlook.com,False,False,False,False,False,False
+tenant,clinicbilling.com,absent,no DMARC,,,100,r,r,False,False,False,,False,False,False,False,False,False
+tenant,cloudflare.com,present,reject,reject,reject,100,r,r,True,False,True,_spf.google.com _spf.salesforce.com mail.zendesk.com spf.mandrillapp.com spf1.mcsv.net stspg-customer.com,True,False,False,True,True,True
+tenant,cnn.com,present,reject,reject,,100,r,r,True,True,True,%{i}._ip.%{h}._ehlo.%{d}._spf.vali.email cnn.com._nspf.vali.email mail.zendesk.com,False,False,False,True,True,True
+tenant,co.uk,absent,no DMARC,,,100,r,r,False,False,False,,True,False,False,False,False,False
+tenant,com.au,absent,no DMARC,,,100,r,r,False,False,False,,True,False,False,False,False,False
+tenant,contractvault.com,absent,no DMARC,,,100,r,r,False,False,False,,False,False,False,False,False,False
+tenant,cool.com,absent,no DMARC,,,100,r,r,False,False,True,spf.mail.qq.com,False,False,False,False,False,False
+tenant,couchmvp.com,absent,no DMARC,,,100,r,r,False,False,True,zohomail.eu,True,False,False,False,False,False
+tenant,d4v3.wtf,absent,no DMARC,,,100,r,r,False,False,True,,False,False,False,False,False,False
+tenant,deeptiesfishing.com,present,reject,reject,reject,100,r,r,True,True,True,_spf.google.com,True,False,False,False,True,True
+tenant,den9s.dk,present,reject,reject,,100,r,r,True,False,True,,True,False,False,False,True,True
+tenant,dev.lms.fullmindlearning.com,absent,no DMARC,,,100,r,r,False,False,False,,True,False,False,False,False,False
+tenant,devontechnologies.com,present,quarantine,quarantine,,100,s,s,False,True,True,pairlist.com relay.pair.com userinclude.dme3ds1.com webmail.pair.com,False,False,False,False,True,True
+tenant,dispatchgrid.com,absent,no DMARC,,,100,r,r,False,False,True,secureserver.net,False,False,False,False,False,False
+tenant,dns-observe.com,present,reject,reject,reject,100,s,s,False,False,True,,False,False,False,False,True,True
+tenant,dnsstuff.com,present,reject,reject,,100,r,r,True,False,True,spf.protection.outlook.com,True,False,False,False,True,True
+tenant,dnstool.it-help.tech,present,reject,reject,reject,100,s,s,True,True,True,,False,True,True,True,True,True
+tenant,dpsg-bodensee.de,present,quarantine,quarantine,,100,r,r,True,True,True,_spf.webhosting.systems,True,True,True,False,True,True
+tenant,dpsg-radolfzell.de,present,quarantine,quarantine,reject,100,r,r,True,True,True,mxroute.com spf.brevo.com spf.migadu.com,True,True,True,True,True,True
+tenant,ehmrealty.com,absent,no DMARC,,,100,r,r,False,False,True,secureserver.net,False,False,False,False,False,False
+tenant,evdnetworks.com,present,none,none,,100,r,r,True,False,True,%{i}._ip.%{h}._ehlo.%{d}._spf.vali.email spf.protection.outlook.com,False,False,False,False,True,False
+tenant,evilhacker.com,absent,no DMARC,,,100,r,r,False,False,False,,False,False,False,False,False,False
+tenant,example.co.uk,absent,no DMARC,,,100,r,r,False,False,False,,True,False,False,False,False,False
+tenant,example.com,present,reject,reject,reject,100,s,s,False,False,True,,True,False,False,False,True,True
+tenant,fbi.gov,present,reject,reject,,100,r,r,True,True,True,,True,False,False,False,True,True
+tenant,fette-beute.com,present,quarantine,quarantine,none,100,s,s,True,True,True,2979373.spf03.hubspotemail.net _spf-eu.ionos.com _spf.fette-beute_com._d.easydmarc.pro spf.protection.outlook.com,False,True,True,True,True,True
+tenant,fg9.eu,present,reject,reject,,100,r,r,False,False,True,,True,False,False,False,True,True
+tenant,filantropia.ro,present,none,none,,100,r,r,False,False,True,spf.antispamcloud.com spf.mxserver.ro,False,False,False,False,True,False
+tenant,filerequestpro.com,present,none,none,,100,r,r,True,False,True,spf.protection.outlook.com,True,False,False,False,True,False
+tenant,fluss.top,present,none,none,,100,r,r,True,False,True,mailbox.org,False,False,False,False,True,False
+tenant,franklinroadacademy.com,present,quarantine,quarantine,,100,r,r,True,True,True,mailgun.org sender.ultracamp.com spf.protection.outlook.com spf.renweb.com,False,False,False,False,True,True
+tenant,fredduval.com,absent,no DMARC,,,100,r,r,False,False,True,outlook.com,False,False,False,False,False,False
+tenant,freebsd.org,present,none,none,,100,r,r,False,False,True,_spf.freebsd.org,True,False,False,False,True,False
+tenant,fugro.com,present,reject,reject,,100,r,r,True,True,True,_u.fugro.com._spf.smart.ondmarc.com spf-0002cd01.pphosted.com,False,False,False,False,True,True
+tenant,fullmindlearning.com,present,quarantine,quarantine,,100,r,r,True,False,True,5342184.spf01.hubspotemail.net _spf.google.com aspmx.pardot.com spf.mandrillapp.com,False,False,False,False,True,True
+tenant,g-my.com,present,reject,reject,,100,r,r,True,True,True,_spf.google.com,False,False,False,False,True,True
+tenant,gdcc.com,present,none,none,,100,r,r,True,True,True,_spf.cash.nl _spf.yourfilter.nl bounce.dubinterviewer.com eu.zcsend.net mail.zohoanalytics.eu one.zoho.eu spf.nebu.com spf.protection.outlook.com transmail.net,True,False,False,False,True,False
+tenant,getmsg.ai,present,reject,reject,reject,100,s,s,True,True,True,_spf.google.com,False,False,False,False,True,True
+tenant,girlillamarketing.com,present,reject,reject,reject,100,s,s,False,False,True,_spf.google.com,True,False,False,False,True,True
+tenant,github.com,present,quarantine,quarantine,reject,100,r,r,True,True,True,_netblocks.google.com _netblocks2.google.com _spf.salesforce.com mail.zendesk.com mktomail.com sendgrid.net servers.mcsv.net spf.protection.outlook.com,False,False,False,False,True,True
+tenant,givrlab.com,absent,no DMARC,,,100,r,r,False,False,True,dc-aa8e722993._spfm.givrlab.com,False,False,False,False,False,False
+tenant,glendun.com.au,present,none,none,none,100,r,r,False,False,True,mxs.au sendgrid.net spf.protection.outlook.com,False,False,False,False,True,False
+tenant,globalping.io,absent,no DMARC,,,100,r,r,False,False,False,,False,False,False,False,False,False
+tenant,gmg-attendorn.de,absent,no DMARC,,,100,r,r,False,False,True,spf.hornetsecurity.com spf.protection.outlook.com,False,False,False,False,False,False
+tenant,gmg-mantel.de,absent,no DMARC,,,100,r,r,False,False,False,,False,False,False,False,False,False
+tenant,goldfish.com,present,reject,reject,,100,r,r,True,True,False,,False,False,False,False,True,True
+tenant,google.com,present,reject,reject,,100,r,r,True,False,True,_spf.google.com,False,True,True,False,True,True
+tenant,gotuwired.com,present,none,none,,100,r,r,False,False,True,bluehost.com,False,False,False,False,True,False
+tenant,guarinoadvisors.com,present,reject,reject,reject,100,s,s,True,False,True,_spf.google.com,True,True,True,False,True,True
+tenant,ha.198119799470.xyz,absent,no DMARC,,,100,r,r,False,False,False,,False,False,False,False,False,False
+tenant,hahnover.land,absent,no DMARC,,,100,r,r,False,False,True,_spf.mx.cloudflare.net,False,False,False,False,False,False
+tenant,hak5.org,present,none,none,,100,r,r,True,False,True,_spf.google.com mailgun.org sendgrid.net shops.shopify.com,True,False,False,False,True,False
+tenant,haukeflix.top,present,reject,reject,,100,r,r,False,False,True,,True,False,False,False,True,True
+tenant,hegel.net,present,none,none,none,100,r,r,True,True,True,_spf.protonmail.ch,False,True,True,False,True,False
+tenant,hegel.org,absent,no DMARC,,,100,r,r,False,False,True,_spf.google.com,True,False,False,False,False,False
+tenant,hirt.dev,present,reject,reject,,100,s,s,True,False,True,_spf.protonmail.ch,True,True,True,False,True,True
+tenant,hogwarts.steinr.eu,absent,no DMARC,,,100,r,r,False,False,False,,False,False,False,False,False,False
+tenant,honeypot.it-help.tech,present,reject,reject,reject,100,s,s,True,True,True,,False,False,False,False,True,True
+tenant,hortongroup.com,present,none,none,,100,r,r,True,False,True,_spf.freshbooks.com _spf.google.com amazonses.com convertkit.com e2ma.net spf.zoho.com transmail.net,False,False,False,False,True,False
+tenant,hosptm.ro,present,quarantine,quarantine,quarantine,80,r,r,True,True,True,_spf.firebasemail.com,False,False,False,False,True,True
+tenant,ibm.com,present,reject,reject,none,100,r,r,True,True,True,%{ir}.%{v}.%{d}.spf.has.pphosted.com,False,False,False,False,True,True
+tenant,ietf.org,present,none,none,,100,r,r,True,False,True,_spf.google.com spf.hostedrt.com,True,False,False,True,True,False
+tenant,ifacforl.ro,present,none,none,,100,r,r,False,False,True,relay.romarg.net,False,False,False,False,True,False
+tenant,inmanindustrial.com,absent,no DMARC,,,100,r,r,False,False,True,_spf.google.com,False,False,False,False,False,False
+tenant,innbn-bucuresti.ro,present,reject,reject,,100,r,r,True,True,True,,False,False,False,False,True,True
+tenant,insmc.ro,present,reject,reject,reject,100,r,r,False,True,True,hydramx.hosterion.net rhea.hosterion.net,False,False,False,False,True,True
+tenant,intellectualresistance.com,present,reject,reject,reject,100,s,s,False,False,True,,True,False,False,True,True,True
+tenant,isc.org,present,none,none,reject,100,r,r,True,True,True,_spf.salesforce.com servers.mcsv.net shops.shopify.com spf-a.customercenter.net spf-b.customercenter.net spf-c.customercenter.net,True,False,True,False,True,False
+tenant,it-help.tech,present,reject,reject,reject,100,r,r,True,True,True,_u.it-help.tech._spf.smart.ondmarc.com,True,True,True,True,True,True
+tenant,item.org,present,none,none,,100,r,r,False,False,True,_spf-us.ionos.com _spf.kundenserver.de _spf.perfora.net,False,False,False,False,True,False
+tenant,izvoru.ro,absent,no DMARC,,,100,r,r,False,False,True,relay.romarg.net,False,False,False,False,False,False
+tenant,jira.sovanta.com,absent,no DMARC,,,100,r,r,False,False,False,,False,False,False,False,False,False
+tenant,johnsoncustombuilders.com,present,reject,reject,reject,100,r,r,True,False,True,_spf.google.com,True,False,False,False,True,True
+tenant,jonaswiegner.de,present,reject,reject,reject,100,r,r,False,False,True,,False,False,False,False,True,True
+tenant,jue.rs,present,none,none,,100,r,r,True,False,True,_spf.protonmail.ch,False,False,False,False,True,False
+tenant,kadse.dev,absent,no DMARC,,,100,r,r,False,False,False,,True,False,False,False,False,False
+tenant,kali.org,present,none,none,,100,r,r,True,True,True,_spf.google.com sendgrid.net,True,False,False,False,True,False
+tenant,kisa.org.cy,absent,no DMARC,,,100,r,r,False,False,True,spf.protection.outlook.com,False,False,False,False,False,False
+tenant,knoccs.com,present,quarantine,quarantine,,100,r,r,True,True,True,243827887.spf02.hubspotemail.net sendgrid.net spf.protection.outlook.com,False,False,False,False,True,True
+tenant,knoxminerals.com,present,none,none,,100,r,r,True,False,True,spf.protection.outlook.com,False,False,False,False,True,False
+tenant,kokee.net,present,none,none,,100,r,r,True,False,True,_spf.protonmail.ch,False,False,False,False,True,False
+tenant,leeashley.com,present,reject,reject,,100,r,r,True,False,True,_spf.google.com,True,True,True,False,True,True
+tenant,leeashley.net,present,reject,reject,reject,100,s,s,True,True,True,_spf.faithconnector.com _spf.google.com,False,True,True,False,True,True
+tenant,leidos.com,present,reject,reject,reject,100,r,r,True,True,True,46166704.spf04.hubspotemail.net mktomail.com spf-00336402.gpphosted.com,False,False,False,False,True,True
+tenant,lincolnapps.co,absent,no DMARC,,,100,r,r,False,False,False,,False,False,False,False,False,False
+tenant,livearchive.net,absent,no DMARC,,,100,r,r,False,False,False,,True,False,False,False,False,False
+tenant,local.calibrationscope.com,absent,no DMARC,,,100,r,r,False,False,True,,False,False,False,False,False,False
+tenant,maltejk.de,present,quarantine,quarantine,none,100,s,s,True,True,True,mailbox.org,True,False,False,False,True,True
+tenant,markphd.me,absent,no DMARC,,,100,r,r,False,False,False,,False,False,False,False,False,False
+tenant,mateibals.ro,present,none,none,,100,r,r,False,False,True,,False,False,False,False,True,False
+tenant,maulhardt.info,absent,no DMARC,,,100,r,r,False,False,True,,False,False,False,False,False,False
+tenant,media.g-my.com,absent,no DMARC,,,100,r,r,False,False,False,,False,False,False,False,False,False
+tenant,meg.abyt.es,present,none,none,,100,r,r,True,False,True,_spf.google.com,False,False,False,False,True,False
+tenant,mercadopago.com,present,reject,reject,,100,r,s,True,True,True,spfrange.mercadopago.com,False,False,False,True,True,True
+tenant,microsoft.com,present,reject,reject,,100,r,r,True,True,True,_spf-a.microsoft.com _spf-b.microsoft.com _spf-c.microsoft.com _spf-ssg-a.msft.net _spf1-meo.microsoft.com,False,True,True,False,True,True
+tenant,migrateproduction.com,present,quarantine,quarantine,,100,r,r,True,False,True,websitewelcome.com,False,False,False,False,True,True
+tenant,misconfigured.com,absent,no DMARC,,,100,r,r,False,False,False,,False,False,False,False,False,False
+tenant,mobilecommercepress.com,absent,no DMARC,,,100,r,r,False,False,True,bluehost.com relay.mailchannels.net,False,False,False,False,False,False
+tenant,monologue.to,present,none,none,,100,r,r,True,False,False,,False,False,False,False,True,False
+tenant,mta-sts.it-help.tech,present,reject,reject,,100,r,r,False,False,False,,True,False,False,False,True,True
+tenant,mta-sts.purpleflock.com,present,reject,reject,reject,100,r,r,True,False,True,,False,False,True,True,True,True
+tenant,mta-sts.purpleflock.net,present,reject,reject,reject,100,r,r,True,False,True,,False,False,True,True,True,True
+tenant,mta-sts.sportcommunities.group,present,reject,reject,reject,100,r,r,True,False,True,,False,False,True,True,True,True
+tenant,mtadistributors.com,present,quarantine,quarantine,,100,r,r,True,True,True,_spf.mtadistributors_com._d.easydmarc.pro _spf.smtp.com spf-us.emailsignatures365.com spf.protection.outlook.com,False,False,False,False,True,True
+tenant,mx1.blauw-survey.com,absent,no DMARC,,,100,r,r,False,False,False,,False,False,False,False,False,False
+tenant,mx1.blauwsurvey.com,absent,no DMARC,,,100,r,r,False,False,False,,False,False,False,False,False,False
+tenant,my.pdic.gov.ph,absent,no DMARC,,,100,r,r,False,False,False,,True,False,False,False,False,False
+tenant,mynetworksettings.com,absent,no DMARC,,,100,r,r,False,False,False,,False,False,False,False,False,False
+tenant,nasa.gov,present,reject,reject,,100,r,r,True,False,True,_spf-4a.nasa.gov _spf-4b.nasa.gov _spf-4c.nasa.gov _spf-4d.nasa.gov _spf-4g.nasa.gov _spf-4m.nasa.gov _spf-4x.nasa.gov _spf-6a.nasa.gov spf.protection.outlook.com,True,False,False,False,True,True
+tenant,natashabedingfield.co.uk,absent,no DMARC,,,100,r,r,False,False,False,,False,False,False,False,False,False
+tenant,natashabedingfield.com,present,reject,reject,reject,100,s,s,True,True,True,_spf.google.com,False,True,True,False,True,True
+tenant,neildegrassetyson.com,absent,no DMARC,,,100,r,r,False,False,False,,True,False,False,False,False,False
+tenant,neiltyson.com,absent,no DMARC,,,100,r,r,False,False,True,,False,False,False,False,False,False
+tenant,netcloud.ch,present,quarantine,quarantine,,100,r,r,True,True,True,spf.nextron.ch spf.protection.outlook.com,False,False,True,False,True,True
+tenant,networksolutions.com,present,quarantine,quarantine,quarantine,100,r,r,True,True,True,_spf.salesforce.com eig.spf.a.cloudfilter.net spf.protection.outlook.com spf.websitewelcome.com spf1.web.com spf2.web.com,False,False,False,False,True,True
+tenant,nlnetlabs.nl,present,none,none,none,100,r,r,True,False,True,_spf.google.com mailbox.org,True,False,False,False,True,False
+tenant,nsa.gov,present,reject,reject,reject,100,r,r,True,True,True,_spf.eemsg.mail.mil amazonses.com,True,False,False,False,True,True
+tenant,nsfnow.com,present,reject,reject,reject,100,s,s,True,False,True,_spf.google.com,False,False,False,False,True,True
+tenant,ohg-nagold.de,present,reject,reject,,100,r,r,False,False,False,,False,False,False,False,True,True
+tenant,ohg-nagold.eu,absent,no DMARC,,,100,r,r,False,False,True,,False,False,False,False,False,False
+tenant,omniware.de,absent,no DMARC,,,100,r,r,False,False,True,_spf.webhosting.systems,False,False,False,False,False,False
+tenant,omzcloud.vn,absent,no DMARC,,,100,r,r,False,False,False,,False,False,False,False,False,False
+tenant,openai.com,present,reject,reject,,100,r,r,True,True,True,8050860.spf04.hubspotemail.net _spf.google.com mktomail.com spf.protection.outlook.com spf_c.oraclecloud.com,False,False,False,True,True,True
+tenant,optonline.net,present,none,none,,100,r,r,False,False,True,optimum.net,True,False,False,False,True,False
+tenant,orcid.org,present,quarantine,quarantine,,100,r,r,True,False,True,_spf.google.com _spf.salesforce.com mail.zendesk.com,False,False,False,False,True,True
+tenant,organiccomputer.me,present,reject,reject,reject,100,s,s,False,False,True,,True,False,False,True,True,True
+tenant,ortopedieazuga.ro,present,none,none,,100,r,r,False,False,True,,False,False,False,False,True,False
+tenant,owccgb.org,present,reject,reject,,100,r,r,True,False,True,spf.protection.outlook.com,False,False,False,True,True,True
+tenant,oxidesurvival.com,absent,no DMARC,,,100,r,r,False,False,False,,False,False,False,False,False,False
+tenant,parinita.ai,present,quarantine,quarantine,,100,r,r,True,False,True,_spf.google.com,False,False,False,False,True,True
+tenant,parinitaaiedge.com,absent,no DMARC,,,100,r,r,False,False,False,,False,False,False,False,False,False
+tenant,patagonia.com,present,none,none,,100,r,r,True,False,True,_spf.salesforce.com _spf2.patagonia.com smp.ne.jp spf.protection.outlook.com,False,False,False,False,True,False
+tenant,patientreminder.com,absent,no DMARC,,,100,r,r,False,False,True,,False,False,False,False,False,False
+tenant,pdcnet.org,present,none,none,,100,r,r,True,False,True,_spf.google.com,False,False,False,False,True,False
+tenant,permitdesk.biz,absent,no DMARC,,,100,r,r,False,False,False,,False,False,False,False,False,False
+tenant,pizazzmusiccamp.org,present,reject,reject,,100,s,r,False,False,True,spf.guardedhost.com,False,False,False,False,True,True
+tenant,play.198119799470.xyz,absent,no DMARC,,,100,r,r,False,False,False,,False,False,False,False,False,False
+tenant,pocketflows.com,present,quarantine,quarantine,,50,r,r,True,False,True,_spf.google.com,True,False,False,False,True,True
+tenant,poop.com,absent,no DMARC,,,100,r,r,False,False,False,,False,False,False,False,False,False
+tenant,porp.stream,absent,no DMARC,,,100,r,r,False,False,False,,False,False,False,False,False,False
+tenant,probe-us-01.dns-observe.com,present,reject,reject,reject,100,s,s,False,False,True,,False,False,False,False,True,True
+tenant,probe-us-02.dns-observe.com,present,reject,reject,reject,100,s,s,False,False,True,,False,False,False,False,True,True
+tenant,psihiatrietulghes.ro,present,quarantine,quarantine,,100,r,r,True,False,True,_spf.google.com,False,False,False,False,True,True
+tenant,purple-securities.com,present,quarantine,quarantine,quarantine,100,r,r,True,False,True,_spf.mx.cloudflare.net,False,False,False,False,True,True
+tenant,purpleflock.com,present,reject,reject,reject,100,r,r,True,False,True,spf.web-hosting.com,True,True,True,True,True,True
+tenant,purpleflock.net,present,reject,reject,reject,100,r,r,True,False,True,,True,True,True,True,True,True
+tenant,qualysperiscope.com,absent,no DMARC,,,100,r,r,False,False,False,,False,False,False,False,False,False
+tenant,ransom-isac.org,present,reject,reject,,100,r,r,True,False,True,_spf.protonmail.ch send.klaviyo.com,True,False,False,False,True,True
+tenant,raremaps.com,present,quarantine,quarantine,,100,r,r,True,False,True,_spf.google.com mailgun.org,False,False,False,False,True,True
+tenant,ready-method.com,absent,no DMARC,,,100,r,r,False,False,False,,False,False,False,False,False,False
+tenant,reconfirm.com,present,reject,reject,reject,100,r,s,True,True,True,spf.protection.outlook.com,True,True,True,False,True,True
+tenant,red.com,present,none,none,,100,r,r,True,False,True,ap.rp.oracleemaildelivery.com eu.rp.oracleemaildelivery.com mail.zendesk.com rp.oracleemaildelivery.com sendgrid.net spf.protection.outlook.com,False,False,False,False,True,False
+tenant,replit.com,present,reject,reject,,100,r,r,True,False,True,%{i}._ip.%{h}._ehlo.%{d}._spf.vali.email mail.zendesk.com,False,False,False,False,True,True
+tenant,restretail.com,present,quarantine,quarantine,quarantine,100,r,r,False,False,True,_spf.google.com,True,False,False,False,True,True
+tenant,rg443.click,absent,no DMARC,,,100,r,r,False,False,False,,False,False,False,False,False,False
+tenant,rocket-hd.cc,present,quarantine,quarantine,,100,r,r,True,False,True,,False,False,False,False,True,True
+tenant,sanatoriulbusteni.ro,absent,no DMARC,,,100,r,r,False,False,True,,False,False,False,False,False,False
+tenant,sandiegocomputer.com,present,none,none,,100,r,r,False,False,True,authsmtp.com autotask.net spf.protection.outlook.com websitewelcome.com,False,False,False,False,True,False
+tenant,sap.com,present,reject,reject,,100,s,s,True,False,True,_spf.sap.com,False,False,True,False,True,True
+tenant,sap.de,present,reject,reject,,100,s,r,True,False,True,_spf.sap.com,False,False,False,False,True,True
+tenant,scfcv.ro,present,none,none,,100,r,r,False,False,True,_spf.deepstorage.ro,False,False,False,False,True,False
+tenant,schedule.it-help.tech,present,reject,reject,reject,100,r,r,False,False,True,,False,False,False,False,True,True
+tenant,screen.it-help.tech,present,reject,reject,,100,r,r,False,False,False,,True,False,False,False,True,True
+tenant,server.it-help.tech,present,reject,reject,,100,r,r,False,False,True,,False,False,False,False,True,True
+tenant,sjv.ro,present,none,none,,100,r,r,False,False,True,stsmail.ro,False,False,False,False,True,False
+tenant,smlugoj.ro,absent,no DMARC,,,100,r,r,False,False,True,relay.romarg.net,False,False,False,False,False,False
+tenant,sovanta.com,present,reject,reject,,100,r,r,True,False,True,_spf.cmail.ondemand.com amazonses.com spf.academymaker.de spf.protection.outlook.com,False,False,False,False,True,True
+tenant,spacex.com,present,reject,reject,,100,r,r,True,True,True,42559228.spf07.hubspotemail.net _spf.qemailserver.com icpbounce.com spf-003ea501.gpphosted.com spf-a.spacex.com spf-b.spacex.com spf.mandrillapp.com spf.protection.office365.us,False,False,False,False,True,True
+tenant,spital-breaza.ro,absent,no DMARC,,,100,r,r,False,False,True,,False,False,False,False,False,False
+tenant,spital-deva.ro,present,reject,reject,,100,s,s,False,False,True,relay.romarg.net,False,False,False,False,True,True
+tenant,spital-izvoru.ro,present,none,none,,100,r,r,False,False,True,,False,False,False,False,True,False
+tenant,spitalcampina.ro,absent,no DMARC,,,100,r,r,False,False,True,,False,False,False,False,False,False
+tenant,spitalgiurgiu.ro,present,reject,reject,reject,100,r,r,False,False,True,_netblock.opticnet.ro,False,False,False,False,True,True
+tenant,spitalhorezu.ro,absent,no DMARC,,,100,r,r,False,False,False,,False,False,False,False,False,False
+tenant,spitalmciuc.ro,absent,no DMARC,,,100,r,r,False,False,True,,False,False,False,False,False,False
+tenant,spitalmoldovanoua.ro,absent,no DMARC,,,100,r,r,False,False,True,,False,False,False,False,False,False
+tenant,spitalpoianamare.ro,present,none,none,,100,r,r,False,False,True,_include.gazduire.ro,False,False,False,False,True,False
+tenant,spitalsighet.ro,present,none,none,,100,r,r,False,False,True,,False,False,False,False,True,False
+tenant,spitalsinaia.ro,present,none,none,,100,r,r,False,False,True,,False,False,False,False,True,False
+tenant,spitalsovata.ro,absent,no DMARC,,,100,r,r,False,False,True,,False,False,False,False,False,False
+tenant,spitalul-municipal-timisoara.ro,absent,no DMARC,,,100,r,r,False,False,True,relay.romarg.net,False,False,False,False,False,False
+tenant,spitalulhorezu.ro,present,reject,reject,,100,r,r,False,False,True,,False,False,False,False,True,True
+tenant,spitalulhuedin.ro,present,none,none,,100,r,r,False,False,True,,False,False,False,False,True,False
+tenant,spitalulorasenescbaicoi.ro,present,none,none,reject,100,r,s,True,True,True,,False,False,False,False,True,False
+tenant,spjslatina.ro,present,quarantine,quarantine,none,100,r,r,False,False,True,_spf.globehosting.net mail.hostingww.com relay.mailchannels.net,False,False,True,False,True,True
+tenant,sportcommunities.group,present,reject,reject,reject,100,r,r,True,False,True,spf.web-hosting.com,True,True,True,True,True,True
+tenant,squareup.com,present,reject,reject,,100,r,r,True,True,True,%{i}._ip.%{h}._ehlo.%{d}._spf.vali.email squareup.com._nspf.vali.email stspg-customer.com,False,False,False,False,True,True
+tenant,sra.io,present,quarantine,quarantine,quarantine,100,r,r,True,True,True,4775985.spf10.hubspotemail.net spf.protection.outlook.com,False,False,False,False,True,True
+tenant,steinr.eu,present,quarantine,quarantine,,100,r,r,True,True,True,mxroute.com,True,True,True,True,True,True
+tenant,surland.de,present,quarantine,quarantine,quarantine,100,r,r,True,True,True,servers.mcsv.net,False,False,False,False,True,True
+tenant,switch.com,present,quarantine,quarantine,,100,s,r,True,True,True,amazonses.com aspmx.pardot.com spf-00ab3a01.pphosted.com spf-westus.emailsignatures365.com spf.protection.outlook.com,False,False,False,False,True,True
+tenant,switchnet.nv,absent,no DMARC,,,100,r,r,False,False,False,,False,False,False,False,False,False
+tenant,swutch.com,absent,no DMARC,,,100,r,r,False,False,True,,False,False,False,False,False,False
+tenant,technikfreak.co,absent,no DMARC,,,100,r,r,False,False,False,,False,False,False,False,False,False
+tenant,telekom.de,present,quarantine,quarantine,,100,r,r,True,True,True,_spfa.telekom.com,False,False,True,False,True,True
+tenant,tesla.com,present,reject,reject,,100,r,r,True,True,True,_spf.psm.knowbe4.com _spf.qualtrics.com _spf.ultipro.com _spfsn.teslamotors.com mail.zendesk.com spf.protection.outlook.com spf1.sendcloud.org spf2.sendcloud.org u13494342.wl093.sendgrid.net,False,False,False,True,True,True
+tenant,thehumphries.org,absent,no DMARC,,,100,r,r,False,False,True,,False,False,False,False,False,False
+tenant,theojouvin.com,present,quarantine,quarantine,,100,r,r,True,False,True,spf.web-hosting.com,False,False,False,False,True,True
+tenant,tierarztpraxis-ludwigshafen.de,present,none,none,,100,r,r,True,True,True,secure-mailgate.com,False,False,True,False,True,False
+tenant,torrent-syndikat.org,absent,no DMARC,,,100,r,r,False,False,False,,False,False,False,False,False,False
+tenant,transbusbuzau.ro,absent,no DMARC,,,100,r,r,False,False,True,relay.romarg.net,False,False,False,False,False,False
+tenant,ui.com,present,reject,reject,quarantine,100,r,s,True,False,True,_spf.google.com amazonses.com mail.zendesk.com mailsenders.netsuite.com shops.shopify.com spf1.mcsv.net,False,False,False,True,True,True
+tenant,uke.de,present,reject,reject,,100,r,r,False,True,True,spf.embloom.com spf.protection.outlook.com spf.qb-feedback.com,False,False,False,False,True,True
+tenant,uptimerobot.com,present,quarantine,quarantine,,100,r,r,True,False,True,_spf.google.com amazonses.com sendgrid.net,True,False,False,False,True,True
+tenant,usa.gov,present,reject,reject,,100,r,r,True,True,True,532040.spf10.hubspotemail.net amazonses.com,True,False,False,False,True,True
+tenant,valentin.run,present,reject,reject,,100,r,r,True,False,True,,False,True,True,False,True,True
+tenant,vallige-api.com,absent,no DMARC,,,100,r,r,False,False,False,,False,False,False,False,False,False
+tenant,vbabestm.ro,present,quarantine,quarantine,quarantine,100,r,r,True,False,True,spf.mxserver.ro,False,False,False,False,True,True
+tenant,weather.gov,present,reject,reject,,100,r,r,True,False,False,,True,False,False,False,True,True
+tenant,web-hosting.com,present,none,none,none,100,r,r,True,True,True,spf.mandrillapp.com spf.privateemail.com vpspanel.web-hosting.com,True,False,False,False,True,False
+tenant,web3.foundation,present,quarantine,quarantine,,100,r,r,True,False,True,_spf.google.com servers.mcsv.net,True,True,True,False,True,True
+tenant,westbyforcongress.com,present,quarantine,quarantine,,100,r,r,True,True,True,_spf-usg2.ppe-hosted.com secureserver.net,True,True,True,False,True,True
+tenant,westcappowerequipment.com,present,quarantine,quarantine,,100,r,r,True,False,True,edgepilot.com spf.messagelabs.com spf.protection.outlook.com,False,False,False,False,True,True
+tenant,whitehouse.gov,present,reject,reject,,100,r,r,True,False,True,spf.mail.dmz.pitc.gov spf.mandrillapp.com spf.protection.outlook.com,True,False,False,True,True,True
+tenant,wikipedia.org,present,reject,reject,,100,r,r,True,False,True,_cidrs.wikimedia.org,False,False,False,False,True,True
+tenant,wiredsd.com,present,none,none,,100,r,r,True,False,True,spf.em.secureserver.net spf.protection.outlook.com,False,False,False,False,True,False
+tenant,wisestamp.com,present,reject,reject,reject,100,r,r,True,True,True,_spf.google.com customeriomail.com mail.zendesk.com outbound.smtp.wisestamp.net stspg-customer.com,False,False,False,False,True,True
+tenant,wolfintegrated.com,absent,no DMARC,,,100,r,r,False,False,True,spf.protection.outlook.com,False,False,False,False,False,False
+tenant,www.cnn.com,absent,no DMARC,,,100,r,r,False,False,False,,True,False,False,False,False,False
+tenant,www.franklinroadacademy.com,absent,no DMARC,,,100,r,r,False,False,False,,True,False,False,False,False,False
+tenant,www.mercadopago.com,absent,no DMARC,,,100,r,r,False,False,False,,True,False,False,False,False,False
+tenant,yconsultingservice.com,present,reject,reject,reject,100,r,r,True,True,True,_spf.google.com _spf.paubox.com _u.yconsultingservice.com._spf.smart.ondmarc.com,False,True,True,False,True,True
+tenant,yutaika.ru,absent,no DMARC,,,100,r,r,False,False,False,,False,False,False,False,False,False
+tenant,z1mac.com,absent,no DMARC,,,100,r,r,False,False,False,,False,False,False,False,False,False
+tenant,zmacnashville.net,absent,no DMARC,,,100,r,r,False,False,True,dc-aa8e722993._spfm.zmacnashville.net,False,False,False,False,False,False
