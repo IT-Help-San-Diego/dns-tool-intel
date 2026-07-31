@@ -334,37 +334,31 @@ func (a *Analyzer) assembleResults(ctx context.Context, domain string, resultsMa
         authQueryStatus := extractAndRemove(auth, "_query_status")
 
         isTLD := dnsclient.IsTLDInput(domain)
-        mxForDANE, _ := basic["MX"].([]string)
-
-        postCtx, postCancel := context.WithTimeout(ctx, 15*time.Second)
-        defer postCancel()
 
         progressCb := options.OnPhaseProgress
         var seqTimings []PhaseTiming
 
-        daneStart := time.Now()
-        if progressCb != nil {
-                progressCb("dnssec_dane", "running", 0)
-        }
-        resultsMap[mapKeyDaneOrch] = a.AnalyzeDANE(postCtx, domain, mxForDANE)
-        daneDur := time.Since(daneStart)
-        daneDurMs := int(daneDur.Milliseconds())
-        slog.Info(logTaskCompleted, mapKeyTaskOrch, mapKeyDaneOrch, mapKeyDomain, domain, mapKeyElapsedMs, fmt.Sprintf(fmtElapsedMs, float64(daneDurMs)))
-        seqTimings = append(seqTimings, PhaseTiming{PhaseGroup: "dnssec_dane", PhaseTask: "dane", StartedAtMs: int(daneStart.Sub(analysisStart).Milliseconds()), DurationMs: daneDurMs})
-        if progressCb != nil {
-                progressCb("dnssec_dane", "done", daneDurMs)
-        }
-
-        smtpStart := time.Now()
-        if progressCb != nil {
-                progressCb("smtp_transport", "running", 0)
-        }
-        smtpResult := a.computeSMTPResult(postCtx, domain, isTLD, mxForDANE, resultsMap)
-        smtpDur := time.Since(smtpStart)
-        smtpDurMs := int(smtpDur.Milliseconds())
-        seqTimings = append(seqTimings, PhaseTiming{PhaseGroup: "smtp_transport", PhaseTask: "smtp_transport", StartedAtMs: int(smtpStart.Sub(analysisStart).Milliseconds()), DurationMs: smtpDurMs})
-        if progressCb != nil {
-                progressCb("smtp_transport", "done", smtpDurMs)
+        // dane and smtp_transport now run inside the concurrent fan-out,
+        // launched the moment their inputs arrive (see runScopedAnalyses) —
+        // previously they executed here, idling behind the slowest concurrent
+        // phase. Their results and timings arrive with the others; this block
+        // only consumes them. The TLD N/A fills that computeSMTPResult used
+        // to apply while mutating resultsMap happen here instead, on the
+        // single-threaded path, before buildCoreResults reads the map.
+        smtpResult := getMapResult(resultsMap, mapKeySmtpTransport)
+        // Consume the key, don't just read it: the old sequential path kept
+        // smtpResult local and resultsMap never carried "smtp_transport", so
+        // buildSectionStatus never enumerated it. AnalyzeSMTPTransport reports
+        // status "error" for a COMPLETED analysis whose reachable MX offer no
+        // STARTTLS — left in the map, that would render a false "Some lookups
+        // experienced issues" banner on a scan where every lookup succeeded.
+        // The result still reaches consumers via results[mapKeySmtpTransport]
+        // below, exactly as before.
+        delete(resultsMap, mapKeySmtpTransport)
+        if isTLD {
+                for _, key := range []string{mapKeySpfOrch, mapKeyDmarc, mapKeyDkimOrch, mapKeyMtaSts, mapKeyTlsrpt, mapKeyBimi, mapKeyCtSubdomains, mapKeySmimeaOpenpgpkey, mapKeySecurityTxt, mapKeyAiSurface, mapKeySecretExposure} {
+                        resultsMap[key] = map[string]any{mapKeyStatus: statusNA}
+                }
         }
 
         enrichBasicRecords(basic, resultsMap)
@@ -540,25 +534,6 @@ func populateTTLReports(results map[string]any) {
         }
         results["freshness_matrix"] = BuildCurrencyMatrix(resolverTTLMap, authTTLMap)
         results["currency_report"] = buildICuAEReport(resolverTTLMap, authTTLMap, results)
-}
-
-func (a *Analyzer) computeSMTPResult(ctx context.Context, domain string, isTLD bool, mxForDANE []string, resultsMap map[string]any) map[string]any {
-        if isTLD {
-                for _, key := range []string{mapKeySpfOrch, mapKeyDmarc, mapKeyDkimOrch, mapKeyMtaSts, mapKeyTlsrpt, mapKeyBimi, mapKeyCtSubdomains, mapKeySmimeaOpenpgpkey, mapKeySecurityTxt, mapKeyAiSurface, mapKeySecretExposure} {
-                        resultsMap[key] = map[string]any{mapKeyStatus: statusNA}
-                }
-                slog.Info("TLD analysis — skipped email/subdomain protocols", mapKeyDomain, domain)
-                return map[string]any{mapKeyStatus: statusNA, "reason": "TLD — email transport not applicable"}
-        }
-        smtpStart := time.Now()
-        smtpInputs := AnalysisInputs{
-                MTASTSResult: getMapResult(resultsMap, mapKeyMtaSts),
-                TLSRPTResult: getMapResult(resultsMap, mapKeyTlsrpt),
-                DANEResult:   getMapResult(resultsMap, mapKeyDaneOrch),
-        }
-        result := a.AnalyzeSMTPTransport(ctx, domain, mxForDANE, smtpInputs)
-        slog.Info(logTaskCompleted, mapKeyTaskOrch, mapKeySmtpTransport, mapKeyDomain, domain, mapKeyElapsedMs, fmt.Sprintf(fmtElapsedMs, float64(time.Since(smtpStart).Milliseconds())))
-        return result
 }
 
 func enrichMisplacedDMARC(basic, resultsMap map[string]any) {
@@ -752,6 +727,28 @@ func (a *Analyzer) runScopedAnalyses(ctx context.Context, domain string, customD
                 }(fn)
         }
 
+        // dane and smtp_transport used to run sequentially AFTER this whole
+        // fan-out — idling behind ct_subdomains' 30+s on CT-heavy domains
+        // (measured: dane started at 33.3s on stored telemetry) — although
+        // dane needs only basic's MX list (ready ~2s) and smtp needs only
+        // dane + mta_sts + tlsrpt. They join the same WaitGroup and results
+        // channel, launched by the collector the moment their inputs have
+        // arrived. Launch-safety proof (a gate that cannot fire is a
+        // WaitGroup leak): "basic" is a core task in every scope and timed
+        // tasks always send, so dane always launches and always sends;
+        // mta_sts/tlsrpt always send for owned scope, are prefilled into
+        // resultsMap for gateway scope, and are not read for TLDs — so both
+        // gates provably fire in every scope.
+        wg.Add(2)
+        isTLD := dnsclient.IsTLDInput(domain)
+        launchGated := func(key string, fn func() any) {
+                task := timedTaskWithProgress(resultsCh, key, analysisStart, progressCb, fn)
+                go func() {
+                        defer wg.Done()
+                        task()
+                }()
+        }
+
         go func() {
                 wg.Wait()
                 close(resultsCh)
@@ -763,6 +760,56 @@ func (a *Analyzer) runScopedAnalyses(ctx context.Context, domain string, customD
                         resultsMap[k] = v
                 }
         }
+
+        daneLaunched, smtpLaunched := false, false
+        maybeLaunch := func() {
+                if !daneLaunched {
+                        if _, ok := resultsMap["basic"]; ok {
+                                daneLaunched = true
+                                // Extracted tolerantly: a malformed basic result must
+                                // still launch the task (with no MX), never starve the
+                                // gate.
+                                mx, _ := getMapResult(resultsMap, "basic")["MX"].([]string)
+                                launchGated(mapKeyDaneOrch, func() any {
+                                        dctx, cancel := context.WithTimeout(ctx, 15*time.Second)
+                                        defer cancel()
+                                        return a.AnalyzeDANE(dctx, domain, mx)
+                                })
+                        }
+                }
+                if daneLaunched && !smtpLaunched {
+                        if _, ok := resultsMap[mapKeyDaneOrch]; !ok {
+                                return
+                        }
+                        if isTLD {
+                                smtpLaunched = true
+                                launchGated(mapKeySmtpTransport, func() any {
+                                        slog.Info("TLD analysis — skipped email/subdomain protocols", mapKeyDomain, domain)
+                                        return map[string]any{mapKeyStatus: statusNA, "reason": "TLD — email transport not applicable"}
+                                })
+                                return
+                        }
+                        _, mOk := resultsMap[mapKeyMtaSts]
+                        _, tOk := resultsMap[mapKeyTlsrpt]
+                        if mOk && tOk {
+                                smtpLaunched = true
+                                mx, _ := getMapResult(resultsMap, "basic")["MX"].([]string)
+                                smtpInputs := AnalysisInputs{
+                                        MTASTSResult: getMapResult(resultsMap, mapKeyMtaSts),
+                                        TLSRPTResult: getMapResult(resultsMap, mapKeyTlsrpt),
+                                        DANEResult:   getMapResult(resultsMap, mapKeyDaneOrch),
+                                }
+                                launchGated(mapKeySmtpTransport, func() any {
+                                        sctx, cancel := context.WithTimeout(ctx, 15*time.Second)
+                                        defer cancel()
+                                        return a.AnalyzeSMTPTransport(sctx, domain, mx, smtpInputs)
+                                })
+                        }
+                }
+        }
+        // Gateway prefills can satisfy smtp's mta_sts/tlsrpt inputs before any
+        // arrival, so evaluate the gates once up front too.
+        maybeLaunch()
 
         var timings []PhaseTiming
         for nr := range resultsCh {
@@ -781,6 +828,7 @@ func (a *Analyzer) runScopedAnalyses(ctx context.Context, domain string, customD
                 if progressCb != nil {
                         progressCb(group, "done", durMs)
                 }
+                maybeLaunch()
         }
         return resultsMap, timings
 }
