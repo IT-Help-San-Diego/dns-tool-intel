@@ -6,6 +6,7 @@ package dnsclient
 import (
 	"context"
 	"golang.org/x/net/publicsuffix"
+	"net/url"
 	"regexp"
 	"strings"
 
@@ -39,6 +40,93 @@ func DomainToASCII(domain string) (string, error) {
 }
 
 const maxLabelDepth = 10
+
+// NormalizeDomainInput extracts a hostname from input a person actually
+// pastes. Pasting a URL is the commonest way anyone enters a domain, and
+// ValidateDomain rejected it outright — the user saw "invalid domain" for
+// input that plainly names one, which reads as the tool being broken rather
+// than strict.
+//
+// Returns the hostname, whether anything was removed, and a short description
+// of what was removed. The caller MUST disclose that description when changed
+// is true: an instrument that silently substitutes its input is asserting it
+// measured what the user typed when it measured something else. Convenience
+// without disclosure is substitution.
+//
+// net/url is the producer for this parse — it handles userinfo, ports, IPv6
+// brackets and percent-encoding, none of which a hand-rolled pattern gets
+// right. The userinfo case is the one with teeth: in
+// "https://evil.com@real.com/" the host is real.com, and a regex that took
+// everything before the first "/" after the scheme would scan the attacker's
+// domain instead.
+func NormalizeDomainInput(raw string) (domain string, changed bool, discarded string) {
+	in := strings.TrimSpace(raw)
+	if in == "" {
+		return "", false, ""
+	}
+
+	// A bare "example.com" has no scheme, and url.Parse puts it in .Path with
+	// an EMPTY .Host — so parsing unconditionally would turn every plain
+	// domain into "". Only inputs that actually carry a scheme take the URL
+	// path.
+	if !strings.Contains(in, "://") {
+		// A scheme-relative "//example.com/x" is still a URL to a person.
+		if strings.HasPrefix(in, "//") {
+			in = "https:" + in
+		} else {
+			trimmed := strings.ToLower(strings.TrimRight(strings.TrimLeft(in, "."), "."))
+			// DNS names are case-insensitive, so a pure case difference is not a
+			// substitution worth disclosing — compare with EqualFold so the user
+			// is told about structure that was removed, not about capitals.
+			return trimmed, !strings.EqualFold(trimmed, strings.TrimSpace(raw)), describeDiscarded(strings.TrimSpace(raw), trimmed)
+		}
+	}
+
+	u, err := url.Parse(in)
+	if err != nil || u.Hostname() == "" {
+		// Unparseable: hand back the original rather than a guess. Validation
+		// downstream will reject it with its own message.
+		return strings.TrimSpace(raw), false, ""
+	}
+	host := strings.ToLower(strings.TrimRight(u.Hostname(), "."))
+	return host, !strings.EqualFold(host, strings.TrimSpace(raw)), describeDiscarded(strings.TrimSpace(raw), host)
+}
+
+// describeDiscarded names the parts that were removed, so the disclosure can
+// be specific rather than a vague "input was cleaned up".
+func describeDiscarded(original, host string) string {
+	if original == host || host == "" {
+		return ""
+	}
+	var parts []string
+	lower := strings.ToLower(original)
+	if i := strings.Index(lower, "://"); i >= 0 {
+		parts = append(parts, "scheme "+original[:i+3])
+	}
+	if strings.Contains(original, "@") {
+		parts = append(parts, "userinfo before @")
+	}
+	rest := original
+	if i := strings.Index(lower, "://"); i >= 0 {
+		rest = original[i+3:]
+	}
+	if j := strings.IndexAny(rest, "/?#"); j >= 0 && j < len(rest)-0 {
+		if tail := rest[j:]; tail != "/" {
+			parts = append(parts, "path/query")
+		} else {
+			parts = append(parts, "trailing /")
+		}
+	}
+	// A port is only reported when the host itself did not contain it (IPv6
+	// literals carry colons that are not ports).
+	if strings.Contains(rest, ":") && !strings.Contains(host, ":") {
+		parts = append(parts, "port")
+	}
+	if len(parts) == 0 {
+		return "surrounding characters"
+	}
+	return strings.Join(parts, ", ")
+}
 
 func ValidateDomain(domain string) bool {
 	if domain == "" || len(domain) > 253 {
