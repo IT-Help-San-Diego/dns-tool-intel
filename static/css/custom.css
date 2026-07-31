@@ -1415,6 +1415,11 @@ html[data-bs-theme="dark"] .tooltip-inner {
     white-space: nowrap;
 }
 
+.navbar-brand picture {
+    flex-shrink: 0;
+    line-height: 0;
+}
+
 .navbar-brand-owl {
     flex-shrink: 0;
     width: 32px;
