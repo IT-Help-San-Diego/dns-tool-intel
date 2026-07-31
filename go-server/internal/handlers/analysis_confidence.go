@@ -52,14 +52,22 @@ func (h *AnalysisHandler) computeCalibratedConfidence(results map[string]any, cr
 
 	calibrated := make(map[string]float64, len(protocolResultKeys))
 	for protocol, resultKey := range protocolResultKeys {
-		rawConfidence := protocolRawConfidence(results, resultKey)
-		cc := h.Calibration.CalibratedConfidence(protocol, rawConfidence, totalAgree, totalResolvers)
+		severity := protocolVerdictSeverity(results, resultKey)
+		cc := h.Calibration.CalibratedConfidence(protocol, severity, totalAgree, totalResolvers)
 		calibrated[protocol] = cc
 	}
 	return calibrated
 }
 
-func protocolRawConfidence(results map[string]any, resultKey string) float64 {
+// protocolVerdictSeverity encodes the stored verdict's SEVERITY on a 0-1
+// scale — it is not a probability and must never be renamed back to one.
+// A refit was attempted and came back negative (Claude Science, 2026-07-30):
+// the outcome such a probability would predict is 99.6% one class across
+// 52,053 observations, so no meaningful probability can be fitted to replace
+// this encoding. What blends downstream ("calibrated_confidence") is
+// therefore severity shaded by resolver agreement and fixture-agreement
+// priors — useful as a display weight, not calibration against outcomes.
+func protocolVerdictSeverity(results map[string]any, resultKey string) float64 {
 	section, ok := results[resultKey].(map[string]any)
 	if !ok {
 		return 0.0
@@ -76,11 +84,11 @@ func protocolRawConfidence(results map[string]any, resultKey string) float64 {
 		return 0.0
 	case "indeterminate", "inconclusive":
 		// Transient / unmeasurable result — we could not determine the protocol's
-		// state. Contribute neutral confidence: it must NOT read as a confident
-		// "good" (1.0), nor be penalized as a confirmed failure (0.3) or a
+		// state. Contribute the neutral midpoint: it must NOT read as a clean
+		// pass (1.0), nor be penalized as a confirmed failure (0.3) or a
 		// confirmed error/absence (0.0). Handled explicitly (not via the default
 		// catch-all) so a future status-string change cannot silently fold an
-		// unmeasurable result into a confident one (analytic confidence is its
+		// unmeasurable result into a clean one (analytic confidence is its
 		// own declared axis, separate from the verdict).
 		return 0.5
 	default:

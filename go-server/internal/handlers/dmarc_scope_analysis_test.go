@@ -567,14 +567,14 @@ func TestProtocolRawConfidence_CB6(t *testing.T) {
                         results := map[string]any{
                                 "spf_analysis": map[string]any{"status": tt.status},
                         }
-                        got := protocolRawConfidence(results, "spf_analysis")
+                        got := protocolVerdictSeverity(results, "spf_analysis")
                         if got != tt.want {
-                                t.Errorf("protocolRawConfidence(%q) = %v, want %v", tt.status, got, tt.want)
+                                t.Errorf("protocolVerdictSeverity(%q) = %v, want %v", tt.status, got, tt.want)
                         }
                 })
         }
         t.Run("missing section", func(t *testing.T) {
-                got := protocolRawConfidence(map[string]any{}, "spf_analysis")
+                got := protocolVerdictSeverity(map[string]any{}, "spf_analysis")
                 if got != 0.0 {
                         t.Errorf("expected 0.0 for missing section, got %v", got)
                 }
