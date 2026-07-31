@@ -1310,12 +1310,25 @@
                 // Grow the canvas when the flow is taller than the viewport —
                 // scrolling a phone is native and expected, and squeezing seven
                 // stages into one screen is what made the labels collide.
-                VERTICAL_NEEDED_H = Math.ceil(titleSafe + totalNeed + gap * 2 + (H - legendSafe));
+                // In portrait the globe sits at the TOP: globe.cy is
+                // titleSafe + globeR + 8, so it occupies from titleSafe down to
+                // titleSafe + 2*globeR + 8. The bands used to start stacking at
+                // titleSafe — the same y the globe starts at — which drew the
+                // source band (Root/TLD, RDAP/WHOIS, CT/Subdomains, CISA/Threat)
+                // and the hub band straight over it.
+                //
+                // Horizontal flow reserves the globe on the X axis via pipeStart
+                // (globe.cx + globeR + W*0.02). When the axis flips, the reserve
+                // has to flip with it; it did not. Same defect as a reserve
+                // measured on the axis the layout no longer uses.
+                let flowTop = titleSafe + globe.R * 2 + 8 + gap;
 
-                let avail = legendSafe - titleSafe;
+                VERTICAL_NEEDED_H = Math.ceil(flowTop + totalNeed + gap * 2 + (H - legendSafe));
+
+                let avail = legendSafe - flowTop;
                 let slack = Math.max(0, avail - totalNeed);
                 let share = plans.length ? slack / plans.length : 0;
-                let cursor = titleSafe;
+                let cursor = flowTop;
                 plans.forEach(function(p) {
                     let bandH = p.need + share;
                     let z = zones[p.key];
