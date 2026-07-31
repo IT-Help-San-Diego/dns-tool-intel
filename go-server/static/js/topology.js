@@ -1071,8 +1071,27 @@
 
             // Portrait reserves space ABOVE the graph for the console instead of
             // beside it; the console is full-width at these sizes.
-            let consoleTopReserve = VERTICAL_FLOW ? Math.min(190, H * 0.30) : 0;
-            let titleSafe = Math.max(H * 0.07, 42) + consoleTopReserve;
+            // Portrait reserves space ABOVE the graph for the console instead of
+            // beside it. min(190, H*0.30) was a guess, and on a phone it reserved
+            // 190px for a console that is far shorter when idle — a visible empty
+            // band between the search box and the globe. The console is a DOM
+            // element; measure it. Read once per layout (resize), not per frame.
+            let consoleTopReserve = 0;
+            if (VERTICAL_FLOW) {
+                let cEl = document.getElementById('topoScanConsole');
+                let cH = cEl ? cEl.getBoundingClientRect().height : 0;
+                // 66px is the console's own top offset in the <=576px rule.
+                consoleTopReserve = cH > 0
+                    ? Math.min(H * 0.42, cH + 66 + 12)
+                    : Math.min(190, H * 0.30);
+            }
+            // These two reserves are not additive: the title band and the console
+            // both start at the TOP of the canvas and overlap each other, so the
+            // flow must clear whichever reaches lower — not their sum. Adding them
+            // is what put a visible empty band between the search box and the
+            // globe on a phone. In horizontal flow consoleTopReserve is 0 and this
+            // reduces to the title band exactly as before.
+            let titleSafe = Math.max(Math.max(H * 0.07, 42), consoleTopReserve);
             let legendSafe = H * 0.95;
             let usableH = legendSafe - titleSafe;
 
@@ -1321,7 +1340,14 @@
                 // (globe.cx + globeR + W*0.02). When the axis flips, the reserve
                 // has to flip with it; it did not. Same defect as a reserve
                 // measured on the axis the layout no longer uses.
-                let flowTop = titleSafe + globe.R * 2 + 8 + gap;
+                // The globe's footprint is not just its circle: three caption
+                // lines are drawn beneath it at globe.R + 8/20/32 * SCL (see the
+                // fillText calls in drawGlobe). Reserving only to the circle left
+                // "Orthographic Projection / Subsolar ... / terminator" printed
+                // across Root/TLD and RDAP/WHOIS. 40*SCL covers the deepest
+                // baseline plus descenders.
+                let captionDepth = 40 * SCL;
+                let flowTop = titleSafe + globe.R * 2 + 8 + captionDepth + gap;
 
                 VERTICAL_NEEDED_H = Math.ceil(flowTop + totalNeed + gap * 2 + (H - legendSafe));
 
