@@ -67,6 +67,16 @@
       "scheme": "url"
     },
     {
+      "identifier": "https://dnstool.it-help.tech/docs/founders-manifesto.pdf",
+      "relation": "isDocumentedBy",
+      "scheme": "url"
+    },
+    {
+      "identifier": "https://dnstool.it-help.tech/docs/communication-standards.pdf",
+      "relation": "isDocumentedBy",
+      "scheme": "url"
+    },
+    {
       "identifier": "https://dnstool.it-help.tech/publications",
       "relation": "isDocumentedBy",
       "scheme": "url"
