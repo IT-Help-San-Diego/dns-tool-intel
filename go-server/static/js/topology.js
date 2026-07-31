@@ -270,7 +270,18 @@
                         if (dx * dx + dy * dy < ld.minSep * ld.minSep) { tooClose = true; break; }
                     }
                 }
-                if (tooClose) {
+                // Portrait phone: the canvas is ~400px and carries the whole
+                // pipeline stacked vertically. There is no free corridor left for
+                // globe text, so every candidate collides and the fallback parks
+                // the tag on top of a node box — San Francisco over Root/TLD,
+                // Berlin over RDAP/WHOIS. Raising the type floors made the boxes
+                // bigger and the collision worse, which is the honest trade.
+                //
+                // Same rule as the limb cluster and the shared-city case: the DOT
+                // still renders and its hit area still resolves, so no resolver
+                // becomes unreachable. Only the label is withheld, and only where
+                // it could not have been legible anyway.
+                if (VERTICAL_FLOW || tooClose) {
                     popHitAreas.push({ x: p2.x - 8, y: p2.y - 8, w: 16, h: 16, dotX: p2.x, dotY: p2.y, idx: vp.idx });
                     continue;
                 }
@@ -502,6 +513,10 @@
 
             for (let pi = 0; pi < OWN_PROBES.length; pi++) {
                 let probe = OWN_PROBES[pi];
+                // See the note in drawResolverMarkers: on a portrait phone the
+                // probe tags are the widest text on the globe and have nowhere to
+                // sit. Dot and hover stay; the tag does not.
+                let suppressProbeLabel = VERTICAL_FLOW;
                 let pp = projectPt(probe.lat, probe.lon);
                 if (!pp.vis) continue;
                 let pAlpha = 0.4 + pp.depth * 0.6;
@@ -527,6 +542,12 @@
                 ctx.fillStyle = hexToRgba(probe.color, 0.95 * pAlpha);
                 ctx.fillRect(-3.5, -3.5, 7, 7);
                 ctx.restore();
+
+                // The marker above is drawn; only the text tag is withheld. Skip
+                // before any measuring or placement so a suppressed label costs
+                // nothing and, crucially, never enters placedBoxes — a tag that is
+                // not drawn must not push the ones that are.
+                if (suppressProbeLabel) continue;
 
                 let pLabel = probe.label;
                 ctx.font = FONT_TAG + 'px -apple-system, BlinkMacSystemFont, sans-serif';
