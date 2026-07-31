@@ -1504,6 +1504,20 @@ function initDomainForm() {
             showCovertTLDToast(domain);
         }
 
+        // Cinematic path: hand the scan to the live topology console instead of
+        // the modal overlay — the user watches the pipeline light up rather
+        // than a spinner. Power-path submissions (any Advanced Option filled)
+        // keep the classic flow, because those inputs include a
+        // SecurityTrails API key that must never travel in a URL.
+        const advFilled = ['dkim_selector1', 'dkim_selector2', 'securitytrails_api_key']
+            .some(function(id) { const el = document.getElementById(id); return el && el.value.trim() !== ''; }) ||
+            ['exposure_checks', 'devnull'].some(function(id) { const el = document.getElementById(id); return el && el.checked; });
+        if (!advFilled) {
+            analysisSubmitted = true;
+            globalThis.location.assign('/topology?domain=' + encodeURIComponent(domain));
+            return;
+        }
+
         const overlay = document.getElementById('loadingOverlay');
         if (overlay) {
             const domainEl = overlay.querySelector('.scan-overlay-domain');

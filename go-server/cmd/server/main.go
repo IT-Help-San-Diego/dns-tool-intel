@@ -334,9 +334,10 @@ func buildRouter(cfg *config.Config, database *db.Database, scannerWatch *middle
 	logSecurityHeadersMode(cfg.IsDevEnvironment)
 
 	router.Use(middleware.Recovery(cfg.AppVersion, map[string]any{
-		"MaintenanceNote":  cfg.MaintenanceNote,
-		"BetaPages":        cfg.BetaPages,
-		"OriginTrialToken": cfg.OriginTrialToken,
+		"MaintenanceNote":   cfg.MaintenanceNote,
+		"BetaPages":         cfg.BetaPages,
+		"OriginTrialToken":  cfg.OriginTrialToken,
+		"IsCloudDeployment": cfg.IsCloudDeployment,
 	}))
 	if !cfg.IsDevEnvironment {
 		router.Use(middleware.CanonicalHostRedirect(cfg.BaseURL))
@@ -864,12 +865,13 @@ func registerNotFoundRoute(router *gin.Engine, cfg *config.Config) {
 		nonce, _ := c.Get("csp_nonce")
 		csrfToken, _ := c.Get("csrf_token")
 		data := gin.H{
-			"AppVersion":      cfg.AppVersion,
-			"MaintenanceNote": cfg.MaintenanceNote,
-			"BetaPages":       cfg.BetaPages,
-			"CspNonce":        nonce,
-			"CsrfToken":       csrfToken,
-			"ActivePage":      "home",
+			"AppVersion":        cfg.AppVersion,
+			"MaintenanceNote":   cfg.MaintenanceNote,
+			"BetaPages":         cfg.BetaPages,
+			"IsCloudDeployment": cfg.IsCloudDeployment,
+			"CspNonce":          nonce,
+			"CsrfToken":         csrfToken,
+			"ActivePage":        "home",
 		}
 		for k, v := range middleware.GetAuthTemplateData(c) {
 			data[k] = v

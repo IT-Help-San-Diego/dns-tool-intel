@@ -1,4 +1,7 @@
 {{define "footer"}}
+{{/* Privacy banner is cloud-only: the cloud→local lever (IsCloudDeployment)
+     keeps local and dev runs banner-free. */}}
+{{if .IsCloudDeployment}}
 <section id="privacyBanner" class="u-privacy-banner" aria-label="Privacy notice">
     <div class="container">
         <div class="u-privacy-card">
@@ -16,12 +19,14 @@
                 </ul>
                 <p class="mb-2 small">We log your <strong>IP address</strong> for two reasons: rate limiting (so nobody abuses the service) and security (identifying malicious actors and complying with legal obligations). We check source geography for <strong>analysis accuracy</strong> &mdash; DNS responses vary by region, and knowing which resolver answered from where makes the science better.</p>
                 <p class="mb-2 small"><strong>No tracking cookies. No analytics cookies. No ad networks. No data brokers.</strong> Our code is <a href="https://github.com/IT-Help-San-Diego/dns-tool-intel" target="_blank" rel="noopener" class="text-info">open-core</a> &mdash; the application framework is publicly available under <a href="https://github.com/IT-Help-San-Diego/dns-tool-intel/blob/main/LICENSE" target="_blank" rel="noopener" class="text-info">BUSL-1.1</a> with timed Apache-2.0 conversion. Verify it yourself.</p>
+                <p class="mb-2 small"><strong>Public analyses are archived by a third party.</strong> When a scan is not marked private or run as /dev/null, its report URL is submitted to the <a href="https://web.archive.org" target="_blank" rel="noopener noreferrer" class="text-info">Internet Archive</a>, which creates a permanent public record outside our control. That is deliberate &mdash; it gives every published analysis tamper-evident provenance independent of us &mdash; but it is not reversible, so it is stated here before you scan rather than after.</p>
                 <p class="mb-0 small">If you create an account and want out, account deletion removes your login and scan history. Public domain analyses remain available because they contain only public DNS records, already hashed. Full details: <a href="/privacy" class="text-info">Privacy Policy</a>.</p>
             </div>
         </div>
     </div>
 </section>
 <script nonce="{{.CspNonce}}">(function(){var b=document.getElementById('privacyBanner');if(!b)return;function ack(){try{localStorage.setItem('privacyAck','1')}catch(e){}try{document.cookie='privacyAck=1;path=/;max-age=31536000;SameSite=Lax;Secure'}catch(e){}}function wasDismissed(){try{if(localStorage.getItem('privacyAck')==='1')return true}catch(e){}try{if(document.cookie.indexOf('privacyAck=1')!==-1)return true}catch(e){}return false}if(wasDismissed()){b.classList.add('d-none');b.remove();return}document.getElementById('privacyAccept').addEventListener('click',function(e){e.preventDefault();e.stopPropagation();ack();b.classList.add('d-none');b.remove()});b.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('#privacyAccept')){e.preventDefault();e.stopPropagation();ack();b.classList.add('d-none');b.remove()}})})()</script>
+{{end}}
 <footer class="text-center mt-5 mb-4 text-muted small">
     <a href="https://www.it-help.tech" target="_blank" rel="noopener" aria-label="IT Help San Diego">
         <picture><source srcset="{{staticVersionURL "images/owl-of-athena-160.webp" .AppVersion}} 160w, {{staticVersionURL "images/owl-of-athena-240.webp" .AppVersion}} 240w" sizes="120px" type="image/webp"><img src="{{staticVersionURL "images/owl-of-athena-160.png" .AppVersion}}" alt="IT Help San Diego - Owl of Athena" width="120" height="120" loading="lazy" decoding="async" class="mb-2 u-rounded-circle"></picture>

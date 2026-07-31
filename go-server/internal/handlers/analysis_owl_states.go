@@ -12,11 +12,21 @@
 //	non_normative — advisory signal: posture recommendations / monitoring
 //	                entries and protocol sections with status "info".
 //	critical      — posture critical_issues, protocol sections with status
-//	                "error", and Critical-severity remediation fixes.
-//	metacognitive — protocol sections with status "indeterminate" and
-//	                protocols whose calibrated confidence falls below the
-//	                moderate threshold (unified.ThresholdModerate = 50.0,
-//	                i.e. 0.50 on the 0-1 calibrated scale).
+//	                "error", Critical-severity remediation fixes, and a stored
+//	                posture spoof_door of "open" (the analyzer's
+//	                operational-consequence axis: spoofed mail is delivered
+//	                with nothing blocking it).
+//	metacognitive — DOUBT only, never severity: protocol sections with
+//	                status "indeterminate", stored tri-state fields reading
+//	                "indeterminate" under a non-indeterminate status (the
+//	                lookup did not complete), and protocols WITHOUT a
+//	                confirmed outcome whose calibrated confidence falls
+//	                below the moderate threshold (unified.ThresholdModerate
+//	                = 50.0, i.e. 0.50 on the 0-1 calibrated scale).
+//	                Confirmed failures/absences are excluded from the
+//	                confidence input: the raw scale is outcome-valenced, so
+//	                their low score restates the verdict — certainty, which
+//	                belongs to the critical owl, not this one.
 //
 // Claims rule: reasons never assert RFC requirement levels (MUST/SHOULD/MAY)
 // because per-finding requirement metadata does not exist in stored results.
@@ -32,21 +42,25 @@ import (
 
 // owlProtocolOrder fixes a deterministic display order for owl reasons.
 // Name mirrors the UI spelling; Key is the full_results section key;
-// ConfKey is the calibrated_confidence map key (underscore spellings).
+// ConfKey is the calibrated_confidence map key (underscore spellings);
+// StateKey is the section's stored tri-state field ("" where the analyzer
+// records none) — "indeterminate" there means the lookup did not complete,
+// a doubt signal that can coexist with a non-indeterminate top-level status.
 var owlProtocolOrder = []struct {
-	Name    string
-	Key     string
-	ConfKey string
+	Name     string
+	Key      string
+	ConfKey  string
+	StateKey string
 }{
-	{"SPF", mapKeySpfAnalysis, "SPF"},
-	{"DKIM", mapKeyDkimAnalysis, "DKIM"},
-	{"DMARC", mapKeyDmarcAnalysis, "DMARC"},
-	{"DNSSEC", "dnssec_analysis", "DNSSEC"},
-	{"DANE", "dane_analysis", "DANE"},
-	{"MTA-STS", "mta_sts_analysis", "MTA_STS"},
-	{"TLS-RPT", "tlsrpt_analysis", "TLS_RPT"},
-	{"BIMI", "bimi_analysis", "BIMI"},
-	{"CAA", "caa_analysis", "CAA"},
+	{"SPF", mapKeySpfAnalysis, "SPF", "spf_state"},
+	{"DKIM", mapKeyDkimAnalysis, "DKIM", ""},
+	{"DMARC", mapKeyDmarcAnalysis, "DMARC", "dmarc_state"},
+	{"DNSSEC", "dnssec_analysis", "DNSSEC", "dnssec_state"},
+	{"DANE", "dane_analysis", "DANE", "dane_state"},
+	{"MTA-STS", "mta_sts_analysis", "MTA_STS", "mta_sts_state"},
+	{"TLS-RPT", "tlsrpt_analysis", "TLS_RPT", "tlsrpt_state"},
+	{"BIMI", "bimi_analysis", "BIMI", "bimi_state"},
+	{"CAA", "caa_analysis", "CAA", "caa_state"},
 }
 
 // owlLowConfidenceThreshold mirrors unified.ThresholdModerate (50.0) on the
@@ -84,16 +98,23 @@ func owlState(lit bool, count int, reason string) map[string]any {
 
 // owlSectionBuckets classifies protocol sections by stored status into the
 // four status buckets the owls read. seen counts sections present at all.
+// stateIndeterminate lists protocols whose stored TRI-STATE field reads
+// indeterminate while the top-level status says something else — the cia.gov
+// shape (dane_state=indeterminate under a non-indeterminate section) that the
+// status bucket alone cannot see. confirmedOutcome marks protocols whose
+// status is a measured verdict (failure/error/absence): certainty, not doubt.
 type owlSectionBuckets struct {
-	passed        []string
-	infos         []string
-	errored       []string
-	indeterminate []string
-	seen          int
+	passed             []string
+	infos              []string
+	errored            []string
+	indeterminate      []string
+	stateIndeterminate []string
+	confirmedOutcome   map[string]bool
+	seen               int
 }
 
 func owlCollectSections(results map[string]any) owlSectionBuckets {
-	var b owlSectionBuckets
+	b := owlSectionBuckets{confirmedOutcome: map[string]bool{}}
 	for _, p := range owlProtocolOrder {
 		section, sOk := results[p.Key].(map[string]any)
 		if !sOk {
@@ -108,8 +129,20 @@ func owlCollectSections(results map[string]any) owlSectionBuckets {
 			b.infos = append(b.infos, p.Name)
 		case "error":
 			b.errored = append(b.errored, p.Name)
+			b.confirmedOutcome[p.ConfKey] = true
 		case "indeterminate":
 			b.indeterminate = append(b.indeterminate, p.Name)
+		case "fail", "danger", "critical", "missing", "n/a", "":
+			// A measured failure or absence (or a section with no status at
+			// all) is a confirmed outcome — the confidence pipeline scores
+			// these low on its outcome-valenced raw scale, and that low score
+			// must not be read back as epistemic doubt.
+			b.confirmedOutcome[p.ConfKey] = true
+		}
+		if status != "indeterminate" && p.StateKey != "" {
+			if st, _ := section[p.StateKey].(string); st == "indeterminate" { //nolint:errcheck // zero-value fallback is intentional
+				b.stateIndeterminate = append(b.stateIndeterminate, p.Name)
+			}
 		}
 	}
 	return b
@@ -126,6 +159,22 @@ func owlPostureCounts(results map[string]any) (rec, mon, crit int, seen bool) {
 		owlSliceLen(posture["monitoring"]),
 		owlSliceLen(posture["critical_issues"]),
 		true
+}
+
+// owlSpoofDoorOpen reads the stored posture spoof_door axis — the
+// operational-consequence producer written by the analyzer since the
+// consequence-derived grade colour landed. "open" means the stored posture
+// records that a spoofed message claiming this domain is delivered with
+// nothing blocking it. Older scans lack the key and return false — honestly
+// absent, never inferred from record presence (the re-derivation this
+// producer exists to prevent).
+func owlSpoofDoorOpen(results map[string]any) bool {
+	posture, pOk := results[mapKeyPosture].(map[string]any)
+	if !pOk {
+		return false
+	}
+	door, _ := posture["spoof_door"].(string) //nolint:errcheck // zero-value fallback is intentional
+	return door == "open"
 }
 
 // owlCriticalFixCount counts remediation fixes stored with severity_label
@@ -154,9 +203,18 @@ func owlCriticalFixCount(results map[string]any) int {
 
 // owlLowConfidence lists protocols whose calibrated confidence sits below
 // the moderate threshold, plus the total calibrated-protocol count.
-func owlLowConfidence(results map[string]any) (low []string, calibratedTotal int) {
+// Protocols whose stored status is a confirmed outcome are excluded: the
+// pipeline's raw scale is outcome-valenced (a corroborated failure scores
+// 0.3, a confirmed absence 0.0), so a low calibrated value there restates
+// the verdict — certainty, not doubt. What remains genuinely is doubt: a
+// passing or advisory status whose calibrated confidence was dragged below
+// moderate (e.g. by resolver disagreement).
+func owlLowConfidence(results map[string]any, confirmedOutcome map[string]bool) (low []string, calibratedTotal int) {
 	calibrated := calibratedConfidenceMap(results)
 	for _, p := range owlProtocolOrder {
+		if confirmedOutcome[p.ConfKey] {
+			continue
+		}
 		if cc, cOk := calibrated[p.ConfKey]; cOk && cc < owlLowConfidenceThreshold {
 			low = append(low, fmt.Sprintf("%s (%.2f)", p.Name, cc))
 		}
@@ -191,10 +249,13 @@ func owlNonNormativeState(recCount, monCount int, infos []string) map[string]any
 	return owlState(true, total, "Advisory findings recorded — "+strings.Join(parts, "; ")+".")
 }
 
-func owlCriticalState(critIssueCount int, errored []string, critFixCount int) map[string]any {
+func owlCriticalState(critIssueCount int, errored []string, critFixCount int, spoofDoorOpen bool) map[string]any {
 	total := critIssueCount + len(errored) + critFixCount
+	if spoofDoorOpen {
+		total++
+	}
 	if total == 0 {
-		return owlState(false, 0, "Not triggered — no critical issues, failed evaluation statuses, or Critical-severity fixes recorded.")
+		return owlState(false, 0, "Not triggered — no critical issues, failed evaluation statuses, Critical-severity fixes, or open email-spoofing door recorded.")
 	}
 	var parts []string
 	if critIssueCount > 0 {
@@ -206,17 +267,23 @@ func owlCriticalState(critIssueCount int, errored []string, critFixCount int) ma
 	if critFixCount > 0 {
 		parts = append(parts, owlPlural(critFixCount, "Critical-severity remediation fix", "Critical-severity remediation fixes"))
 	}
+	if spoofDoorOpen {
+		parts = append(parts, "the stored posture records the email-spoofing door as open — a spoofed message claiming this domain is delivered with nothing blocking it")
+	}
 	return owlState(true, total, "Critical signal recorded — "+strings.Join(parts, "; ")+".")
 }
 
-func owlMetacognitiveState(indeterminate, lowConf []string) map[string]any {
-	total := len(indeterminate) + len(lowConf)
+func owlMetacognitiveState(indeterminate, stateIndeterminate, lowConf []string) map[string]any {
+	total := len(indeterminate) + len(stateIndeterminate) + len(lowConf)
 	if total == 0 {
-		return owlState(false, 0, "Not triggered — no indeterminate statuses; calibrated confidence at or above the moderate threshold (0.50) for all calibrated protocols.")
+		return owlState(false, 0, "Not triggered — no indeterminate statuses or tri-states; calibrated confidence at or above the moderate threshold (0.50) for all calibrated protocols without a confirmed outcome.")
 	}
 	var parts []string
 	if len(indeterminate) > 0 {
 		parts = append(parts, "indeterminate status (evidence insufficient to conclude): "+strings.Join(indeterminate, ", "))
+	}
+	if len(stateIndeterminate) > 0 {
+		parts = append(parts, "recorded tri-state is indeterminate — the lookup did not complete, so the finding could not be verified: "+strings.Join(stateIndeterminate, ", "))
 	}
 	if len(lowConf) > 0 {
 		parts = append(parts, "calibrated confidence below the moderate threshold (0.50): "+strings.Join(lowConf, ", "))
@@ -236,7 +303,7 @@ func computeOwlSemaphore(fullResults any) map[string]any {
 	sections := owlCollectSections(results)
 	recCount, monCount, critIssueCount, postureSeen := owlPostureCounts(results)
 	critFixCount := owlCriticalFixCount(results)
-	lowConf, calibratedTotal := owlLowConfidence(results)
+	lowConf, calibratedTotal := owlLowConfidence(results, sections.confirmedOutcome)
 
 	if sections.seen == 0 && !postureSeen && calibratedTotal == 0 {
 		return nil
@@ -246,7 +313,7 @@ func computeOwlSemaphore(fullResults any) map[string]any {
 		"version":       1,
 		"normative":     owlNormativeState(sections.passed),
 		"non_normative": owlNonNormativeState(recCount, monCount, sections.infos),
-		"critical":      owlCriticalState(critIssueCount, sections.errored, critFixCount),
-		"metacognitive": owlMetacognitiveState(sections.indeterminate, lowConf),
+		"critical":      owlCriticalState(critIssueCount, sections.errored, critFixCount, owlSpoofDoorOpen(results)),
+		"metacognitive": owlMetacognitiveState(sections.indeterminate, sections.stateIndeterminate, lowConf),
 	}
 }

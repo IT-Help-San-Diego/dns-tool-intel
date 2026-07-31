@@ -21,7 +21,7 @@ func TestEmailAnswerNoMailDomain(t *testing.T) {
 }
 
 func TestEmailAnswerRejectPolicy(t *testing.T) {
-        ps := protocolState{dmarcPolicy: "reject"}
+        ps := protocolState{dmarcPct: 100, dmarcPolicy: "reject"}
         answer := buildEmailAnswer(ps, true, true)
         expected := "No — SPF and DMARC reject policy enforced"
         if answer != expected {
@@ -41,7 +41,44 @@ func TestEmailAnswerNoProtection(t *testing.T) {
 func TestEmailAnswerMonitorOnly(t *testing.T) {
         ps := protocolState{dmarcPolicy: "none"}
         answer := buildEmailAnswer(ps, true, true)
-        expected := "Yes — DMARC is monitor-only (p=none)"
+        // "requests no enforcement" rather than "is monitor-only": the same
+        // verdict class is also produced by quarantine at pct=0, and each record
+        // shape gets its own parenthetical so the answer never asserts record
+        // content that is not there.
+        expected := "Yes — DMARC requests no enforcement (p=none)"
+        if answer != expected {
+                t.Errorf(errExpectedGot, expected, answer)
+        }
+}
+
+func TestEmailAnswerQuarantinePctZero(t *testing.T) {
+        ps := protocolState{dmarcPolicy: "quarantine", dmarcPct: 0}
+        answer := buildEmailAnswer(ps, true, true)
+        // pct=0 requests enforcement on 0% of the stream — operationally the
+        // monitor-only verdict, described by the record's actual shape.
+        expected := "Yes — DMARC requests no enforcement (quarantine at pct=0)"
+        if answer != expected {
+                t.Errorf(errExpectedGot, expected, answer)
+        }
+}
+
+func TestEmailAnswerRejectPctZero(t *testing.T) {
+        ps := protocolState{dmarcPolicy: "reject", dmarcPct: 0}
+        answer := buildEmailAnswer(ps, true, true)
+        // RFC 7489 applies pct= to reject too: reject at pct=0 is the rollback
+        // trick — zero enforcement wearing the strongest policy name.
+        expected := "Yes — DMARC requests no enforcement (reject at pct=0)"
+        if answer != expected {
+                t.Errorf(errExpectedGot, expected, answer)
+        }
+}
+
+func TestEmailAnswerRejectPartial(t *testing.T) {
+        ps := protocolState{dmarcPolicy: "reject", dmarcPct: 50}
+        answer := buildEmailAnswer(ps, true, true)
+        // Unlike partial quarantine (set aside in spam), the covered fraction
+        // under reject is REFUSED — the wording must not conflate the two.
+        expected := "Partly — DMARC reject covers only part of the mail; covered messages are refused, the remainder is delivered normally"
         if answer != expected {
                 t.Errorf(errExpectedGot, expected, answer)
         }
@@ -50,7 +87,10 @@ func TestEmailAnswerMonitorOnly(t *testing.T) {
 func TestEmailAnswerQuarantineFull(t *testing.T) {
         ps := protocolState{dmarcPolicy: "quarantine", dmarcPct: 100}
         answer := buildEmailAnswer(ps, true, true)
-        expected := "Unlikely — SPF and DMARC quarantine policy enforced"
+        // Quarantine at 100% is fully enforcing, but "Unlikely" overstated it:
+        // receivers accept the message and set it aside, so spoofed mail still
+        // reaches the mailbox in spam.
+        expected := "Partly — DMARC quarantine is enforced at 100%, but quarantined mail is delivered to spam rather than refused"
         if answer != expected {
                 t.Errorf(errExpectedGot, expected, answer)
         }
@@ -67,8 +107,7 @@ func TestEmailAnswerSPFOnly(t *testing.T) {
 
 func TestGoldenRuleUSAGov(t *testing.T) {
         ps := protocolState{
-                dmarcPolicy: "reject",
-                dmarcPct:    100,
+                dmarcPct: 100, dmarcPolicy: "reject",
                 dmarcHasRua: true,
                 spfOK:       true,
         }
@@ -99,7 +138,7 @@ func TestGoldenRuleUSAGov(t *testing.T) {
 
 func TestBrandVerdictFullProtection(t *testing.T) {
         ps := protocolState{
-                dmarcPolicy: "reject",
+                dmarcPct: 100, dmarcPolicy: "reject",
                 bimiOK:      true,
                 caaOK:       true,
         }
@@ -113,7 +152,7 @@ func TestBrandVerdictFullProtection(t *testing.T) {
 
 func TestBrandVerdictPartialGaps(t *testing.T) {
         ps := protocolState{
-                dmarcPolicy: "reject",
+                dmarcPct: 100, dmarcPolicy: "reject",
                 bimiOK:      true,
                 caaOK:       false,
         }
@@ -133,7 +172,7 @@ func TestBrandVerdictPartialGaps(t *testing.T) {
 
 func TestBrandVerdictRejectCAANoBIMI(t *testing.T) {
         ps := protocolState{
-                dmarcPolicy: "reject",
+                dmarcPct: 100, dmarcPolicy: "reject",
                 bimiOK:      false,
                 caaOK:       true,
         }
@@ -150,7 +189,7 @@ func TestBrandVerdictRejectCAANoBIMI(t *testing.T) {
 
 func TestBrandVerdictRejectNoBIMINoCAA(t *testing.T) {
         ps := protocolState{
-                dmarcPolicy: "reject",
+                dmarcPct: 100, dmarcPolicy: "reject",
                 bimiOK:      false,
                 caaOK:       false,
         }
@@ -170,7 +209,7 @@ func TestBrandVerdictRejectNoBIMINoCAA(t *testing.T) {
 
 func TestBrandVerdictQuarantineWithBIMICAA(t *testing.T) {
         ps := protocolState{
-                dmarcPolicy: "quarantine",
+                dmarcPct: 100, dmarcPolicy: "quarantine",
                 bimiOK:      true,
                 caaOK:       true,
         }
@@ -190,7 +229,7 @@ func TestBrandVerdictQuarantineWithBIMICAA(t *testing.T) {
 
 func TestBrandVerdictQuarantineAlone(t *testing.T) {
         ps := protocolState{
-                dmarcPolicy: "quarantine",
+                dmarcPct: 100, dmarcPolicy: "quarantine",
                 bimiOK:      false,
                 caaOK:       false,
         }
@@ -1183,8 +1222,10 @@ func TestDeliberateMonitoringNoneWithRua(t *testing.T) {
                 dmarcHasRua: true,
                 spfOK:       true,
                 dmarcPolicy: "none",
+		dnssecOK:    true,
+		caaOK:       true,
         }
-        deliberate, msg := evaluateDeliberateMonitoring(ps, 2)
+        deliberate, msg := evaluateDeliberateMonitoring(ps)
         if !deliberate {
                 t.Error("p=none with rua and spfOK and 2 configured should trigger deliberate monitoring")
         }
@@ -1198,10 +1239,11 @@ func TestDeliberateMonitoringQuarantineFull(t *testing.T) {
                 dmarcOK:     true,
                 dmarcHasRua: true,
                 spfOK:       true,
-                dmarcPolicy: "quarantine",
-                dmarcPct:    100,
+                dmarcPct: 100, dmarcPolicy: "quarantine",
+		dnssecOK:    true,
+		caaOK:       true,
         }
-        deliberate, msg := evaluateDeliberateMonitoring(ps, 3)
+        deliberate, msg := evaluateDeliberateMonitoring(ps)
         if !deliberate {
                 t.Error("p=quarantine at 100% with rua should trigger deliberate deployment phase")
         }
@@ -1215,10 +1257,11 @@ func TestDeliberateMonitoringQuarantinePartial(t *testing.T) {
                 dmarcOK:     true,
                 dmarcHasRua: true,
                 spfOK:       true,
-                dmarcPolicy: "quarantine",
-                dmarcPct:    50,
+                dmarcPct: 50, dmarcPolicy: "quarantine",
+		dnssecOK:    true,
+		caaOK:       true,
         }
-        deliberate, msg := evaluateDeliberateMonitoring(ps, 2)
+        deliberate, msg := evaluateDeliberateMonitoring(ps)
         if !deliberate {
                 t.Error("p=quarantine at 50% with rua should trigger deliberate deployment phase")
         }
@@ -1233,8 +1276,10 @@ func TestDeliberateMonitoringNoRua(t *testing.T) {
                 dmarcHasRua: false,
                 spfOK:       true,
                 dmarcPolicy: "none",
+		dnssecOK:    true,
+		caaOK:       true,
         }
-        deliberate, _ := evaluateDeliberateMonitoring(ps, 3)
+        deliberate, _ := evaluateDeliberateMonitoring(ps)
         if deliberate {
                 t.Error("p=none WITHOUT rua should NOT trigger deliberate monitoring")
         }
@@ -1245,9 +1290,11 @@ func TestDeliberateMonitoringRejectNotMonitoring(t *testing.T) {
                 dmarcOK:     true,
                 dmarcHasRua: true,
                 spfOK:       true,
-                dmarcPolicy: "reject",
+                dmarcPct: 100, dmarcPolicy: "reject",
+		dnssecOK:    true,
+		caaOK:       true,
         }
-        deliberate, _ := evaluateDeliberateMonitoring(ps, 5)
+        deliberate, _ := evaluateDeliberateMonitoring(ps)
         if deliberate {
                 t.Error("p=reject should NOT trigger monitoring phase — reject is fully enforced")
         }

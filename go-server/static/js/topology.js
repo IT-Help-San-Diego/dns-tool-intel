@@ -11,6 +11,13 @@
         let dpr = window.devicePixelRatio || 1;
         let W, H;
         let SCL = 1;
+        // Which axis the pipeline flows along, re-derived on every layout.
+        let VERTICAL_FLOW = false;
+        // Height the vertical flow needs; resize() grows the canvas to it.
+        let VERTICAL_NEEDED_H = 0;
+        // Single source of truth for node separation, shared by the vertical
+        // shelf packer and the overlap-resolution pass.
+        let overlapPadValue = 14;
         let FONT_LABEL = 13;
         let FONT_SUB = 10;
         let FONT_TAG = 13;
@@ -142,7 +149,22 @@
         let _prevProbeVisSet = '';
         let _labelFrameCount = 0;
         let LABEL_LERP = 0.12;
+        // Frame cap, kept as a safety net for when the globe is not turning at
+        // all (rotation paused ⇒ no angular delta ⇒ no re-solve would ever fire).
         let RELAYOUT_INTERVAL = 120;
+        // Labels are solved against collisions once, then merely TRANSLATED with
+        // their dots until the next re-solve. Under orthographic projection the
+        // on-screen x-separation of two points scales with cos(lon): two dots 15°
+        // apart span 0.259R at the centre but only 0.034R at 75°. So labels that
+        // were genuinely clean when solved get squeezed into each other purely by
+        // rotation, and nothing re-checks. Gating on frames meant 101 of every 120
+        // frames — 84% — applied no collision test at all, which is why the
+        // European cluster piles up and then stays piled. Gate on how far the
+        // globe has actually turned instead. At 4.8°/s (see rotLon, ~:2240) 2.5°
+        // is a re-solve roughly every half second.
+        let RELAYOUT_DEG = 2.5;
+        let _lastLayoutLon = null;
+        let _periodicRelayout = false;
 
         function drawResolverMarkers(returnBoxes) {
             let visiblePops = [];
@@ -159,11 +181,21 @@
             _labelFrameCount++;
             let visIds = visiblePops.map(function(v) { return v.idx; }).slice().sort(function(a,b){ return a-b; });
             let visKey = visIds.join(',');
-            let periodicRelayout = (_labelFrameCount % RELAYOUT_INTERVAL === 0);
-            let visChanged = visKey !== _prevVisibleSet || periodicRelayout;
+            // Shortest signed arc since the last solve, so wrapping past 360 does
+            // not read as a full revolution.
+            let rotDelta = _lastLayoutLon === null
+                ? 360
+                : Math.abs(((globe.rotLon - _lastLayoutLon + 540) % 360) - 180);
+            _periodicRelayout = rotDelta >= RELAYOUT_DEG || (_labelFrameCount % RELAYOUT_INTERVAL === 0);
+            let visChanged = visKey !== _prevVisibleSet || _periodicRelayout;
             _prevVisibleSet = visKey;
+            // Measure from the last actual re-solve, not the last frame — a
+            // visible-set change re-solves too, and resetting here keeps the two
+            // triggers from double-counting the same rotation.
+            if (visChanged) _lastLayoutLon = globe.rotLon;
 
             let placedBoxes = [];
+            globeInkCurrent = [];
             allLayoutNodes.forEach(function(nd) {
                 if (!nd._boxW) measureNodeBox(nd);
                 let hw = nd._halfW || nd.radius;
@@ -171,9 +203,15 @@
                 placedBoxes.push({ x: nd.x - hw, y: nd.y - hh, w: hw * 2, h: hh * 2 });
             });
             popHitAreas = [];
+            let cityLabeled = {};
+            // Dots that already carry a label this frame, so a cluster too tight
+            // to label legibly can fall back to dots. visiblePops is sorted by
+            // depth, so the frontmost dot in a cluster is the one that keeps its
+            // label.
+            let labeledDots = [];
 
             let labelGap = 12 * SCL;
-            let labelBand = 120 * SCL;
+            let labelBand = 190 * SCL;
             let maxLabelRight = globe.cx + globe.R + labelBand + labelGap;
             let maxLabelLeft = globe.cx - globe.R - labelBand - labelGap;
             let maxLabelTop = globe.cy - globe.R - labelBand;
@@ -196,11 +234,64 @@
                 ctx.fillStyle = hexToRgba(pop2.color, (isHovered ? 1 : 0.85) * alpha);
                 ctx.fill();
 
+                // Two resolvers sharing a PoP city (CF+OD London, CF+Q9
+                // Singapore) used to fight for the same spot with duplicate
+                // tags \u2014 one label per city is enough; the dot still renders
+                // and hover still identifies the specific resolver.
+                if (!isHovered && cityLabeled[pop2.city]) {
+                    popHitAreas.push({ x: p2.x - 8, y: p2.y - 8, w: 16, h: 16, dotX: p2.x, dotY: p2.y, idx: vp.idx });
+                    continue;
+                }
+
                 let label = isHovered ? (pop2.tag + ' \u00b7 ' + pop2.city) : pop2.city;
                 ctx.font = (isHovered ? 'bold ' : '') + FONT_TAG + 'px -apple-system, BlinkMacSystemFont, sans-serif';
                 let tw = ctx.measureText(label).width;
                 let tagW = tw + 18 * SCL;
                 let tagH = Math.round(20 * SCL + 2);
+
+                // Orthographic projection compresses x-separation by cos(lon):
+                // two dots 15 degrees apart span 0.259R at the centre but only
+                // 0.034R at 75 degrees. Near the limb a whole cluster \u2014 Dublin,
+                // London, Paris, Brussels \u2014 lands inside a few pixels, and no
+                // placement can separate four ~100px tags from anchors that
+                // close. Solving more often just recomputes an impossible
+                // problem; the escape is to stop asking for four labels.
+                //
+                // Same rule as the shared-city case above: label the frontmost
+                // and leave the rest as dots. The dot still renders and its hit
+                // area still resolves on hover, so nothing becomes unreachable \u2014
+                // which is the line between suppressing a LABEL and suppressing
+                // a RESOLVER. Never do the latter.
+                let tooClose = false;
+                if (!isHovered) {
+                    for (let li = 0; li < labeledDots.length; li++) {
+                        let ld = labeledDots[li];
+                        let dx = p2.x - ld.x;
+                        let dy = p2.y - ld.y;
+                        if (dx * dx + dy * dy < ld.minSep * ld.minSep) { tooClose = true; break; }
+                    }
+                }
+                // Portrait phone: the canvas is ~400px and carries the whole
+                // pipeline stacked vertically. There is no free corridor left for
+                // globe text, so every candidate collides and the fallback parks
+                // the tag on top of a node box — San Francisco over Root/TLD,
+                // Berlin over RDAP/WHOIS. Raising the type floors made the boxes
+                // bigger and the collision worse, which is the honest trade.
+                //
+                // Same rule as the limb cluster and the shared-city case: the DOT
+                // still renders and its hit area still resolves, so no resolver
+                // becomes unreachable. Only the label is withheld, and only where
+                // it could not have been legible anyway.
+                if (VERTICAL_FLOW || tooClose) {
+                    popHitAreas.push({ x: p2.x - 8, y: p2.y - 8, w: 16, h: 16, dotX: p2.x, dotY: p2.y, idx: vp.idx });
+                    continue;
+                }
+                cityLabeled[pop2.city] = true;
+                // Tags stack vertically when they cannot sit side by side, so the
+                // pitch that matters is tag height, not width. 1.5x leaves normal
+                // spacing (San Jose / San Francisco sit ~46px apart and both keep
+                // their labels) while catching genuine limb pile-ups.
+                labeledDots.push({ x: p2.x, y: p2.y, minSep: tagH * 1.5 });
 
                 let cacheKey = 'r' + vp.idx;
                 let cached = _resolverLabelCache[cacheKey];
@@ -210,7 +301,8 @@
                     let baseAngle = Math.atan2(p2.y - globe.cy, p2.x - globe.cx);
                     let bestX2 = null, bestY2 = null, bestScore = Infinity;
                     let candidateAngles = [0, 15, -15, 30, -30, 45, -45, 60, -60, 75, -75, 90, -90, 105, -105, 120, -120, 135, -135, 150, -150, 165, -165, 180];
-                    let candidateDists = [globe.R * 0.15 + labelGap, globe.R * 0.25 + labelGap, globe.R * 0.35 + labelGap];
+                    let candidateDists = [globe.R * 0.15 + labelGap, globe.R * 0.25 + labelGap, globe.R * 0.35 + labelGap,
+                                          globe.R * 0.5 + labelGap, globe.R * 0.68 + labelGap, globe.R * 0.88 + labelGap];
                     for (let di = 0; di < candidateDists.length; di++) {
                     for (let ci = 0; ci < candidateAngles.length; ci++) {
                         let ca = baseAngle + candidateAngles[ci] * DEG;
@@ -218,8 +310,17 @@
                         let cx2 = p2.x + Math.cos(ca) * dist;
                         let cy2 = p2.y + Math.sin(ca) * dist;
                         if (Math.cos(ca) < 0) cx2 -= tagW;
-                        cx2 = Math.max(Math.max(4, maxLabelLeft), Math.min(cx2, maxLabelRight - tagW));
-                        cy2 = Math.max(Math.max(4, maxLabelTop), Math.min(cy2, maxLabelBottom - tagH));
+                        // REJECT candidates that do not fit; never CLAMP them.
+                        // Clamping was the pile-up. maxLabelLeft evaluates to
+                        // about -150 at every viewport (there is only 41-77px
+                        // of canvas west of the globe against a ~104px tag), so
+                        // Math.max(4, maxLabelLeft) collapsed every westward
+                        // candidate onto x=4 — where they all "fit", stacked on
+                        // each other. Rejecting instead pushes the search into
+                        // the corridors that genuinely are free: above and
+                        // below the globe.
+                        if (cx2 < 4 || cx2 + tagW > maxLabelRight) continue;
+                        if (cy2 < 4 || cy2 + tagH > maxLabelBottom) continue;
                         let hasCollision = false;
                         for (let pi = 0; pi < placedBoxes.length; pi++) {
                             let pb = placedBoxes[pi];
@@ -233,6 +334,14 @@
                         let score = (hasCollision ? 10000 : 0) + distFromDot;
                         if (score < bestScore) { bestScore = score; bestX2 = cx2; bestY2 = cy2; }
                     }
+                    }
+                    // No candidate fitted at all — park it in the corridor
+                    // below the globe rather than leaving it at the last
+                    // clamped position.
+                    if (bestX2 === null) {
+                        bestX2 = Math.min(Math.max(4, p2.x - tagW / 2), maxLabelRight - tagW);
+                        bestY2 = Math.min(globe.cy + globe.R + 16 * SCL, maxLabelBottom - tagH);
+                        bestScore = 10000;
                     }
                     if (bestScore >= 10000) {
                         for (let ri = 0; ri < 8; ri++) {
@@ -272,15 +381,31 @@
                 let rawTagX = cached.curX;
                 let rawTagY = cached.curY;
                 placedBoxes.push({ x: rawTagX, y: rawTagY, w: tagW, h: tagH });
+                globeInkCurrent.push({ kind: 'cityLabel', id: cacheKey, x: rawTagX, y: rawTagY, w: tagW, h: tagH });
                 popHitAreas.push({ x: rawTagX, y: rawTagY, w: tagW, h: tagH, dotX: p2.x, dotY: p2.y, idx: vp.idx });
 
-                let lineEndX = (rawTagX + tagW / 2 > p2.x) ? rawTagX : rawTagX + tagW;
+                // The leader is the whole point of a floating tag: it must
+                // visibly pin to a physical place. Attach to the point on the
+                // tag rectangle CLOSEST to the dot, so the line always lands on
+                // the tag edge instead of a fixed left/right midpoint that can
+                // leave a visible gap. Alpha carries a floor as well, because
+                // scaling it by limb depth faded near-horizon leaders to
+                // roughly 0.12 — technically drawn, effectively invisible.
+                let anchorX = Math.max(rawTagX, Math.min(p2.x, rawTagX + tagW));
+                let anchorY = Math.max(rawTagY, Math.min(p2.y, rawTagY + tagH));
                 ctx.beginPath();
                 ctx.moveTo(p2.x, p2.y);
-                ctx.lineTo(lineEndX, rawTagY + tagH / 2);
-                ctx.strokeStyle = hexToRgba(pop2.color, (isHovered ? 0.5 : 0.3) * alpha);
-                ctx.lineWidth = isHovered ? 1 : 0.7;
+                ctx.lineTo(anchorX, anchorY);
+                ctx.strokeStyle = hexToRgba(pop2.color, isHovered ? 0.85 : Math.max(0.4, 0.6 * alpha));
+                ctx.lineWidth = (isHovered ? 1.4 : 1) * Math.max(1, SCL);
                 ctx.stroke();
+
+                // A hard pin-head at the ground end: unambiguous that the tag
+                // refers to THIS coordinate, not merely near it.
+                ctx.beginPath();
+                ctx.arc(p2.x, p2.y, (isHovered ? 2.6 : 2) * Math.max(1, SCL), 0, Math.PI * 2);
+                ctx.fillStyle = hexToRgba(pop2.color, isHovered ? 1 : Math.max(0.6, alpha));
+                ctx.fill();
 
                 roundRect(rawTagX, rawTagY, tagW, tagH, 4);
                 ctx.fillStyle = 'rgba(0,0,0,' + (isHovered ? 0.6 : 0.5 * alpha) + ')';
@@ -371,7 +496,7 @@
 
         function drawProbeMarkers(placedBoxes) {
             let labelGap = 12 * SCL;
-            let labelBand = 120 * SCL;
+            let labelBand = 190 * SCL;
             let pCandidateAngles = [0, 20, -20, 40, -40, 60, -60, 80, -80, 100, -100, 120, -120, 140, -140, 160, -160, 180];
             let pCandidateDists = [globe.R * 0.18 + labelGap, globe.R * 0.28 + labelGap, globe.R * 0.38 + labelGap];
 
@@ -383,10 +508,17 @@
             let probeVisKey = probeVisIds.join(',');
             let probeVisChanged = probeVisKey !== _prevProbeVisSet;
             _prevProbeVisSet = probeVisKey;
-            let visChanged = probeVisChanged || (_labelFrameCount % RELAYOUT_INTERVAL === 0);
+            // Same trigger as the city tags. drawResolverMarkers runs first in
+            // drawGlobe and computes it, so probe tags and city tags re-solve on
+            // the same frames and against the same placedBoxes.
+            let visChanged = probeVisChanged || _periodicRelayout;
 
             for (let pi = 0; pi < OWN_PROBES.length; pi++) {
                 let probe = OWN_PROBES[pi];
+                // See the note in drawResolverMarkers: on a portrait phone the
+                // probe tags are the widest text on the globe and have nowhere to
+                // sit. Dot and hover stay; the tag does not.
+                let suppressProbeLabel = VERTICAL_FLOW;
                 let pp = projectPt(probe.lat, probe.lon);
                 if (!pp.vis) continue;
                 let pAlpha = 0.4 + pp.depth * 0.6;
@@ -412,6 +544,12 @@
                 ctx.fillStyle = hexToRgba(probe.color, 0.95 * pAlpha);
                 ctx.fillRect(-3.5, -3.5, 7, 7);
                 ctx.restore();
+
+                // The marker above is drawn; only the text tag is withheld. Skip
+                // before any measuring or placement so a suppressed label costs
+                // nothing and, crucially, never enters placedBoxes — a tag that is
+                // not drawn must not push the ones that are.
+                if (suppressProbeLabel) continue;
 
                 let pLabel = probe.label;
                 ctx.font = FONT_TAG + 'px -apple-system, BlinkMacSystemFont, sans-serif';
@@ -442,14 +580,23 @@
 
                 let pPos = { x: pCached.curX, y: pCached.curY };
                 placedBoxes.push({ x: pPos.x, y: pPos.y, w: pTagW, h: pTagH });
+                globeInkCurrent.push({ kind: 'probeTag', id: pCacheKey, x: pPos.x, y: pPos.y, w: pTagW, h: pTagH });
 
-                let pLineEndX = (pPos.x + pTagW / 2 > pp.x) ? pPos.x : pPos.x + pTagW;
+                // Same pinning rule as the resolver leaders: land on the
+                // nearest point of the tag, keep a visible alpha floor, and
+                // put a pin-head on the coordinate itself.
+                let pAnchorX = Math.max(pPos.x, Math.min(pp.x, pPos.x + pTagW));
+                let pAnchorY = Math.max(pPos.y, Math.min(pp.y, pPos.y + pTagH));
                 ctx.beginPath();
                 ctx.moveTo(pp.x, pp.y);
-                ctx.lineTo(pLineEndX, pPos.y + pTagH / 2);
-                ctx.strokeStyle = hexToRgba(probe.color, 0.4 * pAlpha);
-                ctx.lineWidth = 0.8;
+                ctx.lineTo(pAnchorX, pAnchorY);
+                ctx.strokeStyle = hexToRgba(probe.color, Math.max(0.4, 0.6 * pAlpha));
+                ctx.lineWidth = Math.max(1, SCL);
                 ctx.stroke();
+                ctx.beginPath();
+                ctx.arc(pp.x, pp.y, 2 * Math.max(1, SCL), 0, Math.PI * 2);
+                ctx.fillStyle = hexToRgba(probe.color, Math.max(0.6, pAlpha));
+                ctx.fill();
 
                 roundRect(pPos.x, pPos.y, pTagW, pTagH, 4);
                 ctx.fillStyle = hexToRgba(probe.color, 0.18 * pAlpha);
@@ -480,6 +627,17 @@
             let degLabel = ((-snapLon % 360) + 360) % 360;
             if (degLabel > 180) degLabel -= 360;
             ctx.fillText(degLabel.toFixed(0) + '\u00b0 longitude center', globe.cx, globe.cy + globe.R + 20 * SCL);
+            if (GlobeCore.subsolarPoint) {
+                // The instrument declares its own state: the terminator shown
+                // is computed for this moment, not asserted.
+                let now = new Date();
+                let sp = GlobeCore.subsolarPoint(now);
+                let latTxt = Math.abs(sp.latDeg).toFixed(1) + '\u00b0' + (sp.latDeg >= 0 ? 'N' : 'S');
+                let lonTxt = Math.abs(sp.lonDeg).toFixed(1) + '\u00b0' + (sp.lonDeg >= 0 ? 'E' : 'W');
+                let hh = String(now.getUTCHours()).padStart(2, '0');
+                let mm = String(now.getUTCMinutes()).padStart(2, '0');
+                ctx.fillText('Subsolar ' + latTxt + ' ' + lonTxt + ' \u00b7 terminator for ' + hh + ':' + mm + ' UTC', globe.cx, globe.cy + globe.R + 32 * SCL);
+            }
         }
 
         let SOURCES = [
@@ -492,7 +650,11 @@
 
         let HUB = { id: 'hub', label: 'DNS Resolvers', sub: 'Signal Aggregation', color: COLORS.source, zone: 'hub', x: 0, y: 0, targetX: 0, targetY: 0, radius: 44, _initialized: false, shape: 'hub' };
 
-        let ENGINE = { id: 'engine', label: 'ICIE', sub: 'Analysis Engine', color: COLORS.engine, zone: 'engine', x: 0, y: 0, targetX: 0, targetY: 0, radius: 54, _initialized: false };
+        // shape MUST be declared: measureNodeBox falls through to the rect
+        // formula without it, measuring ICIE as a ~70px-tall box while
+        // drawEngineNode draws a 108px circle. Every spacing pass then works
+        // from a box 38px shorter than the ink.
+        let ENGINE = { id: 'engine', label: 'ICIE', sub: 'Analysis Engine', color: COLORS.engine, zone: 'engine', shape: 'circle', x: 0, y: 0, targetX: 0, targetY: 0, radius: 54, _initialized: false };
 
         let CONFIDENCE = [
             { id: 'ietf',  label: 'IETF Metadata',   sub: 'RFC Status \u00b7 Errata\nDraft Tracker',  color: COLORS.intel,  zone: 'confidence' },
@@ -604,10 +766,22 @@
 
         function computeScaling() {
             SCL = Math.max(0.65, Math.min(1.15, W / 1400));
-            FONT_LABEL = Math.round(Math.max(10, Math.min(15, 13 * SCL)));
-            FONT_SUB = Math.round(Math.max(8, Math.min(12, 10 * SCL)));
-            FONT_TAG = Math.round(Math.max(10, Math.min(15, 13 * SCL)));
+            // SCL scales GEOMETRY to the canvas, which is right: boxes have to
+            // fit. Type is a different question — a smaller screen is not a
+            // further-away viewer, so text should stop shrinking well before the
+            // layout does. These floors already existed; they were simply set
+            // below the readable line. At the iPad's SCL of 0.737 the old values
+            // produced 10px labels and 8px sub-labels while a desktop at SCL 1.15
+            // showed 15px and 12px — the same text at 64% the size, which is why
+            // the tablet had to be zoomed by hand. Apple's floor is 11pt.
+            // Node boxes are measured from their text (measureNodeBox), so the
+            // boxes grow with the type and the solver keeps laying out against
+            // real dimensions rather than assumed ones.
+            FONT_LABEL = Math.round(Math.max(12, Math.min(15, 13 * SCL)));
+            FONT_SUB = Math.round(Math.max(10, Math.min(12, 10 * SCL)));
+            FONT_TAG = Math.round(Math.max(12, Math.min(15, 13 * SCL)));
             MIN_SPACING = Math.round(Math.max(5, 8 * SCL));
+            clearTextWidthCache();
         }
 
         function computeNodeBox(shape, radius, label, sub, scale, fontLabel, fontSub, measureFn) {
@@ -623,19 +797,38 @@
                 }
             }
             let contentW = Math.max(labelW, subW) + 24 * scale;
+            // Extra height for wrapped sub-text. Only the default branch used
+            // to account for this, so cylinders and diamonds — which DO draw a
+            // multi-line sub below the label — measured shorter than they
+            // render. Their AABBs then cleared each other while the drawn text
+            // collided, which is why the storage stack looked overlapped while
+            // the overlap pass reported nothing to fix.
+            let subExtra = subLineCount > 1 ? (subLineCount - 1) * (fontSub + 2) : 0;
             let w, h;
             if (shape === 'circle') {
                 w = Math.max(radius * 2, contentW);
                 h = radius * 2;
             } else if (shape === 'diamond') {
                 w = Math.max(radius * 1.7, contentW + 8);
-                h = radius * 1.7;
+                h = radius * 1.7 + subExtra;
             } else if (shape === 'hexagon') {
                 w = Math.max(radius * 2, contentW);
-                h = radius * 2;
+                h = radius * 2 + subExtra;
             } else if (shape === 'cylinder') {
                 w = Math.max(radius * 2.4, contentW);
-                h = radius * 1.5 + 16;
+                // A cylinder is the one shape whose sub-text is drawn OUTSIDE
+                // its body: drawStorageNode anchors it at drumBottom +
+                // 12*scale, so that ink is below the drum by construction.
+                // Measuring only the drum under-reported the node by ~34px at
+                // SCL 1.15 and let the next cylinder's box sit inside this
+                // one's text — measured live: 22.4px vertical intrusion while
+                // the overlap pass correctly reported nothing to fix.
+                // The box therefore spans cap + drum + cap + sub-below, and
+                // drawStorageNode positions the drum from the box top so the
+                // two agree by construction. cylinderParts() is the single
+                // source of truth for both.
+                let parts = cylinderParts(radius, scale, fontSub, subLineCount);
+                h = parts.total;
             } else if (shape === 'hub' || shape === 'roundRect') {
                 w = Math.max(radius * 2.4, contentW);
                 h = Math.max(radius * 1.4, 40 * scale);
@@ -646,9 +839,36 @@
             return { w: w, h: h, halfW: w / 2, halfH: h / 2, contentW: contentW, subLineCount: subLineCount };
         }
 
+        // Memoised: ctx.font assignment re-parses the font string and
+        // measureText re-shapes the run, together ~1-5us per call. This is hit
+        // once per label per frame from the globe marker code, which made it
+        // the single largest per-frame cost on this canvas — an order of
+        // magnitude above the layout solver it was blamed on. Cleared whenever
+        // scaling changes.
+        let _textWidthCache = new Map();
+        function clearTextWidthCache() { _textWidthCache.clear(); }
         function canvasMeasureText(text, fontSize) {
+            let key = fontSize + '|' + text;
+            let hit = _textWidthCache.get(key);
+            if (hit !== undefined) return hit;
             ctx.font = fontSize + 'px -apple-system, BlinkMacSystemFont, sans-serif';
-            return ctx.measureText(text).width;
+            let w = ctx.measureText(text).width;
+            _textWidthCache.set(key, w);
+            return w;
+        }
+
+        // Geometry of a drawn cylinder, shared by the measurer and the
+        // renderer so a cylinder's box always covers its ink. capH is the
+        // end-cap ellipse that overhangs the drum at both ends (it was a raw
+        // unscaled 7 in the draw and absent from the measure); subBelow is the
+        // sub-text drawn under the drum, including the last line's descent.
+        function cylinderParts(radius, scale, fontSub, subLineCount) {
+            let capH = 7 * scale;
+            let drumH = radius * 1.5 + 16;
+            let subBelow = subLineCount > 0
+                ? 12 * scale + (subLineCount - 1) * (fontSub + 2) + fontSub * 0.6
+                : 0;
+            return { capH: capH, drumH: drumH, subBelow: subBelow, total: drumH + 2 * capH + subBelow };
         }
 
         function measureNodeBox(n) {
@@ -826,23 +1046,91 @@
         function layoutAll() {
             computeScaling();
 
-            let titleSafe = Math.max(H * 0.07, 42);
+            // Which axis the pipeline flows along is MEASURED, not guessed from
+            // a breakpoint. The horizontal flow needs the globe plus four
+            // columns of real measured content plus gaps; if that does not fit
+            // the canvas we actually have, the flow runs vertically instead.
+            //
+            // Deriving it means rotation is free: layoutAll() re-runs on every
+            // resize, and a phone going 393x852 -> 852x393 re-decides from the
+            // new numbers rather than from a remembered mode. A fixed 700px
+            // cliff would have called landscape-phone "desktop" and portrait
+            // iPad "phone", both wrong.
+            SOURCES.forEach(measureNodeBox);
+            measureNodeBox(HUB);
+            CONFIDENCE.forEach(measureNodeBox);
+            PROTOCOLS.forEach(measureNodeBox);
+            let widest = function(list) {
+                return Math.max.apply(null, list.map(function(n) { return n._boxW; }));
+            };
+            let srcNeed = Math.max(widest(SOURCES), HUB._boxW) + 26;
+            let confNeed = widest(CONFIDENCE) + 26;
+            // Protocols carry the relationship graph: two abreast is the least
+            // that reads as a graph rather than a list.
+            let protoNeed = widest(PROTOCOLS) * 2 + 26;
+            let horizontalNeed = 2 * Math.min(W * 0.13 * SCL, H * 0.25 * SCL, 180)
+                + srcNeed + confNeed + protoNeed + 40;
+            VERTICAL_FLOW = W > 0 && W < horizontalNeed;
+
+            // Portrait reserves space ABOVE the graph for the console instead of
+            // beside it; the console is full-width at these sizes.
+            // Portrait reserves space ABOVE the graph for the console instead of
+            // beside it. min(190, H*0.30) was a guess, and on a phone it reserved
+            // 190px for a console that is far shorter when idle — a visible empty
+            // band between the search box and the globe. The console is a DOM
+            // element; measure it. Read once per layout (resize), not per frame.
+            let consoleTopReserve = 0;
+            if (VERTICAL_FLOW) {
+                let cEl = document.getElementById('topoScanConsole');
+                let cH = cEl ? cEl.getBoundingClientRect().height : 0;
+                // 66px is the console's own top offset in the <=576px rule.
+                consoleTopReserve = cH > 0
+                    ? Math.min(H * 0.42, cH + 66 + 12)
+                    : Math.min(190, H * 0.30);
+            }
+            // These two reserves are not additive: the title band and the console
+            // both start at the TOP of the canvas and overlap each other, so the
+            // flow must clear whichever reaches lower — not their sum. Adding them
+            // is what put a visible empty band between the search box and the
+            // globe on a phone. In horizontal flow consoleTopReserve is 0 and this
+            // reduces to the title band exactly as before.
+            let titleSafe = Math.max(Math.max(H * 0.07, 42), consoleTopReserve);
             let legendSafe = H * 0.95;
+            _legendSafeY = legendSafe;
             let usableH = legendSafe - titleSafe;
 
-            let globeR = Math.min(W * 0.13 * SCL, H * 0.25 * SCL, 180);
+            let globeR = VERTICAL_FLOW
+                ? Math.min(W * 0.30 * SCL, H * 0.13 * SCL, 120)
+                : Math.min(W * 0.13 * SCL, H * 0.25 * SCL, 180);
             globe.R = globeR;
-            globe.cx = W * 0.04 + globeR;
-            globe.cy = titleSafe + usableH * 0.42;
+            // Portrait: the globe heads the flow, centred, rather than sitting
+            // to the left of columns that no longer exist.
+            globe.cx = VERTICAL_FLOW ? W * 0.5 : W * 0.04 + globeR;
+            globe.cy = VERTICAL_FLOW ? titleSafe + globeR + 8 : titleSafe + usableH * 0.42;
 
             let pipeStart = globe.cx + globeR + W * 0.02;
-            let pipeEnd = W * 0.99;
+            // The scan console is a fixed 360px card pinned top-right. Treat it
+            // as occupied space rather than letting the graph run underneath
+            // it — that is what put the console on top of DANE and TLS-RPT.
+            // Below 1000px the console goes near-full-width and overlaying is
+            // unavoidable, so reserve nothing and let it sit above.
+            let consoleReserve = W >= 1000 ? 386 : 0;
+            let pipeEnd = W * 0.99 - consoleReserve;
             let pipeTotal = pipeEnd - pipeStart;
             let colGap = Math.max(4, pipeTotal * 0.01);
-            let c1w = pipeTotal * 0.13;
-            let c2w = pipeTotal * 0.20;
-            let c3w = pipeTotal * 0.42;
-            let c4w = pipeTotal * 0.16;
+            // Size the source and confidence columns to what they ACTUALLY
+            // contain rather than to fixed fractions. The source tags carry two
+            // lines of sub-text and measured ~170px against a 13% column of
+            // ~100px, so they overflowed their zone and collided with the
+            // confidence diamonds no matter how the clamping was tuned.
+            // srcNeed / confNeed are measured above, where the flow axis is decided.
+
+            let c1w = Math.min(Math.max(srcNeed, pipeTotal * 0.13), pipeTotal * 0.30);
+            let c2w = Math.min(Math.max(confNeed, pipeTotal * 0.14), pipeTotal * 0.24);
+            let c4w = SHOW_OUTPUTS ? pipeTotal * 0.16 : 0;
+            // Protocols take everything left over: they carry the relationship
+            // graph and benefit most from width.
+            let c3w = pipeTotal - c1w - c2w - c4w - colGap * (SHOW_OUTPUTS ? 3 : 2);
             let col1L = pipeStart;
             let col1R = col1L + c1w;
             let col2L = col1R + colGap;
@@ -880,14 +1168,35 @@
             CONFIDENCE[3].targetX = procCx;
             CONFIDENCE[3].targetY = confY + usableH * 0.18;
 
-            let storeY = titleSafe + usableH * 0.78;
-            let storeSpread = Math.max(confSpread * 0.8, 60);
-            STORAGE[0].targetX = procCx;
-            STORAGE[0].targetY = storeY;
-            STORAGE[1].targetX = procCx - storeSpread;
-            STORAGE[1].targetY = storeY + usableH * 0.10;
-            STORAGE[2].targetX = procCx + storeSpread;
-            STORAGE[2].targetY = storeY + usableH * 0.10;
+            // Storage is the persistence layer BENEATH the pipeline, not a
+            // stage between confidence and output. Stacked vertically in a
+            // column the three cylinders need 382px inside a 222px band
+            // (measured at W=1873) — infeasible at every padding, which is why
+            // they overlapped no matter how the bands were re-partitioned.
+            // Side by side they need ~474px of width and one cylinder of
+            // height, and the canvas has that along the bottom in abundance.
+            // Laid out as an explicit foundation row: deterministic, and it
+            // reads as the substrate the rest of the graph sits on.
+            STORAGE.forEach(measureNodeBox);
+            let storeGap = 18 * SCL;
+            let storeRowW = STORAGE.reduce(function(s, n) { return s + n._boxW; }, 0) + storeGap * (STORAGE.length - 1);
+            let storeRowH = Math.max.apply(null, STORAGE.map(function(n) { return n._boxH; }));
+            let storeBandH = storeRowH + 20 * SCL;
+            let storeBandY1 = legendSafe - storeBandH;
+            let storeY = storeBandY1 + storeBandH / 2;
+            // Centre the row on the processing column, but keep it clear of
+            // the source column: col1 runs the full height, so a row that
+            // starts west of col1R lands on the bottom source tag (measured:
+            // root <-> postgres, 98px x 37px).
+            let storeRowL = Math.max(col1R + storeGap, Math.min(col4R - storeRowW, procCx - storeRowW / 2));
+            let storeCursor = storeRowL;
+            STORAGE.forEach(function(s) {
+                s.targetX = storeCursor + s._boxW / 2;
+                s.targetY = storeY;
+                storeCursor += s._boxW + storeGap;
+            });
+            let storeBandX1 = storeRowL - storeGap;
+            let storeBandX2 = storeRowL + storeRowW + storeGap;
 
             let protoCx = (col3L + col3R) / 2;
             let protoCy = titleSafe + usableH * 0.42;
@@ -928,17 +1237,24 @@
                 'confidence': {
                     gx: procCx, gy: confY + usableH * 0.06,
                     gravity: 0.30,
-                    bounds: { x1: col2L, x2: col2R, y1: titleSafe + usableH * 0.25, y2: titleSafe + usableH * 0.75 }
+                    bounds: { x1: col2L, x2: col2R, y1: titleSafe + usableH * 0.25, y2: storeBandY1 - 14 }
                 },
+                // A wide, short band along the bottom — see the foundation-row
+                // placement above. Every other zone that shares its x range
+                // must now stop above it, or the overlap pass spends its
+                // iterations pushing protocol circles out of the substrate.
                 'storage': {
                     gx: procCx, gy: storeY,
                     gravity: 0.35,
-                    bounds: { x1: col2L - c2w * 0.3, x2: col2R + c2w * 0.3, y1: titleSafe + usableH * 0.68, y2: legendSafe }
+                    bounds: { x1: storeBandX1, x2: storeBandX2, y1: storeBandY1, y2: legendSafe }
                 },
                 'protocol': {
                     gx: protoCx, gy: protoCy,
                     gravity: 0.18,
-                    bounds: { x1: col3L, x2: col3R, y1: titleSafe, y2: titleSafe + usableH * 0.88 }
+                    bounds: { x1: col3L, x2: col3R, y1: titleSafe,
+                              y2: (col3L < storeBandX2 && col3R > storeBandX1)
+                                    ? Math.min(titleSafe + usableH * 0.88, storeBandY1 - 14)
+                                    : titleSafe + usableH * 0.88 }
                 },
                 'output': {
                     gx: outCx, gy: titleSafe + usableH * 0.5,
@@ -947,8 +1263,247 @@
                 }
             };
 
-            allLayoutNodes = SOURCES.concat([HUB, ENGINE], CONFIDENCE, STORAGE, PROTOCOLS, OUTPUTS);
+            // Nodes that are never drawn must never occupy layout space. With
+            // SHOW_OUTPUTS false the four output hexagons are not rendered,
+            // not hit-tested and their edges are skipped — but they stayed in
+            // the layout set, so the overlap pass kept shoving real nodes away
+            // from four invisible boxes. Worse, with c4w=0 the output zone is
+            // arithmetically inverted (x1 > x2 by exactly colGap), so all four
+            // pinned to a single x just inside the pipeline and pushed the
+            // protocol circles left. Measured live at W=1873: output zone
+            // width -10px, all four nodes at x=1458.
+            let layoutOutputs = (SHOW_OUTPUTS && !HUD_ACTIVE) ? OUTPUTS : [];
+            allLayoutNodes = SOURCES.concat([HUB, ENGINE], CONFIDENCE, STORAGE, PROTOCOLS, layoutOutputs);
+
+            // ---- Vertical flow -------------------------------------------------
+            // Portrait: the pipeline runs top-to-bottom in reading order, each
+            // stage a full-width band sized to its measured content and its
+            // members shelf-packed inside it. Deterministic — no ellipse, no
+            // columns, no solver remap, because the solver's mobile profile is a
+            // fixed 420x1780 and these bands are sized from the canvas in hand.
+            //
+            // Rotation needs nothing special: this runs inside layoutAll(), which
+            // resize() calls, so 852x393 re-derives from scratch.
+            if (VERTICAL_FLOW) {
+                // Portrait is a column you TRAVEL THROUGH, not a canvas you take in
+                // at once, so it is ordered by what the reader came for rather than
+                // by data lineage. On a wide canvas source -> hub -> engine ->
+                // confidence -> storage -> protocol -> output reads correctly
+                // because it is all visible simultaneously; stacked on a phone the
+                // same order buries the verdicts — SPF, DKIM, DMARC, DNSSEC, DANE —
+                // six bands down, below PostgreSQL and the Internet Archive.
+                //
+                // Answer first, then what produced it, then where it came from:
+                // protocols, engine, confidence, hub, sources, storage, outputs.
+                // Horizontal flow is untouched.
+                let order = [
+                    // The hub leads because the globe leads: those dots ARE the
+                    // resolver fleet, so DNS Resolvers is the globe's caption. Five
+                    // bands of separation left the globe arriving unexplained.
+                    { key: 'hub', members: [HUB] },
+                    { key: 'protocol', members: PROTOCOLS },
+                    { key: 'engine', members: [ENGINE] },
+                    { key: 'confidence', members: CONFIDENCE },
+                    { key: 'source', members: SOURCES },
+                    { key: 'storage', members: STORAGE },
+                    { key: 'output', members: layoutOutputs }
+                ].filter(function(s) { return s.members.length > 0; });
+
+                allLayoutNodes.forEach(measureNodeBox);
+                let padX = Math.max(8, W * 0.03);
+                let bandW = W - padX * 2;
+                // MUST exceed overlapPad (14) used by the resolution pass, or
+                // that pass reads our own shelf gaps as overlaps, pushes the
+                // nodes apart, and the zone clamp pulls them back — the same
+                // pad-mismatch that jammed the storage column. Measured: 30
+                // residual overlaps at gap=12*SCL (7.8px at the SCL floor).
+                let gap = Math.max(overlapPadValue + 3, 12 * SCL);
+
+                // Shelf-pack a band's members into rows of bandW; returns the
+                // rows so the height is known before anything is placed.
+                function shelvesFor(members) {
+                    let rows = [], row = [], rowW = 0, rowH = 0;
+                    members.forEach(function(n) {
+                        let w = n._boxW, h = n._boxH;
+                        if (row.length && rowW + gap + w > bandW) {
+                            rows.push({ items: row, w: rowW, h: rowH });
+                            row = []; rowW = 0; rowH = 0;
+                        }
+                        rowW += row.length ? gap + w : w;
+                        row.push(n);
+                        if (h > rowH) rowH = h;
+                    });
+                    if (row.length) rows.push({ items: row, w: rowW, h: rowH });
+                    return rows;
+                }
+
+                let plans = order.map(function(s) {
+                    let rows = shelvesFor(s.members);
+                    let h = rows.reduce(function(a, r) { return a + r.h; }, 0) + gap * (rows.length - 1);
+                    return { key: s.key, rows: rows, need: h };
+                });
+                let totalNeed = plans.reduce(function(a, p) { return a + p.need; }, 0) + gap * (plans.length - 1);
+
+                // Grow the canvas when the flow is taller than the viewport —
+                // scrolling a phone is native and expected, and squeezing seven
+                // stages into one screen is what made the labels collide.
+                // In portrait the globe sits at the TOP: globe.cy is
+                // titleSafe + globeR + 8, so it occupies from titleSafe down to
+                // titleSafe + 2*globeR + 8. The bands used to start stacking at
+                // titleSafe — the same y the globe starts at — which drew the
+                // source band (Root/TLD, RDAP/WHOIS, CT/Subdomains, CISA/Threat)
+                // and the hub band straight over it.
+                //
+                // Horizontal flow reserves the globe on the X axis via pipeStart
+                // (globe.cx + globeR + W*0.02). When the axis flips, the reserve
+                // has to flip with it; it did not. Same defect as a reserve
+                // measured on the axis the layout no longer uses.
+                // The globe's footprint is not just its circle: three caption
+                // lines are drawn beneath it at globe.R + 8/20/32 * SCL (see the
+                // fillText calls in drawGlobe). Reserving only to the circle left
+                // "Orthographic Projection / Subsolar ... / terminator" printed
+                // across Root/TLD and RDAP/WHOIS. 40*SCL covers the deepest
+                // baseline plus descenders.
+                let captionDepth = 40 * SCL;
+                let flowTop = titleSafe + globe.R * 2 + 8 + captionDepth + gap;
+
+                VERTICAL_NEEDED_H = Math.ceil(flowTop + totalNeed + gap * 2 + (H - legendSafe));
+
+                let avail = legendSafe - flowTop;
+                let slack = Math.max(0, avail - totalNeed);
+                let share = plans.length ? slack / plans.length : 0;
+                let cursor = flowTop;
+                plans.forEach(function(p) {
+                    let bandH = p.need + share;
+                    let z = zones[p.key];
+                    if (z) {
+                        z.bounds = { x1: padX, x2: padX + bandW, y1: cursor, y2: cursor + bandH };
+                        z.gx = W * 0.5;
+                        z.gy = cursor + bandH / 2;
+                    }
+                    // Centre each shelf inside the band.
+                    let inner = cursor + (bandH - p.need) / 2;
+                    p.rows.forEach(function(r) {
+                        let x = padX + (bandW - r.w) / 2;
+                        r.items.forEach(function(n) {
+                            n.targetX = x + n._boxW / 2;
+                            n.targetY = inner + r.h / 2;
+                            x += n._boxW + gap;
+                        });
+                        inner += r.h + gap;
+                    });
+                    cursor += bandH + gap;
+                });
+            }
+            // ---- end vertical flow ---------------------------------------------
             let allLayoutEdges = FLOW_EDGES.concat(PROTO_EDGES);
+
+            allLayoutNodes.forEach(function(nd) {
+                measureNodeBox(nd);
+            });
+
+            // The engine/confidence/storage zones stack in one column, and
+            // at narrow viewports the hand-set bands partition that column
+            // wrongly: storage measures 236px of content in a 211px band
+            // while engine sits on 128px of slack. No placement exists
+            // inside a too-small band, so the overlap pass jams — push
+            // apart, clamp back, 40 times. The content DOES fit the column
+            // (589px bare in 660px, measured at 1233x750), so re-partition
+            // the stacked bands by measured shelf-fit need before the pass
+            // runs. Zones outside a deficient stack keep their bands.
+            (function() {
+                let byZone = {};
+                allLayoutNodes.forEach(function(nd) {
+                    let zk = nd.zone || nd.id;
+                    (byZone[zk] = byZone[zk] || []).push(nd);
+                });
+                // Shelf-fit: members packed into rows of the band's width;
+                // returns the height the zone actually needs at a given pad.
+                function shelfNeed(members, zw, pad) {
+                    let rowW = 0, rowH = 0, needH = 0, rows = 0;
+                    members.forEach(function(nd) {
+                        let w = (nd._halfW || nd.radius) * 2;
+                        let h = (nd._halfH || nd.radius) * 2;
+                        if (rowW > 0 && rowW + pad + w > zw) {
+                            needH += rowH;
+                            rows++;
+                            rowW = 0;
+                            rowH = 0;
+                        }
+                        rowW += rowW > 0 ? pad + w : w;
+                        if (h > rowH) rowH = h;
+                    });
+                    needH += rowH;
+                    rows++;
+                    return needH + pad * (rows - 1);
+                }
+                // Group zones into vertical stacks: mutual x-overlap with
+                // neither band containing the other (source contains hub by
+                // design — leave containment pairs alone).
+                let keys = [];
+                for (let zk in byZone) {
+                    if (zones[zk] && zones[zk].bounds) keys.push(zk);
+                }
+                keys.sort();
+                let grouped = {};
+                keys.forEach(function(ka) {
+                    if (grouped[ka]) return;
+                    let a = zones[ka].bounds;
+                    let stack = [ka];
+                    keys.forEach(function(kb) {
+                        if (kb === ka || grouped[kb]) return;
+                        let b = zones[kb].bounds;
+                        let xOver = Math.min(a.x2, b.x2) - Math.max(a.x1, b.x1);
+                        let minW = Math.min(a.x2 - a.x1, b.x2 - b.x1);
+                        let contains = (a.y1 <= b.y1 && a.y2 >= b.y2) || (b.y1 <= a.y1 && b.y2 >= a.y2);
+                        if (xOver > minW * 0.6 && !contains) stack.push(kb);
+                    });
+                    if (stack.length < 2) return;
+                    stack.sort(function(x, y) { return zones[x].bounds.y1 - zones[y].bounds.y1; });
+                    // Only re-partition when a member measurably cannot fit
+                    // its band; feasible stacks keep their designed bands.
+                    let anyDeficit = stack.some(function(zk) {
+                        let zb = zones[zk].bounds;
+                        return shelfNeed(byZone[zk], zb.x2 - zb.x1, 0) > zb.y2 - zb.y1;
+                    });
+                    if (!anyDeficit) return;
+                    let top = zones[stack[0]].bounds.y1;
+                    let bottom = zones[stack[stack.length - 1]].bounds.y2;
+                    // Stage the pad down until the stack's needs fit its span;
+                    // pixel-clearance (pad 0) is the floor.
+                    let needs = null, usedPad = 0;
+                    let pads = [14, 8, 4, 0];
+                    for (let pi = 0; pi < pads.length; pi++) {
+                        let p = pads[pi];
+                        let n = stack.map(function(zk) {
+                            let zb = zones[zk].bounds;
+                            return shelfNeed(byZone[zk], zb.x2 - zb.x1, p);
+                        });
+                        let total = n.reduce(function(s, v) { return s + v; }, 0) + p * (stack.length - 1);
+                        if (total <= bottom - top) { needs = n; usedPad = p; break; }
+                    }
+                    // If no pad tier fits, the column is genuinely too short for
+                    // its honestly-measured contents — at W=1873, 695px of
+                    // column against 830px of need. Keep the designed bands.
+                    // Proportional redistribution was tried and measured worse
+                    // (AABB overlaps 1 -> 6): it relieves the starved zone by
+                    // starving its neighbours, so the deficit spreads instead
+                    // of resolving. An infeasible column needs a real decision
+                    // — more width for the storage shelf, shorter sub-text, or
+                    // its own column — not a redistribution that hides it.
+                    if (!needs) return;
+                    let leftover = (bottom - top) - needs.reduce(function(s, v) { return s + v; }, 0) - usedPad * (stack.length - 1);
+                    if (leftover < 0) leftover = 0;
+                    let share = leftover / stack.length;
+                    let cursor = top;
+                    stack.forEach(function(zk, i) {
+                        zones[zk].bounds.y1 = cursor;
+                        zones[zk].bounds.y2 = cursor + needs[i] + share;
+                        cursor = zones[zk].bounds.y2 + usedPad;
+                        grouped[zk] = true;
+                    });
+                });
+            })();
 
             let solverProfile = W > 1000 ? 'desktop' : (W > 600 ? 'tablet' : 'mobile');
             let solverData = null;
@@ -958,44 +1513,104 @@
                 }
             } catch (e) { solverData = null; }
 
-            if (solverData) {
+            if (solverData && !VERTICAL_FLOW) {
                 SOLVER_ACTIVE = true;
                 console.log('Topology: using hybrid solver (' + solverProfile + ')');
                 let solverRef = { desktop: { w: 1600, h: 900 }, tablet: { w: 1100, h: 940 }, mobile: { w: 420, h: 1700 } };
                 let ref = solverRef[solverProfile] || solverRef.desktop;
+                // The layout JSON carries the canvas it was solved for.
+                // Prefer it: remapping through a stale hardcoded copy
+                // silently skews every position when a profile is re-sized.
+                try {
+                    let refCanvas = SOLVER_LAYOUTS[solverProfile].canvas;
+                    if (refCanvas && refCanvas.width > 0 && refCanvas.height > 0) {
+                        ref = { w: refCanvas.width, h: refCanvas.height };
+                    }
+                } catch (e) { /* keep fallback */ }
+                // Map solver coordinates into the width actually available to
+                // the graph, not the raw canvas width. Reserving the console's
+                // width narrowed every zone's bounds while these positions
+                // still scaled to full W, so nodes landed outside their zone
+                // and were clamped — several to the SAME edge, which is what
+                // stacked the protocol circles and drove the confidence column
+                // left into CISA/Threat and DNS Resolvers.
+                // Map each zone's OWN solver extent onto that zone's client
+                // bounds — an affine map per zone, not one global scale.
+                //
+                // The previous map was `targetX = (pos.x / ref.w) * usableW`:
+                // a pure scale about x=0, which silently drops the graph's
+                // left origin. Solver content starts at the profile's left
+                // margin (desktop: x=430 of a 1600 canvas) while the client's
+                // pipeline starts at pipeStart, so every node landed left of
+                // its own column and was clamped to the column edge. When
+                // several nodes in one zone all land left of it they clamp to
+                // the SAME edge — which is exactly how nine protocol circles
+                // became one vertical stack. The ellipse rescale that used to
+                // follow could not undo it either: it computed minPX/maxPX
+                // AFTER the clamp, so its `maxPX - minPX > 1` guard skipped
+                // the rescale precisely when the ellipse had collapsed.
+                //
+                // Mapping per zone makes a node land inside its column by
+                // construction, so the clamp becomes a backstop instead of the
+                // thing that decides the layout — and the protocol ellipse
+                // fills its zone without a special case.
+                function mapSpan(v, s1, s2, d1, d2) {
+                    if (!(s2 - s1 > 1e-6)) return (d1 + d2) / 2;
+                    return d1 + ((v - s1) / (s2 - s1)) * (d2 - d1);
+                }
+                let zoneExtent = {};
                 allLayoutNodes.forEach(function(nd) {
                     let pos = solverData[nd.id];
-                    if (pos) {
-                        nd.targetX = (pos.x / ref.w) * W;
-                        nd.targetY = titleSafe + (pos.y / ref.h) * (legendSafe - titleSafe);
-                        let z = zones[nd.zone || nd.id];
-                        if (z && z.bounds) {
-                            let zw = z.bounds.x2 - z.bounds.x1;
-                            let zh = z.bounds.y2 - z.bounds.y1;
-                            let zpx = Math.min(30, zw * 0.15);
-                            let zpy = Math.min(20, zh * 0.15);
-                            if (z.bounds.x1 + zpx < z.bounds.x2 - zpx) {
-                                nd.targetX = Math.max(z.bounds.x1 + zpx, Math.min(z.bounds.x2 - zpx, nd.targetX));
-                            }
-                            if (z.bounds.y1 + zpy < z.bounds.y2 - zpy) {
-                                nd.targetY = Math.max(z.bounds.y1 + zpy, Math.min(z.bounds.y2 - zpy, nd.targetY));
-                            }
-                        }
-                        nd.targetX = Math.max(globalBounds.x1 + 10, Math.min(globalBounds.x2 - 10, nd.targetX));
-                        nd.targetY = Math.max(globalBounds.y1 + 10, Math.min(globalBounds.y2 - 10, nd.targetY));
-                    }
+                    if (!pos) return;
+                    let zk = nd.zone || nd.id;
+                    let e = zoneExtent[zk];
+                    if (!e) { e = zoneExtent[zk] = { x1: pos.x, x2: pos.x, y1: pos.y, y2: pos.y }; return; }
+                    if (pos.x < e.x1) e.x1 = pos.x;
+                    if (pos.x > e.x2) e.x2 = pos.x;
+                    if (pos.y < e.y1) e.y1 = pos.y;
+                    if (pos.y > e.y2) e.y2 = pos.y;
                 });
+                let usableW = W - consoleReserve;
+                allLayoutNodes.forEach(function(nd) {
+                    let pos = solverData[nd.id];
+                    if (!pos) return;
+                    // Storage keeps its explicit foundation-row placement. The
+                    // solver arranges these three vertically for a tall narrow
+                    // zone; mapping that onto a wide short band would spread
+                    // them on the wrong axis and re-create the pile-up.
+                    if ((nd.zone || nd.id) === 'storage') return;
+                    let z = zones[nd.zone || nd.id];
+                    let e = zoneExtent[nd.zone || nd.id];
+                    if (z && z.bounds && e && z.bounds.x2 > z.bounds.x1 && z.bounds.y2 > z.bounds.y1) {
+                        // Inset the destination by the node's own half-extent so
+                        // the mapped box sits wholly inside its column.
+                        let hw = nd._halfW || nd.radius || 0;
+                        let hh = nd._halfH || nd.radius || 0;
+                        let dx1 = z.bounds.x1 + hw, dx2 = z.bounds.x2 - hw;
+                        let dy1 = z.bounds.y1 + hh, dy2 = z.bounds.y2 - hh;
+                        if (!(dx2 > dx1)) { dx1 = dx2 = (z.bounds.x1 + z.bounds.x2) / 2; }
+                        if (!(dy2 > dy1)) { dy1 = dy2 = (z.bounds.y1 + z.bounds.y2) / 2; }
+                        nd.targetX = mapSpan(pos.x, e.x1, e.x2, dx1, dx2);
+                        nd.targetY = mapSpan(pos.y, e.y1, e.y2, dy1, dy2);
+                    } else {
+                        nd.targetX = (pos.x / ref.w) * usableW;
+                        nd.targetY = titleSafe + (pos.y / ref.h) * (legendSafe - titleSafe);
+                    }
+                    nd.targetX = Math.max(globalBounds.x1 + 10, Math.min(globalBounds.x2 - 10, nd.targetX));
+                    nd.targetY = Math.max(globalBounds.y1 + 10, Math.min(globalBounds.y2 - 10, nd.targetY));
+                });
+            } else if (VERTICAL_FLOW) {
+                // Vertical flow already placed every node deterministically in
+                // its band. Falling through to the force solver would scatter
+                // that packing — measured: 28 overlaps at 393x1051.
+                SOLVER_ACTIVE = false;
             } else {
                 SOLVER_ACTIVE = false;
                 console.log('Topology: using FR fallback');
                 forceDirectedLayout(allLayoutNodes, allLayoutEdges, zones, globalBounds, 120);
             }
 
-            allLayoutNodes.forEach(function(nd) {
-                measureNodeBox(nd);
-            });
-
-            let overlapPad = 14;
+            let overlapPad = overlapPadValue;
             for (let op = 0; op < 40; op++) {
                 let anyOverlap = false;
                 for (let oi = 0; oi < allLayoutNodes.length; oi++) {
@@ -1043,13 +1658,105 @@
                     nd._initialized = true;
                 }
             });
+
+            // ?debug=bounds introspection: expose the exact layout the solver
+            // produced so rendering bugs can be measured instead of eyeballed.
+            if (typeof debugBounds !== 'undefined' && debugBounds) {
+                try {
+                    window.__topoDbg = {
+                        // Bump on every change to registration or placement
+                        // logic: the pane's HTTP cache and the boot-time asset
+                        // hash make "which build is this page running" a real
+                        // question, and identifier-based checks are blind to it
+                        // (minification renames locals). inkRev survives.
+                        inkRev: 4,
+                        W: W, H: H, scl: SCL, solver: SOLVER_ACTIVE,
+                        edgeLabelTrace: function() { return edgeLabelTrace.slice(); },
+                        zones: (function() {
+                            let z = {};
+                            for (let k in zones) { z[k] = zones[k].bounds; }
+                            return z;
+                        })(),
+                        boxes: allLayoutNodes.map(function(n) {
+                            return { id: n.id, zone: n.zone, hw: n._halfW || n.radius, hh: n._halfH || n.radius };
+                        }),
+                        globe: { cx: globe.cx, cy: globe.cy, R: globe.R },
+                        // The ink registry, all five classes. Draw-time ink is
+                        // reassigned every pass — a snapshot taken here would
+                        // always be empty — so these are READERS that sample the
+                        // CURRENT pass. Registration happens at the draw call
+                        // sites, so registered ink equals drawn ink by
+                        // construction.
+                        //
+                        // Why this exists: every "0 overlaps" measurement before
+                        // this swept __topoDbg.nodes only — 23 node boxes — while
+                        // city labels, probe tags, edge pills, timing badges and
+                        // the legend were structurally invisible to it. Those
+                        // claims were true and nearly meaningless. Sweep ink(),
+                        // never a single class list.
+                        edgeLabels: function() {
+                            return placedEdgeLabels.map(function(p, i) {
+                                return {
+                                    kind: 'edgeLabel', id: 'edgeLabel#' + i,
+                                    x1: p.x - p.w / 2, y1: p.y - p.h / 2,
+                                    x2: p.x + p.w / 2, y2: p.y + p.h / 2
+                                };
+                            });
+                        },
+                        // Classes 3+4: globe ink (city tags, probe tags) —
+                        // top-left anchored at the draw sites.
+                        globeInk: function() {
+                            return globeInkCurrent.map(function(p) {
+                                return { kind: p.kind, id: p.kind + '#' + p.id,
+                                         x1: p.x, y1: p.y, x2: p.x + p.w, y2: p.y + p.h };
+                            });
+                        },
+                        // Class 5a: scan-overlay timing badges under nodes.
+                        scanInk: function() {
+                            return scanInkCurrent.map(function(p) {
+                                return { kind: p.kind, id: p.kind + '#' + p.id,
+                                         x1: p.x, y1: p.y, x2: p.x + p.w, y2: p.y + p.h };
+                            });
+                        },
+                        // Class 5b: the DOM legend's reserved band. Canvas ink
+                        // with y2 beyond this rect's y1 is an invasion.
+                        legendReserve: function() {
+                            if (!(_legendSafeY > 0)) return [];
+                            return [{ kind: 'legendReserve', id: 'legendReserve',
+                                      x1: 0, y1: _legendSafeY, x2: W, y2: H }];
+                        },
+                        // THE sweep surface: every ink class in one list, in
+                        // drawn-position coordinates (nodes included at their
+                        // current animated position — the ink actually on
+                        // screen). An overlap sweep that consumes anything
+                        // narrower is measuring a subset and must say so.
+                        ink: function() {
+                            let out = [];
+                            allLayoutNodes.forEach(function(n) {
+                                let hw = n._halfW || n.radius, hh = n._halfH || n.radius;
+                                out.push({ kind: 'node', id: n.id,
+                                           x1: n.x - hw, y1: n.y - hh, x2: n.x + hw, y2: n.y + hh });
+                            });
+                            return out
+                                .concat(window.__topoDbg.edgeLabels())
+                                .concat(window.__topoDbg.globeInk())
+                                .concat(window.__topoDbg.scanInk())
+                                .concat(window.__topoDbg.legendReserve());
+                        },
+                        nodes: allLayoutNodes.map(function(n) {
+                            return { id: n.id, zone: n.zone, x: Math.round(n.x), y: Math.round(n.y),
+                                     tx: Math.round(n.targetX), ty: Math.round(n.targetY) };
+                        })
+                    };
+                } catch (e) { /* diagnostics only */ }
+            }
         }
 
         let hoverNode = null;
         let mouseX = -1, mouseY = -1;
 
         function hitTest(mx, my) {
-            let all = SOURCES.concat(CONFIDENCE, STORAGE, OUTPUTS, PROTOCOLS, [ENGINE, HUB]);
+            let all = SOURCES.concat(CONFIDENCE, STORAGE, (HUD_ACTIVE || !SHOW_OUTPUTS) ? [] : OUTPUTS, PROTOCOLS, [ENGINE, HUB]);
             for (let i = 0; i < all.length; i++) {
                 let n = all[i];
                 let dx = mx - n.x;
@@ -1170,10 +1877,19 @@
             let to = allNodes[e.to];
             if (!from || !to) return;
 
+            // Output nodes are hidden unless SHOW_OUTPUTS, and always yield
+            // while the scan console/verdict panel owns the right side.
+            if (((from.zone === 'output') || (to.zone === 'output')) && (HUD_ACTIVE || !SHOW_OUTPUTS)) return;
+
             let isHL = hoverNode && (hoverNode.id === e.from || hoverNode.id === e.to);
             let alpha;
-            if (e.type === 'flow') alpha = isHL ? 0.3 : 0.08;
-            else alpha = isHL ? 0.6 : (e.type === 'hard' ? 0.35 : 0.2);
+            if (e.type === 'flow') {
+                // The pipeline should read at rest, not only on hover — ICIE's
+                // connections carry the whole frame, so they rest brightest.
+                let touchesEngine = e.from === 'engine' || e.to === 'engine';
+                alpha = isHL ? 0.35 : (touchesEngine ? 0.18 : 0.13);
+            }
+            else alpha = isHL ? 0.6 : (e.type === 'hard' ? 0.4 : 0.25);
 
             let curve = findEdgeCurveOffset(from, to, e.type);
 
@@ -1273,10 +1989,25 @@
                 let pw = tw + 10 * SCL;
                 let ph = edgeFontSize + 8 * SCL;
 
+                // The pill's natural anchor after endpoint avoidance — the
+                // perpendicular-escape fallback measures candidates from here,
+                // in every mode, so debug and production place identically.
+                let anchorLX = lx, anchorLY = ly;
+                let _trace = null;
+                if (typeof debugBounds !== 'undefined' && debugBounds) {
+                    _trace = { edge: (from.id || '?') + '→' + (to.id || '?') + ':' + e.label,
+                               afterAvoid: [lx, ly], obstacleCount: edgeLabelObstacles.length };
+                    edgeLabelTrace.push(_trace);
+                }
+
                 for (let llPass = 0; llPass < 3; llPass++) {
                     let llMoved = false;
-                    for (let pli = 0; pli < placedEdgeLabels.length; pli++) {
-                        let pl = placedEdgeLabels[pli];
+                    // Nodes and already-placed pills are one obstacle set —
+                    // resolving against pills alone let a pill settle onto a
+                    // node with both placements reporting success.
+                    let obstacles = edgeLabelObstacles.concat(placedEdgeLabels);
+                    for (let pli = 0; pli < obstacles.length; pli++) {
+                        let pl = obstacles[pli];
                         let olx = Math.min(lx + pw / 2, pl.x + pl.w / 2) - Math.max(lx - pw / 2, pl.x - pl.w / 2);
                         let oly = Math.min(ly + ph / 2, pl.y + pl.h / 2) - Math.max(ly - ph / 2, pl.y - pl.h / 2);
                         if (olx > 0 && oly > 0) {
@@ -1288,11 +2019,54 @@
                             llMoved = true;
                         }
                     }
+                    // Clamp inside the pass, not after it: a post-loop clamp
+                    // could shove a resolved pill straight back onto an
+                    // obstacle with nothing left to notice.
+                    ly = Math.max(20, Math.min(H - 20, ly));
+                    lx = Math.max(30, Math.min(W - 30, lx));
                     if (!llMoved) break;
                 }
 
-                ly = Math.max(20, Math.min(H - 20, ly));
-                lx = Math.max(30, Math.min(W - 30, lx));
+                // Convergence check. The pass structure translates along one
+                // axis per collision, so a pill whose edge corridor is
+                // narrower than the pill oscillates between its own endpoint
+                // boxes and exits the pass budget still colliding (measured:
+                // the dmarc→spf alignment pill, trapped at 8.8px of travel).
+                // The escape that corridor geometry cannot fight is
+                // PERPENDICULAR to the edge: slide sideways from the pill's
+                // natural anchor to the first free spot. If no candidate in
+                // budget is free, keep the least-overlapping one — drawn ink
+                // and registered ink stay identical either way, so the sweep
+                // still sees whatever remains.
+                let stillHits = function(cx, cy) {
+                    let obs = edgeLabelObstacles.concat(placedEdgeLabels);
+                    let total = 0;
+                    for (let oi = 0; oi < obs.length; oi++) {
+                        let ob = obs[oi];
+                        let ox = Math.min(cx + pw / 2, ob.x + ob.w / 2) - Math.max(cx - pw / 2, ob.x - ob.w / 2);
+                        let oy = Math.min(cy + ph / 2, ob.y + ob.h / 2) - Math.max(cy - ph / 2, ob.y - ob.h / 2);
+                        if (ox > 0 && oy > 0) total += ox * oy;
+                    }
+                    return total;
+                };
+                if (stillHits(lx, ly) > 0) {
+                    let ex = to.x - from.x, ey = to.y - from.y;
+                    let elen = Math.sqrt(ex * ex + ey * ey) || 1;
+                    let perpX = -ey / elen, perpY = ex / elen;
+                    let anchorX = anchorLX;
+                    let anchorY = anchorLY;
+                    let bestX = lx, bestY = ly, bestArea = stillHits(lx, ly);
+                    for (let esc = 1; esc <= 8 && bestArea > 0; esc++) {
+                        for (let side = 1; side >= -1; side -= 2) {
+                            let cx = Math.max(30, Math.min(W - 30, anchorX + perpX * side * esc * 12));
+                            let cy = Math.max(20, Math.min(H - 20, anchorY + perpY * side * esc * 12));
+                            let area = stillHits(cx, cy);
+                            if (area < bestArea) { bestArea = area; bestX = cx; bestY = cy; }
+                        }
+                    }
+                    lx = bestX; ly = bestY;
+                    if (_trace) { _trace.escapedArea = bestArea; }
+                }
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
 
@@ -1340,6 +2114,7 @@
 
                 ctx.fillStyle = 'rgba(255,255,255,' + (isHL ? 0.92 : 0.6) + ')';
                 ctx.fillText(e.label, lx, ly);
+                if (_trace) { _trace.final = [lx, ly, pw, ph]; }
                 placedEdgeLabels.push({ x: lx, y: ly, w: pw, h: ph });
             }
         }
@@ -1496,11 +2271,21 @@
             let dimmed = hoverNode && !isHover && !conn[p.id];
 
             let r = p.radius;
+            // The body keeps its FAMILY colour — email / transport / policy /
+            // brand grouping is scientific content, not decoration. The verdict
+            // lives on the ring, with a brief flash through the body when it
+            // lands. An absent protocol is drained rather than recoloured, so
+            // it still reads as a member of its family.
+            let vCol = nodeVerdictColor(p.id);
+            let status = scanState.verdicts ? scanState.verdicts[p.id] : null;
+            let isIndet = status === 'indeterminate' || status === 'info';
+            let flash = vCol ? verdictFlash() : 0;
+            let col = flash > 0 ? mixHex(p.color, vCol, flash * 0.85) : p.color;
 
             let glowR = r * 1.5;
             let glow = ctx.createRadialGradient(p.x, p.y, r * 0.3, p.x, p.y, glowR);
-            glow.addColorStop(0, hexToRgba(p.color, dimmed ? 0.03 : (isHover ? 0.2 : 0.1)));
-            glow.addColorStop(1, hexToRgba(p.color, 0));
+            glow.addColorStop(0, hexToRgba(col, dimmed ? 0.03 : (isHover ? 0.2 : 0.1)));
+            glow.addColorStop(1, hexToRgba(col, 0));
             ctx.beginPath();
             ctx.arc(p.x, p.y, glowR, 0, Math.PI * 2);
             ctx.fillStyle = glow;
@@ -1508,11 +2293,15 @@
 
             ctx.beginPath();
             ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
-            ctx.fillStyle = hexToRgba(p.color, dimmed ? 0.05 : (isHover ? 0.22 : 0.1));
+            // Absent protocol: drained family colour + dashed edge. Present:
+            // normal family fill, brightened while the verdict flash decays.
+            ctx.fillStyle = hexToRgba(col, dimmed ? 0.05 : (isIndet ? 0.035 : (isHover ? 0.22 : 0.1 + flash * 0.18)));
             ctx.fill();
-            ctx.strokeStyle = hexToRgba(p.color, dimmed ? 0.12 : (isHover ? 0.85 : 0.45));
+            ctx.strokeStyle = hexToRgba(col, dimmed ? 0.12 : (isHover ? 0.85 : (isIndet ? 0.22 : 0.45 + flash * 0.4)));
             ctx.lineWidth = isHover ? 2 : 1;
+            if (isIndet) ctx.setLineDash([5, 4]);
             ctx.stroke();
+            ctx.setLineDash([]);
 
             let fontSize = Math.round((p.label.length > 6 ? 12 : (p.label.length > 4 ? 13 : 15)) * SCL);
             ctx.font = (isHover ? 'bold ' : '') + fontSize + 'px -apple-system, BlinkMacSystemFont, sans-serif';
@@ -1536,14 +2325,24 @@
             let h = n._boxH;
             n._drawW = w;
             n._drawH = h;
+            // Anchor the drum from the TOP of the measured box rather than
+            // centring it on n.y. The box now includes the sub-text drawn
+            // below the drum (see cylinderParts), so centring the drum would
+            // push that text back out the bottom — which is the bug this
+            // pair-of-changes fixes. Deriving both from cylinderParts keeps
+            // the drawn ink inside the measured box by construction.
+            let parts = cylinderParts(n.radius, SCL, FONT_SUB, n.sub ? n.sub.split('\n').length : 0);
             let ew = w / 2;
-            let eh = 7;
+            let eh = parts.capH;
+            let drumTop = n.y - h / 2 + parts.capH;
+            let drumBot = drumTop + parts.drumH;
+            let drumMid = (drumTop + drumBot) / 2;
 
             ctx.beginPath();
-            ctx.ellipse(n.x, n.y - h / 2, ew, eh, 0, Math.PI, Math.PI * 2);
-            ctx.lineTo(n.x + ew, n.y + h / 2);
-            ctx.ellipse(n.x, n.y + h / 2, ew, eh, 0, 0, Math.PI);
-            ctx.lineTo(n.x - ew, n.y - h / 2);
+            ctx.ellipse(n.x, drumTop, ew, eh, 0, Math.PI, Math.PI * 2);
+            ctx.lineTo(n.x + ew, drumBot);
+            ctx.ellipse(n.x, drumBot, ew, eh, 0, 0, Math.PI);
+            ctx.lineTo(n.x - ew, drumTop);
             ctx.fillStyle = hexToRgba(n.color, dimmed ? 0.04 : (isHover ? 0.18 : 0.08));
             ctx.fill();
             ctx.strokeStyle = hexToRgba(n.color, dimmed ? 0.12 : (isHover ? 0.7 : 0.3));
@@ -1551,7 +2350,7 @@
             ctx.stroke();
 
             ctx.beginPath();
-            ctx.ellipse(n.x, n.y - h / 2, ew, eh, 0, 0, Math.PI * 2);
+            ctx.ellipse(n.x, drumTop, ew, eh, 0, 0, Math.PI * 2);
             ctx.strokeStyle = hexToRgba(n.color, dimmed ? 0.08 : (isHover ? 0.5 : 0.2));
             ctx.lineWidth = 0.6;
             ctx.stroke();
@@ -1561,14 +2360,14 @@
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.15)' : (isHover ? '#fff' : 'rgba(255,255,255,0.75)');
-            ctx.fillText(n.label, n.x, n.y);
+            ctx.fillText(n.label, n.x, drumMid);
 
             if (!dimmed && n.sub) {
                 let lines = n.sub.split('\n');
                 ctx.font = FONT_SUB + 'px -apple-system, BlinkMacSystemFont, sans-serif';
                 ctx.fillStyle = isHover ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.2)';
                 for (let i = 0; i < lines.length; i++) {
-                    ctx.fillText(lines[i], n.x, n.y + h / 2 + 12 * SCL + i * (FONT_SUB + 2));
+                    ctx.fillText(lines[i], n.x, drumBot + 12 * SCL + i * (FONT_SUB + 2));
                 }
             }
         }
@@ -1656,6 +2455,7 @@
         }
 
         let time = 0;
+        let lastFrameMs = 0;
 
         function resize() {
             let rect = wrap.getBoundingClientRect();
@@ -1665,12 +2465,38 @@
             canvas.height = H * dpr;
             ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
             layoutAll();
+
+            // Second pass, portrait only: seven stages stacked in reading order
+            // are usually taller than a phone viewport. Grow the canvas to the
+            // height the flow needs and lay out again, so the page scrolls
+            // instead of the stages colliding. One extra pass, never a loop —
+            // the re-layout runs against the grown height and settles.
+            if (VERTICAL_FLOW && VERTICAL_NEEDED_H > H + 1) {
+                let target = Math.min(VERTICAL_NEEDED_H, 6000);
+                wrap.style.height = target + 'px';
+                let grown = wrap.getBoundingClientRect();
+                W = grown.width;
+                H = grown.height;
+                canvas.width = W * dpr;
+                canvas.height = H * dpr;
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                layoutAll();
+            } else if (!VERTICAL_FLOW && wrap.style.height) {
+                // Rotating back to landscape must release the portrait height,
+                // or the graph keeps a phone-tall canvas on a short viewport.
+                wrap.style.height = '';
+            }
         }
 
         function update() {
-            time += 0.016;
+            // Real elapsed time, not per-frame constants — a 120 Hz display
+            // must not spin the Earth twice as fast as a 60 Hz one.
+            let nowMs = Date.now();
+            let dtSec = lastFrameMs > 0 ? Math.min(0.1, (nowMs - lastFrameMs) / 1000) : 0.016;
+            lastFrameMs = nowMs;
+            time += dtSec;
 
-            globe.rotLon = (globe.rotLon + 0.08) % 360;
+            globe.rotLon = (globe.rotLon + 4.8 * dtSec) % 360; // 4.8°/s = 75 s/revolution
 
             let allArr = SOURCES.concat(CONFIDENCE, STORAGE, OUTPUTS, PROTOCOLS, [ENGINE, HUB]);
             for (let i = 0; i < allArr.length; i++) {
@@ -1718,6 +2544,7 @@
                 let from = allNodes[fp.edge.from];
                 let to = allNodes[fp.edge.to];
                 if (!from || !to) continue;
+                if (((from.zone === 'output') || (to.zone === 'output')) && (HUD_ACTIVE || !SHOW_OUTPUTS)) continue;
                 let curve = findEdgeCurveOffset(from, to, fp.edge.type);
                 let startPt, endPt;
                 if (curve) {
@@ -1737,7 +2564,8 @@
                     y = startPt.y + (endPt.y - startPt.y) * fp.t;
                 }
                 let isHL = hoverNode && (hoverNode.id === fp.edge.from || hoverNode.id === fp.edge.to);
-                let alpha = isHL ? fp.alpha * 1.8 : fp.alpha * 0.5;
+                let touchesEngine = fp.edge.from === 'engine' || fp.edge.to === 'engine';
+                let alpha = isHL ? fp.alpha * 1.8 : fp.alpha * (touchesEngine ? 1.0 : 0.75);
                 let color = from.color || COLORS.engine;
                 ctx.beginPath();
                 ctx.arc(x, y, fp.size * (isHL ? 1.3 : 1), 0, Math.PI * 2);
@@ -1746,7 +2574,39 @@
             }
         }
 
+        function drawFixturePulse() {
+            // Scanning a fixture-corpus domain lights up the Golden Fixtures
+            // node — the disclosure lives in the graph, not just the console.
+            let fx = allNodes.fixtures;
+            if (!fx || !fx._initialized) return;
+            let a = 0.4 + 0.35 * Math.sin(time * 3);
+            let hw = (fx._halfW || fx.radius) + 10;
+            let hh = (fx._halfH || fx.radius) + 10;
+            ctx.strokeStyle = 'rgba(255,204,128,' + a.toFixed(3) + ')';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([6, 4]);
+            ctx.strokeRect(fx.x - hw, fx.y - hh, hw * 2, hh * 2);
+            ctx.setLineDash([]);
+        }
+
         let placedEdgeLabels = [];
+        // Node AABBs as obstacles for edge-pill resolution, rebuilt once per
+        // frame. placedEdgeLabels and the node boxes were two lists that never
+        // consulted each other, so a pill could land on a node with both
+        // placements reporting success — the first full ink() sweep caught
+        // exactly that (spf×edgeLabel, dane×edgeLabel). Center-based {x,y,w,h}
+        // to match the pill entries; the pad matches the +6 push offsets.
+        let edgeLabelObstacles = [];
+        let edgeLabelTrace = [];
+        // Ink registry classes 3-5 (the __topoDbg comment names all five):
+        // globe ink (city tags + probe tags) and scan-overlay ink (timing
+        // badges), re-registered at their DRAW sites each frame so registered
+        // ink equals drawn ink by construction — never the layout's intent.
+        // _legendSafeY is the top of the DOM legend's reserved band; canvas
+        // ink below that line is an invasion the sweep must see.
+        let globeInkCurrent = [];
+        let scanInkCurrent = [];
+        let _legendSafeY = 0;
 
         function draw() {
             ctx.clearRect(0, 0, W, H);
@@ -1755,6 +2615,13 @@
             drawGlobe(time);
 
             placedEdgeLabels = [];
+            scanInkCurrent = [];
+            edgeLabelTrace = [];
+            edgeLabelObstacles = [];
+            allLayoutNodes.forEach(function(n) {
+                let hw = n._halfW || n.radius, hh = n._halfH || n.radius;
+                edgeLabelObstacles.push({ x: n.x, y: n.y, w: hw * 2 + 12, h: hh * 2 + 12 });
+            });
             FLOW_EDGES.forEach(function(e) { drawFlowEdge(e); });
             PROTO_EDGES.forEach(function(e) { drawFlowEdge(e); });
             drawFlowParticles();
@@ -1771,9 +2638,10 @@
             CONFIDENCE.forEach(function(c) { drawConfidenceNode(c); });
             STORAGE.forEach(function(s) { drawStorageNode(s); });
             PROTOCOLS.forEach(function(p) { drawProtocolNode(p); });
-            OUTPUTS.forEach(function(o) { drawOutputNode(o); });
+            if (SHOW_OUTPUTS && !HUD_ACTIVE) OUTPUTS.forEach(function(o) { drawOutputNode(o); });
 
             drawScanRings();
+            if (FIXTURE_SCAN) drawFixturePulse();
             drawVerdictPopover();
 
             if (debugBounds) {
@@ -1801,6 +2669,31 @@
            No navigation ever occurs (Safari-safe); links are plain anchors. */
 
         let REPLAY = window.__TOPO_REPLAY || null;
+        let FIXTURE_CORPUS = window.__FIXTURE_CORPUS || null;
+        let FIXTURE_SCAN = null;   // active fixture-domain disclosure, per scan
+        let SCAN_NOTICE = '';      // chip text: fixture disclosure and/or subdomain note
+        let HUD_ACTIVE = false;    // scan console owns the right side; output nodes yield
+        // Output nodes (Reports/JSON API/Schema.org/SVG Badges) are program
+        // plumbing, not DNS — hidden by default per Carey 2026-07-26, pending
+        // a mission-critical verdict from the science review. Flip to true to
+        // restore them to the idle graph.
+        let SHOW_OUTPUTS = false;
+
+        function fixtureLookup(domain) {
+            if (!FIXTURE_CORPUS) return null;
+            let d = String(domain || '').trim().toLowerCase().replace(/\.$/, '');
+            // Suffix walk = registrable-domain matching against the small
+            // corpus allowlist (www.apple.com → apple.com); mirrors the
+            // server's fixturecorpus.Lookup.
+            while (d) {
+                if (FIXTURE_CORPUS[d]) return FIXTURE_CORPUS[d];
+                let i = d.indexOf('.');
+                if (i < 0) return null;
+                d = d.slice(i + 1);
+                if (d.indexOf('.') < 0) return null;
+            }
+            return null;
+        }
 
         let scanEls = {
             form: document.getElementById('topoScanForm'),
@@ -1809,6 +2702,9 @@
             advBtn: document.getElementById('topoScanAdvBtn'),
             adv: document.getElementById('topoScanAdv'),
             hud: document.getElementById('topoScanHud'),
+            stamp: document.getElementById('topoScanStamp'),
+            fixtureHud: document.getElementById('topoScanFixtureHud'),
+            fixtureVerdict: document.getElementById('topoScanFixtureVerdict'),
             status: document.getElementById('topoScanStatus'),
             target: document.getElementById('topoScanTarget'),
             elapsed: document.getElementById('topoScanElapsed'),
@@ -1852,7 +2748,54 @@
             { node: 'caa',    label: 'CAA',     key: 'caa_analysis' }
         ];
 
+        /* Analyzer status strings → the four states this canvas can draw.
+           The server deliberately passes analyzer statuses through verbatim
+           (see analysis_replay.go: "never collapsed into pass or fail —
+           tri-state honesty"). The client used to know only four of them and
+           fall through to RED for everything else, which meant affirmative
+           results — 'pass', 'present', 'ok', 'found' — drew a failure ring,
+           and 'skipped'/'not_applicable' drew failure for something that was
+           never measured. That is precisely the absence-as-result error the
+           server comment exists to prevent, reintroduced one layer later. */
+        let VERDICT_STATUS_ALIAS = {
+            // Affirmative
+            success: 'success', pass: 'success', passed: 'success', ok: 'success',
+            present: 'success', found: 'success', secure: 'success', valid: 'success',
+            configured: 'success', enforced: 'success', completed: 'success',
+            synchronized: 'success', validated: 'success',
+            // Qualified / partial
+            warning: 'warning', partial: 'warning', propagating: 'warning',
+            inferred: 'warning', deferred: 'warning', default: 'warning',
+            testing: 'warning', weak: 'warning',
+            // Adverse
+            fail: 'failed', failed: 'failed', error: 'failed', bogus: 'failed',
+            insecure: 'failed', exposed: 'failed', invalid: 'failed',
+            // Observed-but-unscored, or explicitly not measured
+            indeterminate: 'indeterminate', info: 'indeterminate',
+            observed: 'indeterminate', not_applicable: 'indeterminate',
+            skipped: 'indeterminate', unknown: 'indeterminate', custom: 'indeterminate',
+            clear: 'indeterminate'
+        };
+
+        /* Absence is protocol-dependent, and that is a scientific judgement
+           rather than a rendering detail — a domain with no DMARC has a real
+           gap; a domain with no DANE is unremarkable. So absence maps per
+           protocol instead of by one global rule. Tunable on purpose. */
+        let ABSENCE_STATUSES = { missing: 1, absent: 1, not_found: 1, not_configured: 1, no_key: 1, none: 1 };
+        let ABSENCE_IS_GAP = { spf: 1, dmarc: 1, dkim: 1, dnssec: 1, caa: 1 };
+
+        function canonicalVerdict(nodeId, status) {
+            if (typeof status !== 'string' || !status) return 'indeterminate';
+            let s = status.toLowerCase();
+            if (ABSENCE_STATUSES[s]) return ABSENCE_IS_GAP[nodeId] ? 'warning' : 'indeterminate';
+            // An unrecognised string means this client does not know what the
+            // analyzer meant. Saying so is the honest render; guessing 'failed'
+            // is not.
+            return VERDICT_STATUS_ALIAS[s] || 'indeterminate';
+        }
+
         let VERDICT_RING_COLORS = {
+            failed: 'rgba(239,83,80,0.85)',
             success: 'rgba(129,199,132,0.85)',
             warning: 'rgba(255,183,77,0.85)',
             indeterminate: 'rgba(159,176,192,0.7)',
@@ -1860,6 +2803,7 @@
         };
 
         let VERDICT_RING_OUTER = {
+            failed: 'rgba(239,83,80,0.35)',
             success: 'rgba(129,199,132,0.35)',
             warning: 'rgba(255,183,77,0.35)',
             indeterminate: 'rgba(159,176,192,0.3)',
@@ -2101,11 +3045,18 @@
         }
 
         function drawScanNodeLabel(n, text, color) {
-            ctx.font = '600 ' + Math.round(9 * SCL) + 'px ' + 'ui-monospace, SFMono-Regular, Menlo, monospace';
+            let fontPx = Math.round(9 * SCL);
+            ctx.font = '600 ' + fontPx + 'px ' + 'ui-monospace, SFMono-Regular, Menlo, monospace';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'top';
             ctx.fillStyle = color;
-            ctx.fillText(text, n.x, n.y + effRadius(n) + 9);
+            let badgeY = n.y + effRadius(n) + 9;
+            ctx.fillText(text, n.x, badgeY);
+            // Ink class 5a: the timing/task badge under a node. Measured at the
+            // draw site (a handful per frame, bounded by phase groups — no
+            // memoisation needed at this volume).
+            let bw = ctx.measureText(text).width;
+            scanInkCurrent.push({ kind: 'timingBadge', id: n.id, x: n.x - bw / 2, y: badgeY, w: bw, h: fontPx });
         }
 
         function scanPhaseLabel(ph) {
@@ -2121,15 +3072,88 @@
             return null;
         }
 
+        // Scan/verdict rings: circular nodes get circles, but wide box nodes
+        // (source tags, IETF, storage cylinders) get rings that hug the box.
+        // effRadius on a wide tag yields a circle sized to the tag's WIDTH,
+        // which bleeds onto the neighbors in the packed source column — the
+        // "crisp elliptical strokes overlapping the source nodes" artifact.
+        // 'hub' is box-drawn (roundRect) like rect/cylinder — it was missing
+        // here, so DNS Resolvers got a wide circle circumscribing its box on
+        // top of the outline it already has. One indicator is enough.
+        function isBoxNode(n) { return n.shape === 'rect' || n.shape === 'cylinder' || n.shape === 'hub'; }
+
+        // Once a scan has produced a verdict, the node itself must carry it.
+        // Protocol nodes are tinted by CATEGORY (DANE is transport → green),
+        // so an indeterminate DANE still read as green while its chip and ring
+        // said otherwise. The verdict outranks the category.
+        let VERDICT_NODE_COLORS = {
+            success: '#81c784',
+            warning: '#ffb74d',
+            indeterminate: '#9fb0c0',
+            info: '#9fb0c0',
+            failed: '#ef5350',
+            error: '#ef5350'
+        };
+        function nodeVerdictColor(id) {
+            if (!scanState.verdicts) return null;
+            let v = scanState.verdicts[id];
+            if (!v) return null;
+            // scanState.verdicts holds canonical states, but fall back to
+            // indeterminate rather than failed: an unknown state is unknown,
+            // not bad.
+            return VERDICT_NODE_COLORS[v] || VERDICT_NODE_COLORS.indeterminate;
+        }
+
+        // Verdicts arrive all at once; flash the result colour through the
+        // node bodies, then decay back to the family palette. Attention first,
+        // taxonomy after — the family colours are themselves scientific
+        // communication and must not be permanently overwritten by a verdict.
+        const VERDICT_FLASH_MS = 1400;
+        function verdictFlash() {
+            if (!scanState.verdictAt) return 0;
+            let t = (Date.now() - scanState.verdictAt) / VERDICT_FLASH_MS;
+            if (t < 0 || t > 1) return 0;
+            return 1 - t;
+        }
+
+        function mixHex(a, b, t) {
+            let pa = Number.parseInt(a.slice(1), 16), pb = Number.parseInt(b.slice(1), 16);
+            let ar = (pa >> 16) & 255, ag = (pa >> 8) & 255, ab = pa & 255;
+            let br = (pb >> 16) & 255, bg = (pb >> 8) & 255, bb = pb & 255;
+            let r = Math.round(ar + (br - ar) * t);
+            let g = Math.round(ag + (bg - ag) * t);
+            let bl = Math.round(ab + (bb - ab) * t);
+            return '#' + ((1 << 24) | (r << 16) | (g << 8) | bl).toString(16).slice(1);
+        }
+
+        function ringBoxPath(n, pad) {
+            let hw = ((n._drawW || n.radius * 2.2) / 2) + pad;
+            let hh = ((n._drawH || n.radius * 1.4) / 2) + pad;
+            roundRect(n.x - hw, n.y - hh, hw * 2, hh * 2, 9);
+        }
+
         function drawRingCircle(n, color, width) {
-            ctx.beginPath();
-            ctx.arc(n.x, n.y, effRadius(n) + 5, 0, Math.PI * 2);
             ctx.strokeStyle = color;
             ctx.lineWidth = width;
+            if (isBoxNode(n)) {
+                ringBoxPath(n, 5);
+                ctx.stroke();
+                return;
+            }
+            ctx.beginPath();
+            ctx.arc(n.x, n.y, effRadius(n) + 5, 0, Math.PI * 2);
             ctx.stroke();
         }
 
         function drawRunningRing(n) {
+            if (isBoxNode(n)) {
+                let a = 0.35 + 0.5 * (0.5 + 0.5 * Math.sin(time * 3.6));
+                ctx.strokeStyle = 'rgba(255,193,7,' + a.toFixed(3) + ')';
+                ctx.lineWidth = 2;
+                ringBoxPath(n, 5);
+                ctx.stroke();
+                return;
+            }
             let r = effRadius(n) + 5;
             let a0 = (time * 1.8) % (Math.PI * 2);
             ctx.beginPath();
@@ -2151,15 +3175,21 @@
         }
 
         function drawVerdictRings(n, status) {
-            let vc = VERDICT_RING_COLORS[status] || 'rgba(239,83,80,0.85)';
-            let oc = VERDICT_RING_OUTER[status] || 'rgba(239,83,80,0.35)';
+            let vc = VERDICT_RING_COLORS[status] || VERDICT_RING_COLORS.indeterminate;
+            let oc = VERDICT_RING_OUTER[status] || VERDICT_RING_OUTER.indeterminate;
             let dashed = status === 'indeterminate' || status === 'info';
+            // The ring is now the sole carrier of the verdict, so it has to be
+            // strong enough to read on its own against a family-coloured body.
             if (dashed) ctx.setLineDash([4, 3]);
-            drawRingCircle(n, vc, 2);
-            ctx.beginPath();
-            ctx.arc(n.x, n.y, effRadius(n) + 9, 0, Math.PI * 2);
+            drawRingCircle(n, vc, 3.2);
             ctx.strokeStyle = oc;
-            ctx.lineWidth = 1.2;
+            ctx.lineWidth = 1.6;
+            if (isBoxNode(n)) {
+                ringBoxPath(n, 9);
+            } else {
+                ctx.beginPath();
+                ctx.arc(n.x, n.y, effRadius(n) + 9, 0, Math.PI * 2);
+            }
             ctx.stroke();
             if (dashed) ctx.setLineDash([]);
         }
@@ -2294,10 +3324,17 @@
             scanState.lastPollMs = 0;
             scanState.groups = {};
             scanState.verdicts = null;
+            scanState.verdictAt = 0;
             scanState.verdictDetails = null;
             if (scanEls.phaseBar) scanEls.phaseBar.style.width = '0%';
             if (scanEls.taskBar) scanEls.taskBar.style.width = '0%';
             if (scanEls.latency) scanEls.latency.textContent = 'acquisition \u2014';
+            HUD_ACTIVE = false;
+            FIXTURE_SCAN = null;
+            SCAN_NOTICE = '';
+            setHidden(scanEls.stamp, true);
+            setHidden(scanEls.fixtureHud, true);
+            setHidden(scanEls.fixtureVerdict, true);
             setHidden(scanEls.hud, true);
             setHidden(scanEls.error, true);
             setHidden(scanEls.verdict, true);
@@ -2371,24 +3408,30 @@
             }
         }
 
-        function verdictClass(status) {
-            if (status === 'success') return 'topo-v-ok';
-            if (status === 'warning') return 'topo-v-warn';
-            if (status === 'indeterminate' || status === 'info') return 'topo-v-ind';
+        function verdictClass(canon) {
+            if (canon === 'success') return 'topo-v-ok';
+            if (canon === 'warning') return 'topo-v-warn';
+            if (canon === 'indeterminate' || canon === 'info') return 'topo-v-ind';
             return 'topo-v-bad';
         }
 
         function scanBuildChips(fr) {
             scanState.verdicts = {};
             scanState.verdictDetails = {};
+            scanState.verdictAt = Date.now();
             for (let i = 0; i < VERDICT_PROTOCOLS.length; i++) {
                 let vp = VERDICT_PROTOCOLS[i];
                 let section = fr[vp.key];
                 let chip = document.createElement('span');
                 if (section && typeof section.status === 'string') {
-                    chip.className = 'topo-vchip ' + verdictClass(section.status);
+                    // Canonicalise once, here. Everything downstream — chips,
+                    // node tint, rings — reads the canonical state, while the
+                    // tooltip still shows the analyzer's own word so nothing
+                    // is hidden by the translation.
+                    let canon = canonicalVerdict(vp.node, section.status);
+                    chip.className = 'topo-vchip ' + verdictClass(canon);
                     chip.title = vp.label + ': ' + section.status;
-                    scanState.verdicts[vp.node] = section.status;
+                    scanState.verdicts[vp.node] = canon;
                     if (typeof section.message === 'string' && section.message) {
                         scanState.verdictDetails[vp.node] = section.message;
                     }
@@ -2410,14 +3453,129 @@
             scanEls.links.appendChild(a);
         }
 
-        function scanLoadVerdicts(analysisID, redirectURL) {
+        // sub renders VISIBLY under the label. It used to be passed as
+        // a.title — a hover tooltip, which nobody sees on touch and few see on
+        // desktop. Right after a 60-second scan the reader needs to know which
+        // door to open, so the difference between the reports has to be legible
+        // without hovering.
+        // onClick makes a CTA an action rather than a destination — used by Play
+        // Again, which restarts the timeline in place instead of navigating. It
+        // keeps anchor styling and keyboard behaviour; the href stays '#' and the
+        // default is prevented.
+        function scanAddCTA(href, text, sub, extraClass, onClick) {
+            let a = document.createElement('a');
+            a.className = 'topo-scan-cta' + (extraClass ? ' ' + extraClass : '');
+            a.href = href;
+            if (onClick) {
+                a.addEventListener('click', function(ev) { ev.preventDefault(); onClick(); });
+            }
+            let label = document.createElement('span');
+            label.className = 'topo-scan-cta-label';
+            label.textContent = text;
+            a.appendChild(label);
+            if (sub) {
+                let s = document.createElement('span');
+                s.className = 'topo-scan-cta-sub';
+                s.textContent = sub;
+                a.appendChild(s);
+            }
+            scanEls.links.appendChild(a);
+        }
+
+        // Stamps the subject and the moment under the page title, where there
+        // is open space — the instrument should say what it measured and when.
+        function scanSetStamp(domain, seconds) {
+            if (!scanEls.stamp) return;
+            if (!domain) { scanEls.stamp.hidden = true; return; }
+            scanEls.stamp.textContent = '';
+            let d = document.createElement('span');
+            d.className = 'topo-stamp-domain';
+            d.textContent = domain;
+            scanEls.stamp.appendChild(d);
+            let meta = document.createElement('span');
+            meta.className = 'topo-stamp-meta';
+            let now = new Date();
+            let hh = String(now.getUTCHours()).padStart(2, '0');
+            let mm = String(now.getUTCMinutes()).padStart(2, '0');
+            meta.textContent = (seconds ? 'analysed in ' + seconds + ' · ' : '') + hh + ':' + mm + ' UTC';
+            scanEls.stamp.appendChild(meta);
+            scanEls.stamp.hidden = false;
+        }
+
+        // Builds the per-scan notice: fixture disclosure (annotated when the
+        // match came via a parent domain) and/or a plain subdomain heads-up
+        // for www.-prefixed inputs. The www rule is deliberately narrow — a
+        // general registrable-domain test needs the PSL, and bbc.co.uk must
+        // not be called a subdomain.
+        function scanNotices(domain) {
+            let d = String(domain || '').trim().toLowerCase().replace(/\.$/, '');
+            let fx = fixtureLookup(d);
+            let exact = FIXTURE_CORPUS && FIXTURE_CORPUS[d];
+            let text = '';
+            if (fx) {
+                text = fx.badge + ' — ' + fx.note;
+                if (!exact) text += ' (Matched via its parent domain — you are scanning a subdomain.)';
+            } else if (d.indexOf('www.') === 0) {
+                text = 'Heads-up: ' + d + ' is a subdomain — email posture is typically evaluated at the registrable domain (' + d.slice(4) + ').';
+            }
+            return { fx: fx, text: text };
+        }
+
+        function scanShowNotice(el) {
+            if (!el) return;
+            if (SCAN_NOTICE) {
+                el.textContent = SCAN_NOTICE;
+                el.hidden = false;
+            } else {
+                el.hidden = true;
+            }
+        }
+
+        function scanLoadVerdicts(analysisID, redirectURL, isRestore) {
             let myGen = scanState.gen;
             let base = redirectURL || ('/analysis/' + analysisID);
             setHidden(scanEls.verdict, false);
-            scanAddLink(base, 'Engineer\u2019s Report', 'Engineer\u2019s DNS Intelligence Report \u2014 full technical findings');
-            scanAddLink('/analysis/' + analysisID + '/view/B', 'Executive Brief', 'Executive\u2019s DNS Intelligence Brief \u2014 executive summary');
-            scanAddLink('/analysis/' + analysisID + '/view/C', 'Recon Report \u00b7 Red Team \u00b7 Scotopic', 'Covert Recon Report \u2014 red-team perspective in the scotopic-preserving covert interface');
-            if (!REPLAY) scanAddLink('/replay/' + analysisID, 'Scan Replay', 'Shareable timeline replay of this scan on the pipeline topology');
+            scanShowNotice(scanEls.fixtureVerdict);
+            // isRestore: re-writing the record here would stamp a new ts on
+            // every page view, so the 6-hour expiry could never elapse — the
+            // panel would persist indefinitely for anyone who keeps returning.
+            // Only a real scan may (re)start that clock.
+            if (!REPLAY && !isRestore) {
+                // Survive refresh: the report links shouldn't evaporate on
+                // reload. Restored at init from sessionStorage.
+                try {
+                    sessionStorage.setItem('topoLastScan', JSON.stringify({
+                        id: analysisID, base: base,
+                        domain: scanEls.target ? scanEls.target.textContent : '',
+                        ts: Date.now()
+                    }));
+                } catch (e) { /* private mode \u2014 restore is best-effort */ }
+            }
+            scanAddCTA(base, 'Engineer\u2019s Report', 'The deepest technical findings \u2014 every record, every RFC', 'topo-scan-cta--flagship');
+            scanAddCTA('/analysis/' + analysisID + '/view/B', 'Executive Brief', 'The same findings in plain English \u2014 built to hand to a decision-maker');
+            // Remediation and Replay share one row: what to fix next, and how
+            // it was measured. Remediation is the tool's next most important
+            // output after the reports themselves.
+            scanAddCTA('/remediation?analysis_id=' + analysisID, 'Remediation', 'Prioritised, actionable fixes for what this scan found', 'topo-scan-cta--half topo-scan-cta--fix');
+            // The half-width pair needs BOTH halves or flexbox grows the survivor
+            // to fill the row, which silently undoes the split. In replay the
+            // Replay link would point at the page you are already on, so the
+            // partner becomes Play Again \u2014 the same replayStart() the Restart
+            // control runs, placed where the eye already is.
+            if (!REPLAY) {
+                scanAddCTA('/replay/' + analysisID, '\u25b6 Replay', 'Shareable timeline replay of this scan on the pipeline topology', 'topo-scan-cta--half');
+            } else {
+                scanAddCTA('#', '\u21bb Play Again', 'Run this recorded timeline from the beginning, at the current speed', 'topo-scan-cta--half', function() {
+                    if (replayState.data) replayStart();
+                });
+            }
+            scanAddCTA('/history', 'History', 'Every scan this tool has run \u2014 watch a domain change, or hold it against its own past');
+            let recon = document.createElement('a');
+            recon.className = 'topo-scan-recon';
+            recon.href = '/analysis/' + analysisID + '/view/C';
+            recon.textContent = '\u25b6 Recon Report \u00b7 Red Team \u00b7 Scotopic';
+            recon.title = 'Covert Recon Report \u2014 red-team perspective in the scotopic-preserving covert interface';
+            scanEls.links.appendChild(recon);
             fetch('/api/analysis/' + analysisID, { headers: { 'Accept': 'application/json' } }).then(function(resp) {
                 return resp.ok ? resp.json() : null;
             }).then(function(data) {
@@ -2448,10 +3606,14 @@
             scanEls.status.classList.add('is-complete');
             scanEls.cancel.textContent = 'Reset';
             scanEls.run.disabled = false;
+            scanSetStamp(scanEls.target ? scanEls.target.textContent : '', scanEls.elapsed ? scanEls.elapsed.textContent : '');
             if (data.analysis_id) {
                 scanLoadVerdicts(data.analysis_id, data.redirect_url);
             } else {
                 setHidden(scanEls.verdict, false);
+                // Non-persisted scans (e.g. the thisdoesnotexist negative
+                // control) still owe the fixture disclosure in the verdict.
+                scanShowNotice(scanEls.fixtureVerdict);
                 scanEls.note.textContent = 'Scan complete \u2014 results were not persisted, so there is no stored report to link. /dev/null scans, unauthenticated custom-selector scans, and non-existent domains are analyzed without being written to the database.';
                 setHidden(scanEls.note, false);
             }
@@ -2504,6 +3666,11 @@
             scanEls.elapsed.textContent = '0.0s';
             scanEls.phases.textContent = 'phases 0/9 \u00b7 tasks 0/0';
             setHidden(scanEls.hud, false);
+            HUD_ACTIVE = true;
+            let notice = scanNotices(domain);
+            FIXTURE_SCAN = notice.fx;
+            SCAN_NOTICE = notice.text;
+            scanShowNotice(scanEls.fixtureHud);
             scanEls.run.disabled = true;
             let fd = new FormData(scanEls.form);
             fetch('/analyze', {
@@ -2534,6 +3701,13 @@
                 if (scanState.gen !== myGen) return;
                 scanState.active = false;
                 scanState.ringsOn = false;
+                // The HUD hides on a failed start, so release its claims too \u2014
+                // otherwise the output nodes stay hidden and a fixture-domain
+                // pulse flashes forever with no scan running.
+                HUD_ACTIVE = false;
+                FIXTURE_SCAN = null;
+                SCAN_NOTICE = '';
+                setHidden(scanEls.fixtureHud, true);
                 setHidden(scanEls.hud, true);
                 scanEls.run.disabled = false;
                 scanShowError(err && err.message ? err.message : 'Network error \u2014 please check your connection and try again.');
@@ -2626,7 +3800,10 @@
             let d = replayState.data;
             if (d.verdicts) {
                 scanState.verdicts = {};
-                for (let k in d.verdicts) scanState.verdicts[k] = d.verdicts[k];
+                // Replay statuses come from the same analyzer vocabulary, so
+                // they need the same canonicalisation as a live scan.
+                for (let k in d.verdicts) scanState.verdicts[k] = canonicalVerdict(k, d.verdicts[k]);
+                scanState.verdictAt = Date.now();
             }
             scanLoadVerdicts(d.analysis_id || REPLAY.id, null);
         }
@@ -2637,6 +3814,7 @@
             replayState.done = false;
             replayState.T = 0;
             scanState.verdicts = null;
+            scanState.verdictAt = 0;
             scanState.verdictDetails = null;
             scanState.groups = {};
             scanState.ringsOn = true;
@@ -2656,12 +3834,97 @@
             }, 100);
         }
 
+        // Arriving with ?domain= — prefill and run immediately. This is the
+        // entry point the homepage form, the results-page Topology button and
+        // history all land on: the scan starts on arrival rather than showing
+        // an empty box whose placeholder reads like a wrong prefill.
+        let AUTORUN_DOMAIN = null;
+        if (!REPLAY && scanEls.form && scanEls.domain) {
+            let raw = new URLSearchParams(location.search).get('domain') || '';
+            let d = raw.trim().toLowerCase().replace(/^\.+/, '').replace(/\.+$/, '');
+            if (d && d.length <= 253 && /^[a-z0-9-]+(\.[a-z0-9-]+)*$/.test(d)) {
+                AUTORUN_DOMAIN = d;
+                scanEls.domain.value = d;
+            }
+        }
+
+        // A restored panel is a record of a PREVIOUS scan, not the state of
+        // this page. Say so, name the domain, timestamp it, and give the reader
+        // one click to clear it — a bare /topology should not carry findings
+        // the user did not ask for on this visit.
+        function scanMarkRestored(domain, ageMs) {
+            if (!scanEls.verdict) return;
+            let mins = Math.round(ageMs / 60000);
+            let when = mins < 1 ? 'moments ago'
+                : mins < 60 ? mins + ' min ago'
+                : Math.round(mins / 60) + ' h ago';
+            let bar = document.createElement('div');
+            bar.className = 'topo-scan-restored';
+            bar.setAttribute('role', 'note');
+            let txt = document.createElement('span');
+            txt.textContent = 'Previous scan — ' + domain + ' · ' + when + '. Not a live result.';
+            let clear = document.createElement('button');
+            clear.type = 'button';
+            clear.className = 'topo-scan-restored-clear';
+            clear.textContent = 'Clear';
+            clear.addEventListener('click', function() {
+                try { sessionStorage.removeItem('topoLastScan'); } catch (e) { /* private mode */ }
+                setHidden(scanEls.verdict, true);
+                if (scanEls.links) scanEls.links.innerHTML = '';
+                if (scanEls.target) scanEls.target.textContent = '';
+                FIXTURE_SCAN = false;
+                SCAN_NOTICE = '';
+                if (scanEls.fixtureVerdict) setHidden(scanEls.fixtureVerdict, true);
+                bar.remove();
+            });
+            bar.appendChild(txt);
+            bar.appendChild(clear);
+            scanEls.verdict.insertBefore(bar, scanEls.verdict.firstChild);
+        }
+
+        // Restore the last completed scan's verdict panel across refresh —
+        // the report links shouldn't evaporate on reload (6 h window). Skipped
+        // when a fresh scan is inbound, so stale results never sit under a
+        // running scan.
+        if (!REPLAY && !AUTORUN_DOMAIN && scanEls.verdict && scanEls.links) {
+            try {
+                let last = JSON.parse(sessionStorage.getItem('topoLastScan') || 'null');
+                let age = Date.now() - (last && last.ts ? last.ts : 0);
+                // A restored panel MUST name its subject. Without a domain the
+                // page asserts findings about nothing — a fixture-corpus notice
+                // sitting beside an empty input reads as a claim about whatever
+                // the reader assumes, including the placeholder. If we cannot
+                // say which domain a finding is about, we do not show it.
+                if (last && last.id && last.domain && age < 6 * 3600 * 1000) {
+                    let restoredNotice = scanNotices(last.domain);
+                    FIXTURE_SCAN = restoredNotice.fx;
+                    SCAN_NOTICE = restoredNotice.text;
+                    if (scanEls.target) scanEls.target.textContent = last.domain;
+                    scanLoadVerdicts(last.id, last.base || null, true);
+                    scanMarkRestored(last.domain, age);
+                } else if (last && (!last.domain || age >= 6 * 3600 * 1000)) {
+                    // Unusable or expired: drop it rather than leave a record
+                    // that can be half-restored on a later visit.
+                    sessionStorage.removeItem('topoLastScan');
+                }
+            } catch (e) { /* restore is best-effort */ }
+        }
+
+        if (AUTORUN_DOMAIN && scanEls.run && scanEls.hud) {
+            scanStart();
+        }
+
         if (REPLAY && scanEls.hud && scanEls.status && scanEls.cancel) {
             if (scanEls.form) scanEls.form.hidden = true;
             scanEls.target.textContent = REPLAY.domain || '';
             scanEls.elapsed.textContent = '0.0s';
             scanEls.status.textContent = 'Loading Replay';
             setHidden(scanEls.hud, false);
+            HUD_ACTIVE = true;
+            let replayNotice = scanNotices(REPLAY.domain);
+            FIXTURE_SCAN = replayNotice.fx;
+            SCAN_NOTICE = replayNotice.text;
+            scanShowNotice(scanEls.fixtureHud);
             scanEls.cancel.textContent = 'Restart';
             scanEls.cancel.title = 'Restart the replay from the beginning.';
             scanEls.cancel.addEventListener('click', function() {
@@ -2713,9 +3976,45 @@
         initAmbient();
         initFlowParticles();
         initSignalParticles();
-        window.addEventListener('resize', function() {
+        function relayout() {
             resize();
             initAmbient();
-        });
+        }
+        window.addEventListener('resize', relayout);
+        // The wrap can change size without a window resize event (panel
+        // toggles, scrollbar appearance, embedded panes). A layout computed
+        // at a stale width strands mobile/tablet node targets on a grown
+        // canvas — the protocol circles and their curved edges then sit on
+        // top of the source column. Watch the wrap itself, not just the window.
+        if (typeof ResizeObserver !== 'undefined') {
+            let roRect = wrap.getBoundingClientRect();
+            let roW = roRect.width, roH = roRect.height, roTimer = null;
+            let ro = new ResizeObserver(function(entries) {
+                let r = entries[entries.length - 1].contentRect;
+                if (Math.abs(r.width - roW) < 1 && Math.abs(r.height - roH) < 1) return;
+                roW = r.width; roH = r.height;
+                if (roTimer) clearTimeout(roTimer);
+                roTimer = setTimeout(relayout, 120);
+            });
+            ro.observe(wrap);
+        }
+        // Embedded panes and some hosts size the document AFTER script
+        // eval, so the boot resize() can run against a zero-width wrap and
+        // the layout collapses onto x=4. No window resize event follows and
+        // a ResizeObserver whose baseline is taken after the late sizing
+        // never fires either — the collapsed layout sticks (measured live:
+        // W=0 with the wrap at its final size moments later). Poll until
+        // the wrap's size and the laid-out size agree.
+        (function healBootSize() {
+            let tries = 0;
+            function check() {
+                let r = wrap.getBoundingClientRect();
+                let mismatch = Math.abs(r.width - W) >= 1 || Math.abs(r.height - H) >= 1;
+                if (mismatch && r.width > 0 && r.height > 0) relayout();
+                else if (W > 0 && !mismatch) return;
+                if (++tries < 300) requestAnimationFrame(check);
+            }
+            requestAnimationFrame(check);
+        })();
         loop();
     })();

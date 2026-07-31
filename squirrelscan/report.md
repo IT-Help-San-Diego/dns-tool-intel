@@ -47,6 +47,30 @@
 - **Impact**: High — credentials visible in page source
 - **Fix**: Move OAuth client ID to server-side config; sanitize analysis view output to not leak tokens
 
+> **RESOLUTION 2026-07-26 — BOTH FINDINGS ARE FALSE POSITIVES. No credential was ever exposed.**
+> The original text above is retained as the audit record; this note is the correction.
+>
+> **1. "Google OAuth Client ID exposed"** — an OAuth 2.0 client identifier is a *public*
+> value by design. RFC 6749 §2.2: "The client identifier is not a secret; it is exposed
+> to the resource owner." It necessarily appears in every authorization request URL on
+> every OAuth implementation on the web. There is nothing to move server-side, and doing
+> so would break the flow. Not a finding.
+>
+> **2. "Sanity Token exposed"** — the matched string `skgRsW9JOZ…` is a fragment of a
+> **DKIM public key**, sitting inside a `k=rsa; t=s; p=MIIBIjANBgkqhkiG9w0BAQEFAAOC…`
+> TXT record that the page exists to display. The scanner's `sk[A-Za-z0-9]{30,}`
+> heuristic (aimed at Sanity.io `sk…` secrets) collided with a chunk of a base64-encoded
+> RSA modulus. Measured false-positive rate: **3.2% of random 2048-bit-sized base64
+> blobs match that pattern** (n=2000). DNS Tool renders a DKIM key on essentially every
+> analysis page that has one, across multiple selectors, so a match is statistically
+> inevitable rather than surprising. A DKIM public key is public by definition — that is
+> what the "p" in the record is for. Not a finding.
+>
+> Both were verified against the live site and against the mechanism, not merely
+> re-read. Left unannotated, this section made a high-severity accusation of credential
+> exposure against the project's own production site, in a document that is git-tracked
+> and therefore ships inside the Zenodo deposit.
+
 #### WARNING: CSP script-src allows wildcard (*)
 - **Rule**: `security/csp`
 - **Severity**: WARNING
@@ -375,7 +399,7 @@
 ## Priority Recommendations
 
 ### Critical (Fix Immediately)
-1. **Remove leaked secrets** from `/auth/login` (OAuth Client ID) and analysis pages (Sanity Token)
+1. ~~**Remove leaked secrets** from `/auth/login` (OAuth Client ID) and analysis pages (Sanity Token)~~ — **WITHDRAWN 2026-07-26: both false positives.** The OAuth client ID is public by design (RFC 6749 §2.2); the "Sanity Token" is a fragment of a DKIM public key matched by an over-broad `sk[A-Za-z0-9]{30,}` heuristic. See the resolution note in the Security section.
 2. **Fix broken internal links** on `/architecture` (missing SVG diagrams)
 3. **Tighten CSP** — remove wildcard `*` from script-src
 

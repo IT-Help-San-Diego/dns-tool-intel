@@ -41,13 +41,13 @@ export const SHAPE_FORMULAS = {
   CIRCLE_H: (radius: number) => radius * 2,
 
   DIAMOND_W: (radius: number, contentW: number) => Math.max(radius * 1.7, contentW + 8),
-  DIAMOND_H: (radius: number) => radius * 1.7,
+  DIAMOND_H: (radius: number, subExtra: number) => radius * 1.7 + subExtra,
 
   HEXAGON_W: (radius: number, contentW: number) => Math.max(radius * 2, contentW),
-  HEXAGON_H: (radius: number) => radius * 2,
+  HEXAGON_H: (radius: number, subExtra: number) => radius * 2 + subExtra,
 
   CYLINDER_W: (radius: number, contentW: number) => Math.max(radius * 2.4, contentW),
-  CYLINDER_H: (radius: number) => radius * 1.5 + 16,
+  CYLINDER_H: (radius: number, subExtra: number) => radius * 1.5 + 16 + subExtra,
 
   HUB_W: (radius: number, contentW: number) => Math.max(radius * 2.4, contentW),
   HUB_H: (radius: number, scale: number) => Math.max(radius * 1.4, 40 * scale),
@@ -75,6 +75,12 @@ export function computeNodeBox(
     }
   }
   const contentW = Math.max(labelW, subW) + 24 * scale;
+  // Extra height for wrapped sub-text. Diamonds, hexagons, and cylinders
+  // draw a multi-line sub below the label just like rects do, so their
+  // heights must include it — the client's computeNodeBox in topology.js
+  // is the reference; the two must agree or the precomputed layouts place
+  // neighbours inside the drawn text.
+  const subExtra = subLineCount > 1 ? (subLineCount - 1) * (fontSub + 2) : 0;
 
   let width: number;
   let height: number;
@@ -86,15 +92,15 @@ export function computeNodeBox(
       break;
     case 'diamond':
       width = SHAPE_FORMULAS.DIAMOND_W(radius, contentW);
-      height = SHAPE_FORMULAS.DIAMOND_H(radius);
+      height = SHAPE_FORMULAS.DIAMOND_H(radius, subExtra);
       break;
     case 'hexagon':
       width = SHAPE_FORMULAS.HEXAGON_W(radius, contentW);
-      height = SHAPE_FORMULAS.HEXAGON_H(radius);
+      height = SHAPE_FORMULAS.HEXAGON_H(radius, subExtra);
       break;
     case 'cylinder':
       width = SHAPE_FORMULAS.CYLINDER_W(radius, contentW);
-      height = SHAPE_FORMULAS.CYLINDER_H(radius);
+      height = SHAPE_FORMULAS.CYLINDER_H(radius, subExtra);
       break;
     case 'hub':
     case 'roundRect':

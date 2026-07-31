@@ -189,3 +189,70 @@ func TestScanProgress_AnalysisEngineOneCallback(t *testing.T) {
 		t.Fatalf("expected analysis_engine tasks_total=1, got %v", eng["tasks_total"])
 	}
 }
+
+// A phase group's tasks run concurrently, so summing their durations produces a
+// number larger than the wall-clock time the group occupied — and, early in a
+// scan, larger than the whole scan's elapsed time. That is what published
+// "Policy Records - complete in 8.0s" at an elapsed 2.5s in the scan ticker.
+//
+// The invariant is absolute: nothing may claim to have taken longer than the
+// scan has been running. It holds by construction now, because the duration is
+// derived from CompletedAtMs - StartedAtMs and both are stamped from the same
+// clock as elapsed_ms.
+func TestPhaseDurationNeverExceedsElapsed(t *testing.T) {
+	store := NewProgressStore()
+	defer store.Close()
+	_, sp := store.NewToken()
+
+	// policy_records = mta_sts, tlsrpt, bimi, caa. Four tasks, dispatched under
+	// a WaitGroup, each reporting 2s of its own overlapping wall time.
+	for i := 0; i < 4; i++ {
+		sp.UpdatePhase("policy_records", "running", 0)
+	}
+	for i := 0; i < 4; i++ {
+		sp.UpdatePhase("policy_records", "done", 2000)
+	}
+
+	data := sp.toJSON()
+	elapsed := data["elapsed_ms"].(int)
+	phases := data["phases"].(map[string]any)
+
+	for group, raw := range phases {
+		p := raw.(map[string]any)
+		dur, ok := p["duration_ms"].(int)
+		if !ok {
+			continue
+		}
+		if dur > elapsed {
+			t.Fatalf("%s: duration_ms=%d exceeds elapsed_ms=%d — a phase cannot take longer than the scan has run", group, dur, elapsed)
+		}
+	}
+
+	pr := phases["policy_records"].(map[string]any)
+	if got := pr["total_task_time_ms"].(int); got != 8000 {
+		t.Fatalf("total_task_time_ms = %d, want 8000 (the sum is kept, just not called a duration)", got)
+	}
+	if pr["status"] != "done" {
+		t.Fatalf("expected policy_records done after 4/4 tasks, got %v", pr["status"])
+	}
+}
+
+// StartedAtMs == 0 used to mean both "starts at the very beginning of the scan"
+// and "has not started", so a phase beginning in the first millisecond had its
+// start rewritten on every later update.
+func TestPhaseStartAtZeroIsNotTreatedAsUnset(t *testing.T) {
+	store := NewProgressStore()
+	defer store.Close()
+	_, sp := store.NewToken()
+
+	sp.UpdatePhase("dns_records", "running", 0)
+	first := sp.toJSON()["phases"].(map[string]any)["dns_records"].(map[string]any)["started_at_ms"].(int)
+
+	time.Sleep(15 * time.Millisecond)
+	sp.UpdatePhase("dns_records", "running", 0)
+	second := sp.toJSON()["phases"].(map[string]any)["dns_records"].(map[string]any)["started_at_ms"].(int)
+
+	if first != second {
+		t.Fatalf("started_at_ms moved from %d to %d on a later update — 0 is a real start time, not a sentinel", first, second)
+	}
+}

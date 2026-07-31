@@ -28,9 +28,23 @@ services:
       interval: 3s
       timeout: 5s
       retries: 20
-    # Not published to the host — only the app needs to reach it.
-    expose:
-      - "5432"
+    # Published to the HOST LOOPBACK ONLY so a researcher can point TablePlus,
+    # psql or DataGrip at their own scan history. This is the difference between
+    # a demo and an instrument: the data is theirs and they should be able to
+    # read it with their own tools.
+    #
+    # The 127.0.0.1 prefix is load-bearing. Without it Docker binds 0.0.0.0 and
+    # publishes the database to every interface — a laptop on conference wifi
+    # would be serving its scan history to the room.
+    #
+    # 5432 is skipped because a developer very likely already runs Postgres
+    # there, and 5433 because this project's own dev container uses it. 5434 is
+    # only a default: any collision is escaped without editing this file, e.g.
+    #   DNSTOOL_DB_PORT=15432 docker compose up
+    # Whatever it ends up as, this always reports the truth rather than assuming:
+    #   docker compose port db 5432
+    ports:
+      - "127.0.0.1:${DNSTOOL_DB_PORT:-5434}:5432"
 
   app:
     build:

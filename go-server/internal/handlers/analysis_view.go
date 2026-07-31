@@ -13,6 +13,7 @@ import (
 	"dnstool/go-server/internal/analyzer"
 	"dnstool/go-server/internal/dbq"
 	"dnstool/go-server/internal/dnsclient"
+	"dnstool/go-server/internal/fixturecorpus"
 	"dnstool/go-server/internal/icae"
 	"dnstool/go-server/internal/icuae"
 	"dnstool/go-server/internal/unified"
@@ -159,6 +160,9 @@ func (h *AnalysisHandler) viewAnalysisWithMode(c *gin.Context, mode string) {
 	viewData["WaitSeconds"] = waitSeconds
 	viewData["WaitReason"] = waitReason
 	viewData["DomainExists"] = resultsDomainExists(results)
+	if disc := fixturecorpus.Lookup(analysis.AsciiDomain); disc != nil {
+		viewData["FixtureDisclosure"] = disc
+	}
 	viewData["ToolVersion"] = toolVersion
 	viewData["VerificationCommands"] = verifyCommands
 	viewData["IsSubdomain"] = isSub
@@ -458,6 +462,9 @@ func (h *AnalysisHandler) buildAnalyzeViewData(c *gin.Context, v viewDataInput) 
 	analyzeData["IsTLD"] = dnsclient.IsTLDInput(v.asciiDomain)
 	analyzeData["SubdomainEmailScope"] = emailScope
 	analyzeData["WaybackURL"] = ""
+	if disc := fixturecorpus.Lookup(v.asciiDomain); disc != nil {
+		analyzeData["FixtureDisclosure"] = disc
+	}
 	if q := h.rawQueries(); q != nil {
 		if icaeMetrics := icae.LoadReportMetrics(ctx, q); icaeMetrics != nil {
 			analyzeData["ICAEMetrics"] = icaeMetrics

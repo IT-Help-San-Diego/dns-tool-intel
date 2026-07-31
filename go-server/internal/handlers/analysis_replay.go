@@ -170,6 +170,7 @@ func (h *AnalysisHandler) ReplayPage(topo *TopologyHandler) gin.HandlerFunc {
 
 		data := NewTemplateData(c, h.Config, "topology")
 		data["SolverLayouts"] = topo.SolverJSON()
+		data["FixtureCorpusJSON"] = FixtureCorpusJS()
 		data["ReplayID"] = analysis.ID
 		data["ReplayDomain"] = analysis.Domain
 		data["ReplayTotalMs"] = hash.TotalDurationMs

@@ -46,6 +46,7 @@ export function solveLayout(spec: LayoutSpec, options: SolveOptions): LayoutResu
   const metrics = evaluateMetrics(spec, compiled, refined, routedEdges);
 
   return {
+    canvas: { width: profile.width, height: profile.height },
     nodeCenters: Object.fromEntries(
       spec.nodes.map((n) => [n.id, { x: Math.round(refined.x[n.id] * 10) / 10, y: Math.round(refined.y[n.id] * 10) / 10 }]),
     ),
@@ -508,22 +509,112 @@ function clampNodesToZones(spec: LayoutSpec, compiled: CompiledProblem, state: L
   }
 }
 
+// Repack a zone's members onto centered shelves (rows) inside its bounds,
+// preserving reading order. Used when the pairwise pass jams: a column
+// arrangement that cannot fit the zone keeps getting pushed and re-clamped,
+// and no sequence of pairwise pushes converts a column into a grid.
+// Returns false when even the tightest pad cannot fit the shelves.
+function shelfRepackZone(
+  spec: LayoutSpec,
+  compiled: CompiledProblem,
+  state: LayoutState,
+  zoneId: string,
+  preferredPad: number,
+): boolean {
+  const zone = compiled.zones[zoneId];
+  if (!zone) return false;
+  const members = spec.nodes
+    .filter((n) => n.zoneId === zoneId)
+    .sort(
+      (a, b) =>
+        state.y[a.id] - state.y[b.id] || state.x[a.id] - state.x[b.id] || a.id.localeCompare(b.id),
+    );
+  if (members.length < 2) return false;
+
+  const availW = zone.x2 - zone.x1 - 2 * zone.padding;
+  const availH = zone.y2 - zone.y1 - 2 * zone.padding;
+
+  for (const pad of [preferredPad, 8, 4]) {
+    interface Shelf {
+      ids: string[];
+      w: number;
+      h: number;
+    }
+    const shelves: Shelf[] = [];
+    let shelf: Shelf = { ids: [], w: 0, h: 0 };
+    for (const n of members) {
+      const box = compiled.nodeBoxes[n.id];
+      const w = box.halfW * 2;
+      if (shelf.ids.length && shelf.w + pad + w > availW) {
+        shelves.push(shelf);
+        shelf = { ids: [], w: 0, h: 0 };
+      }
+      shelf.w += shelf.ids.length ? pad + w : w;
+      shelf.ids.push(n.id);
+      shelf.h = Math.max(shelf.h, box.halfH * 2);
+    }
+    shelves.push(shelf);
+
+    const totalH = shelves.reduce((s, r) => s + r.h, 0) + pad * (shelves.length - 1);
+    if (totalH > availH) continue;
+
+    let y = zone.y1 + zone.padding + (availH - totalH) / 2;
+    for (const r of shelves) {
+      let x = zone.x1 + zone.padding + (availW - r.w) / 2;
+      for (const id of r.ids) {
+        const box = compiled.nodeBoxes[id];
+        state.x[id] = Math.round((x + box.halfW) * 10) / 10;
+        state.y[id] = Math.round((y + r.h / 2) * 10) / 10;
+        x += box.halfW * 2 + pad;
+      }
+      y += r.h + pad;
+    }
+    return true;
+  }
+  return false;
+}
+
 function eliminateOverlaps(spec: LayoutSpec, compiled: CompiledProblem, state: LayoutState): void {
   const pad = 16;
   const ids = spec.nodes.map((n) => n.id).sort((a, b) => a.localeCompare(b));
+  const zoneOf: Record<string, string> = {};
+  for (const n of spec.nodes) zoneOf[n.id] = n.zoneId;
 
-  for (let pass = 0; pass < 30; pass++) {
-    let changed = false;
-    for (let i = 0; i < ids.length; i++) {
-      for (let j = i + 1; j < ids.length; j++) {
-        if (resolveNodeOverlap(state, ids[i], ids[j], compiled, pad)) {
-          changed = true;
+  const runPasses = () => {
+    for (let pass = 0; pass < 30; pass++) {
+      let changed = false;
+      for (let i = 0; i < ids.length; i++) {
+        for (let j = i + 1; j < ids.length; j++) {
+          if (resolveNodeOverlap(state, ids[i], ids[j], compiled, pad)) {
+            changed = true;
+          }
         }
       }
-    }
 
-    clampNodesToZones(spec, compiled, state);
-    if (!changed) break;
+      clampNodesToZones(spec, compiled, state);
+      if (!changed) break;
+    }
+  };
+
+  runPasses();
+
+  // Any zone still holding a genuine overlap (pad 0, the shipped metric)
+  // jammed on the push-clamp cycle. Repack those zones onto shelves, then
+  // run the pairwise pass once more for cross-zone cleanup.
+  const jammed = new Set<string>();
+  for (let i = 0; i < ids.length; i++) {
+    for (let j = i + 1; j < ids.length; j++) {
+      if (detectOverlap(state, compiled, ids[i], ids[j], 0)) {
+        jammed.add(zoneOf[ids[i]]);
+        jammed.add(zoneOf[ids[j]]);
+      }
+    }
+  }
+  if (jammed.size) {
+    for (const z of [...jammed].sort((a, b) => a.localeCompare(b))) {
+      shelfRepackZone(spec, compiled, state, z, pad);
+    }
+    runPasses();
   }
 }
 

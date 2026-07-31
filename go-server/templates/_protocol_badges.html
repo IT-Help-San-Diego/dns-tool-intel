@@ -1,59 +1,71 @@
+{{/*
+    All four states used to render the identical word — "SPF" — differing only in
+    border colour. So the Email Security column looked the same on every row: it
+    told a colour-blind reader nothing, and a hurried one nothing either, because
+    the measurement was carried entirely in a hue you had to decode or a title you
+    had to hover to reach.
+
+    The glyph states the finding. Colour reinforces it instead of carrying it
+    alone, and the title still gives the full sentence.
+      ✓ configured   ! configured, with a caveat   ✗ missing or misconfigured
+      ? not established by this scan — which is NOT the same as absent
+*/}}
 {{define "protocol_badges"}}
 {{if eq .SpfStatus "success"}}
-    <span class="proto-badge proto-badge--success proto-spf" title="SPF configured">SPF</span>
+    <span class="proto-badge proto-badge--success proto-spf" title="SPF configured">SPF&nbsp;✓</span>
 {{else if eq .SpfStatus "warning"}}
-    <span class="proto-badge proto-badge--warning proto-spf" title="SPF configured with warnings">SPF</span>
+    <span class="proto-badge proto-badge--warning proto-spf" title="SPF configured, with warnings">SPF&nbsp;!</span>
 {{else if or (eq .SpfStatus "error") (eq .SpfStatus "missing")}}
-    <span class="proto-badge proto-badge--danger proto-spf" title="SPF missing or misconfigured">SPF</span>
+    <span class="proto-badge proto-badge--danger proto-spf" title="SPF missing or misconfigured">SPF&nbsp;✗</span>
 {{else}}
-    <span class="proto-badge proto-badge--neutral proto-spf" title="SPF status unknown">SPF</span>
+    <span class="proto-badge proto-badge--neutral proto-spf" title="SPF not established by this scan — unknown, not absent">SPF&nbsp;?</span>
 {{end}}
 {{if eq .DmarcStatus "success"}}
-    <span class="proto-badge proto-badge--success proto-dmarc" title="DMARC configured">DMARC</span>
+    <span class="proto-badge proto-badge--success proto-dmarc" title="DMARC configured">DMARC&nbsp;✓</span>
 {{else if eq .DmarcStatus "warning"}}
-    <span class="proto-badge proto-badge--warning proto-dmarc" title="DMARC configured in monitoring mode">DMARC</span>
+    <span class="proto-badge proto-badge--warning proto-dmarc" title="DMARC in monitoring mode — spoofed mail still reaches the inbox">DMARC&nbsp;!</span>
 {{else if or (eq .DmarcStatus "error") (eq .DmarcStatus "missing")}}
-    <span class="proto-badge proto-badge--danger proto-dmarc" title="DMARC missing or misconfigured">DMARC</span>
+    <span class="proto-badge proto-badge--danger proto-dmarc" title="DMARC missing or misconfigured">DMARC&nbsp;✗</span>
 {{else}}
-    <span class="proto-badge proto-badge--neutral proto-dmarc" title="DMARC status unknown">DMARC</span>
+    <span class="proto-badge proto-badge--neutral proto-dmarc" title="DMARC not established by this scan — unknown, not absent">DMARC&nbsp;?</span>
 {{end}}
 {{if or (eq .DkimStatus "success") (eq .DkimStatus "partial")}}
-    <span class="proto-badge proto-badge--success proto-dkim" title="DKIM found">DKIM</span>
+    <span class="proto-badge proto-badge--success proto-dkim" title="DKIM found">DKIM&nbsp;✓</span>
 {{else if eq .DkimStatus "info"}}
-    <span class="proto-badge proto-badge--info proto-dkim" title="DKIM not auto-discoverable (selectors unknown)">DKIM</span>
+    <span class="proto-badge proto-badge--info proto-dkim" title="DKIM not auto-discoverable — selectors unknown, so absence was never established">DKIM&nbsp;?</span>
 {{else if or (eq .DkimStatus "error") (eq .DkimStatus "missing") (eq .DkimStatus "warning")}}
-    <span class="proto-badge proto-badge--danger proto-dkim" title="DKIM missing or misconfigured">DKIM</span>
+    <span class="proto-badge proto-badge--danger proto-dkim" title="DKIM missing or misconfigured">DKIM&nbsp;✗</span>
 {{else}}
-    <span class="proto-badge proto-badge--neutral proto-dkim" title="DKIM status unknown">DKIM</span>
+    <span class="proto-badge proto-badge--neutral proto-dkim" title="DKIM not established by this scan — unknown, not absent">DKIM&nbsp;?</span>
 {{end}}
 {{end}}
 
 {{define "protocol_badges_compact"}}
 {{if eq .SpfStatus "success"}}
-    <span class="proto-badge proto-badge--compact proto-badge--success proto-spf">SPF</span>
+    <span class="proto-badge proto-badge--compact proto-badge--success proto-spf" title="SPF configured">SPF&nbsp;✓</span>
 {{else if eq .SpfStatus "warning"}}
-    <span class="proto-badge proto-badge--compact proto-badge--warning proto-spf">SPF</span>
+    <span class="proto-badge proto-badge--compact proto-badge--warning proto-spf" title="SPF configured, with warnings">SPF&nbsp;!</span>
 {{else if or (eq .SpfStatus "error") (eq .SpfStatus "missing")}}
-    <span class="proto-badge proto-badge--compact proto-badge--danger proto-spf">SPF</span>
+    <span class="proto-badge proto-badge--compact proto-badge--danger proto-spf" title="SPF missing or misconfigured">SPF&nbsp;✗</span>
 {{else}}
-    <span class="proto-badge proto-badge--compact proto-badge--neutral proto-spf">SPF</span>
+    <span class="proto-badge proto-badge--compact proto-badge--neutral proto-spf" title="SPF not established by this scan">SPF&nbsp;?</span>
 {{end}}
 {{if eq .DmarcStatus "success"}}
-    <span class="proto-badge proto-badge--compact proto-badge--success proto-dmarc">DMARC</span>
+    <span class="proto-badge proto-badge--compact proto-badge--success proto-dmarc" title="DMARC configured">DMARC&nbsp;✓</span>
 {{else if eq .DmarcStatus "warning"}}
-    <span class="proto-badge proto-badge--compact proto-badge--warning proto-dmarc">DMARC</span>
+    <span class="proto-badge proto-badge--compact proto-badge--warning proto-dmarc" title="DMARC in monitoring mode — spoofed mail still reaches the inbox">DMARC&nbsp;!</span>
 {{else if or (eq .DmarcStatus "error") (eq .DmarcStatus "missing")}}
-    <span class="proto-badge proto-badge--compact proto-badge--danger proto-dmarc">DMARC</span>
+    <span class="proto-badge proto-badge--compact proto-badge--danger proto-dmarc" title="DMARC missing or misconfigured">DMARC&nbsp;✗</span>
 {{else}}
-    <span class="proto-badge proto-badge--compact proto-badge--neutral proto-dmarc">DMARC</span>
+    <span class="proto-badge proto-badge--compact proto-badge--neutral proto-dmarc" title="DMARC not established by this scan">DMARC&nbsp;?</span>
 {{end}}
 {{if or (eq .DkimStatus "success") (eq .DkimStatus "partial")}}
-    <span class="proto-badge proto-badge--compact proto-badge--success proto-dkim">DKIM</span>
+    <span class="proto-badge proto-badge--compact proto-badge--success proto-dkim" title="DKIM found">DKIM&nbsp;✓</span>
 {{else if eq .DkimStatus "info"}}
-    <span class="proto-badge proto-badge--compact proto-badge--info proto-dkim">DKIM</span>
+    <span class="proto-badge proto-badge--compact proto-badge--info proto-dkim" title="DKIM not auto-discoverable — selectors unknown">DKIM&nbsp;?</span>
 {{else if or (eq .DkimStatus "error") (eq .DkimStatus "missing") (eq .DkimStatus "warning")}}
-    <span class="proto-badge proto-badge--compact proto-badge--danger proto-dkim">DKIM</span>
+    <span class="proto-badge proto-badge--compact proto-badge--danger proto-dkim" title="DKIM missing or misconfigured">DKIM&nbsp;✗</span>
 {{else}}
-    <span class="proto-badge proto-badge--compact proto-badge--neutral proto-dkim">DKIM</span>
+    <span class="proto-badge proto-badge--compact proto-badge--neutral proto-dkim" title="DKIM not established by this scan">DKIM&nbsp;?</span>
 {{end}}
 {{end}}
