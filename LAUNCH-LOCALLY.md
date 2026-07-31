@@ -20,7 +20,12 @@ docker compose up
 
 Compose is required, not a convenience: `DATABASE_URL` and `SESSION_SECRET` are
 both mandatory and a bare `docker run` of the image exits 1 before serving.
-Compose provisions PostgreSQL, loads `schema.sql`, and supplies both.
+Compose provisions PostgreSQL and supplies both. The server creates the schema
+itself on first start, from the migration chain compiled into the binary.
+
+The `dnstool-pgdata` volume is safe to keep across upgrades: `docker compose up`
+on a newer build migrates the existing database rather than expecting an empty
+one, so your scan history survives the rebuild.
 
 Then open <http://localhost:5055> and analyze a domain.
 
@@ -73,15 +78,19 @@ export SESSION_SECRET="$(openssl rand -hex 32)"
 PORT=5055 ./dns-tool-server        # 5055, not 5000 — AirPlay owns 5000 on macOS
 ```
 
-Against a fresh, empty database, load the base schema first — the server applies
-only `*seed*` migrations, not `schema.sql`:
+Point it at an empty database and it builds the schema itself — there is no
+separate load step, and no working directory it has to be started from:
 
 ```bash
 export DATABASE_URL='postgres://user:pass@localhost:5432/dnstool?sslmode=disable'
 export SESSION_SECRET="$(openssl rand -hex 32)"
-psql "$DATABASE_URL" -f go-server/db/schema/schema.sql
 PORT=5055 ./dns-tool-server        # 5055, not 5000 — AirPlay owns 5000 on macOS
 ```
+
+Startup logs the version it migrated to. If it refuses to start saying the
+database is newer than the binary, that is deliberate: the database was
+migrated by a newer build, and running old code against a new schema returns
+wrong answers instead of errors. Use the newer binary.
 
 Then <http://localhost:5055>.
 

@@ -1,3 +1,4 @@
+-- +goose Up
 CREATE TABLE IF NOT EXISTS system_log_entries (
     id         SERIAL PRIMARY KEY,
     timestamp  TIMESTAMP NOT NULL DEFAULT NOW(),

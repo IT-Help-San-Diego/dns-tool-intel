@@ -32,15 +32,104 @@
         .history-table .col-date{white-space:nowrap;font-size:.8125rem}
         .history-table .col-domain{max-width:320px;overflow:hidden;text-overflow:ellipsis}
         .badge{white-space:nowrap}
-        .u-w-38pct{width:38%}.u-w-26pct{width:26%}.u-w-22pct{width:22%}.u-w-23pct{width:23%}.u-w-14pct{width:14%}
+        .u-w-38pct{width:auto}.u-w-26pct{width:auto}.u-w-22pct{width:auto}.u-w-23pct{width:23%}.u-w-14pct{width:1%}
+        /* Fixed percentages cannot know how wide their content is. The Actions
+           column holds a five-button control that needs ~161px; 20% of a desktop
+           table is 258px but 20% of an iPad table is ~140px, so the fifth button
+           was clipped and the table overflowed sideways. Auto layout with
+           width:1% + nowrap is the standard way to say "this column is exactly as
+           wide as its contents" — the remaining columns then share what is left,
+           at any viewport, without arithmetic that has to be re-tuned per device.
+           The domain cell keeps its max-width and ellipsis so a long name cannot
+           push the others around. */
+        .history-table{table-layout:auto}
+        /* .proto-badge-row wraps by default, which is right in a narrow card but
+           wrong in a table cell: under auto layout a wrapping row reports a tiny
+           min-content width, so the column collapsed and SPF/DMARC/DKIM stacked
+           into three lines, making every row three times taller. nowrap makes the
+           column ask for the width it actually needs. Scoped to the table because
+           dossier.html shares this class and should keep wrapping. */
+        .history-table .proto-badge-row{flex-wrap:nowrap;white-space:nowrap}
+        /* On a phone card the header is [domain block][action group]. The badges
+           sat in the domain block as a nowrap inline-flex, so a wide pair like
+           "Medium Risk · 2 issues to fix" could not shrink or wrap and overflowed
+           into the buttons — the badge visibly sat on top of the eye. Let the pair
+           wrap and bound it to the block it lives in. */
+        .history-mobile-card .history-card-badges{flex-wrap:wrap;max-width:100%;min-width:0}
+        .history-mobile-card .history-card-badges .badge{max-width:100%}
+        /* Readable floors for touch. Measured before choosing: .proto-badge is
+           .72em (~11.5px), .proto-badge--compact is .62em of a `small` parent
+           (~8.7px), .source-tag .6875rem (11px), .history-change .75rem (12px),
+           .col-date .8125rem (13px). Apple's floor is 11pt with 17pt for body, so
+           several of these sit under the line on a phone or a tablet held at arm's
+           length — which is why the page had to be zoomed by hand to be usable.
+           Sizes are rem here, not em, so they cannot compound down again inside a
+           `small` ancestor the way the compact badge did. Desktop (>=1200px) keeps
+           its density: it is read closer and the extra rows are worth more there. */
+        @media (max-width: 1199.98px) {
+            .history-table .fw-medium,
+            .history-mobile-card .fw-medium{font-size:1.05rem}
+            .history-table .proto-badge,
+            .history-mobile-card .proto-badge{font-size:.8rem;padding:.34em .62em}
+            .history-table .col-date,
+            .history-mobile-card .text-muted{font-size:.875rem}
+            .history-change{font-size:.85rem}
+            .history-mobile-card .badge{font-size:.78rem}
+            .source-tag{font-size:.78rem}
+            .history-actions .history-act{padding:.42rem .6rem}
+            .history-actions .history-act svg{width:1.05em;height:1.05em}
+        }
         .source-tag{display:inline-flex;align-items:center;gap:.3em;font-size:.6875rem;font-weight:600;color:#a78bfa;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.25);border-radius:.25rem;padding:.1em .45em;white-space:nowrap;vertical-align:middle;letter-spacing:.01em;text-decoration:none;cursor:pointer;transition:background .2s,border-color .2s}
         .source-tag:hover{background:rgba(167,139,250,.22);border-color:rgba(167,139,250,.4);color:#c4b5fd}
         .source-tag svg{width:.75em;height:.75em;fill:currentColor;flex-shrink:0}
         .source-tag img{width:.85em;height:.85em;flex-shrink:0;border-radius:2px;object-fit:contain}
+        /* Change since the previous scan of this domain. Each state leads with a
+           glyph so the direction is legible without relying on colour. */
+        .history-change{font-size:.75rem;line-height:1.3;margin-top:.25rem;display:block}
+        .history-change::before{font-weight:700;margin-right:.35em}
+        .history-change--better{color:#7fc98a}
+        .history-change--better::before{content:"\2191"}
+        .history-change--worse{color:#e88a8a}
+        .history-change--worse::before{content:"\2193"}
+        .history-change--mixed{color:#e0b05e}
+        .history-change--mixed::before{content:"\21C5"}
+        .history-change--same{color:#8b98a8}
+        .history-change--same::before{content:"\003D"}
+        .history-change--unknown{color:#7c8794;font-style:italic}
+        .history-change--unknown::before{content:"\2013"}
+        /* Five peer actions — view, replay, re-scan, compare, drift — used five
+           different Bootstrap hues, so the group read as five unrelated chips
+           rather than one control, and the odd one out looked disabled. They are
+           siblings: same treatment, told apart by their icon. One shared frame,
+           hairline dividers, rounded only at the ends. Colour still carries
+           meaning, but on hover, where it identifies the action you are about to
+           take instead of fragmenting the row at rest. */
+        .history-actions{display:inline-flex;border:1px solid rgba(255,255,255,.18);border-radius:.375rem;overflow:hidden;background:rgba(255,255,255,.02)}
+        .history-actions .history-act{border:0;border-radius:0;background:transparent;box-shadow:none;color:#aeb9c7;padding:.3rem .45rem;line-height:1;transition:background .15s,color .15s}
+        .history-actions .history-act+.history-act{border-left:1px solid rgba(255,255,255,.12)}
+        .history-actions .history-act svg{width:.95em;height:.95em;vertical-align:-.12em}
+        .history-actions .history-act:hover,.history-actions .history-act:focus-visible{background:rgba(255,255,255,.09);color:#f2f6fb}
+        .history-actions .history-view-btn:hover{color:#ffd479}
+        .history-actions .history-replay-btn:hover{color:#9ad0ff}
+        .history-actions .history-reanalyze-btn:hover{color:#8fdc9a}
+        .history-actions .history-compare-btn:hover{color:#e8c07a}
+        .history-actions .history-drift-btn:hover{color:#87d3e8}
+        .history-actions .history-act.disabled{opacity:.35;pointer-events:none}
+        /* The footer is a shared template on 56 pages, so it is NOT edited here.
+           the body element is per-page, so a scoped class collapses the two heavy blocks on
+           this page only and the other 55 cannot regress: .ftr-tree is 201px of
+           org chart and .ftr-grid is 297px of link farm — 519px of the 786px
+           total, on a list page whose job is showing rows. Identity, BLACK SITE
+           and the provenance links stay. */
+        .page-tight footer.text-center{margin-top:1rem!important;margin-bottom:.5rem!important}
+        .page-tight .ftr-tree,.page-tight .ftr-grid,.page-tight .ftr-grid-connector{display:none}
+        .page-tight footer .u-footer-tagline{display:none}
+        .page-tight footer>.text-center.mt-3{margin-top:.4rem!important}
+        .page-tight footer>.d-flex.justify-content-center{margin-top:.4rem!important}
     </style>
     {{template "head_css" .}}
 </head>
-<body>
+<body class="page-tight">
     {{template "nav" .}}
 
     <main id="main-content" class="container my-4">
@@ -77,7 +166,7 @@
         {{end}}
 
         {{if .Analyses}}
-            <div class="card d-none d-md-block">
+            <div class="card d-none d-lg-block">
                 <div class="card-body">
                     <div class="table-responsive">
                         <table class="table table-hover mb-0 history-table">
@@ -92,11 +181,12 @@
                             <tbody>
                                 {{range $i, $a := .Analyses}}
                                 <tr>
+                                    {{/* The domain is what you scan for, so it leads. Risk and fix count
+                                         are attributes of it and trail on the same line, which also removes
+                                         a whole stacked block: the row was three blocks tall (89.8px) and
+                                         is now two, and row height is what decides how many records fit a
+                                         screen. */}}
                                     <td class="col-domain">
-                                        {{if $a.RiskLevel}}<span class="d-inline-flex align-items-center gap-1 mb-1">
-                                            <span class="badge bg-{{$a.RiskColor}}" title="Overall Security Posture">{{$a.RiskLevel}}</span>
-                                            {{if gt $a.FixCount 0}}<span class="badge rounded-pill bg-{{$a.FixColor}}" title="{{$a.FixCount}} verified finding{{if gt $a.FixCount 1}}s{{end}} to fix">{{$a.FixCount}} to Fix</span>{{end}}
-                                        </span>{{end}}
                                         <div class="d-flex align-items-center min-width-0">
                                             {{icon "globe" "text-primary me-2 flex-shrink-0"}}
                                             <div class="min-width-0">
@@ -105,33 +195,50 @@
                                                     <small class="text-muted text-truncate d-block">{{$a.AsciiDomain}}</small>
                                                 {{end}}
                                             </div>
+                                            {{if $a.RiskLevel}}
+                                            <span class="d-inline-flex align-items-center gap-1 ms-2 flex-shrink-0">
+                                                <span class="badge bg-{{$a.RiskColor}}" title="Overall Security Posture">{{$a.RiskLevel}}</span>
+                                                {{/* "2 to Fix" needed a hover to say what the 2 counted. The noun goes in the badge. */}}
+                                                {{if gt $a.FixCount 0}}<span class="badge rounded-pill bg-{{$a.FixColor}}" title="{{$a.FixCount}} verified finding{{if gt $a.FixCount 1}}s{{end}} with a real operational consequence — deliberate posture, platform limits and unverifiable controls are excluded">{{$a.FixCount}} issue{{if gt $a.FixCount 1}}s{{end}} to fix</span>{{end}}
+                                            </span>
+                                            {{end}}
                                         </div>
+                                        {{/* The one thing only a history can tell you: did this domain move.
+                                             Without it the same domain appears three times with identical
+                                             badges and the repetition teaches nothing. */}}
+                                        {{if $a.ChangeText}}<div class="history-change history-change--{{$a.ChangeKind}}" title="Compared with the previous scan of this domain shown on this page">{{$a.ChangeText}}</div>{{end}}
                                     </td>
                                     <td>
                                         <div class="proto-badge-row">
                                             {{template "protocol_badges" $a}}
                                         </div>
                                     </td>
+                                    {{/* "vdev · 62.0s" was a second line of unexplained noise next to the
+                                         date. It is build version and scan duration; it says so on hover
+                                         now, and the cell costs one line instead of two. */}}
                                     <td class="col-date">
-                                        <span class="text-muted">{{$a.CreatedDate}} {{$a.CreatedTime}}</span>
-                                        <br><small class="text-muted">{{if $a.ToolVersion}}v{{$a.ToolVersion}}{{end}}{{if $a.AnalysisDuration}} &middot; {{formatFloat 1 $a.AnalysisDuration}}s{{end}}</small>
+                                        <span class="text-muted"{{if or $a.ToolVersion $a.AnalysisDuration}} title="Scanned in {{formatFloat 1 $a.AnalysisDuration}}s{{if $a.ToolVersion}} by build {{$a.ToolVersion}}{{end}}"{{end}}>{{$a.CreatedDate}} {{$a.CreatedTime}}</span>
                                     </td>
                                     <td>
-                                        <div class="btn-group">
-                                            <a href="/analysis/{{$a.ID}}/view" 
-                                               class="btn btn-sm btn-outline-primary history-view-btn" title="View this report">
+                                        <div class="btn-group history-actions">
+                                            <a href="/analysis/{{$a.ID}}/view"
+                                               class="btn btn-sm history-act history-view-btn" title="View this report">
                                                 {{icon "eye"}}
                                             </a>
-                                            <a href="/analyze?domain={{$a.Domain}}" 
-                                               class="btn btn-sm btn-outline-success history-reanalyze-btn" title="Re-analyze now">
+                                            <a href="/replay/{{$a.ID}}"
+                                               class="btn btn-sm history-act history-replay-btn" title="Replay this scan on the pipeline topology">
+                                                {{icon "play"}}
+                                            </a>
+                                            <a href="/topology?domain={{$a.Domain}}"
+                                               class="btn btn-sm history-act history-reanalyze-btn" title="Re-analyze now">
                                                 {{icon "sync-alt"}}
                                             </a>
                                             <a href="/compare?domain={{$a.Domain}}" 
-                                               class="btn btn-sm btn-outline-warning" title="Compare scans">
+                                               class="btn btn-sm history-act history-compare-btn" title="Compare scans">
                                                 {{icon "code-compare"}}
                                             </a>
                                             <a href="/drift?domain={{$a.Domain}}" 
-                                               class="btn btn-sm btn-outline-info" title="Drift timeline">
+                                               class="btn btn-sm history-act history-drift-btn" title="Drift timeline">
                                                 {{icon "chart-line"}}
                                             </a>
                                         </div>
@@ -144,7 +251,7 @@
                 </div>
             </div>
 
-            <div class="d-md-none">
+            <div class="d-lg-none">
                 {{range $i, $a := .Analyses}}
                 <div class="card mb-2 history-mobile-card">
                     <div class="card-body py-2 px-3">
@@ -152,37 +259,46 @@
                             <div class="d-flex align-items-center min-width-0">
                                 {{icon "globe" "text-primary me-2 flex-shrink-0"}}
                                 <div class="min-width-0">
-                                    {{if $a.RiskLevel}}<span class="d-inline-flex align-items-center gap-1 mb-1">
+                                    {{if $a.RiskLevel}}<span class="d-inline-flex align-items-center gap-1 mb-1 history-card-badges">
                                         <span class="badge bg-{{$a.RiskColor}}" title="Overall Security Posture">{{$a.RiskLevel}}</span>
-                                        {{if gt $a.FixCount 0}}<span class="badge rounded-pill bg-{{$a.FixColor}}" title="{{$a.FixCount}} verified finding{{if gt $a.FixCount 1}}s{{end}} to fix">{{$a.FixCount}} to Fix</span>{{end}}
+                                        {{if gt $a.FixCount 0}}<span class="badge rounded-pill bg-{{$a.FixColor}}" title="{{$a.FixCount}} verified finding{{if gt $a.FixCount 1}}s{{end}} with a real operational consequence — deliberate posture, platform limits and unverifiable controls are excluded">{{$a.FixCount}} issue{{if gt $a.FixCount 1}}s{{end}} to fix</span>{{end}}
                                     </span>{{end}}
                                     <div class="fw-medium text-truncate">{{$a.Domain}}{{if eq $a.RequestSource "agent"}} <a href="/agent/plugin" class="source-tag" title="Queried via DEVONagent Pro plugin — click to learn more"><picture><source srcset="{{staticVersionURL "images/devonagent-pro-logo.webp" $.AppVersion}}" type="image/webp"><img src="{{staticVersionURL "images/devonagent-pro-logo.png" $.AppVersion}}" alt="" width="12" height="12" loading="lazy"></picture>Plugin</a>{{end}}</div>
+                                    {{if $a.ChangeText}}<div class="history-change history-change--{{$a.ChangeKind}}" title="Compared with the previous scan of this domain shown on this page">{{$a.ChangeText}}</div>{{end}}
                                 </div>
                             </div>
-                            <div class="btn-group flex-shrink-0 ms-2">
-                                <a href="/analysis/{{$a.ID}}/view" 
-                                   class="btn btn-sm btn-outline-primary history-view-btn" title="View">
+                            <div class="btn-group history-actions flex-shrink-0 ms-2">
+                                <a href="/analysis/{{$a.ID}}/view"
+                                   class="btn btn-sm history-act history-view-btn" title="View">
                                     {{icon "eye"}}
                                 </a>
-                                <a href="/analyze?domain={{$a.Domain}}" 
-                                   class="btn btn-sm btn-outline-success history-reanalyze-btn" title="Re-analyze">
+                                <a href="/replay/{{$a.ID}}"
+                                   class="btn btn-sm history-act history-replay-btn" title="Replay on topology">
+                                    {{icon "play"}}
+                                </a>
+                                <a href="/topology?domain={{$a.Domain}}"
+                                   class="btn btn-sm history-act history-reanalyze-btn" title="Re-scan live on the topology">
                                     {{icon "sync-alt"}}
                                 </a>
                                 <a href="/compare?domain={{$a.Domain}}" 
-                                   class="btn btn-sm btn-outline-warning" title="Compare scans">
+                                   class="btn btn-sm history-act history-compare-btn" title="Compare scans">
                                     {{icon "code-compare"}}
                                 </a>
                                 <a href="/drift?domain={{$a.Domain}}" 
-                                   class="btn btn-sm btn-outline-info" title="Drift timeline">
+                                   class="btn btn-sm history-act history-drift-btn" title="Drift timeline">
                                     {{icon "chart-line"}}
                                 </a>
                             </div>
                         </div>
                         <div class="proto-badge-row small">
                             {{template "protocol_badges_compact" $a}}
-                            <span class="text-muted ms-auto u-fs-070rem">
+                            {{/* Same treatment as the desktop date cell: the duration
+                                 is context, not a headline, and on a phone card it was
+                                 competing with the chips for the one line they share.
+                                 It moves into the tooltip, where it also gains the
+                                 build it came from. */}}
+                            <span class="text-muted ms-auto u-fs-070rem"{{if or $a.ToolVersion $a.AnalysisDuration}} title="Scanned in {{formatFloat 1 $a.AnalysisDuration}}s{{if $a.ToolVersion}} by build {{$a.ToolVersion}}{{end}}"{{end}}>
                                 {{$a.CreatedDate}} {{$a.CreatedTime}}
-                                {{if $a.AnalysisDuration}} &middot; {{formatFloat 1 $a.AnalysisDuration}}s{{end}}
                             </span>
                         </div>
                     </div>
@@ -200,7 +316,7 @@
                     <a href="/history" class="btn btn-outline-secondary me-2">
                         {{icon "times" "me-2"}}Clear Search
                     </a>
-                    <a href="/analyze?domain={{.SearchDomain}}" class="btn btn-primary">
+                    <a href="/topology?domain={{.SearchDomain}}" class="btn btn-primary">
                         {{icon "search" "me-2"}}Analyze {{.SearchDomain}}
                     </a>
                 {{else}}

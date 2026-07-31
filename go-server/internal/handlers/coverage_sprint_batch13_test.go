@@ -91,31 +91,31 @@ func TestRiskColorToShields_B13(t *testing.T) {
 }
 
 func TestCovertRiskLabel_B13(t *testing.T) {
-        cases := []struct{ in, want string }{
-                {"Low Risk", "Hardened"},
-                {"Medium Risk", "Partial"},
-                {"High Risk", "Exposed"},
-                {"Critical Risk", "Wide Open"},
-                {"Unknown", "Unknown"},
+        cases := []struct{ color, label, want string }{
+                {"success", "Low Risk", "Hardened"},
+                {"warning", "Medium Risk", "Partial"},
+                {"danger", "High Risk", "Exposed"},
+                {"danger", "Critical Risk", "Wide Open"},
+                {"", "Unknown", "Unknown"},
         }
         for _, tc := range cases {
-                if got := badgepkg.CovertRiskLabel(tc.in); got != tc.want {
-                        t.Errorf("badgepkg.CovertRiskLabel(%q)=%q want %q", tc.in, got, tc.want)
+                if got := badgepkg.CovertRiskLabel(tc.color, tc.label); got != tc.want {
+                        t.Errorf("badgepkg.CovertRiskLabel(%q, %q)=%q want %q", tc.color, tc.label, got, tc.want)
                 }
         }
 }
 
 func TestCovertTagline_B13(t *testing.T) {
-        cases := []struct{ in, want string }{
-                {"Low Risk", "Good luck with that."},
-                {"Medium Risk", "Gaps in the armor."},
-                {"High Risk", "Door's open."},
-                {"Critical Risk", "Free real estate."},
-                {"Unknown", ""},
+        cases := []struct{ color, label, want string }{
+                {"success", "Low Risk", "Good luck with that."},
+                {"warning", "Medium Risk", "Gaps in the armor."},
+                {"danger", "High Risk", "Door's open."},
+                {"danger", "Critical Risk", "Free real estate."},
+                {"", "Unknown", ""},
         }
         for _, tc := range cases {
-                if got := badgepkg.CovertTagline(tc.in); got != tc.want {
-                        t.Errorf("badgepkg.CovertTagline(%q)=%q want %q", tc.in, got, tc.want)
+                if got := badgepkg.CovertTagline(tc.color, tc.label); got != tc.want {
+                        t.Errorf("badgepkg.CovertTagline(%q, %q)=%q want %q", tc.color, tc.label, got, tc.want)
                 }
         }
 }
@@ -944,7 +944,7 @@ func TestScanProgress_ToJSON_B13(t *testing.T) {
         sp := &scanProgress{
                 startTime: time.Now(),
                 phases: map[string]*phaseStatus{
-                        "dns": {Status: "done", DurationMs: 100, expectedTasks: 1, completedTasks: 1},
+                        "dns": {Status: "done", TotalTaskTimeMs: 100, expectedTasks: 1, completedTasks: 1},
                 },
         }
         j := sp.toJSON()

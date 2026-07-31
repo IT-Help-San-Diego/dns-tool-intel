@@ -64,11 +64,14 @@ COPY --from=build /out/dns-tool-server /usr/local/bin/dns-tool-server
 # ../templates, and calls os.Exit(1) if the glob parses nothing. findStaticDir()
 # searches static, then go-server/static. Both resolve relative to the working
 # directory, so WORKDIR and these destinations must agree.
-# RunSeedMigrations("go-server/db/migrations") is likewise a relative path.
+#
+# The SQL migrations are NOT copied: they are compiled into the binary via
+# go:embed (go-server/db/migrations/embed.go). That is deliberate — the schema
+# the binary migrates to is now the schema it was built with, and there is no
+# way to run the image against a stale copy on disk.
 COPY --chown=dnstool:dnstool go-server/templates/     ./go-server/templates/
 COPY --chown=dnstool:dnstool static/                  ./static/
 COPY --chown=dnstool:dnstool docs/                    ./docs/
-COPY --chown=dnstool:dnstool go-server/db/migrations/  ./go-server/db/migrations/
 
 # The structured logger creates ./logs at startup. WORKDIR is root-owned, so
 # without this the non-root user hits "mkdir logs: permission denied" and falls

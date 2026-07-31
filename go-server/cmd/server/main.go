@@ -172,7 +172,15 @@ func main() {
 	}
 	defer database.Close()
 
-	database.RunSeedMigrations("go-server/db/migrations")
+	// Schema migrations are fatal-on-failure, unlike the connection above.
+	// An unreachable database is a degraded-mode condition; a database we
+	// reached and could NOT bring to the version this binary expects is a
+	// database of unknown shape, and serving from one produces wrong answers
+	// instead of visible errors.
+	if err := db.Migrate(context.Background(), cfg.DatabaseURL); err != nil {
+		slog.Error("Database migration failed — refusing to start", mapKeyError, err)
+		os.Exit(1)
+	}
 
 	logger, err := logging.Setup(database.Pool, cfg.DiscordWebhookURL)
 	if err != nil {
@@ -334,9 +342,10 @@ func buildRouter(cfg *config.Config, database *db.Database, scannerWatch *middle
 	logSecurityHeadersMode(cfg.IsDevEnvironment)
 
 	router.Use(middleware.Recovery(cfg.AppVersion, map[string]any{
-		"MaintenanceNote":  cfg.MaintenanceNote,
-		"BetaPages":        cfg.BetaPages,
-		"OriginTrialToken": cfg.OriginTrialToken,
+		"MaintenanceNote":   cfg.MaintenanceNote,
+		"BetaPages":         cfg.BetaPages,
+		"OriginTrialToken":  cfg.OriginTrialToken,
+		"IsCloudDeployment": cfg.IsCloudDeployment,
 	}))
 	if !cfg.IsDevEnvironment {
 		router.Use(middleware.CanonicalHostRedirect(cfg.BaseURL))
@@ -864,12 +873,13 @@ func registerNotFoundRoute(router *gin.Engine, cfg *config.Config) {
 		nonce, _ := c.Get("csp_nonce")
 		csrfToken, _ := c.Get("csrf_token")
 		data := gin.H{
-			"AppVersion":      cfg.AppVersion,
-			"MaintenanceNote": cfg.MaintenanceNote,
-			"BetaPages":       cfg.BetaPages,
-			"CspNonce":        nonce,
-			"CsrfToken":       csrfToken,
-			"ActivePage":      "home",
+			"AppVersion":        cfg.AppVersion,
+			"MaintenanceNote":   cfg.MaintenanceNote,
+			"BetaPages":         cfg.BetaPages,
+			"IsCloudDeployment": cfg.IsCloudDeployment,
+			"CspNonce":          nonce,
+			"CsrfToken":         csrfToken,
+			"ActivePage":        "home",
 		}
 		for k, v := range middleware.GetAuthTemplateData(c) {
 			data[k] = v

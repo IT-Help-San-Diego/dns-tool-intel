@@ -167,11 +167,14 @@
                                 </button>
                             </div>
                             <div class="form-text search-hint mt-2">
-                                
+                                <span class="search-live-badge">{{icon "project-diagram" "me-1"}}New &mdash; watch it run</span>
+                                Your scan now plays out live on the <a href="/topology" class="text-info text-decoration-none">intelligence topology</a>: every resolver, protocol and audit engine lights up as it answers.
+                            </div>
+                            <div class="form-text search-hint mt-2">
                                 Enter a domain (e.g., <strong>example.com</strong>) or a top-level zone (e.g., <strong>tech</strong>, <strong>co.uk</strong>) &mdash; no https://. TLDs produce a <strong>Registry Zone Health Report</strong>.
                             </div>
                             <div class="form-text text-muted mt-1 u-privacy-hint">
-                                {{icon "shield-alt" "me-1"}}DNS lookups may be logged by upstream resolvers and authoritative nameservers.
+                                {{icon "shield-alt" "me-1"}}DNS lookups may be logged by upstream resolvers and authoritative nameservers. Public analyses are also submitted to the <a href="https://web.archive.org" target="_blank" rel="noopener noreferrer" class="text-info">Internet Archive</a> as a permanent third-party record &mdash; use <strong>/dev/null</strong> or a private scan under Advanced Options to skip that.
                                 <button type="button" id="privacyToggle" class="u-privacy-toggle btn btn-link p-0 border-0 text-decoration-none text-reset" tabindex="0">{{icon "chevron-down" "ms-1 small"}} Shopping for a domain?</button>
                                 <div id="privacyDetail" class="form-text text-muted mt-1 d-none">When you look up a domain, that query can be seen by third parties. If you&rsquo;re considering buying a domain and don&rsquo;t want anyone to know you&rsquo;re interested, don&rsquo;t search for it here or on any public tool &mdash; someone could register it before you do. Before you buy, check whether the domain already carries a bad reputation using <a href="https://www.talosintelligence.com/reputation_center" target="_blank" rel="noopener noreferrer" class="text-info">Cisco Talos Reputation Center</a> &mdash; but do it from a private browser, not here.</div>
                             </div>
@@ -428,7 +431,7 @@
                             <div class="dri-question-block">
                                 <span class="dri-question-label">{{icon "shield-alt" "me-1"}}The Big Question</span>
                                 <span class="dri-question-text dt-question">Can this domain be impersonated by email?</span>
-                                <span class="dri-question-answer"><span class="badge bg-danger me-1">YES</span> DMARC is monitor-only (p=none)</span>
+                                <span class="dri-question-answer"><span class="badge bg-danger me-1">YES</span> DMARC requests no enforcement (p=none)</span>
                             </div>
                             <div class="dri-examples">
                                 <div class="dri-example">{{icon "angle-right" "me-1 text-brand-steel"}}Are spoofed emails rejected or quarantined?</div>

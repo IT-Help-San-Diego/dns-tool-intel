@@ -3,7 +3,38 @@
 
     var DEG = Math.PI / 180;
     var GLOBE_RES = 360;
-    var LIGHT_DIR = { x: 0.42, y: 0.28, z: 0.86 };
+
+    // Solar position — the terminator is computed for the actual moment of
+    // rendering rather than asserted. Declination via the 23.44°·sin(360/365·
+    // (doy−81)) approximation; subsolar longitude from UTC time of day.
+    // Equation-of-time (±4°) is deliberately ignored: this is a visualization
+    // quoted no finer than a degree, and the approximation keeps the math
+    // inspectable.
+    function subsolarPoint(date) {
+        var yearStart = Date.UTC(date.getUTCFullYear(), 0, 0);
+        var doy = (date.getTime() - yearStart) / 86400000;
+        var latDeg = 23.44 * Math.sin((360 / 365) * (doy - 81) * DEG);
+        var utcHours = date.getUTCHours() + date.getUTCMinutes() / 60 + date.getUTCSeconds() / 3600;
+        var lonDeg = 180 - utcHours * 15;
+        if (lonDeg > 180) lonDeg -= 360;
+        if (lonDeg < -180) lonDeg += 360;
+        return { latDeg: latDeg, lonDeg: lonDeg };
+    }
+
+    // Unit light vector toward the subsolar point, expressed in the same
+    // screen frame the texture loop uses (lat = asin(ny), lon = atan2(nx,nz)
+    // − rot). Unit by construction — diffuse stays a true cos(incidence).
+    function lightDirFor(gs, date) {
+        var sp = subsolarPoint(date);
+        var snapLon = Math.round(gs.rotLon * 2) / 2;
+        var phi = sp.latDeg * DEG;
+        var lam = (sp.lonDeg + snapLon) * DEG;
+        return {
+            x: Math.cos(phi) * Math.sin(lam),
+            y: Math.sin(phi),
+            z: Math.cos(phi) * Math.cos(lam)
+        };
+    }
 
     var RESOLVER_POPS = [
         { resolver: 'Cloudflare', tag: 'CF', color: '#f6821f', lat: 37.77, lon: -122.42, city: 'San Francisco' },
@@ -32,9 +63,9 @@
     ];
 
     function hexToRgba(hex, a) {
-        var r = parseInt(hex.slice(1, 3), 16);
-        var g = parseInt(hex.slice(3, 5), 16);
-        var b = parseInt(hex.slice(5, 7), 16);
+        var r = Number.parseInt(hex.slice(1, 3), 16);
+        var g = Number.parseInt(hex.slice(3, 5), 16);
+        var b = Number.parseInt(hex.slice(5, 7), 16);
         return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
     }
 
@@ -99,9 +130,13 @@
         if (!gs._texLoaded) return null;
         var snapR = Math.round(gs.R);
         var snapLon = Math.round(gs.rotLon * 2) / 2;
-        if (gs._cachedRotLon === snapLon && gs._cachedR === snapR && gs._offGlobe) return gs._offGlobe;
+        // Lighting tracks the real sun, so the cache also expires once per
+        // minute (the subsolar point moves 0.25°/min in longitude).
+        var lightKey = Math.floor(Date.now() / 60000);
+        if (gs._cachedRotLon === snapLon && gs._cachedR === snapR && gs._cachedLightKey === lightKey && gs._offGlobe) return gs._offGlobe;
         gs._cachedRotLon = snapLon;
         gs._cachedR = snapR;
+        gs._cachedLightKey = lightKey;
         var sz = GLOBE_RES;
         if (!gs._offGlobe) {
             gs._offGlobe = document.createElement('canvas');
@@ -120,7 +155,8 @@
         var rotRad = snapLon * DEG;
         var PI = Math.PI;
         var TWO_PI = PI * 2;
-        var lx = LIGHT_DIR.x, ly = LIGHT_DIR.y, lz = LIGHT_DIR.z;
+        var light = lightDirFor(gs, new Date());
+        var lx = light.x, ly = light.y, lz = light.z;
 
         for (var py = 0; py < sz; py++) {
             var ny = (half - py) * invHalf;
@@ -138,15 +174,17 @@
 
                 var u = (lon + PI) / TWO_PI;
                 var v = (PI / 2 - lat) / PI;
-                var tx = Math.min(tw - 1, Math.max(0, (u * tw) | 0));
-                var ty = Math.min(th - 1, Math.max(0, (v * th) | 0));
+                var tx = Math.min(tw - 1, Math.max(0, Math.trunc(u * tw)));
+                var ty = Math.min(th - 1, Math.max(0, Math.trunc(v * th)));
                 var ti = (ty * tw + tx) * 4;
 
                 var tr = td[ti], tg = td[ti + 1], tb = td[ti + 2];
 
                 var diffuse = Math.max(0, nx * lx + ny * ly + nz * lz);
-                var ambient = 0.08;
-                var lit = ambient + diffuse * 0.92;
+                // Ambient raised from 0.08 so the true night side (now that
+                // the terminator is real) keeps readable texture in the UI.
+                var ambient = 0.12;
+                var lit = ambient + diffuse * 0.88;
 
                 var fresnel = 1.0 - nz;
                 var fr4 = fresnel * fresnel * fresnel * fresnel;
@@ -154,9 +192,9 @@
                 var rimStr = fr4 * 0.45;
 
                 var idx = (py * sz + pxx) * 4;
-                px[idx] = Math.min(255, (tr * lit + rimR * rimStr) | 0);
-                px[idx + 1] = Math.min(255, (tg * lit + rimG * rimStr) | 0);
-                px[idx + 2] = Math.min(255, (tb * lit + rimB * rimStr) | 0);
+                px[idx] = Math.min(255, Math.trunc(tr * lit + rimR * rimStr));
+                px[idx + 1] = Math.min(255, Math.trunc(tg * lit + rimG * rimStr));
+                px[idx + 2] = Math.min(255, Math.trunc(tb * lit + rimB * rimStr));
                 px[idx + 3] = 255;
             }
         }
@@ -315,6 +353,7 @@
         createGlobeState: createGlobeState,
         loadTexture: loadTexture,
         projectPt: projectPt,
+        subsolarPoint: subsolarPoint,
         renderTexturedGlobe: renderTexturedGlobe,
         drawGlobeSphere: drawGlobeSphere,
         initSignalParticles: initSignalParticles,

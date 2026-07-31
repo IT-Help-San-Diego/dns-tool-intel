@@ -215,13 +215,18 @@ func partialProtectionFixtures() []TestCase {
                         Protocol:   mapKeyDmarc,
                         Layer:      LayerAnalysis,
                         RFCSection: citFixtureE2eDmarcS63,
-                        Expected:   "monitor-only (spoofable)",
+                        Expected:   "no enforcement requested (spoofable)",
                         RunFn: func() (string, bool) {
+                                // The answer now reads "requests no enforcement (p=none)" — the
+                                // parenthetical names the observed record shape, because the same
+                                // verdict class also fires for quarantine at pct=0 and must not
+                                // assert p=none content for that record. The check matches the
+                                // meaning (no enforcement + danger), not the old phrasing.
                                 result := analyzer.ExportBuildEmailAnswerStructured(false, "none", 0, false, true, true)
                                 color := result["color"]
                                 answer := analyzer.ExportBuildEmailAnswer(false, "none", 0, false, true, true)
                                 actual := fmt.Sprintf("color=%s, answer=%s", color, answer)
-                                return actual, color == "danger" && strings.Contains(answer, "monitor-only")
+                                return actual, color == "danger" && strings.Contains(answer, "requests no enforcement")
                         },
                 },
                 {
@@ -230,10 +235,14 @@ func partialProtectionFixtures() []TestCase {
                         Protocol:   mapKeyDmarc,
                         Layer:      LayerAnalysis,
                         RFCSection: citFixtureE2eDmarcS63,
-                        Expected:   "partial percentage flagged",
+                        Expected:   "partial coverage flagged, and quarantined mail still delivered",
                         RunFn: func() (string, bool) {
+                                // Asserts BOTH halves of the honest answer: that coverage is
+                                // partial, and that quarantined mail is set aside rather than
+                                // refused. The prior wording checked only the coverage half.
                                 answer := analyzer.ExportBuildEmailAnswer(false, "quarantine", 25, false, true, true)
-                                return answer, strings.Contains(answer, "limited percentage")
+                                return answer, strings.Contains(answer, "only part of the mail") &&
+                                        strings.Contains(answer, "delivered to spam rather than refused")
                         },
                 },
         }

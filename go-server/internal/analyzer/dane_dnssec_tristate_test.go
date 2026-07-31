@@ -529,7 +529,7 @@ func TestClassifyRegistryGrade_IndeterminateNotUnsigned(t *testing.T) {
 func TestComputeInternalScore_IndeterminateNeutral(t *testing.T) {
         spfIndet := protocolState{
                 spfIndeterminate: true,
-                dmarcOK:          true, dmarcPolicy: "reject",
+                dmarcOK:          true, dmarcPct: 100, dmarcPolicy: "reject",
                 dnssecOK: true, daneOK: true, mtaStsOK: true,
                 tlsrptOK: true, caaOK: true, bimiOK: true,
         }
