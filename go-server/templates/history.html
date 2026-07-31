@@ -229,7 +229,7 @@
                                                class="btn btn-sm history-act history-replay-btn" title="Replay this scan on the pipeline topology">
                                                 {{icon "play"}}
                                             </a>
-                                            <a href="/topology?domain={{$a.Domain}}"
+                                            <a href="/topology?domain={{$a.AsciiDomain | urlquery}}"
                                                class="btn btn-sm history-act history-reanalyze-btn" title="Re-analyze now">
                                                 {{icon "sync-alt"}}
                                             </a>
@@ -276,7 +276,7 @@
                                    class="btn btn-sm history-act history-replay-btn" title="Replay on topology">
                                     {{icon "play"}}
                                 </a>
-                                <a href="/topology?domain={{$a.Domain}}"
+                                <a href="/topology?domain={{$a.AsciiDomain | urlquery}}"
                                    class="btn btn-sm history-act history-reanalyze-btn" title="Re-scan live on the topology">
                                     {{icon "sync-alt"}}
                                 </a>
@@ -316,7 +316,7 @@
                     <a href="/history" class="btn btn-outline-secondary me-2">
                         {{icon "times" "me-2"}}Clear Search
                     </a>
-                    <a href="/topology?domain={{.SearchDomain}}" class="btn btn-primary">
+                    <a href="/topology?domain={{.SearchDomain | urlquery}}" class="btn btn-primary">
                         {{icon "search" "me-2"}}Analyze {{.SearchDomain}}
                     </a>
                 {{else}}

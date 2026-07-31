@@ -329,14 +329,14 @@ func TestProtocolRawConfidence_Ext(t *testing.T) {
                         results := map[string]any{
                                 "spf": map[string]any{"status": tt.status},
                         }
-                        conf := protocolRawConfidence(results, "spf")
+                        conf := protocolVerdictSeverity(results, "spf")
                         if conf != tt.want {
-                                t.Errorf("protocolRawConfidence(status=%q) = %f, want %f", tt.status, conf, tt.want)
+                                t.Errorf("protocolVerdictSeverity(status=%q) = %f, want %f", tt.status, conf, tt.want)
                         }
                 })
         }
 
-        conf := protocolRawConfidence(map[string]any{}, "missing")
+        conf := protocolVerdictSeverity(map[string]any{}, "missing")
         if conf != 0.0 {
                 t.Errorf("expected 0.0 for missing, got %f", conf)
         }

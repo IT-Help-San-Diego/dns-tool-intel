@@ -332,14 +332,14 @@ func TestProtocolRawConfidence_CB12(t *testing.T) {
                         results := map[string]any{
                                 "test_section": map[string]any{"status": tt.status},
                         }
-                        got := protocolRawConfidence(results, "test_section")
+                        got := protocolVerdictSeverity(results, "test_section")
                         if got != tt.want {
-                                t.Errorf("protocolRawConfidence(%q) = %f, want %f", tt.status, got, tt.want)
+                                t.Errorf("protocolVerdictSeverity(%q) = %f, want %f", tt.status, got, tt.want)
                         }
                 })
         }
 
-        got := protocolRawConfidence(map[string]any{}, "missing")
+        got := protocolVerdictSeverity(map[string]any{}, "missing")
         if got != 0.0 {
                 t.Error("missing section should return 0.0")
         }

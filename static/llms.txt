@@ -69,7 +69,6 @@ DNS Tool annotates its analyze and search forms with [WebMCP](https://github.com
 - [Ecosystem](https://dnstool.it-help.tech/ecosystem) — Connected Ecosystem: how DNS Tool (applied DNS intelligence), the published theory at intellectualresistance.com (the Verification Principle, the Owl Semaphore, Carrier Color, and more, each with its honest epistemic status), and the human-judgment consulting at organiccomputer.me connect
 - [Publications](https://dnstool.it-help.tech/publications) — Publications: consolidated index of all scientific papers, case studies, governance documents, and technical documentation with format badges and DOI citation links
 - [Case Studies](https://dnstool.it-help.tech/case-study/) — Case Studies: Domain Confessions series analyzing real-world DNS security postures across organizations
-- [Research Corpus](https://dnstool.it-help.tech/corpus) — Research Corpus: inline PDF reading with split-pane layout for all published research documents
 - [Citation](https://dnstool.it-help.tech/cite) — Cite: citation information and DOI links for referencing DNS Tool research
 - [Reference Library](https://dnstool.it-help.tech/reference-library) — Reference Library: curated collection of standards, RFCs, and foundational references used in DNS Tool's analysis methodology
 - [Topology](https://dnstool.it-help.tech/topology) — Topology: Canvas 2D visualization of DNS resolver PoPs and scan pipeline topology

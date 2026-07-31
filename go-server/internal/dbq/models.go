@@ -27,34 +27,6 @@ type AnalyticsMetum struct {
 	UpdatedAt pgtype.Timestamptz `db:"updated_at" json:"updated_at"`
 }
 
-type BlackSiteDetainee struct {
-	ID                 int32            `db:"id" json:"id"`
-	BsiID              string           `db:"bsi_id" json:"bsi_id"`
-	ShaHash            string           `db:"sha_hash" json:"sha_hash"`
-	Title              string           `db:"title" json:"title"`
-	ThreatLevel        string           `db:"threat_level" json:"threat_level"`
-	Status             string           `db:"status" json:"status"`
-	CapturedBy         string           `db:"captured_by" json:"captured_by"`
-	FileReferences     string           `db:"file_references" json:"file_references"`
-	InterrogationNotes string           `db:"interrogation_notes" json:"interrogation_notes"`
-	WitnessStatement   string           `db:"witness_statement" json:"witness_statement"`
-	DamageAssessment   string           `db:"damage_assessment" json:"damage_assessment"`
-	RecommendedRemedy  string           `db:"recommended_remedy" json:"recommended_remedy"`
-	CreatedAt          pgtype.Timestamp `db:"created_at" json:"created_at"`
-	UpdatedAt          pgtype.Timestamp `db:"updated_at" json:"updated_at"`
-}
-
-type BlackSiteRendition struct {
-	ID         int32            `db:"id" json:"id"`
-	DetaineeID int32            `db:"detainee_id" json:"detainee_id"`
-	RenderedAt pgtype.Timestamp `db:"rendered_at" json:"rendered_at"`
-	CommitHash string           `db:"commit_hash" json:"commit_hash"`
-	RenderedBy string           `db:"rendered_by" json:"rendered_by"`
-	Method     string           `db:"method" json:"method"`
-	Notes      string           `db:"notes" json:"notes"`
-	CreatedAt  pgtype.Timestamp `db:"created_at" json:"created_at"`
-}
-
 type ConfidenceScore struct {
 	ID                pgtype.UUID        `db:"id" json:"id"`
 	ScanID            pgtype.UUID        `db:"scan_id" json:"scan_id"`

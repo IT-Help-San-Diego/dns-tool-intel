@@ -15,13 +15,13 @@ import (
         "github.com/gin-gonic/gin"
 )
 
-type BlackSiteHandler struct {
+type FailureRegistryHandler struct {
         DB     *db.Database
         Config *config.Config
 }
 
-func NewBlackSiteHandler(database *db.Database, cfg *config.Config) *BlackSiteHandler {
-        return &BlackSiteHandler{DB: database, Config: cfg}
+func NewFailureRegistryHandler(database *db.Database, cfg *config.Config) *FailureRegistryHandler {
+        return &FailureRegistryHandler{DB: database, Config: cfg}
 }
 
 type findingView struct {
@@ -76,58 +76,58 @@ var priorityLabels = map[int]string{
 }
 
 var statusDisplay = map[string]string{
-        "DETAINED":            "Detained",
+        "OPEN":                "Open",
         "VERIFIED":            "Verified",
-        "UNDER_INTERROGATION": "Under Interrogation",
+        "UNDER_ANALYSIS":      "Under Analysis",
         "CONTAINED":           "Contained",
-        "RENDERED":            "Rendered",
+        "RESOLVED":            "Resolved",
         "REGRESSED":           "Regressed",
-        "EXTRADITED":          "Extradited",
+        "REFERRED":            "Referred",
         "DISMISSED":           "Dismissed",
 }
 
 var statusCSS = map[string]string{
-        "DETAINED":            "detained",
+        "OPEN":                "open",
         "VERIFIED":            "verified",
-        "UNDER_INTERROGATION": "interrogation",
+        "UNDER_ANALYSIS":      "analysis",
         "CONTAINED":           "contained",
-        "RENDERED":            "rendered",
+        "RESOLVED":            "resolved",
         "REGRESSED":           "regressed",
-        "EXTRADITED":          "extradited",
+        "REFERRED":            "referred",
         "DISMISSED":           "dismissed",
 }
 
-func (h *BlackSiteHandler) BlackSite(c *gin.Context) {
+func (h *FailureRegistryHandler) FailureRegistry(c *gin.Context) {
         ctx := c.Request.Context()
 
         findings, err := h.DB.Queries.ListFindings(ctx)
         if err != nil {
-                slog.Warn("black-site: failed to list findings", "error", err)
+                slog.Warn("findings-registry: failed to list findings", "error", err)
         }
 
         sevCounts, err := h.DB.Queries.CountFindingsBySeverity(ctx)
         if err != nil {
-                slog.Warn("black-site: failed to count by severity", "error", err)
+                slog.Warn("findings-registry: failed to count by severity", "error", err)
         }
 
         kindCounts, err := h.DB.Queries.CountFindingsByKind(ctx)
         if err != nil {
-                slog.Warn("black-site: failed to count by kind", "error", err)
+                slog.Warn("findings-registry: failed to count by kind", "error", err)
         }
 
         statusCounts, err := h.DB.Queries.CountFindingsByStatus(ctx)
         if err != nil {
-                slog.Warn("black-site: failed to count by status", "error", err)
+                slog.Warn("findings-registry: failed to count by status", "error", err)
         }
 
         totalRow, err := h.DB.Queries.CountFindingsTotal(ctx)
         if err != nil {
-                slog.Warn("black-site: failed to count total", "error", err)
+                slog.Warn("findings-registry: failed to count total", "error", err)
         }
 
         eventsRaw, err := h.DB.Queries.ListFindingEvents(ctx)
         if err != nil {
-                slog.Warn("black-site: failed to list events", "error", err)
+                slog.Warn("findings-registry: failed to list events", "error", err)
         }
 
         sevBuckets := bucketBySeverity(findings)
@@ -143,7 +143,7 @@ func (h *BlackSiteHandler) BlackSite(c *gin.Context) {
         recentEvents := allEvents[:recentCut]
         archiveEvents := allEvents[recentCut:]
 
-        data := NewTemplateData(c, h.Config, "black-site")
+        data := NewTemplateData(c, h.Config, "findings-registry")
         data["S0Findings"] = sevBuckets[0]
         data["S1Findings"] = sevBuckets[1]
         data["S2Findings"] = sevBuckets[2]
@@ -168,7 +168,7 @@ func (h *BlackSiteHandler) BlackSite(c *gin.Context) {
         data["ArchiveEventCount"] = len(archiveEvents)
         data["TotalEventCount"] = len(allEvents)
         data["HasEvents"] = len(allEvents) > 0
-        c.HTML(http.StatusOK, "black_site.html", data)
+        c.HTML(http.StatusOK, "failure_registry.html", data)
 }
 
 func toFindingView(f dbq.Finding) findingView {

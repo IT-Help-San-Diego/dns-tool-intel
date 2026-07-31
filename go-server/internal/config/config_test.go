@@ -4,6 +4,7 @@ package config
 
 import (
         "os"
+        "strings"
         "testing"
 )
 
@@ -163,27 +164,74 @@ func TestLoad_BaseURL_Custom(t *testing.T) {
 func TestLoad_BaseURL_DeploymentIgnoresEphemeralBaseURL(t *testing.T) {
         setEnv(t, "DATABASE_URL", "postgres://test")
         setEnv(t, "SESSION_SECRET", "test-secret")
-        // A dev BASE_URL inherited by the production container must NOT leak into
-        // absolute URLs — external consumers (DEVONagent plugin, OG/OAuth tags)
-        // key off the canonical public domain.
+        // A dev BASE_URL inherited by the production container used to be
+        // silently corrected to the canonical domain. It now fails loudly:
+        // a leak that self-heals at runtime is a leak nobody reports, so the
+        // startup assertion in assertDeploymentEnvironment refuses to boot
+        // until the secret is fixed.
         setEnv(t, "BASE_URL", "https://f2c73519-00-2qa7mtebx8ii8.picard.replit.dev")
         setEnv(t, "GOOGLE_REDIRECT_URL", "")
         setEnv(t, "REPLIT_DEPLOYMENT", "1")
         os.Unsetenv("REPLIT_DEV_DOMAIN")
         t.Cleanup(func() { os.Unsetenv("REPLIT_DEPLOYMENT") })
 
-        cfg, err := Load()
-        if err != nil {
-                t.Fatalf("unexpected error: %v", err)
+        _, err := Load()
+        if err == nil {
+                t.Fatal("expected error for ephemeral BASE_URL in deployment")
         }
-        if cfg.BaseURL != "https://dnstool.it-help.tech" {
-                t.Errorf("expected canonical base URL in deployment, got %s", cfg.BaseURL)
+        for _, want := range []string{"BASE_URL", "picard.replit.dev", "dnstool.it-help.tech", "secrets"} {
+                if !strings.Contains(err.Error(), want) {
+                        t.Errorf("error message should name %q, got: %v", want, err)
+                }
         }
-        if cfg.GoogleRedirectURL != "https://dnstool.it-help.tech/auth/callback" {
-                t.Errorf("expected canonical redirect URL in deployment, got %s", cfg.GoogleRedirectURL)
+}
+
+func TestLoad_DeploymentDevBannerSet_Fails(t *testing.T) {
+        setEnv(t, "DATABASE_URL", "postgres://test")
+        setEnv(t, "SESSION_SECRET", "test-secret")
+        setEnv(t, "BASE_URL", "")
+        setEnv(t, "REPLIT_DEPLOYMENT", "1")
+        setEnv(t, "REPLIT_DEV_BANNER", "1")
+        t.Cleanup(func() {
+                os.Unsetenv("REPLIT_DEPLOYMENT")
+                os.Unsetenv("REPLIT_DEV_BANNER")
+        })
+
+        _, err := Load()
+        if err == nil {
+                t.Fatal("expected error for REPLIT_DEV_BANNER=1 in deployment")
         }
-        if cfg.IsDevEnvironment != false {
-                t.Error("expected IsDevEnvironment=false in deployment")
+        for _, want := range []string{"REPLIT_DEV_BANNER", "secrets", "dev workspace"} {
+                if !strings.Contains(err.Error(), want) {
+                        t.Errorf("error message should name %q, got: %v", want, err)
+                }
+        }
+}
+
+func TestLoad_DeploymentDevBannerUnset_Passes(t *testing.T) {
+        setEnv(t, "DATABASE_URL", "postgres://test")
+        setEnv(t, "SESSION_SECRET", "test-secret")
+        setEnv(t, "BASE_URL", "")
+        setEnv(t, "REPLIT_DEPLOYMENT", "1")
+        os.Unsetenv("REPLIT_DEV_BANNER")
+        t.Cleanup(func() { os.Unsetenv("REPLIT_DEPLOYMENT") })
+
+        if _, err := Load(); err != nil {
+                t.Fatalf("clean deployment config should pass, got: %v", err)
+        }
+}
+
+func TestLoad_DevBannerOutsideDeployment_Passes(t *testing.T) {
+        setEnv(t, "DATABASE_URL", "postgres://test")
+        setEnv(t, "SESSION_SECRET", "test-secret")
+        setEnv(t, "REPLIT_DEV_BANNER", "1")
+        os.Unsetenv("REPLIT_DEPLOYMENT")
+        t.Cleanup(func() { os.Unsetenv("REPLIT_DEV_BANNER") })
+
+        // REPLIT_DEV_BANNER is legitimate in the dev workspace — only its
+        // presence in a published deployment is fatal.
+        if _, err := Load(); err != nil {
+                t.Fatalf("dev-workspace banner should pass, got: %v", err)
         }
 }
 

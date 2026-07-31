@@ -129,7 +129,7 @@ func extractConfidenceRows(results map[string]any) []confidenceScoreRow {
                 rows = append(rows, confidenceScoreRow{
                         Protocol:   protocol,
                         Calibrated: clamp01(cc),
-                        Raw:        protocolRawConfidence(results, resultKey),
+                        Raw:        protocolVerdictSeverity(results, resultKey),
                         Status:     status,
                 })
         }

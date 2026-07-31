@@ -747,7 +747,12 @@ func registerContentRoutes(router *gin.Engine, cfg *config.Config, database *db.
 	router.GET("/communication-standards", commStdsHandler.CommunicationStandards)
 
 	// Legacy named PDF routes — canonical citation URLs (Zenodo DOI
-	// 10.5281/zenodo.19468134, JSON-LD on /corpus). Each registers GET + HEAD
+	// 10.5281/zenodo.19468134). Verified 2026-07-31 against the live Zenodo
+	// record: its related identifiers point at /docs/dns-tool-methodology.pdf,
+	// /docs/philosophical-foundations.pdf and /publications — all three
+	// resolve, and none is /corpus. The earlier "JSON-LD on /corpus" note was
+	// stale: no such route is registered and production 404s it.
+	// Each registers GET + HEAD
 	// so that link checkers, social-card preview bots, and curl -I (which
 	// issues HEAD by default) get a 200 instead of falling through to NoRoute
 	// and rendering a 404. The handlers themselves are method-agnostic —
@@ -799,8 +804,13 @@ func registerContentRoutes(router *gin.Engine, cfg *config.Config, database *db.
 	roeHandler := contentpkg.NewROEHandler(cfg, tdf)
 	router.GET("/roe", roeHandler.ROE)
 
-	blackSiteHandler := handlers.NewBlackSiteHandler(database, cfg)
-	router.GET("/black-site", blackSiteHandler.BlackSite)
+	failureRegistryHandler := handlers.NewFailureRegistryHandler(database, cfg)
+	router.GET("/failure-registry", failureRegistryHandler.FailureRegistry)
+	// 301 redirect from the retired black-site path. The page is in the
+	// sitemap and indexed; dropping the route would 404 external links.
+	router.GET("/black-site", func(c *gin.Context) {
+		c.Redirect(http.StatusMovedPermanently, "/failure-registry")
+	})
 
 	brandColorsHandler := handlers.NewBrandColorsHandler(cfg)
 	router.GET("/brand-colors", brandColorsHandler.BrandColors)

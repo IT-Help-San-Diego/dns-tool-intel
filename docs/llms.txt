@@ -61,7 +61,6 @@ To get fresh data for the same domain, click the "Re-Analyze" button on any resu
 - `/about` — Origin Story: project background, founding mission, and team information
 - `/publications` — Publications: consolidated index of all scientific papers, case studies, governance documents, and technical documentation with format badges and DOI citation links
 - `/case-study/` — Case Studies: Domain Confessions series analyzing real-world DNS security postures across organizations
-- `/corpus` — Research Corpus: inline PDF reading with split-pane layout for all published research documents
 - `/cite` — Cite: citation information and DOI links for referencing DNS Tool research
 - `/reference-library` — Reference Library: curated collection of standards, RFCs, and foundational references used in DNS Tool's analysis methodology
 - `/topology` — Topology: Canvas 2D visualization of DNS resolver PoPs and scan pipeline topology

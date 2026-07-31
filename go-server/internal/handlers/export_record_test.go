@@ -508,9 +508,9 @@ func TestCoverageBoost18_ProtocolRawConfidence(t *testing.T) {
         }
         for _, tt := range tests {
                 t.Run(tt.name, func(t *testing.T) {
-                        got := protocolRawConfidence(tt.results, tt.key)
+                        got := protocolVerdictSeverity(tt.results, tt.key)
                         if got != tt.expected {
-                                t.Errorf("protocolRawConfidence() = %f, want %f", got, tt.expected)
+                                t.Errorf("protocolVerdictSeverity() = %f, want %f", got, tt.expected)
                         }
                 })
         }
