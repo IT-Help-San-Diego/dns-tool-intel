@@ -41,7 +41,22 @@ func TestEmailAnswerNoProtection(t *testing.T) {
 func TestEmailAnswerMonitorOnly(t *testing.T) {
         ps := protocolState{dmarcPolicy: "none"}
         answer := buildEmailAnswer(ps, true, true)
-        expected := "Yes — DMARC is monitor-only (p=none)"
+        // "requests no enforcement" rather than "is monitor-only": the same
+        // verdict class is also produced by quarantine at pct=0, and each record
+        // shape gets its own parenthetical so the answer never asserts record
+        // content that is not there.
+        expected := "Yes — DMARC requests no enforcement (p=none)"
+        if answer != expected {
+                t.Errorf(errExpectedGot, expected, answer)
+        }
+}
+
+func TestEmailAnswerQuarantinePctZero(t *testing.T) {
+        ps := protocolState{dmarcPolicy: "quarantine", dmarcPct: 0}
+        answer := buildEmailAnswer(ps, true, true)
+        // pct=0 requests enforcement on 0% of the stream — operationally the
+        // monitor-only verdict, described by the record's actual shape.
+        expected := "Yes — DMARC requests no enforcement (quarantine at pct=0)"
         if answer != expected {
                 t.Errorf(errExpectedGot, expected, answer)
         }

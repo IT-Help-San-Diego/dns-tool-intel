@@ -215,13 +215,18 @@ func partialProtectionFixtures() []TestCase {
                         Protocol:   mapKeyDmarc,
                         Layer:      LayerAnalysis,
                         RFCSection: citFixtureE2eDmarcS63,
-                        Expected:   "monitor-only (spoofable)",
+                        Expected:   "no enforcement requested (spoofable)",
                         RunFn: func() (string, bool) {
+                                // The answer now reads "requests no enforcement (p=none)" — the
+                                // parenthetical names the observed record shape, because the same
+                                // verdict class also fires for quarantine at pct=0 and must not
+                                // assert p=none content for that record. The check matches the
+                                // meaning (no enforcement + danger), not the old phrasing.
                                 result := analyzer.ExportBuildEmailAnswerStructured(false, "none", 0, false, true, true)
                                 color := result["color"]
                                 answer := analyzer.ExportBuildEmailAnswer(false, "none", 0, false, true, true)
                                 actual := fmt.Sprintf("color=%s, answer=%s", color, answer)
-                                return actual, color == "danger" && strings.Contains(answer, "monitor-only")
+                                return actual, color == "danger" && strings.Contains(answer, "requests no enforcement")
                         },
                 },
                 {

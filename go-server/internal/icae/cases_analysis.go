@@ -256,10 +256,15 @@ func dmarcAnalysisCases() []TestCase {
                         Protocol:   mapKeyDmarc,
                         Layer:      LayerAnalysis,
                         RFCSection: rfcDMARCSection63,
-                        Expected:   "Yes — DMARC is monitor-only (p=none)",
+                        // "requests no enforcement (p=none)" — the parenthetical is the
+                        // observed record shape. The same verdict class also fires for
+                        // quarantine at pct=0, which reads "(quarantine at pct=0)"; each
+                        // shape gets its own wording so the answer never asserts record
+                        // content that is not there.
+                        Expected: "Yes — DMARC requests no enforcement (p=none)",
                         RunFn: func() (string, bool) {
                                 answer := analyzer.ExportBuildEmailAnswer(false, "none", 0, false, true, true)
-                                return answer, answer == "Yes — DMARC is monitor-only (p=none)"
+                                return answer, answer == "Yes — DMARC requests no enforcement (p=none)"
                         },
                 },
                 {

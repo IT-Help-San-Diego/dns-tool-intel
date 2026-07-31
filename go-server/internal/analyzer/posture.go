@@ -1390,7 +1390,7 @@ var emailAnswerText = map[emailSpoofClass]string{
         emailSpoofReject:            "No — SPF and DMARC reject policy enforced",
         emailSpoofQuarantineFull:    "Partly — DMARC quarantine is enforced at 100%, but quarantined mail is delivered to spam rather than refused",
         emailSpoofQuarantinePartial: "Partly — DMARC quarantine covers only part of the mail, and quarantined mail is delivered to spam rather than refused",
-        emailSpoofMonitorOnly:       "Yes — DMARC is monitor-only (p=none)",
+        emailSpoofMonitorOnly:       "Yes — DMARC requests no enforcement (p=none)",
         emailSpoofSPFOnly:           "Likely — SPF alone cannot prevent spoofing",
         emailSpoofDMARCOnly:         "Partially — DMARC present but no SPF",
         emailSpoofUncertain:         "Uncertain — incomplete configuration",
@@ -1409,15 +1409,30 @@ var emailAnswerDetails = map[emailSpoofClass]emailAnswerDetail{
         emailSpoofReject:            {"No", "SPF and DMARC reject policy enforced", mapKeySuccess},
         emailSpoofQuarantineFull:    {strPartly, "SPF and DMARC are enforced at p=quarantine, 100% (RFC 7489 §6.3) — receivers accept failing mail and set it aside, so a spoofed message still reaches the mailbox in spam or junk rather than being refused", mapKeySuccess},
         emailSpoofQuarantinePartial: {strPartly, "DMARC quarantine applies to only part of the mail stream (RFC 7489 §6.3), and quarantined mail is delivered to spam rather than refused — the uncovered remainder is delivered normally", mapKeyWarning},
-        emailSpoofMonitorOnly:       {answerYes, "DMARC is monitor-only (p=none)", mapKeyDanger},
+        emailSpoofMonitorOnly:       {answerYes, "DMARC requests no enforcement (p=none)", mapKeyDanger},
         emailSpoofSPFOnly:           {strLikely, "SPF alone cannot prevent spoofing", mapKeyDanger},
         emailSpoofDMARCOnly:         {strPartially, "DMARC present but no SPF", mapKeyWarning},
         emailSpoofUncertain:         {"Uncertain", "incomplete configuration", mapKeyWarning},
         emailSpoofIndeterminate:     {"Could not verify", "a DNS lookup did not complete — re-run before concluding", "secondary"},
 }
 
+// monitorOnlyShape names the record shape that produced the monitor-only
+// verdict. Two different records land in emailSpoofMonitorOnly — p=none, and
+// quarantine with pct=0 (enforcement requested on 0% of the stream) — and the
+// answer must describe the record actually observed: writing "(p=none)" for a
+// quarantine-pct=0 record would assert record content that is not there.
+func monitorOnlyShape(ps protocolState) string {
+        if ps.dmarcPolicy == mapKeyQuarantine {
+                return "quarantine at pct=0"
+        }
+        return "p=none"
+}
+
 func buildEmailAnswer(ps protocolState, hasSPF, hasDMARC bool) string {
         cls := classifyEmailSpoofability(ps, hasSPF, hasDMARC)
+        if cls == emailSpoofMonitorOnly {
+                return "Yes — DMARC requests no enforcement (" + monitorOnlyShape(ps) + ")"
+        }
         if text, ok := emailAnswerText[cls]; ok {
                 return text
         }
@@ -1429,6 +1444,10 @@ func buildEmailAnswerStructured(ps protocolState, hasSPF, hasDMARC bool) map[str
         detail, ok := emailAnswerDetails[cls]
         if !ok {
                 detail = emailAnswerDetails[emailSpoofUncertain]
+        }
+        if cls == emailSpoofMonitorOnly {
+                // Shape-accurate reason — see monitorOnlyShape.
+                detail.reason = "DMARC requests no enforcement (" + monitorOnlyShape(ps) + ")"
         }
         return map[string]string{mapKeyAnswer: detail.answer, mapKeyReason: detail.reason, mapKeyColor: detail.color}
 }
