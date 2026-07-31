@@ -1,3 +1,4 @@
+-- +goose Up
 -- 012_confidence_scores.sql — Normalized confidence scores table
 -- Extracts per-scan confidence data from JSON blobs for independent trending
 

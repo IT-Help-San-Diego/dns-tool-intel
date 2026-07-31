@@ -1,3 +1,4 @@
+-- +goose Up
 CREATE TABLE black_site_detainees (
     id              SERIAL PRIMARY KEY,
     bsi_id          VARCHAR(10) NOT NULL UNIQUE,

@@ -172,7 +172,15 @@ func main() {
 	}
 	defer database.Close()
 
-	database.RunSeedMigrations("go-server/db/migrations")
+	// Schema migrations are fatal-on-failure, unlike the connection above.
+	// An unreachable database is a degraded-mode condition; a database we
+	// reached and could NOT bring to the version this binary expects is a
+	// database of unknown shape, and serving from one produces wrong answers
+	// instead of visible errors.
+	if err := db.Migrate(context.Background(), cfg.DatabaseURL); err != nil {
+		slog.Error("Database migration failed — refusing to start", mapKeyError, err)
+		os.Exit(1)
+	}
 
 	logger, err := logging.Setup(database.Pool, cfg.DiscordWebhookURL)
 	if err != nil {

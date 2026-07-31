@@ -1,3 +1,4 @@
+-- +goose Up
 CREATE TABLE scan_phase_telemetry (
     id              SERIAL PRIMARY KEY,
     analysis_id     INT NOT NULL REFERENCES domain_analyses(id) ON DELETE CASCADE,

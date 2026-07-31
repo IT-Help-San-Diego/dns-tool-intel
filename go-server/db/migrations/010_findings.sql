@@ -1,3 +1,4 @@
+-- +goose Up
 CREATE TABLE findings (
     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     public_id       TEXT UNIQUE NOT NULL,

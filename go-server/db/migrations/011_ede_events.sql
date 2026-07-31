@@ -1,3 +1,4 @@
+-- +goose Up
 -- 011_ede_events.sql — Empirical Disclosure Events (EDE) migration
 -- Migrates ephemeral integrity_stats.json to durable PostgreSQL
 
