@@ -5,6 +5,7 @@ package dnsclient
 
 import (
 	"context"
+	"golang.org/x/net/publicsuffix"
 	"regexp"
 	"strings"
 
@@ -85,6 +86,44 @@ func IsTLDInput(domain string) bool {
 		return false
 	}
 	return !strings.Contains(d, ".") && validateTLD(d)
+}
+
+// IsRegistryZone reports whether the input names a REGISTRY ZONE APEX rather
+// than a registrable domain — either a single-label TLD ("com") or a
+// multi-label public suffix ("co.uk", "ac.uk", "com.au").
+//
+// IsTLDInput only ever returned true for a single label, so "co.uk" fell
+// through and received the full domain battery: SPF, DMARC, DKIM and the rest
+// queried against a zone apex where they cannot meaningfully exist, and their
+// absence reported as findings about a domain nobody registered.
+//
+// The public suffix list is the producer for this question, so it is asked
+// directly rather than approximated by counting dots — "bbc.co.uk" has two
+// dots and IS registrable, while "co.uk" has one and is not.
+//
+// NOTE this is deliberately NOT a drop-in replacement for IsTLDInput at every
+// call site. It widens WHAT IS RECOGNISED as a registry zone; it does not
+// claim the tool can yet produce a complete registry-zone report. Callers use
+// it to suppress checks that are meaningless at an apex — with a stated
+// reason — not to assert the resulting report is finished.
+func IsRegistryZone(domain string) bool {
+	d := strings.TrimSpace(domain)
+	d = strings.TrimLeft(d, ".")
+	d = strings.TrimRight(d, ".")
+	if d == "" {
+		return false
+	}
+	if IsTLDInput(d) {
+		return true
+	}
+	d = strings.ToLower(d)
+	// EffectiveTLDPlusOne fails exactly when the input IS a public suffix
+	// (there is no registrable name above it), which is the signal wanted.
+	if _, err := publicsuffix.EffectiveTLDPlusOne(d); err == nil {
+		return false
+	}
+	suffix, _ := publicsuffix.PublicSuffix(d)
+	return strings.EqualFold(d, suffix)
 }
 
 func validateLabels(labels []string) bool {
