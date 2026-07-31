@@ -8,7 +8,7 @@ import (
 func TestComputeInternalScore_AllPresent(t *testing.T) {
 	ps := protocolState{
 		spfOK: true, spfHardFail: true,
-		dmarcOK: true, dmarcPolicy: "reject",
+		dmarcOK: true, dmarcPct: 100, dmarcPolicy: "reject",
 		dnssecOK: true, daneOK: true, mtaStsOK: true,
 		tlsrptOK: true, caaOK: true, bimiOK: true,
 	}
@@ -21,7 +21,7 @@ func TestComputeInternalScore_AllPresent(t *testing.T) {
 func TestComputeInternalScore_Capped(t *testing.T) {
 	ps := protocolState{
 		spfOK: true, spfHardFail: true,
-		dmarcOK: true, dmarcPolicy: "reject",
+		dmarcOK: true, dmarcPct: 100, dmarcPolicy: "reject",
 		dnssecOK: true, daneOK: true, mtaStsOK: true,
 		tlsrptOK: true, caaOK: true, bimiOK: true,
 	}
@@ -60,7 +60,7 @@ func TestComputeDMARCScore_AllCases(t *testing.T) {
 		want int
 	}{
 		{"missing", protocolState{dmarcMissing: true}, 0},
-		{"reject", protocolState{dmarcPolicy: "reject"}, 30},
+		{"reject", protocolState{dmarcPct: 100, dmarcPolicy: "reject"}, 30},
 		{"quarantine full", protocolState{dmarcPolicy: "quarantine", dmarcPct: 100}, 25},
 		{"quarantine partial", protocolState{dmarcPolicy: "quarantine", dmarcPct: 50}, 20},
 		{"none with rua", protocolState{dmarcPolicy: "none", dmarcHasRua: true}, 10},
@@ -166,7 +166,7 @@ func TestClassifyGrade_DNSSECBrokenOverrides(t *testing.T) {
 }
 
 func TestClassifyMailGrade_CorePresent_Reject_WithDKIM(t *testing.T) {
-	ps := protocolState{dmarcPolicy: "reject"}
+	ps := protocolState{dmarcPct: 100, dmarcPolicy: "reject"}
 	gi := gradeInput{hasSPF: true, hasDMARC: true, hasDKIM: true, corePresent: true, dmarcFullEnforcing: true}
 	state, icon, color, _ := classifyMailCorePresent(ps, gi)
 	if state != riskLow {
@@ -181,7 +181,7 @@ func TestClassifyMailGrade_CorePresent_Reject_WithDKIM(t *testing.T) {
 }
 
 func TestClassifyMailGrade_CorePresent_Reject_NoDKIM(t *testing.T) {
-	ps := protocolState{dmarcPolicy: "reject"}
+	ps := protocolState{dmarcPct: 100, dmarcPolicy: "reject"}
 	gi := gradeInput{hasSPF: true, hasDMARC: true, hasDKIM: false, corePresent: true, dmarcFullEnforcing: true}
 	state, _, color, _ := classifyMailCorePresent(ps, gi)
 	if state != riskMedium {
@@ -274,7 +274,7 @@ func TestClassifyMailPartial(t *testing.T) {
 
 	// DMARC enforcing without SPF: DKIM alignment can still enforce — guarded,
 	// not open. The colour distinguishes it from the p=none shape above.
-	state, _, color, msg = classifyMailPartial(protocolState{dmarcPolicy: "reject"}, gradeInput{hasDMARC: true})
+	state, _, color, msg = classifyMailPartial(protocolState{dmarcPct: 100, dmarcPolicy: "reject"}, gradeInput{hasDMARC: true})
 	if state != riskHigh {
 		t.Errorf("state = %q, want %q", state, riskHigh)
 	}
@@ -302,11 +302,14 @@ func TestClassifySpoofDoor(t *testing.T) {
 		{"monitor only (red.com shape)", protocolState{dmarcPolicy: "none", dmarcHasRua: true}, true, true, doorOpen},
 		{"spf only", protocolState{}, true, false, doorOpen},
 		{"dmarc p=none no spf (wearetma shape)", protocolState{dmarcPolicy: "none"}, false, true, doorOpen},
-		{"dmarc reject no spf", protocolState{dmarcPolicy: "reject"}, false, true, doorGuarded},
+		{"dmarc reject no spf", protocolState{dmarcPolicy: "reject", dmarcPct: 100}, false, true, doorGuarded},
+		{"dmarc reject pct=0 no spf", protocolState{dmarcPolicy: "reject", dmarcPct: 0}, false, true, doorOpen},
 		{"quarantine partial", protocolState{dmarcPolicy: "quarantine", dmarcPct: 50}, true, true, doorGuarded},
 		{"quarantine pct=0 is zero enforcement", protocolState{dmarcPolicy: "quarantine", dmarcPct: 0}, true, true, doorOpen},
 		{"quarantine full", protocolState{dmarcPolicy: "quarantine", dmarcPct: 100}, true, true, doorClosed},
-		{"reject", protocolState{dmarcPolicy: "reject"}, true, true, doorClosed},
+		{"reject", protocolState{dmarcPolicy: "reject", dmarcPct: 100}, true, true, doorClosed},
+		{"reject partial", protocolState{dmarcPolicy: "reject", dmarcPct: 50}, true, true, doorGuarded},
+		{"reject pct=0 is zero enforcement", protocolState{dmarcPolicy: "reject", dmarcPct: 0}, true, true, doorOpen},
 		{"indeterminate lookup", protocolState{spfIndeterminate: true}, false, true, doorUnknown},
 		{"no-mail", protocolState{isNoMailDomain: true}, false, false, doorNoMail},
 	}
@@ -400,7 +403,7 @@ func TestBuildDescriptiveMessage_Variations(t *testing.T) {
 }
 
 func TestDetermineGrade(t *testing.T) {
-	ps := protocolState{dmarcPolicy: "reject"}
+	ps := protocolState{dmarcPct: 100, dmarcPolicy: "reject"}
 	gi := gradeInput{hasSPF: true, hasDMARC: true, hasDKIM: true}
 	state, icon, color, msg := determineGrade(ps, DKIMSuccess, gi)
 	if state == "" || icon == "" || color == "" || msg == "" {
@@ -465,7 +468,7 @@ func TestClassifyDMARCWarning(t *testing.T) {
 	}{
 		{"warning none no rua", protocolState{dmarcWarning: true, dmarcOK: true, dmarcPolicy: "none", dmarcHasRua: false}, true, 2},
 		{"warning none with rua", protocolState{dmarcWarning: true, dmarcOK: true, dmarcPolicy: "none", dmarcHasRua: true}, true, 1},
-		{"warning reject with rua", protocolState{dmarcWarning: true, dmarcOK: true, dmarcPolicy: "reject", dmarcHasRua: true}, false, 0},
+		{"warning reject with rua", protocolState{dmarcWarning: true, dmarcOK: true, dmarcPct: 100, dmarcPolicy: "reject", dmarcHasRua: true}, false, 0},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
@@ -527,7 +530,7 @@ func TestExtractMailFlags(t *testing.T) {
 	ps := protocolState{
 		spfOK: true, dmarcOK: true, dmarcWarning: false,
 		dkimOK: true, isNoMailDomain: true,
-		spfHardFail: true, dmarcPolicy: "reject",
+		spfHardFail: true, dmarcPct: 100, dmarcPolicy: "reject",
 	}
 	results := map[string]any{
 		"basic_records": map[string]any{"MX": []string{"mx.example.com"}},
@@ -590,7 +593,7 @@ func TestClassifyEmailSpoofability_AllClasses(t *testing.T) {
 	}{
 		{"no mail", protocolState{isNoMailDomain: true}, true, true, emailSpoofNoMail},
 		{"unprotected", protocolState{}, false, false, emailSpoofUnprotected},
-		{"reject", protocolState{dmarcPolicy: "reject"}, true, true, emailSpoofReject},
+		{"reject", protocolState{dmarcPct: 100, dmarcPolicy: "reject"}, true, true, emailSpoofReject},
 		{"quarantine full", protocolState{dmarcPolicy: "quarantine", dmarcPct: 100}, true, true, emailSpoofQuarantineFull},
 		{"quarantine partial", protocolState{dmarcPolicy: "quarantine", dmarcPct: 50}, true, true, emailSpoofQuarantinePartial},
 		{"monitor only", protocolState{dmarcPolicy: "none"}, true, true, emailSpoofMonitorOnly},
@@ -617,7 +620,7 @@ func TestBuildEmailAnswer_AllClasses(t *testing.T) {
 	}{
 		{"no mail", protocolState{isNoMailDomain: true}, false, false},
 		{"unprotected", protocolState{}, false, false},
-		{"reject", protocolState{dmarcPolicy: "reject"}, true, true},
+		{"reject", protocolState{dmarcPct: 100, dmarcPolicy: "reject"}, true, true},
 		{"spf only", protocolState{}, true, false},
 		{"dmarc only", protocolState{}, false, true},
 	}
@@ -640,7 +643,7 @@ func TestBuildEmailAnswerStructured_AllClasses(t *testing.T) {
 		wantAns  string
 		wantClr  string
 	}{
-		{"reject", protocolState{dmarcPolicy: "reject"}, true, true, "No", "success"},
+		{"reject", protocolState{dmarcPct: 100, dmarcPolicy: "reject"}, true, true, "No", "success"},
 		{"unprotected", protocolState{}, false, false, "Yes", "danger"},
 		{"spf only", protocolState{}, true, false, "Likely", "danger"},
 		{"dmarc only", protocolState{}, false, true, "Partially", "warning"},
@@ -668,7 +671,7 @@ func TestBuildEmailVerdict_AllBranches(t *testing.T) {
 	}{
 		{
 			"enforcing reject",
-			verdictInput{ps: protocolState{dmarcPolicy: "reject"}, hasSPF: true, hasDMARC: true, ds: DKIMSuccess},
+			verdictInput{ps: protocolState{dmarcPct: 100, dmarcPolicy: "reject"}, hasSPF: true, hasDMARC: true, ds: DKIMSuccess},
 			"Protected", "success",
 		},
 		{
@@ -713,7 +716,7 @@ func TestBuildEmailVerdict_AllBranches(t *testing.T) {
 
 func TestBuildVerdicts_AllKeys(t *testing.T) {
 	vi := verdictInput{
-		ps:       protocolState{dmarcOK: true, dmarcPolicy: "reject", dnssecOK: true, caaOK: true, mtaStsOK: true},
+		ps:       protocolState{dmarcOK: true, dmarcPct: 100, dmarcPolicy: "reject", dnssecOK: true, caaOK: true, mtaStsOK: true},
 		ds:       DKIMSuccess,
 		hasSPF:   true,
 		hasDMARC: true,
@@ -825,7 +828,7 @@ func TestComputeInternalScore_IndeterminateNeutralized(t *testing.T) {
 	// scores 100; flipping one protocol OK->indeterminate must keep the score at 100.
 	base := protocolState{
 		spfOK: true, spfHardFail: true,
-		dmarcOK: true, dmarcPolicy: "reject",
+		dmarcOK: true, dmarcPct: 100, dmarcPolicy: "reject",
 		dnssecOK: true, daneOK: true, mtaStsOK: true,
 		tlsrptOK: true, caaOK: true, bimiOK: true,
 	}

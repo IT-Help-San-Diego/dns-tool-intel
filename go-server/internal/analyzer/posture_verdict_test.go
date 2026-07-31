@@ -585,7 +585,7 @@ func TestBuildTransportVerdict(t *testing.T) {
 
 func TestVerdictInputUsage(t *testing.T) {
         vi := verdictInput{
-                ps:       protocolState{spfOK: true, dmarcOK: true, dmarcPolicy: "reject"},
+                ps:       protocolState{spfOK: true, dmarcOK: true, dmarcPct: 100, dmarcPolicy: "reject"},
                 ds:       DKIMSuccess,
                 hasSPF:   true,
                 hasDMARC: true,
@@ -622,7 +622,7 @@ func TestBuildBrandVerdict_DmarcMissing(t *testing.T) {
 
 func TestBuildBrandVerdict_Reject(t *testing.T) {
         verdicts := map[string]any{}
-        ps := protocolState{dmarcOK: true, dmarcPolicy: "reject", bimiOK: true, caaOK: true}
+        ps := protocolState{dmarcOK: true, dmarcPct: 100, dmarcPolicy: "reject", bimiOK: true, caaOK: true}
         buildBrandVerdict(ps, verdicts)
         v := verdicts["brand_impersonation"].(map[string]any)
         if v["label"] != "Protected" {
@@ -632,7 +632,7 @@ func TestBuildBrandVerdict_Reject(t *testing.T) {
 
 func TestBuildBrandVerdict_Quarantine(t *testing.T) {
         verdicts := map[string]any{}
-        ps := protocolState{dmarcOK: true, dmarcPolicy: "quarantine"}
+        ps := protocolState{dmarcOK: true, dmarcPct: 100, dmarcPolicy: "quarantine"}
         buildBrandVerdict(ps, verdicts)
         v := verdicts["brand_impersonation"].(map[string]any)
         if v["label"] != "Basic" {
@@ -660,7 +660,7 @@ func TestBuildEmailVerdict_Variations(t *testing.T) {
                 {
                         name: "enforcing reject",
                         vi: verdictInput{
-                                ps:       protocolState{dmarcPolicy: "reject"},
+                                ps:       protocolState{dmarcPct: 100, dmarcPolicy: "reject"},
                                 ds:       DKIMSuccess,
                                 hasSPF:   true,
                                 hasDMARC: true,
@@ -805,10 +805,10 @@ func TestBuildEmailAnswer(t *testing.T) {
         }{
                 {"no-mail domain", protocolState{isNoMailDomain: true}, false, false, "null MX"},
                 {"no protections", protocolState{}, false, false, "no SPF or DMARC"},
-                {"reject", protocolState{dmarcPolicy: "reject"}, true, true, "reject policy enforced"},
+                {"reject", protocolState{dmarcPct: 100, dmarcPolicy: "reject"}, true, true, "reject policy enforced"},
                 {"quarantine 100", protocolState{dmarcPolicy: "quarantine", dmarcPct: 100}, true, true, "delivered to spam rather than refused"},
                 {"quarantine partial", protocolState{dmarcPolicy: "quarantine", dmarcPct: 50}, true, true, "delivered to spam rather than refused"},
-                {"none", protocolState{dmarcPolicy: "none"}, true, true, "monitor-only"},
+                {"none", protocolState{dmarcPolicy: "none"}, true, true, "requests no enforcement"},
                 {"spf only", protocolState{}, true, false, "SPF alone"},
                 {"dmarc only", protocolState{}, false, true, "no SPF"},
         }
@@ -833,7 +833,7 @@ func TestBuildEmailAnswerStructured(t *testing.T) {
         }{
                 {"no-mail", protocolState{isNoMailDomain: true}, false, false, "No", "success"},
                 {"no protections", protocolState{}, false, false, "Yes", "danger"},
-                {"reject", protocolState{dmarcPolicy: "reject"}, true, true, "No", "success"},
+                {"reject", protocolState{dmarcPct: 100, dmarcPolicy: "reject"}, true, true, "No", "success"},
                 {"quarantine 100", protocolState{dmarcPolicy: "quarantine", dmarcPct: 100}, true, true, "Partly", "success"},
                 {"quarantine partial", protocolState{dmarcPolicy: "quarantine", dmarcPct: 50}, true, true, "Partly", "warning"},
                 {"none", protocolState{dmarcPolicy: "none"}, true, true, "Yes", "danger"},

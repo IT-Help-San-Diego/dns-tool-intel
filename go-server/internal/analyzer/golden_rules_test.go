@@ -21,7 +21,7 @@ func TestEmailAnswerNoMailDomain(t *testing.T) {
 }
 
 func TestEmailAnswerRejectPolicy(t *testing.T) {
-        ps := protocolState{dmarcPolicy: "reject"}
+        ps := protocolState{dmarcPct: 100, dmarcPolicy: "reject"}
         answer := buildEmailAnswer(ps, true, true)
         expected := "No — SPF and DMARC reject policy enforced"
         if answer != expected {
@@ -62,6 +62,28 @@ func TestEmailAnswerQuarantinePctZero(t *testing.T) {
         }
 }
 
+func TestEmailAnswerRejectPctZero(t *testing.T) {
+        ps := protocolState{dmarcPolicy: "reject", dmarcPct: 0}
+        answer := buildEmailAnswer(ps, true, true)
+        // RFC 7489 applies pct= to reject too: reject at pct=0 is the rollback
+        // trick — zero enforcement wearing the strongest policy name.
+        expected := "Yes — DMARC requests no enforcement (reject at pct=0)"
+        if answer != expected {
+                t.Errorf(errExpectedGot, expected, answer)
+        }
+}
+
+func TestEmailAnswerRejectPartial(t *testing.T) {
+        ps := protocolState{dmarcPolicy: "reject", dmarcPct: 50}
+        answer := buildEmailAnswer(ps, true, true)
+        // Unlike partial quarantine (set aside in spam), the covered fraction
+        // under reject is REFUSED — the wording must not conflate the two.
+        expected := "Partly — DMARC reject covers only part of the mail; covered messages are refused, the remainder is delivered normally"
+        if answer != expected {
+                t.Errorf(errExpectedGot, expected, answer)
+        }
+}
+
 func TestEmailAnswerQuarantineFull(t *testing.T) {
         ps := protocolState{dmarcPolicy: "quarantine", dmarcPct: 100}
         answer := buildEmailAnswer(ps, true, true)
@@ -85,8 +107,7 @@ func TestEmailAnswerSPFOnly(t *testing.T) {
 
 func TestGoldenRuleUSAGov(t *testing.T) {
         ps := protocolState{
-                dmarcPolicy: "reject",
-                dmarcPct:    100,
+                dmarcPct: 100, dmarcPolicy: "reject",
                 dmarcHasRua: true,
                 spfOK:       true,
         }
@@ -117,7 +138,7 @@ func TestGoldenRuleUSAGov(t *testing.T) {
 
 func TestBrandVerdictFullProtection(t *testing.T) {
         ps := protocolState{
-                dmarcPolicy: "reject",
+                dmarcPct: 100, dmarcPolicy: "reject",
                 bimiOK:      true,
                 caaOK:       true,
         }
@@ -131,7 +152,7 @@ func TestBrandVerdictFullProtection(t *testing.T) {
 
 func TestBrandVerdictPartialGaps(t *testing.T) {
         ps := protocolState{
-                dmarcPolicy: "reject",
+                dmarcPct: 100, dmarcPolicy: "reject",
                 bimiOK:      true,
                 caaOK:       false,
         }
@@ -151,7 +172,7 @@ func TestBrandVerdictPartialGaps(t *testing.T) {
 
 func TestBrandVerdictRejectCAANoBIMI(t *testing.T) {
         ps := protocolState{
-                dmarcPolicy: "reject",
+                dmarcPct: 100, dmarcPolicy: "reject",
                 bimiOK:      false,
                 caaOK:       true,
         }
@@ -168,7 +189,7 @@ func TestBrandVerdictRejectCAANoBIMI(t *testing.T) {
 
 func TestBrandVerdictRejectNoBIMINoCAA(t *testing.T) {
         ps := protocolState{
-                dmarcPolicy: "reject",
+                dmarcPct: 100, dmarcPolicy: "reject",
                 bimiOK:      false,
                 caaOK:       false,
         }
@@ -188,7 +209,7 @@ func TestBrandVerdictRejectNoBIMINoCAA(t *testing.T) {
 
 func TestBrandVerdictQuarantineWithBIMICAA(t *testing.T) {
         ps := protocolState{
-                dmarcPolicy: "quarantine",
+                dmarcPct: 100, dmarcPolicy: "quarantine",
                 bimiOK:      true,
                 caaOK:       true,
         }
@@ -208,7 +229,7 @@ func TestBrandVerdictQuarantineWithBIMICAA(t *testing.T) {
 
 func TestBrandVerdictQuarantineAlone(t *testing.T) {
         ps := protocolState{
-                dmarcPolicy: "quarantine",
+                dmarcPct: 100, dmarcPolicy: "quarantine",
                 bimiOK:      false,
                 caaOK:       false,
         }
@@ -1218,8 +1239,7 @@ func TestDeliberateMonitoringQuarantineFull(t *testing.T) {
                 dmarcOK:     true,
                 dmarcHasRua: true,
                 spfOK:       true,
-                dmarcPolicy: "quarantine",
-                dmarcPct:    100,
+                dmarcPct: 100, dmarcPolicy: "quarantine",
 		dnssecOK:    true,
 		caaOK:       true,
         }
@@ -1237,8 +1257,7 @@ func TestDeliberateMonitoringQuarantinePartial(t *testing.T) {
                 dmarcOK:     true,
                 dmarcHasRua: true,
                 spfOK:       true,
-                dmarcPolicy: "quarantine",
-                dmarcPct:    50,
+                dmarcPct: 50, dmarcPolicy: "quarantine",
 		dnssecOK:    true,
 		caaOK:       true,
         }
@@ -1271,7 +1290,7 @@ func TestDeliberateMonitoringRejectNotMonitoring(t *testing.T) {
                 dmarcOK:     true,
                 dmarcHasRua: true,
                 spfOK:       true,
-                dmarcPolicy: "reject",
+                dmarcPct: 100, dmarcPolicy: "reject",
 		dnssecOK:    true,
 		caaOK:       true,
         }

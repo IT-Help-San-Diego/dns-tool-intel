@@ -161,6 +161,12 @@ func ExportBuildBrandVerdict(dmarcMissing bool, dmarcPolicy string, bimiOK, caaO
                 dmarcPolicy:  dmarcPolicy,
                 bimiOK:       bimiOK,
                 caaOK:        caaOK,
+                // pct defaults to 100 exactly as the record parser does
+                // (extractIntFieldDefault): callers passing a bare policy mean the
+                // common record with no pct= tag. buildBrandVerdict now routes
+                // pct<=0 to the weak verdict, so a zero here would misclass every
+                // exported case.
+                dmarcPct: 100,
         }
         verdicts := map[string]any{}
         buildBrandVerdict(ps, verdicts)

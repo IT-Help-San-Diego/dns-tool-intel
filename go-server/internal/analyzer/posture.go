@@ -515,15 +515,35 @@ func classifyDMARC(ps protocolState, acc *postureAccumulator) {
 func classifyDMARCSuccess(ps protocolState, acc *postureAccumulator) {
         switch ps.dmarcPolicy {
         case mapKeyReject:
-                acc.configured = append(acc.configured, "DMARC (reject)")
+                // pct= applies to reject too (RFC 7489) — mirror the quarantine
+                // branch so a partial or zero pct is never listed as full reject.
+                switch {
+                case ps.dmarcPct >= 100:
+                        acc.configured = append(acc.configured, "DMARC (reject)")
+                case ps.dmarcPct > 0:
+                        acc.configured = append(acc.configured, fmt.Sprintf("DMARC (reject, %d%%)", ps.dmarcPct))
+                        acc.monitoring = append(acc.monitoring, fmt.Sprintf("DMARC reject policy only applies to %d%% of messages", ps.dmarcPct))
+                        acc.recommendations = append(acc.recommendations, "Increase DMARC pct to 100 for full enforcement")
+                default:
+                        acc.configured = append(acc.configured, "DMARC (reject, pct=0)")
+                        acc.issues = append(acc.issues, "DMARC policy is reject with pct=0 — enforcement applies to 0% of mail, so nothing is blocked (RFC 7489 §6.3)")
+                        acc.recommendations = append(acc.recommendations, "Raise DMARC pct so the reject policy actually applies")
+                }
         case mapKeyQuarantine:
-                if ps.dmarcPct >= 100 {
+                switch {
+                case ps.dmarcPct >= 100:
                         acc.configured = append(acc.configured, "DMARC (quarantine, 100%)")
                         acc.recommendations = append(acc.recommendations, "Upgrade DMARC policy from quarantine to reject (p=reject) for maximum spoofing protection")
-                } else {
+                case ps.dmarcPct > 0:
                         acc.configured = append(acc.configured, fmt.Sprintf("DMARC (quarantine, %d%%)", ps.dmarcPct))
                         acc.monitoring = append(acc.monitoring, fmt.Sprintf("DMARC quarantine policy only applies to %d%% of messages", ps.dmarcPct))
                         acc.recommendations = append(acc.recommendations, "Increase DMARC pct to 100 for full enforcement")
+                default:
+                        // pct=0: zero enforcement is an issue, not a monitoring note —
+                        // symmetric with the reject branch above.
+                        acc.configured = append(acc.configured, "DMARC (quarantine, pct=0)")
+                        acc.issues = append(acc.issues, "DMARC policy is quarantine with pct=0 — enforcement applies to 0% of mail, so nothing is blocked (RFC 7489 §6.3)")
+                        acc.recommendations = append(acc.recommendations, "Raise DMARC pct so the quarantine policy actually applies")
                 }
         case statusNone:
                 acc.configured = append(acc.configured, "DMARC (monitoring only)")
@@ -1005,9 +1025,14 @@ func (a *Analyzer) CalculatePosture(results map[string]any) map[string]any {
 
 func determineGrade(ps protocolState, ds DKIMState, gi gradeInput) (state, icon, color, message string) {
         gi.corePresent = gi.hasSPF && gi.hasDMARC
-        gi.dmarcFullEnforcing = ps.dmarcPolicy == mapKeyReject || (ps.dmarcPolicy == mapKeyQuarantine && ps.dmarcPct >= 100)
-        gi.dmarcPartialEnforcing = ps.dmarcPolicy == mapKeyQuarantine && ps.dmarcPct < 100
-        gi.dmarcStrict = ps.dmarcPolicy == mapKeyReject
+        // pct= applies to reject exactly as to quarantine (RFC 7489): reject at
+        // pct=50 enforces half the stream, reject at pct=0 enforces nothing.
+        // "reject means enforcing" without the pct check graded a rollback trick
+        // as a closed door.
+        enforcingPolicy := ps.dmarcPolicy == mapKeyReject || ps.dmarcPolicy == mapKeyQuarantine
+        gi.dmarcFullEnforcing = enforcingPolicy && ps.dmarcPct >= 100
+        gi.dmarcPartialEnforcing = enforcingPolicy && ps.dmarcPct < 100
+        gi.dmarcStrict = ps.dmarcPolicy == mapKeyReject && ps.dmarcPct >= 100
         gi.hasCAA = ps.caaOK
         gi.dkimInconclusive = ds == DKIMInconclusive
         gi.isNoMail = ps.isNoMailDomain
@@ -1073,10 +1098,12 @@ func classifySpoofDoor(ps protocolState, hasSPF, hasDMARC bool) spoofDoor {
                 return doorNoMail
         case emailSpoofReject, emailSpoofQuarantineFull:
                 return doorClosed
-        case emailSpoofQuarantinePartial:
+        case emailSpoofQuarantinePartial, emailSpoofRejectPartial:
                 return doorGuarded
         case emailSpoofDMARCOnly:
-                if ps.dmarcPolicy == mapKeyReject || ps.dmarcPolicy == mapKeyQuarantine {
+                // The guard needs pct too: reject/quarantine at pct=0 enforces
+                // nothing, so DKIM alignment has no policy to trigger.
+                if (ps.dmarcPolicy == mapKeyReject || ps.dmarcPolicy == mapKeyQuarantine) && ps.dmarcPct > 0 {
                         return doorGuarded
                 }
                 return doorOpen
@@ -1156,9 +1183,9 @@ func classifyMailCorePresent(ps protocolState, gi gradeInput) (string, string, s
                 // pct=0 is zero enforcement, not a gap — the door classifier returns
                 // open for it, and the colour follows.
                 state := riskMedium
-                msg := fmt.Sprintf("DMARC quarantine at %d%% — not fully enforcing", ps.dmarcPct)
+                msg := fmt.Sprintf("DMARC %s at %d%% — not fully enforcing", ps.dmarcPolicy, ps.dmarcPct)
                 if ps.dmarcPct <= 0 {
-                        msg = "DMARC quarantine at 0% — requests no enforcement at all"
+                        msg = fmt.Sprintf("DMARC %s at 0%% — requests no enforcement at all", ps.dmarcPolicy)
                 }
                 return applyMonitoringSuffix(state, gi.monitoring), iconShieldAlt, doorColor(classifySpoofDoor(ps, gi.hasSPF, gi.hasDMARC)), msg
         }
@@ -1211,8 +1238,8 @@ func classifyNoMailGrade(ps protocolState, gi gradeInput) (string, string, strin
                 // enforces on the covered fraction (guarded), but p=none or pct=0
                 // enforces nothing — records alone must not soften the colour, or
                 // adding one record to a danger shape would flip it to info.
-                if ps.dmarcPolicy == mapKeyQuarantine && ps.dmarcPct > 0 {
-                        return riskMedium, iconShieldAlt, mapKeyWarning, "No-mail domain has SPF and DMARC but policy is quarantine, not reject"
+                if (ps.dmarcPolicy == mapKeyQuarantine || ps.dmarcPolicy == mapKeyReject) && ps.dmarcPct > 0 {
+                        return riskMedium, iconShieldAlt, mapKeyWarning, "No-mail domain has SPF and DMARC but the policy enforces only part of the mail stream"
                 }
                 return riskMedium, iconShieldAlt, mapKeyDanger, "No-mail domain has SPF and DMARC but the policy requests no enforcement — mail claiming this domain is delivered unchecked"
         }
@@ -1330,6 +1357,7 @@ const (
         emailSpoofReject
         emailSpoofQuarantineFull
         emailSpoofQuarantinePartial
+        emailSpoofRejectPartial
         emailSpoofMonitorOnly
         emailSpoofSPFOnly
         emailSpoofDMARCOnly
@@ -1365,7 +1393,16 @@ func classifyEmailSpoofability(ps protocolState, hasSPF, hasDMARC bool) emailSpo
 func classifyDMARCPolicy(ps protocolState) emailSpoofClass {
         switch ps.dmarcPolicy {
         case mapKeyReject:
-                return emailSpoofReject
+                // RFC 7489 applies pct= to reject exactly as to quarantine, and
+                // pct=0 on reject is a known rollback trick. An unconditional
+                // "enforced" here graded zero enforcement as a closed door.
+                if ps.dmarcPct >= 100 {
+                        return emailSpoofReject
+                }
+                if ps.dmarcPct <= 0 {
+                        return emailSpoofMonitorOnly
+                }
+                return emailSpoofRejectPartial
         case mapKeyQuarantine:
                 if ps.dmarcPct >= 100 {
                         return emailSpoofQuarantineFull
@@ -1390,6 +1427,7 @@ var emailAnswerText = map[emailSpoofClass]string{
         emailSpoofReject:            "No — SPF and DMARC reject policy enforced",
         emailSpoofQuarantineFull:    "Partly — DMARC quarantine is enforced at 100%, but quarantined mail is delivered to spam rather than refused",
         emailSpoofQuarantinePartial: "Partly — DMARC quarantine covers only part of the mail, and quarantined mail is delivered to spam rather than refused",
+        emailSpoofRejectPartial:     "Partly — DMARC reject covers only part of the mail; covered messages are refused, the remainder is delivered normally",
         emailSpoofMonitorOnly:       "Yes — DMARC requests no enforcement (p=none)",
         emailSpoofSPFOnly:           "Likely — SPF alone cannot prevent spoofing",
         emailSpoofDMARCOnly:         "Partially — DMARC present but no SPF",
@@ -1409,6 +1447,7 @@ var emailAnswerDetails = map[emailSpoofClass]emailAnswerDetail{
         emailSpoofReject:            {"No", "SPF and DMARC reject policy enforced", mapKeySuccess},
         emailSpoofQuarantineFull:    {strPartly, "SPF and DMARC are enforced at p=quarantine, 100% (RFC 7489 §6.3) — receivers accept failing mail and set it aside, so a spoofed message still reaches the mailbox in spam or junk rather than being refused", mapKeySuccess},
         emailSpoofQuarantinePartial: {strPartly, "DMARC quarantine applies to only part of the mail stream (RFC 7489 §6.3), and quarantined mail is delivered to spam rather than refused — the uncovered remainder is delivered normally", mapKeyWarning},
+        emailSpoofRejectPartial:     {strPartly, "DMARC reject applies to only part of the mail stream (RFC 7489 §6.3) — covered messages that fail authentication are refused at the gateway, and the uncovered remainder is delivered normally", mapKeyWarning},
         emailSpoofMonitorOnly:       {answerYes, "DMARC requests no enforcement (p=none)", mapKeyDanger},
         emailSpoofSPFOnly:           {strLikely, "SPF alone cannot prevent spoofing", mapKeyDanger},
         emailSpoofDMARCOnly:         {strPartially, "DMARC present but no SPF", mapKeyWarning},
@@ -1422,8 +1461,11 @@ var emailAnswerDetails = map[emailSpoofClass]emailAnswerDetail{
 // answer must describe the record actually observed: writing "(p=none)" for a
 // quarantine-pct=0 record would assert record content that is not there.
 func monitorOnlyShape(ps protocolState) string {
-        if ps.dmarcPolicy == mapKeyQuarantine {
+        switch ps.dmarcPolicy {
+        case mapKeyQuarantine:
                 return "quarantine at pct=0"
+        case mapKeyReject:
+                return "reject at pct=0"
         }
         return "p=none"
 }
@@ -1469,7 +1511,7 @@ func buildEmailVerdict(vi verdictInput, verdicts map[string]any) {
                 return
         }
 
-        if vi.hasSPF && vi.hasDMARC && (vi.ps.dmarcPolicy == mapKeyReject || (vi.ps.dmarcPolicy == mapKeyQuarantine && vi.ps.dmarcPct >= 100)) {
+        if vi.hasSPF && vi.hasDMARC && (vi.ps.dmarcPolicy == mapKeyReject || vi.ps.dmarcPolicy == mapKeyQuarantine) && vi.ps.dmarcPct >= 100 {
                 buildEnforcingEmailVerdict(vi.ps, vi.ds, verdicts)
                 return
         }
@@ -1520,6 +1562,10 @@ func buildNonEnforcingEmailVerdict(ps protocolState) map[string]any {
                 reason = "SPF and DMARC are both published, but DMARC is at p=none (RFC 7489 §6.3) — a monitoring policy. Authentication results are reported to the domain owner, and nothing is blocked: a spoofed message that fails is delivered to the inbox exactly as it would be with no DMARC record."
         case ps.dmarcPolicy == mapKeyQuarantine && ps.dmarcPct > 0 && ps.dmarcPct < 100:
                 reason = fmt.Sprintf("SPF and DMARC are both published, and DMARC requests quarantine for %d%% of mail (RFC 7489 §6.3). The remaining %d%% is delivered normally, and quarantined mail is set aside in spam rather than refused — so a spoofed message can still reach the recipient by either route.", ps.dmarcPct, 100-ps.dmarcPct)
+        case ps.dmarcPolicy == mapKeyReject && ps.dmarcPct > 0 && ps.dmarcPct < 100:
+                reason = fmt.Sprintf("SPF and DMARC are both published, and DMARC requests reject for %d%% of mail (RFC 7489 §6.3) — messages in the covered fraction that fail authentication are refused at the gateway. The remaining %d%% is delivered normally, so a spoofed message can still reach the recipient through the uncovered share.", ps.dmarcPct, 100-ps.dmarcPct)
+        case (ps.dmarcPolicy == mapKeyReject || ps.dmarcPolicy == mapKeyQuarantine) && ps.dmarcPct <= 0:
+                reason = fmt.Sprintf("SPF and DMARC are both published, but the %s policy carries pct=0 (RFC 7489 §6.3) — enforcement applies to 0%% of the mail stream, so nothing is blocked: a spoofed message that fails authentication is delivered exactly as it would be under p=none.", ps.dmarcPolicy)
         }
         return map[string]any{
                 mapKeyLabel:  strBasic,
@@ -1580,10 +1626,13 @@ func buildBrandVerdict(ps protocolState, verdicts map[string]any) {
                 return
         }
 
-        switch ps.dmarcPolicy {
-        case mapKeyReject:
+        // pct=0 on either policy enforces nothing — the brand verdict must not
+        // assert reject/quarantine protection for a policy that applies to 0% of
+        // the mail stream.
+        switch {
+        case ps.dmarcPolicy == mapKeyReject && ps.dmarcPct > 0:
                 verdicts[mapKeyBrandImpersonation] = buildBrandRejectVerdict(ps)
-        case mapKeyQuarantine:
+        case ps.dmarcPolicy == mapKeyQuarantine && ps.dmarcPct > 0:
                 verdicts[mapKeyBrandImpersonation] = buildBrandQuarantineVerdict(ps)
         default:
                 verdicts[mapKeyBrandImpersonation] = buildBrandWeakVerdict(ps)

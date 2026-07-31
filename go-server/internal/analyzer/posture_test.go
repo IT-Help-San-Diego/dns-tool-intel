@@ -355,7 +355,7 @@ func TestClassifyDMARC(t *testing.T) {
         }
 
         acc = &postureAccumulator{issues: []string{}, recommendations: []string{}, configured: []string{}, absent: []string{}, monitoring: []string{}}
-        classifyDMARC(protocolState{dmarcOK: true, dmarcPolicy: "reject"}, acc)
+        classifyDMARC(protocolState{dmarcOK: true, dmarcPct: 100, dmarcPolicy: "reject"}, acc)
         if len(acc.configured) != 1 || acc.configured[0] != "DMARC (reject)" {
                 t.Errorf("reject should be configured as 'DMARC (reject)', got %v", acc.configured)
         }
@@ -389,7 +389,7 @@ func TestClassifyDMARC_NoMailSuppressesRuaRecommendation(t *testing.T) {
         // rua: aggregate reporting offers no email-authentication visibility because
         // the domain carries no mail, so the recommendation must be suppressed.
         acc := &postureAccumulator{issues: []string{}, recommendations: []string{}, configured: []string{}, absent: []string{}, monitoring: []string{}}
-        classifyDMARC(protocolState{dmarcOK: true, dmarcPolicy: "reject", dmarcHasRua: false, isNoMailDomain: true}, acc)
+        classifyDMARC(protocolState{dmarcOK: true, dmarcPct: 100, dmarcPolicy: "reject", dmarcHasRua: false, isNoMailDomain: true}, acc)
         if hasRec(acc.recommendations, visRec) {
                 t.Errorf("no-mail domain must not be told to add rua for email-authentication visibility, got %v", acc.recommendations)
         }
@@ -397,14 +397,14 @@ func TestClassifyDMARC_NoMailSuppressesRuaRecommendation(t *testing.T) {
         // A mail-handling domain with the same config still gets the recommendation
         // (regression guard so the suppression stays scoped to no-mail domains).
         acc = &postureAccumulator{issues: []string{}, recommendations: []string{}, configured: []string{}, absent: []string{}, monitoring: []string{}}
-        classifyDMARC(protocolState{dmarcOK: true, dmarcPolicy: "reject", dmarcHasRua: false, isNoMailDomain: false}, acc)
+        classifyDMARC(protocolState{dmarcOK: true, dmarcPct: 100, dmarcPolicy: "reject", dmarcHasRua: false, isNoMailDomain: false}, acc)
         if !hasRec(acc.recommendations, visRec) {
                 t.Errorf("mail domain without rua should be recommended to add aggregate reporting, got %v", acc.recommendations)
         }
 
         // The same suppression applies on the DMARC-warning path.
         acc = &postureAccumulator{issues: []string{}, recommendations: []string{}, configured: []string{}, absent: []string{}, monitoring: []string{}}
-        classifyDMARC(protocolState{dmarcWarning: true, dmarcPolicy: "reject", dmarcHasRua: false, isNoMailDomain: true}, acc)
+        classifyDMARC(protocolState{dmarcWarning: true, dmarcPct: 100, dmarcPolicy: "reject", dmarcHasRua: false, isNoMailDomain: true}, acc)
         if hasRec(acc.recommendations, warnRec) {
                 t.Errorf("no-mail domain with DMARC warnings must not be told to enable rua, got %v", acc.recommendations)
         }
@@ -585,7 +585,7 @@ func TestEvaluateDeliberateMonitoring(t *testing.T) {
                 t.Error("should be true for full quarantine")
         }
 
-        ok, _ = evaluateDeliberateMonitoring(protocolState{dmarcOK: true, dmarcHasRua: true, spfOK: true, dmarcPolicy: "reject", dnssecOK: true, caaOK: true})
+        ok, _ = evaluateDeliberateMonitoring(protocolState{dmarcOK: true, dmarcHasRua: true, spfOK: true, dmarcPct: 100, dmarcPolicy: "reject", dnssecOK: true, caaOK: true})
         if ok {
                 t.Error("reject should return false")
         }
@@ -599,7 +599,7 @@ func TestComputeInternalScore(t *testing.T) {
 
         score = computeInternalScore(protocolState{
                 spfOK: true, spfHardFail: true,
-                dmarcOK: true, dmarcPolicy: "reject",
+                dmarcOK: true, dmarcPct: 100, dmarcPolicy: "reject",
                 dnssecOK: true, daneOK: true, mtaStsOK: true, tlsrptOK: true, caaOK: true, bimiOK: true,
         }, DKIMSuccess)
         if score > 100 {
@@ -626,7 +626,7 @@ func TestComputeDMARCScore(t *testing.T) {
         if computeDMARCScore(protocolState{dmarcMissing: true}) != 0 {
                 t.Error("missing should be 0")
         }
-        if computeDMARCScore(protocolState{dmarcPolicy: "reject"}) != 30 {
+        if computeDMARCScore(protocolState{dmarcPct: 100, dmarcPolicy: "reject"}) != 30 {
                 t.Error("reject should be 30")
         }
         if computeDMARCScore(protocolState{dmarcPolicy: "quarantine", dmarcPct: 100}) != 25 {
@@ -756,7 +756,7 @@ func TestClassifyEmailSpoofability(t *testing.T) {
         }{
                 {"no mail", protocolState{isNoMailDomain: true}, false, false, emailSpoofNoMail},
                 {"unprotected", protocolState{}, false, false, emailSpoofUnprotected},
-                {"reject", protocolState{dmarcPolicy: "reject"}, true, true, emailSpoofReject},
+                {"reject", protocolState{dmarcPct: 100, dmarcPolicy: "reject"}, true, true, emailSpoofReject},
                 {"quarantine full", protocolState{dmarcPolicy: "quarantine", dmarcPct: 100}, true, true, emailSpoofQuarantineFull},
                 {"quarantine partial", protocolState{dmarcPolicy: "quarantine", dmarcPct: 50}, true, true, emailSpoofQuarantinePartial},
                 {"monitor only", protocolState{dmarcPolicy: "none"}, true, true, emailSpoofMonitorOnly},
@@ -774,7 +774,7 @@ func TestClassifyEmailSpoofability(t *testing.T) {
 }
 
 func TestPostureBuildEmailAnswerBasic(t *testing.T) {
-        got := buildEmailAnswer(protocolState{dmarcPolicy: "reject"}, true, true)
+        got := buildEmailAnswer(protocolState{dmarcPct: 100, dmarcPolicy: "reject"}, true, true)
         if got == "" {
                 t.Error("should return non-empty answer")
         }
@@ -786,7 +786,7 @@ func TestPostureBuildEmailAnswerBasic(t *testing.T) {
 }
 
 func TestPostureBuildEmailAnswerStructuredBasic(t *testing.T) {
-        got := buildEmailAnswerStructured(protocolState{dmarcPolicy: "reject"}, true, true)
+        got := buildEmailAnswerStructured(protocolState{dmarcPct: 100, dmarcPolicy: "reject"}, true, true)
         if got["answer"] != "No" {
                 t.Errorf("answer = %q, want No", got["answer"])
         }

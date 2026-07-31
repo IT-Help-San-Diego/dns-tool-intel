@@ -445,7 +445,7 @@ func TestBuildBrandVerdict(t *testing.T) {
         })
         t.Run("reject_bimi_caa", func(t *testing.T) {
                 verdicts := map[string]any{}
-                buildBrandVerdict(protocolState{dmarcPolicy: "reject", bimiOK: true, caaOK: true}, verdicts)
+                buildBrandVerdict(protocolState{dmarcPct: 100, dmarcPolicy: "reject", bimiOK: true, caaOK: true}, verdicts)
                 v := verdicts[mapKeyBrandImpersonation].(map[string]any)
                 if v[mapKeyLabel] != strProtected {
                         t.Errorf("got %v", v[mapKeyLabel])
@@ -453,7 +453,7 @@ func TestBuildBrandVerdict(t *testing.T) {
         })
         t.Run("reject_bimi_no_caa", func(t *testing.T) {
                 verdicts := map[string]any{}
-                buildBrandVerdict(protocolState{dmarcPolicy: "reject", bimiOK: true}, verdicts)
+                buildBrandVerdict(protocolState{dmarcPct: 100, dmarcPolicy: "reject", bimiOK: true}, verdicts)
                 v := verdicts[mapKeyBrandImpersonation].(map[string]any)
                 if v[mapKeyLabel] != "Well Protected" {
                         t.Errorf("got %v", v[mapKeyLabel])
@@ -461,7 +461,7 @@ func TestBuildBrandVerdict(t *testing.T) {
         })
         t.Run("reject_caa_no_bimi", func(t *testing.T) {
                 verdicts := map[string]any{}
-                buildBrandVerdict(protocolState{dmarcPolicy: "reject", caaOK: true}, verdicts)
+                buildBrandVerdict(protocolState{dmarcPct: 100, dmarcPolicy: "reject", caaOK: true}, verdicts)
                 v := verdicts[mapKeyBrandImpersonation].(map[string]any)
                 if v[mapKeyLabel] != "Mostly Protected" {
                         t.Errorf("got %v", v[mapKeyLabel])
@@ -469,7 +469,7 @@ func TestBuildBrandVerdict(t *testing.T) {
         })
         t.Run("reject_no_bimi_no_caa", func(t *testing.T) {
                 verdicts := map[string]any{}
-                buildBrandVerdict(protocolState{dmarcPolicy: "reject"}, verdicts)
+                buildBrandVerdict(protocolState{dmarcPct: 100, dmarcPolicy: "reject"}, verdicts)
                 v := verdicts[mapKeyBrandImpersonation].(map[string]any)
                 if v[mapKeyLabel] != "Partially Protected" {
                         t.Errorf("got %v", v[mapKeyLabel])
@@ -477,7 +477,7 @@ func TestBuildBrandVerdict(t *testing.T) {
         })
         t.Run("quarantine_bimi_caa", func(t *testing.T) {
                 verdicts := map[string]any{}
-                buildBrandVerdict(protocolState{dmarcPolicy: "quarantine", bimiOK: true, caaOK: true}, verdicts)
+                buildBrandVerdict(protocolState{dmarcPct: 100, dmarcPolicy: "quarantine", bimiOK: true, caaOK: true}, verdicts)
                 v := verdicts[mapKeyBrandImpersonation].(map[string]any)
                 if v[mapKeyLabel] != "Well Protected" {
                         t.Errorf("got %v", v[mapKeyLabel])
@@ -485,7 +485,7 @@ func TestBuildBrandVerdict(t *testing.T) {
         })
         t.Run("quarantine_bimi_only", func(t *testing.T) {
                 verdicts := map[string]any{}
-                buildBrandVerdict(protocolState{dmarcPolicy: "quarantine", bimiOK: true}, verdicts)
+                buildBrandVerdict(protocolState{dmarcPct: 100, dmarcPolicy: "quarantine", bimiOK: true}, verdicts)
                 v := verdicts[mapKeyBrandImpersonation].(map[string]any)
                 if v[mapKeyLabel] != "Mostly Protected" {
                         t.Errorf("got %v", v[mapKeyLabel])
@@ -493,7 +493,7 @@ func TestBuildBrandVerdict(t *testing.T) {
         })
         t.Run("quarantine_caa_only", func(t *testing.T) {
                 verdicts := map[string]any{}
-                buildBrandVerdict(protocolState{dmarcPolicy: "quarantine", caaOK: true}, verdicts)
+                buildBrandVerdict(protocolState{dmarcPct: 100, dmarcPolicy: "quarantine", caaOK: true}, verdicts)
                 v := verdicts[mapKeyBrandImpersonation].(map[string]any)
                 if v[mapKeyLabel] != "Partially Protected" {
                         t.Errorf("got %v", v[mapKeyLabel])
@@ -501,7 +501,7 @@ func TestBuildBrandVerdict(t *testing.T) {
         })
         t.Run("quarantine_nothing", func(t *testing.T) {
                 verdicts := map[string]any{}
-                buildBrandVerdict(protocolState{dmarcPolicy: "quarantine"}, verdicts)
+                buildBrandVerdict(protocolState{dmarcPct: 100, dmarcPolicy: "quarantine"}, verdicts)
                 v := verdicts[mapKeyBrandImpersonation].(map[string]any)
                 if v[mapKeyLabel] != strBasic {
                         t.Errorf("got %v", v[mapKeyLabel])
@@ -1392,7 +1392,7 @@ func TestEvaluateDeliberateMonitoring_Boost(t *testing.T) {
                 }
         })
         t.Run("reject_low_config", func(t *testing.T) {
-                isMonitoring, _ := evaluateDeliberateMonitoring(protocolState{dmarcOK: true, dmarcHasRua: true, spfOK: true, dmarcPolicy: "reject", dnssecOK: true, caaOK: true})
+                isMonitoring, _ := evaluateDeliberateMonitoring(protocolState{dmarcOK: true, dmarcHasRua: true, spfOK: true, dmarcPct: 100, dmarcPolicy: "reject", dnssecOK: true, caaOK: true})
                 if isMonitoring {
                         t.Error("should not be monitoring for reject with low config count")
                 }
@@ -1447,7 +1447,7 @@ func TestClassifyDMARC_Boost(t *testing.T) {
         })
         t.Run("ok", func(t *testing.T) {
                 acc := &postureAccumulator{}
-                classifyDMARC(protocolState{dmarcOK: true, dmarcPolicy: "reject"}, acc)
+                classifyDMARC(protocolState{dmarcOK: true, dmarcPct: 100, dmarcPolicy: "reject"}, acc)
                 if len(acc.configured) == 0 {
                         t.Error("expected DMARC in configured")
                 }

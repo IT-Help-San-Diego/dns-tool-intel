@@ -317,7 +317,7 @@ func TestAppendDMARCFixes_QuarantinePartialPct(t *testing.T) {
 }
 
 func TestAppendDMARCFixes_NoRua(t *testing.T) {
-	ps := protocolState{dmarcPolicy: "reject", dmarcOK: true, dmarcHasRua: false}
+	ps := protocolState{dmarcPct: 100, dmarcPolicy: "reject", dmarcOK: true, dmarcHasRua: false}
 	fixes := appendDMARCFixes(nil, ps, nil, "example.com")
 	found := false
 	for _, f := range fixes {
@@ -536,7 +536,7 @@ func TestAppendDANEFixes_Deployable(t *testing.T) {
 }
 
 func TestAppendBIMIFixes(t *testing.T) {
-	fixes := appendBIMIFixes(nil, protocolState{bimiOK: false, dmarcPolicy: "reject"}, "example.com")
+	fixes := appendBIMIFixes(nil, protocolState{bimiOK: false, dmarcPct: 100, dmarcPolicy: "reject"}, "example.com")
 	if len(fixes) != 1 {
 		t.Fatalf("expected 1 fix, got %d", len(fixes))
 	}
@@ -544,7 +544,7 @@ func TestAppendBIMIFixes(t *testing.T) {
 		t.Errorf("title = %q", fixes[0].Title)
 	}
 
-	fixes = appendBIMIFixes(nil, protocolState{bimiOK: true, dmarcPolicy: "reject"}, "example.com")
+	fixes = appendBIMIFixes(nil, protocolState{bimiOK: true, dmarcPct: 100, dmarcPolicy: "reject"}, "example.com")
 	if len(fixes) != 0 {
 		t.Error("expected 0 fixes when BIMI is OK")
 	}
@@ -562,7 +562,7 @@ func TestAppendNoMailHardeningFixes(t *testing.T) {
 		t.Fatalf("expected 2 fixes, got %d", len(fixes))
 	}
 
-	ps = protocolState{spfHardFail: true, dmarcPolicy: "reject"}
+	ps = protocolState{spfHardFail: true, dmarcPct: 100, dmarcPolicy: "reject"}
 	fixes = appendNoMailHardeningFixes(nil, ps, "example.com")
 	if len(fixes) != 0 {
 		t.Errorf("expected 0 fixes when fully hardened, got %d", len(fixes))
@@ -576,7 +576,7 @@ func TestAppendProbableNoMailFixes(t *testing.T) {
 		t.Fatalf("expected 2 fixes, got %d", len(fixes))
 	}
 
-	ps = protocolState{spfHardFail: true, dmarcPolicy: "reject"}
+	ps = protocolState{spfHardFail: true, dmarcPct: 100, dmarcPolicy: "reject"}
 	fixes = appendProbableNoMailFixes(nil, ps, "example.com")
 	if len(fixes) != 0 {
 		t.Errorf("expected 0 fixes when fully hardened, got %d", len(fixes))
@@ -829,7 +829,7 @@ func TestAppendTLSRPTFixes_NoMailDomain(t *testing.T) {
 }
 
 func TestAppendBIMIFixes_NotReject(t *testing.T) {
-	fixes := appendBIMIFixes(nil, protocolState{bimiOK: false, dmarcPolicy: "quarantine"}, "example.com")
+	fixes := appendBIMIFixes(nil, protocolState{bimiOK: false, dmarcPct: 100, dmarcPolicy: "quarantine"}, "example.com")
 	if len(fixes) != 0 {
 		t.Error("expected 0 fixes when DMARC is not reject")
 	}
@@ -960,7 +960,7 @@ func TestAppendNoMailHardeningFixes_PartialHardened(t *testing.T) {
 }
 
 func TestAppendNoMailHardeningFixes_SPFMissing(t *testing.T) {
-	ps := protocolState{spfHardFail: false, dmarcPolicy: "reject"}
+	ps := protocolState{spfHardFail: false, dmarcPct: 100, dmarcPolicy: "reject"}
 	fixes := appendNoMailHardeningFixes(nil, ps, "example.com")
 	if len(fixes) != 1 {
 		t.Fatalf("expected 1 fix (SPF only), got %d", len(fixes))
@@ -982,7 +982,7 @@ func TestAppendProbableNoMailFixes_PartialHardened(t *testing.T) {
 }
 
 func TestAppendDMARCFixes_Reject_WithRua(t *testing.T) {
-	ps := protocolState{dmarcPolicy: "reject", dmarcOK: true, dmarcHasRua: true}
+	ps := protocolState{dmarcPct: 100, dmarcPolicy: "reject", dmarcOK: true, dmarcHasRua: true}
 	fixes := appendDMARCFixes(nil, ps, nil, "example.com")
 	if len(fixes) != 0 {
 		t.Errorf("reject with rua should have 0 fixes, got %d", len(fixes))
@@ -1025,11 +1025,11 @@ func TestAppendDMARCFixes_NoMailSuppressesRuaFix(t *testing.T) {
 		}
 		return false
 	}
-	mailPS := protocolState{dmarcOK: true, dmarcPolicy: "reject", dmarcHasRua: false}
+	mailPS := protocolState{dmarcOK: true, dmarcPct: 100, dmarcPolicy: "reject", dmarcHasRua: false}
 	if !hasRuaFix(appendDMARCFixes(nil, mailPS, nil, "example.com")) {
 		t.Fatalf("mail domain without rua must still get the Add DMARC Aggregate Reporting fix")
 	}
-	noMailPS := protocolState{dmarcOK: true, dmarcPolicy: "reject", dmarcHasRua: false, isNoMailDomain: true}
+	noMailPS := protocolState{dmarcOK: true, dmarcPct: 100, dmarcPolicy: "reject", dmarcHasRua: false, isNoMailDomain: true}
 	if hasRuaFix(appendDMARCFixes(nil, noMailPS, nil, "example.com")) {
 		t.Fatalf("no-mail domain must not get the Add DMARC Aggregate Reporting fix")
 	}
