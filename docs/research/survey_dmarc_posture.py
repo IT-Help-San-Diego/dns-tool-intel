@@ -8,10 +8,19 @@ summary JSON. Run:
 
 DATA-INTEGRITY ASSERTIONS (hard failures, not warnings)
 -------------------------------------------------------
-The first pass of this survey silently counted six domains twice: they are
-mailbox providers AND appear in the scan history because users scanned them.
-That moved four published figures. The class assignment is therefore asserted
-rather than remembered:
+The first pass of this survey silently counted six domains twice. These six are
+mailbox providers AND appear in the scan history because users scanned them:
+
+    hotmail.com   mailbox.org   proton.me   tuta.io   yahoo.com   zoho.com
+
+Each was counted once as a provider and once as a tenant, which moved four
+published figures (tenant publication 66.7%->65.9%, tenant enforcement
+48.5%->47.7%, tenant MTA-STS 10.7%->9.1%, tenant TLS-RPT 14.4%->12.5%) and two
+rule counts. If you are editing survey_tenants.txt and see any of the names
+above, that is the defect returning: a mailbox-provider domain belongs to the
+provider class no matter who scanned it.
+
+The class assignment is therefore asserted rather than remembered:
 
   1. provider and tenant classes are DISJOINT  (a provider domain is a
      provider domain regardless of who scanned it)
