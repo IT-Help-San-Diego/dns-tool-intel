@@ -246,9 +246,9 @@ func resolveBaseURL() (string, bool) {
 	return baseURL, isDevEnv
 }
 
-// AssertDeploymentEnvironment fails loudly — before the router builds or any
-// listener binds — when a dev-environment variable has leaked into a published
-// deployment. These are the same class as the helium database-host guard in
+// AssertDeploymentEnvironment fails loudly — before the router builds, though
+// NOT before the early healthcheck listener binds (see the ordering note below)
+// — when a dev-environment variable has leaked into a published deployment. These are the same class as the helium database-host guard in
 // db.go: a mis-set secret that is silently corrected (or silently widens the
 // CSP) produces a running system that is wrong in ways nobody sees.
 //
@@ -257,8 +257,16 @@ func resolveBaseURL() (string, bool) {
 // what's wrong" shape, because an operator reading a deploy log at 3am should
 // not have to find the source to know which secret to change.
 //
-// Called from config.Load(), which runs before the early listener binds, so a
-// failing deployment never accepts traffic in a bad configuration.
+// Called from config.Load(), which runs AFTER the early listener binds
+// (main.go: waitForListener + "Early listener started", then config.Load()).
+// Until config.Load() succeeds, the early listener is serving startingHandler():
+// /healthz answers {"status":"starting"} with HTTP 200 and every other route a
+// spinner page. So a misconfigured deployment accepts traffic and answers
+// healthchecks 200 OK in the moments before config.Load() fails and os.Exit(1)
+// fires — a platform healthcheck can read green immediately before the process
+// dies (a crash-loop that looks healthy), not a clean refusal. The assertion
+// still prevents the bad configuration from serving real analysis traffic, but
+// it does NOT prevent the early listener from accepting connections first.
 func assertDeploymentEnvironment() error {
 	if os.Getenv("REPLIT_DEPLOYMENT") == "" {
 		return nil

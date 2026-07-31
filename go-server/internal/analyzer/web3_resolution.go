@@ -39,7 +39,62 @@ const (
         InputKindDNSDomain InputKind = "dns_domain"
         InputKindENSName   InputKind = "ens_name"
         InputKindHNSName   InputKind = "hns_name"
+        // InputKindUDName is an Unstoppable Domains name: an on-chain registry
+        // entry with NO DNS zone. Without this kind such a name classified as
+        // InputKindDNSDomain and received the full DNS battery — SPF, DMARC and
+        // DKIM queried against a name that cannot carry records, producing
+        // "absent" findings about a namespace where absence is meaningless.
+        // Scan scope must match registry type.
+        InputKindUDName InputKind = "ud_name"
 )
+
+// udUnresolvableTLDs are TLDs Unstoppable Domains SOLD but does not list in
+// any resolution producer: absent from its own catalogue
+// (/resolve/supported_tlds) and absent from the IANA root zone. Measured
+// 2026-07-31 against both.
+//
+// This is not a lookup failure and must never be reported as one. Two of
+// these TLDs carry names in the operator's own portfolio — names on TLDs the
+// vendor's resolution inventory does not contain. Recognising them lets the
+// tool say precisely that, instead of emitting a generic "could not resolve"
+// that blames the network for a vendor inventory gap.
+var udUnresolvableTLDs = map[string]string{
+        "agi":       "sold by Unstoppable Domains but absent from its resolution catalogue and from the IANA root zone",
+        "robot":     "sold by Unstoppable Domains but absent from its resolution catalogue and from the IANA root zone",
+        "metaverse": "absent from the Unstoppable Domains resolution catalogue and from the IANA root zone",
+}
+
+func tldOf(domain string) string {
+        d := strings.TrimSuffix(strings.ToLower(strings.TrimSpace(domain)), ".")
+        i := strings.LastIndexByte(d, '.')
+        if i < 0 || i == len(d)-1 {
+                return ""
+        }
+        return d[i+1:]
+}
+
+// IsUDName reports whether the input is an Unstoppable Domains name — either
+// on a TLD UD actually resolves (the generated set, derived by subtracting the
+// IANA root zone from UD's catalogue) or on one of the TLDs UD sold without
+// listing. Both are UD names; only the first can resolve.
+func IsUDName(domain string) bool {
+        tld := tldOf(domain)
+        if tld == "" {
+                return false
+        }
+        if udWeb3TLDs[tld] {
+                return true
+        }
+        _, unresolvable := udUnresolvableTLDs[tld]
+        return unresolvable
+}
+
+// UDUnresolvableReason returns the recorded reason a UD name cannot resolve,
+// or "" when its TLD is resolvable. The reason is a measurement about the
+// vendor's inventory, not about this lookup.
+func UDUnresolvableReason(domain string) string {
+        return udUnresolvableTLDs[tldOf(domain)]
+}
 
 type AnalysisScope string
 
@@ -84,6 +139,9 @@ func ClassifyInput(domain string) InputKind {
         if IsHNSName(domain) {
                 return InputKindHNSName
         }
+        if IsUDName(domain) {
+                return InputKindUDName
+        }
         return InputKindDNSDomain
 }
 
@@ -101,7 +159,7 @@ func IsHNSName(domain string) bool {
 }
 
 func IsWeb3Input(domain string) bool {
-        return IsENSName(domain) || IsHNSName(domain)
+        return IsENSName(domain) || IsHNSName(domain) || IsUDName(domain)
 }
 
 func (a *Analyzer) ResolveWeb3Domain(ctx context.Context, domain string) Web3ResolutionResult {
@@ -111,10 +169,39 @@ func (a *Analyzer) ResolveWeb3Domain(ctx context.Context, domain string) Web3Res
         if IsHNSName(domain) {
                 return a.resolveHNS(ctx, domain)
         }
+        if IsUDName(domain) {
+                return udClassificationResult(domain)
+        }
         return Web3ResolutionResult{
                 IsWeb3Input: false,
                 InputDomain: domain,
         }
+}
+
+// udClassificationResult classifies a UD name WITHOUT resolving it. On-chain
+// resolution (GET /profile/public/<name>) is deliberately not performed here
+// yet: classification is what stops the DNS battery running against a zoneless
+// name, and it is correct on its own. Returning a fabricated or empty
+// resolution would assert something unmeasured, so this reports scope
+// identity-only and says why.
+func udClassificationResult(domain string) Web3ResolutionResult {
+        result := Web3ResolutionResult{
+                IsWeb3Input:    true,
+                InputDomain:    domain,
+                ResolutionType: "ud",
+                InputKind:      InputKindUDName,
+                AnalysisScope:  ScopeIdentityOnly,
+        }
+        if reason := UDUnresolvableReason(domain); reason != "" {
+                // Not a lookup failure: the vendor's own inventory omits this
+                // TLD. Say that, rather than blaming the network.
+                result.AttributionWarning = "This name is on an Unstoppable Domains TLD that cannot resolve — " + reason +
+                        ". Findings here describe the name's registry status only; no DNS zone exists to evaluate."
+                return result
+        }
+        result.AttributionWarning = "Unstoppable Domains name resolved on-chain, not in DNS. It has no DNS zone, " +
+                "so email-authentication and DNSSEC findings do not apply — their absence is the namespace, not a gap."
+        return result
 }
 
 func (a *Analyzer) resolveENS(ctx context.Context, domain string) Web3ResolutionResult {

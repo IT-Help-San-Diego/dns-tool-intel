@@ -32,6 +32,21 @@ export GOSUMDB=sum.golang.org
 # the chronic every-ship merge conflict on config.go.
 VERSION=$(bash "$SCRIPT_DIR/scripts/version.sh")
 
+# Deposit-version gate (UNCONDITIONAL, every build — local and CI). The deposit
+# version is declared in docs/metadata files (the manifest in
+# scripts/version-files.sh); a sed that matches nothing exits 0, which is why
+# {10}/"DNS Tool v10" sat wrong since April. This asserts every version-keyed
+# field in a manifested file equals the version the docs/metadata currently
+# record — failing the build on any mismatch instead of shipping a stale
+# string. It touches only local files, so it needs no opt-in flag. Note: this
+# checks DEPOSIT sync (docs + Zenodo metadata), not the git-derived app
+# ${VERSION} above — the two are different version classes by design.
+if ! bash "$SCRIPT_DIR/scripts/assert-version-strings.sh"; then
+  echo "BUILD ABORTED: deposit version strings disagree (see above)." >&2
+  echo "Fix the mismatches, or run a generator to re-sync, then rebuild." >&2
+  exit 1
+fi
+
 GIT_COMMIT=$(git -C "$SCRIPT_DIR" rev-parse --short HEAD 2>/dev/null || echo "unknown")
 BUILD_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 
