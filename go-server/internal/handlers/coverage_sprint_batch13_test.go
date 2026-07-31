@@ -944,7 +944,7 @@ func TestScanProgress_ToJSON_B13(t *testing.T) {
         sp := &scanProgress{
                 startTime: time.Now(),
                 phases: map[string]*phaseStatus{
-                        "dns": {Status: "done", DurationMs: 100, expectedTasks: 1, completedTasks: 1},
+                        "dns": {Status: "done", TotalTaskTimeMs: 100, expectedTasks: 1, completedTasks: 1},
                 },
         }
         j := sp.toJSON()
