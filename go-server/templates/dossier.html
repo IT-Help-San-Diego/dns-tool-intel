@@ -144,7 +144,7 @@
                                                class="btn btn-sm btn-outline-primary dossier-view-btn" title="View intelligence report">
                                                 {{icon "eye"}}
                                             </a>
-                                            <a href="/analyze?domain={{$a.Domain}}" 
+                                            <a href="/topology?domain={{$a.AsciiDomain | urlquery}}" 
                                                class="btn btn-sm btn-outline-success dossier-reanalyze-btn" title="Re-assess now">
                                                 {{icon "sync-alt"}}
                                             </a>
@@ -182,7 +182,7 @@
                                    class="btn btn-sm btn-outline-primary dossier-view-btn" title="View">
                                     {{icon "eye"}}
                                 </a>
-                                <a href="/analyze?domain={{$a.Domain}}" 
+                                <a href="/topology?domain={{$a.AsciiDomain | urlquery}}" 
                                    class="btn btn-sm btn-outline-success dossier-reanalyze-btn" title="Re-assess">
                                     {{icon "sync-alt"}}
                                 </a>
@@ -210,7 +210,7 @@
                     <a href="/dossier" class="btn btn-outline-secondary me-2">
                         {{icon "times" "me-2"}}Clear Search
                     </a>
-                    <a href="/analyze?domain={{.SearchDomain}}" class="btn btn-primary">
+                    <a href="/topology?domain={{.SearchDomain | urlquery}}" class="btn btn-primary">
                         {{icon "search" "me-2"}}Assess {{.SearchDomain}}
                     </a>
                 {{else}}
