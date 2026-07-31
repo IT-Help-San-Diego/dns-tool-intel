@@ -2,7 +2,7 @@
   "id": "/",
   "name": "DNS Tool",
   "short_name": "DNS Tool",
-  "description": "Domain security audit — no login required. Producing Engineer's DNS Intelligence Reports and Executive's DNS Intelligence Briefs. SPF, DKIM, DMARC, DANE/TLSA, DNSSEC, BIMI, MTA-STS, TLS-RPT, CAA. Email Header Analyzer, IP Intelligence, AI Surface Scanner. TLP classification.",
+  "description": "Domain security audit — no login required. Engineer's DNS Intelligence Reports and Executive's DNS Intelligence Briefs. SPF, DKIM, DMARC, DANE/TLSA, DNSSEC, BIMI, MTA-STS, TLS-RPT, CAA. Email Header Analyzer, IP Intelligence, Field Tech Toolkit, TTL Tuner. TLP classification.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -75,6 +75,13 @@
       "short_name": "TTL",
       "description": "Optimize DNS TTL values for your domain",
       "url": "/ttl-tuner",
+      "icons": [{ "src": "/static/icons/favicon-48x48.png", "sizes": "48x48", "type": "image/png" }]
+    },
+    {
+      "name": "Field Tech Toolkit",
+      "short_name": "Toolkit",
+      "description": "Guided network troubleshooting for field technicians",
+      "url": "/toolkit",
       "icons": [{ "src": "/static/icons/favicon-48x48.png", "sizes": "48x48", "type": "image/png" }]
     }
   ],
