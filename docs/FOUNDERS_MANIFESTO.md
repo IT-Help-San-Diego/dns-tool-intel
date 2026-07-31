@@ -3,6 +3,9 @@
 **Carey James Balboa**
 ORCID: [0009-0000-5237-9065](https://orcid.org/0009-0000-5237-9065)
 Project: [dnstool.it-help.tech](https://dnstool.it-help.tech)
+DOI: [10.5281/zenodo.19468134](https://doi.org/10.5281/zenodo.19468134)
+
+Version 26.46.15 · This document: CC BY 4.0 · Software: BUSL-1.1
 
 *Non-normative statement of intent. This document expresses the aspirational vision and design philosophy that motivates DNS Tool's architecture. It is distinct from the project's scientific claims, which are bounded, falsifiable, and documented separately in [philosophical-foundations.md](philosophical-foundations.md) and the methodology paper (Balboa, 2026). Where this manifesto says "[MUST]," it declares a design target, not a proven state.*
 
