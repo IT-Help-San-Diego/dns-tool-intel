@@ -138,6 +138,12 @@ func Migrate(ctx context.Context, databaseURL string) error {
 	// Creates the ledger for the empty-database case and is a no-op otherwise.
 	// Everything below reads it, so it must exist by now.
 	if _, err := goose.EnsureDBVersionContext(ctx, sqlDB); err != nil {
+		if errors.Is(err, goose.ErrNoNextVersion) {
+			return fmt.Errorf(
+				"migrate: the version ledger %s has rows but records nothing as applied — a partially written or rolled-back "+
+					"ledger this program will not guess about. Inspect its rows and reconcile them against the real schema by hand, "+
+					"then restart: %w", goose.TableName(), err)
+		}
 		return fmt.Errorf("migrate: create version ledger: %w", err)
 	}
 
@@ -278,7 +284,19 @@ func bootstrapLedger(ctx context.Context, sqlDB *sql.DB, files []migrationFile) 
 		return fmt.Errorf("migrate: inspect existing schema: %w", err)
 	}
 
-	if len(existing.Tables) == 0 {
+	// Bookkeeping tables are not application schema. A platform schema sync
+	// can hand an otherwise-empty database an empty goose_db_version (and
+	// possibly the checksum table); counting those as "populated" would send
+	// a genuinely empty database down the adoption path, which then refuses
+	// because none of migration 001's objects exist.
+	applicationTables := 0
+	for name := range existing.Tables {
+		if name == goose.TableName() || name == checksumTable {
+			continue
+		}
+		applicationTables++
+	}
+	if applicationTables == 0 {
 		slog.Info("migrate: empty database — installing schema from migration 001")
 		return nil
 	}
