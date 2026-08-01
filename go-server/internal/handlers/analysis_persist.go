@@ -131,6 +131,7 @@ func (h *AnalysisHandler) saveAnalysis(ctx context.Context, p saveAnalysisInput)
 	params := dbq.InsertAnalysisParams{
 		Domain:               p.domain,
 		AsciiDomain:          p.asciiDomain,
+		AppVersion:           h.Config.AppVersion,
 		BasicRecords:         basicRecordsJSON,
 		AuthoritativeRecords: authRecordsJSON,
 		SpfStatus:            spfStatus,

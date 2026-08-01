@@ -1,0 +1,24 @@
+-- +goose Up
+-- 019_domain_analyses_app_version.sql
+-- Give the main analysis table the producer attribution the score tables
+-- have had since 001.
+--
+-- ice_test_runs and icuae_scan_scores record app_version on every row;
+-- domain_analyses — the table the history and stats surfaces read — records
+-- only created_at. Without the producing version, a local-vs-cloud statistic
+-- over grader-semantic fields (verdicts, posture mixes, confidence) cannot
+-- distinguish a real difference from two grader vocabularies: "local says
+-- 40%, cloud says 55%" is uninterpretable. That makes those statistics
+-- tier 3 (not comparable) in the stats-lever comparability spec, PERMANENTLY,
+-- unless rows start carrying their producer. This column turns tier 3 into a
+-- shrinking set: history stays unattributed ('' below), but every row from
+-- 019 onward names the build that measured it.
+--
+-- VARCHAR(20) NOT NULL DEFAULT '' matches icuae_scan_scores' column exactly
+-- (001:234). '' on existing rows is the honest value: their producer was
+-- never recorded and cannot be reconstructed. The default is then DROPPED,
+-- same reasoning as 018: both write paths bind the value explicitly (the
+-- sqlc param makes forgetting a compile error), so a default that fires
+-- would be fabricating attribution — fail loudly instead.
+ALTER TABLE domain_analyses ADD COLUMN app_version VARCHAR(20) NOT NULL DEFAULT '';
+ALTER TABLE domain_analyses ALTER COLUMN app_version DROP DEFAULT;

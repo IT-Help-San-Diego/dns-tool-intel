@@ -210,7 +210,8 @@ CREATE TABLE public.domain_analyses (
     scan_flag boolean DEFAULT false NOT NULL,
     scan_source character varying(100),
     scan_ip character varying(45),
-    wayback_url text
+    wayback_url text,
+    app_version character varying(20) NOT NULL
 );
 
 

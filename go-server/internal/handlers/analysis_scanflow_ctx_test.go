@@ -163,15 +163,17 @@ func (offlineHTTPStub) ReadBody(resp *http.Response, maxBytes int64) ([]byte, er
 // cancelled context exactly as pgx would — the property the defect abused —
 // and records the context state InsertAnalysis was called with.
 type ctxRecordingStore struct {
-	mu           sync.Mutex
-	insertCalled bool
-	insertCtxErr error
+	mu               sync.Mutex
+	insertCalled     bool
+	insertCtxErr     error
+	insertAppVersion string
 }
 
-func (f *ctxRecordingStore) observeInsert(ctx context.Context) error {
+func (f *ctxRecordingStore) observeInsert(ctx context.Context, appVersion string) error {
 	f.mu.Lock()
 	f.insertCalled = true
 	f.insertCtxErr = ctx.Err()
+	f.insertAppVersion = appVersion
 	f.mu.Unlock()
 	return ctx.Err()
 }
@@ -179,7 +181,7 @@ func (f *ctxRecordingStore) observeInsert(ctx context.Context) error {
 var errNoRows = errors.New("no rows in result set")
 
 func (f *ctxRecordingStore) InsertAnalysis(ctx context.Context, arg dbq.InsertAnalysisParams) (dbq.InsertAnalysisRow, error) {
-	if err := f.observeInsert(ctx); err != nil {
+	if err := f.observeInsert(ctx, arg.AppVersion); err != nil {
 		return dbq.InsertAnalysisRow{}, err
 	}
 	return dbq.InsertAnalysisRow{ID: 42}, nil
@@ -323,7 +325,7 @@ func TestAnalyzeSyncScanSurvivesClientDisconnect(t *testing.T) {
 	}
 
 	store.mu.Lock()
-	called, ctxErr := store.insertCalled, store.insertCtxErr
+	called, ctxErr, appVer := store.insertCalled, store.insertCtxErr, store.insertAppVersion
 	store.mu.Unlock()
 
 	if !called {
@@ -331,5 +333,12 @@ func TestAnalyzeSyncScanSurvivesClientDisconnect(t *testing.T) {
 	}
 	if ctxErr != nil {
 		t.Fatalf("InsertAnalysis received an already-cancelled context (%v) — the save still rides the request lifecycle", ctxErr)
+	}
+	// Producer attribution (migration 019): every persisted analysis names the
+	// build that measured it. Rows without it are tier-3 (not comparable) on
+	// any local-vs-cloud statistics surface, permanently — so an empty value
+	// here is a regression against the stats-lever comparability spec.
+	if appVer != h.Config.AppVersion {
+		t.Fatalf("InsertAnalysis carried app_version %q, want %q — the row lost its producer attribution", appVer, h.Config.AppVersion)
 	}
 }

@@ -13,6 +13,11 @@ sql:
         emit_empty_slices: true
         emit_pointers_for_null_types: true
         overrides:
+          # goose's ledger timestamp is consumed as a plain time.Time by
+          # icuae.DBTX (the cutoff caption) — pin the mapping so regeneration
+          # from the sqlc ledger stub reproduces the shipped signature.
+          - column: "goose_db_version.tstamp"
+            go_type: "time.Time"
           - db_type: "json"
             go_type:
               import: "encoding/json"

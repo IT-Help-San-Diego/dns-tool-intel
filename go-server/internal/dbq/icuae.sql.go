@@ -102,6 +102,14 @@ type ICuAEGetGradeDistributionRow struct {
 	Count int32  `db:"count" json:"count"`
 }
 
+// Scope to rows recorded at/after the 018 grade-width adoption, so the
+// published distribution is not a blend of two regimes: pre-018 rows could
+// only ever be 'good'/'stale' (longer grade names failed VARCHAR(5) insert),
+// post-018 rows can carry any grade. The cutoff derives from the migration
+// ledger (newest applied row for version 18), never a hardcoded date. If 018
+// is not yet applied the subquery is NULL and created_at >= NULL matches
+// nothing — correct (render no distribution), stated here so it is not "fixed"
+// into an unfiltered query.
 func (q *Queries) ICuAEGetGradeDistribution(ctx context.Context) ([]ICuAEGetGradeDistributionRow, error) {
 	rows, err := q.db.Query(ctx, iCuAEGetGradeDistribution)
 	if err != nil {
@@ -128,9 +136,8 @@ WHERE version_id = 18 AND is_applied = true
 ORDER BY id DESC LIMIT 1
 `
 
-// ICuAEGetGradeDistributionCutoff returns the 018 adoption timestamp the grade
-// distribution is scoped to, or pgx.ErrNoRows when 018 is not yet applied
-// (caller renders no distribution in that case).
+// The cutoff the distribution is scoped to, for the caption. Label and filter
+// must come from ONE source (the ledger), or the caption drifts from the query.
 func (q *Queries) ICuAEGetGradeDistributionCutoff(ctx context.Context) (time.Time, error) {
 	row := q.db.QueryRow(ctx, iCuAEGetGradeDistributionCutoff)
 	var tstamp time.Time
