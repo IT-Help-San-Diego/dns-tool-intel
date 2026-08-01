@@ -87,20 +87,34 @@ Replit absorbed scan-floods / TikTok-spikes invisibly for the $100/mo. On our ow
 
 ---
 
-## 5. Ordered build steps (once choices are ruled)
+## 5. Ordered build steps (architecture decided: EC2 app + private RDS db.t4g.small)
 
-1. **Region lock:** us-west-2. Re-measure all pricing there (Claude Science's earlier figures were us-east-1).
-2. **Stand up EC2** (t4g.medium, security group: port 22 from Carey's IP only, Postgres on 127.0.0.1 or SG-locked 5432, Elastic IP). Same posture as `server.it-help.tech` — but 24/7 (public site; no idle-stop for this service).
-3. **Install Postgres 18**, restore `~/Downloads/neondb.dump` (the sealed July dump). Goose adoption probe runs → `stamp_through=18` then `applied=1` (019 EXECUTES). Verify.
-4. **Nightly `pg_dump` → S3 + sha256 seal note.**
-5. **App-level rate limiting** on `/analyze` + `/topology`.
-6. **Strip dead Replit guards** (`db.go` helium check, early-listener, `REPLIT_*` env assertions). **Question D:** same PR as the AWS build, or a separate cleanup PR? (My lean: separate — the reviewable diff of removing authorization-path guards should stand alone.)
-7. **Point the binary** at the new Postgres, smoke-test `/healthz` + a scan.
-8. **Flip Route53** `dnstool.it-help.tech` → the Elastic IP.
-9. **(Optional, later)** Pay the $250, fresh `pg_dump` of Neon, fold in the 6-day tail additively.
-10. **CloudFront in front + billing alerts** at $50/$100/$200 (AWS Budgets).
+**DECIDED (Claude Science rulings, adopted):** EC2 app server + private RDS `db.t4g.small` (PITR = primary recovery path) + nightly sealed `pg_dump` → object-locked S3 (second copy, never primary) + DB private with TablePlus over SSH tunnel through `server.it-help.tech`. Region us-west-2. ~$49/mo.
 
-**Verification at every step** — no "should work." Each step ends with a measured check (curl status, row count, boot log line), the same discipline as the dump seals.
+**DRESS REHEARSAL: PASS (2026-08-01).** Migration path measured, not inferred: `stamp_through=18` → `adopted stamped=18` → `pending from_version=18 to_version=19` → `schema upgraded applied=1`. **`stamp_through=19` did NOT occur** (019 executed: score tables → `text`, `app_version` created). Second boot `schema up to date version=19` (one-time adoption). Freeze-ending scan wrote the first `icuae_scan_scores` row since Jun 20.
+
+**Two deploy gotchas the rehearsal caught (bake into the build):**
+1. **cwd** — the binary resolves templates relative to cwd (`go-server/templates`) and **exits on boot** if run from the wrong directory. The deploy must set cwd to the repo root.
+2. **version stamping** — built with plain `go build`, `app_version` read `'dev'`. The AWS build MUST use `build.sh` (ldflags stamps the ~23-char git-describe string — the value `VARCHAR(20)` rejected for six weeks).
+
+1. **Region lock:** us-west-2. Re-measure all pricing there (earlier figures were us-east-1).
+2. **Stand up EC2 app box** (t4g.medium, SG: port 22 from Carey's IP only, Elastic IP). 24/7 — no idle-stop for a public site.
+3. **Stand up RDS `db.t4g.small`, private** (no public endpoint). Enable PITR (primary recovery path).
+4. **Restore `~/Downloads/neondb.dump`** into RDS with `--no-owner --no-privileges`. Goose adoption probe runs → `stamp_through=18` then `applied=1` (019 EXECUTES). Verify both score tables are `text` and `app_version` exists.
+5. **⚠ NUMBERED STEP — reseat the sequences (between restore and first traffic, NOT a note).** The dump's `domain_analyses_id_seq` = 18093 and `scan_phase_telemetry_id_seq` = 286169, so the first AWS scan would issue 18094 / 286170 — **the exact ids the 6-day tail needs**, silently, until the tail import dies on duplicate keys. Run BEFORE any scan:
+   ```sql
+   SELECT setval('domain_analyses_id_seq',      18116, true);
+   SELECT setval('scan_phase_telemetry_id_seq', 286836, true);
+   ```
+   This reserves 18094–18107 for the tail, leaves 18108–18116 as a permanent gap (the honest record of the rows lost), and starts new scans at 18117. **These two literals (18116, 286836) are production's `last_value`, measured on Replit before the deploy was deleted — not in the dump, not re-derivable. Carry them as literals.**
+6. **Nightly sealed `pg_dump` → object-locked S3** (cron on the EC2 box, 3am, lifecycle retention) + quarterly restore rehearsal (restore to scratch, count rows — a backup never restored is a hypothesis).
+7. **App-level rate limiting** on `/analyze` + `/topology` (per-IP concurrent-scan + scan-rate cap, $0, first line of anti-abuse).
+8. **Point the binary** (built via `build.sh` for version stamping, cwd = repo root) at RDS, smoke-test `/healthz` + a scan. Confirm a new `icuae_scan_scores` row lands (freeze over) with `length(app_version)` ≈ 23.
+9. **Strip dead Replit guards** (`db.go` helium check, early-listener, `REPLIT_*` env assertions) — separate cleanup PR (authorization-path removal stands alone as a reviewable diff).
+10. **Flip Route53** `dnstool.it-help.tech` → the Elastic IP. **CloudFront in front** + billing alerts at $50/$100/$200 (AWS Budgets).
+11. **(Later, optional)** Pay the $250, fresh `pg_dump` of Neon, fold in the 6-day tail additively (ids already reserved by step 5).
+
+**Verification at every step** — no "should work." Each step ends with a measured check (curl status, row count, boot log line, sequence `last_value`), the same discipline as the dump seals and the dress rehearsal.
 
 ---
 
