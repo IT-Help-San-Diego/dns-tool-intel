@@ -211,6 +211,57 @@ ALTER TABLE alpha
 	}
 }
 
+// TestParseMigrationObjects_Drops pins the DROP TABLE parsing the
+// clean-install assertion depends on: comma-separated names, IF EXISTS,
+// case-insensitivity, and a decoy in a comment that must not parse.
+func TestParseMigrationObjects_Drops(t *testing.T) {
+	const sample = `
+-- +goose Up
+-- A comment mentioning DROP TABLE decoy_from_comment.
+DROP TABLE IF EXISTS black_site_detainees, black_site_renditions;
+drop table Old_Legacy;
+CREATE TABLE survivor (id INT);
+`
+	got := parseMigrationObjects(sample)
+
+	assertSet(t, "drops", got.Drops, []string{"black_site_detainees", "black_site_renditions", "old_legacy"})
+	assertSet(t, "tables", got.Tables, []string{"survivor"})
+}
+
+// TestCleanInstallExpectation exercises the arithmetic the integration test
+// asserts against a live schema: declared-creates minus declared-drops, with
+// the drop itself verified to fire (a check that cannot fail is not a check).
+func TestCleanInstallExpectation(t *testing.T) {
+	files := []migrationFile{
+		{Version: 1, Filename: "001_a.sql", Objects: migrationObjects{Tables: []string{"alpha", "bravo"}}},
+		{Version: 2, Filename: "002_b.sql", Objects: migrationObjects{Tables: []string{"charlie"}, Drops: []string{"bravo"}}},
+	}
+
+	expected := map[string]struct{}{}
+	dropped := map[string]struct{}{}
+	for _, f := range files {
+		for _, tbl := range f.Objects.Tables {
+			expected[tbl] = struct{}{}
+		}
+		for _, tbl := range f.Objects.Drops {
+			dropped[tbl] = struct{}{}
+		}
+	}
+	for tbl := range dropped {
+		delete(expected, tbl)
+	}
+
+	if _, ok := expected["bravo"]; ok {
+		t.Error("bravo should have been subtracted by its own drop")
+	}
+	if _, ok := expected["alpha"]; !ok {
+		t.Error("alpha should survive — created, never dropped")
+	}
+	if _, ok := dropped["bravo"]; !ok {
+		t.Error("bravo must be in the drop set — the assertion that it is absent depends on it")
+	}
+}
+
 // TestParseMigrationObjects_RealChain checks the parser against the two shapes
 // in the real chain that a naive regex gets wrong: a multi-line ALTER, and a
 // migration whose only content is INSERTs.
@@ -404,16 +455,36 @@ func TestMigrate_CleanInstall(t *testing.T) {
 		}
 	}
 
-	// Every table the chain declares must actually be there.
+	// The chain is not monotonic: migrations may DROP what earlier ones
+	// created (017 drops the black_site tables 013 created). The expected
+	// final schema is declared-creates minus declared-drops, and the live
+	// schema must equal that set — containment alone would pass a table
+	// that survived its own drop.
+	expected := map[string]struct{}{}
+	dropped := map[string]struct{}{}
+	for _, f := range files {
+		for _, tbl := range f.Objects.Tables {
+			expected[tbl] = struct{}{}
+		}
+		for _, tbl := range f.Objects.Drops {
+			dropped[tbl] = struct{}{}
+		}
+	}
+	for tbl := range dropped {
+		delete(expected, tbl)
+	}
 	existing, err := inspectSchema(ctx, conn)
 	if err != nil {
 		t.Fatalf("inspectSchema: %v", err)
 	}
-	for _, f := range files {
-		for _, tbl := range f.Objects.Tables {
-			if _, ok := existing.Tables[tbl]; !ok {
-				t.Errorf("table %q declared by %s was not created", tbl, f.Filename)
-			}
+	for tbl := range expected {
+		if _, ok := existing.Tables[tbl]; !ok {
+			t.Errorf("table %q declared by the chain was not created", tbl)
+		}
+	}
+	for tbl := range dropped {
+		if _, ok := existing.Tables[tbl]; ok {
+			t.Errorf("table %q survives its own DROP — the drop did not take effect", tbl)
 		}
 	}
 

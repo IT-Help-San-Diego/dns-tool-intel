@@ -31,10 +31,14 @@ type tableColumn struct {
 func (tc tableColumn) String() string { return tc.Table + "." + tc.Column }
 
 // migrationObjects is the set of schema objects one migration creates.
+// Drops tracks tables the migration removes: the chain is not monotonic
+// (017 drops black_site_detainees/black_site_renditions), so a clean-install
+// assertion that models only creates fails on every correct drop.
 type migrationObjects struct {
 	Tables  []string
 	Indexes []string
 	Columns []tableColumn
+	Drops   []string
 }
 
 // schemaObjects is the same vocabulary, read from a live database.
@@ -87,6 +91,10 @@ var (
 	reAddColumn = regexp.MustCompile(`(?is)ALTER\s+TABLE\s+(?:ONLY\s+)?([A-Za-z_][A-Za-z0-9_]*)\s+ADD\s+COLUMN\s+(?:IF\s+NOT\s+EXISTS\s+)?([A-Za-z_][A-Za-z0-9_]*)`)
 
 	reLineComment = regexp.MustCompile(`--[^\n]*`)
+
+	// DROP TABLE [IF EXISTS] name [, name ...] — one statement may drop
+	// several tables; capture the whole name list and split it.
+	reDropTable = regexp.MustCompile(`(?im)^\s*DROP\s+TABLE\s+(?:IF\s+EXISTS\s+)?([A-Za-z_][A-Za-z0-9_]*(?:\s*,\s*[A-Za-z_][A-Za-z0-9_]*)*)`)
 )
 
 // parseMigrationObjects extracts the tables, indexes and columns a migration
@@ -124,9 +132,20 @@ func parseMigrationObjects(sqlText string) migrationObjects {
 			objs.Columns = append(objs.Columns, tc)
 		}
 	}
+	seenDrop := map[string]bool{}
+	for _, m := range reDropTable.FindAllStringSubmatch(stripped, -1) {
+		for _, name := range strings.Split(m[1], ",") {
+			name = strings.ToLower(strings.TrimSpace(name))
+			if !seenDrop[name] {
+				seenDrop[name] = true
+				objs.Drops = append(objs.Drops, name)
+			}
+		}
+	}
 
 	sort.Strings(objs.Tables)
 	sort.Strings(objs.Indexes)
+	sort.Strings(objs.Drops)
 	sort.Slice(objs.Columns, func(i, j int) bool { return objs.Columns[i].String() < objs.Columns[j].String() })
 	return objs
 }
