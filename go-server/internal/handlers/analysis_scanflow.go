@@ -211,7 +211,8 @@ func (h *AnalysisHandler) Analyze(c *gin.Context) {
 	}
 
 	startTime := time.Now()
-	ctx := c.Request.Context()
+	ctx, cancelScan := scanContext(c.Request.Context())
+	defer cancelScan()
 
 	results := h.Analyzer.AnalyzeDomain(ctx, inp.asciiDomain, inp.customSelectors, analyzer.AnalysisOptions{
 		ExposureChecks: inp.exposureChecks,
@@ -244,7 +245,7 @@ func (h *AnalysisHandler) Analyze(c *gin.Context) {
 
 	isPrivate := inp.hasNovelSelectors && inp.isAuthenticated
 	annotateInputNormalization(results, inp)
-	analysisID, timestamp := h.persistOrLogEphemeral(c.Request.Context(), persistParams{
+	analysisID, timestamp := h.persistOrLogEphemeral(ctx, persistParams{
 		domain:            inp.domain,
 		asciiDomain:       inp.asciiDomain,
 		results:           results,
@@ -260,7 +261,7 @@ func (h *AnalysisHandler) Analyze(c *gin.Context) {
 		devNull:           inp.devNull,
 	})
 
-	h.storeTelemetry(c.Request.Context(), analysisID, results, inp.ephemeral)
+	h.storeTelemetry(ctx, analysisID, results, inp.ephemeral)
 
 	analysisSuccess, _ := extractAnalysisError(results) //nolint:errcheck // error message not needed here
 	h.handlePostAnalysisSideEffects(ctx, c, sideEffectsParams{
@@ -474,8 +475,27 @@ func (h *AnalysisHandler) renderWaitingPage(c *gin.Context, token, domain, ascii
 	c.HTML(http.StatusOK, "scan_wait.html", data)
 }
 
+// scanTimeout bounds a scan and its persistence. 90s predates this helper —
+// it was the async path's bound (and agentpkg's, hand-rolled in both places)
+// and comfortably covers the slowest observed full scan (~35s pre-#231,
+// ~12s since); the constant exists so the sync and async paths cannot drift
+// apart again.
+const scanTimeout = 90 * time.Second
+
+// scanContext is the context every scan and its save must run on: parent
+// VALUES kept (slog trace attribution), parent CANCELLATION dropped, its own
+// deadline. A scan is not a page render — once measurement starts, a client
+// navigating away must not cancel it or discard its results. Measured
+// 2026-07-31 (dev log, google.com): the sync path rode c.Request.Context(),
+// so a second form submit's rate-limit redirect killed the first request's
+// connection, every DNS query died "context canceled", and 7.46s of
+// completed analysis failed to save at severity CRITICAL.
+func scanContext(parent context.Context) (context.Context, context.CancelFunc) {
+	return context.WithTimeout(context.WithoutCancel(parent), scanTimeout)
+}
+
 func (h *AnalysisHandler) runAsyncScan(token, traceID string, sp *scanProgress, inp analyzeInput, clientIP, countryCode, countryName string) {
-	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+	ctx, cancel := scanContext(context.Background())
 	defer cancel()
 
 	slog.LogAttrs(ctx, slog.LevelInfo, "scan started",
