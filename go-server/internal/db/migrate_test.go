@@ -284,6 +284,29 @@ func TestAdoptionCutoff(t *testing.T) {
 		}
 	})
 
+	t.Run("later evidence outweighs objects a later migration dropped", func(t *testing.T) {
+		// The platform-empty-ledger incident shape: 002 dropped alpha (so 001's
+		// object is absent), but 002's and 004's objects are all present. A
+		// per-migration probe reads 001 as pending and would re-run it; the
+		// linear chain says everything through the last fully-present version
+		// must have run.
+		dropChain := []migrationFile{
+			{Version: 1, Filename: "001_a.sql", Objects: migrationObjects{Tables: []string{"alpha"}}},
+			{Version: 2, Filename: "002_b.sql", Objects: migrationObjects{Tables: []string{"bravo"}}},
+			{Version: 3, Filename: "003_drop_alpha.sql"}, // pure DROP: no created objects
+			{Version: 4, Filename: "004_c.sql", Objects: migrationObjects{Tables: []string{"charlie"}}},
+			{Version: 5, Filename: "005_d.sql", Objects: migrationObjects{Tables: []string{"delta"}}},
+		}
+		existing := schemaFrom([]string{"bravo", "charlie"}, nil, nil) // alpha dropped, 005 pending
+		got, err := adoptionCutoff(dropChain, existing)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if got != 4 {
+			t.Errorf("cutoff = %d, want 4 (charlie present proves 001-004 ran; alpha's absence is 003's drop, not a pending 001)", got)
+		}
+	})
+
 	t.Run("nothing recognisable adopts nothing", func(t *testing.T) {
 		existing := schemaFrom([]string{"some_other_app"}, nil, nil)
 		got, err := adoptionCutoff(chain, existing)
@@ -405,6 +428,135 @@ func TestMigrate_CleanInstall(t *testing.T) {
 	}
 	if len(applied2) != len(applied) {
 		t.Errorf("rerun changed the applied set: %d -> %d", len(applied), len(applied2))
+	}
+}
+
+// TestMigrate_PlatformCreatedEmptyLedger is the incident scenario: a schema
+// sync creates goose_db_version as an empty table. On an otherwise-empty
+// database the boot must clean-install from 001, not refuse; a second boot
+// must be a no-op.
+func TestMigrate_PlatformCreatedEmptyLedger(t *testing.T) {
+	scratchURL, cleanup := scratchDatabase(t)
+	defer cleanup()
+
+	ctx := context.Background()
+	conn := openScratch(t, scratchURL)
+
+	// The shape goose itself creates — but with zero rows, which goose never
+	// leaves behind and which made EnsureDBVersionContext fail with
+	// ErrNoNextVersion in production.
+	if _, err := conn.ExecContext(ctx, `CREATE TABLE goose_db_version (
+		id SERIAL PRIMARY KEY,
+		version_id BIGINT NOT NULL,
+		is_applied BOOLEAN NOT NULL,
+		tstamp TIMESTAMP DEFAULT NOW()
+	)`); err != nil {
+		t.Fatalf("precreate empty ledger: %v", err)
+	}
+
+	if err := Migrate(ctx, scratchURL); err != nil {
+		t.Fatalf("boot against platform-created empty ledger failed: %v", err)
+	}
+
+	files, err := loadEmbeddedMigrations()
+	if err != nil {
+		t.Fatalf("loadEmbeddedMigrations: %v", err)
+	}
+	applied, err := appliedVersions(ctx, conn)
+	if err != nil {
+		t.Fatalf("appliedVersions: %v", err)
+	}
+	if len(applied) != len(files) {
+		t.Errorf("ledger records %d applied versions, want %d", len(applied), len(files))
+	}
+
+	if err := Migrate(ctx, scratchURL); err != nil {
+		t.Fatalf("second boot should be a no-op, got: %v", err)
+	}
+}
+
+// TestMigrate_PlatformEmptyLedgerOnPopulatedDatabase is the production shape:
+// full schema, months of data, and a platform-created zero-row ledger. The
+// boot must adopt (stamp, execute nothing destructive) and come up clean.
+func TestMigrate_PlatformEmptyLedgerOnPopulatedDatabase(t *testing.T) {
+	scratchURL, cleanup := scratchDatabase(t)
+	defer cleanup()
+
+	ctx := context.Background()
+
+	// Build the populated database the honest way, then erase its bookkeeping
+	// the way the platform sync left production: ledger present but empty,
+	// checksum table gone.
+	if err := Migrate(ctx, scratchURL); err != nil {
+		t.Fatalf("initial install: %v", err)
+	}
+	conn := openScratch(t, scratchURL)
+	if _, err := conn.ExecContext(ctx, "TRUNCATE goose_db_version"); err != nil {
+		t.Fatalf("truncate ledger: %v", err)
+	}
+	if _, err := conn.ExecContext(ctx, "DROP TABLE IF EXISTS "+checksumTable); err != nil {
+		t.Fatalf("drop checksum table: %v", err)
+	}
+	if _, err := conn.ExecContext(ctx,
+		"WITH parent AS ("+
+			"INSERT INTO domain_analyses (domain, ascii_domain, created_at, full_results) "+
+			"VALUES ('example.test', 'example.test', NOW(), '{}'::jsonb) RETURNING id"+
+			") INSERT INTO scan_phase_telemetry (analysis_id, phase_group, phase_task, started_at_ms, duration_ms) "+
+			"SELECT id, 'dns', 'lookup', 0, 42 FROM parent"); err != nil {
+		t.Fatalf("seed telemetry row: %v", err)
+	}
+
+	if err := Migrate(ctx, scratchURL); err != nil {
+		t.Fatalf("boot against prod-shaped state failed: %v", err)
+	}
+
+	var n int
+	if err := conn.QueryRowContext(ctx, "SELECT count(*) FROM scan_phase_telemetry").Scan(&n); err != nil {
+		t.Fatalf("count telemetry: %v", err)
+	}
+	if n != 1 {
+		t.Errorf("telemetry rows = %d, want 1 — adoption must not touch data", n)
+	}
+	var black int
+	if err := conn.QueryRowContext(ctx,
+		"SELECT count(*) FROM information_schema.tables WHERE table_name LIKE 'black_site%'").Scan(&black); err != nil {
+		t.Fatalf("count black_site tables: %v", err)
+	}
+	if black != 0 {
+		t.Errorf("black_site tables = %d, want 0 — adoption resurrected dropped tables", black)
+	}
+
+	if err := Migrate(ctx, scratchURL); err != nil {
+		t.Fatalf("second boot should be a no-op, got: %v", err)
+	}
+}
+
+// TestMigrate_LedgerWithNoAppliedRows is the deliberately-unhandled ambiguous
+// state: rows exist but none are applied. The boot must refuse loudly with
+// remediation, not guess.
+func TestMigrate_LedgerWithNoAppliedRows(t *testing.T) {
+	scratchURL, cleanup := scratchDatabase(t)
+	defer cleanup()
+
+	ctx := context.Background()
+	if err := Migrate(ctx, scratchURL); err != nil {
+		t.Fatalf("initial install: %v", err)
+	}
+	conn := openScratch(t, scratchURL)
+	if _, err := conn.ExecContext(ctx, "TRUNCATE goose_db_version"); err != nil {
+		t.Fatalf("truncate ledger: %v", err)
+	}
+	if _, err := conn.ExecContext(ctx,
+		"INSERT INTO goose_db_version (version_id, is_applied) VALUES (3, false)"); err != nil {
+		t.Fatalf("insert false-only row: %v", err)
+	}
+
+	err := Migrate(ctx, scratchURL)
+	if err == nil {
+		t.Fatal("expected a loud refusal for a ledger with no applied rows, got nil")
+	}
+	if !strings.Contains(err.Error(), "records nothing as applied") {
+		t.Errorf("refusal should explain the ambiguous ledger, got: %v", err)
 	}
 }
 
