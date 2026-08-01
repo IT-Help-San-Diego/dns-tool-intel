@@ -26,6 +26,17 @@ Import from GitHub `main`. This import carries the deposit republication (four d
 - `BASE_URL` — must be the real public base URL, not an ephemeral/dev URL.
 - `DATABASE_URL_OVERRIDE` — unset, or pointing at the production DB.
 
+## Post-019 imports — expected migration log lines (verified vs migrate.go:164/168/186/263)
+
+When a pending migration exists, the healthy boot prints **exactly**:
+`migrate: applying pending migrations from_version=N to_version=N+1` → `OK <file>` → `migrate: schema upgraded version=N+1 applied=1`.
+
+Two lines are **stop-and-report signals**, not successes:
+- `migrate: version ledger table exists but has no rows` (the adoption WARN) — after the first adoption, this means the ledger was emptied again. Stop and report; do NOT re-initialise.
+- `migrate: schema up to date` when a migration was expected to apply — means it did NOT run. Stop and report.
+
+After migration 019 (app_version TEXT everywhere), confirm recording resumed: `SELECT MAX(created_at) FROM icuae_scan_scores` should postdate the deploy once the first scan completes. If not, something other than column width is blocking those inserts — stop and report.
+
 ## What "done" looks like
 
 - Server boots, passes migration (existing DB upgraded in place), serves https://dnstool.it-help.tech.
