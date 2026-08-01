@@ -133,106 +133,147 @@ func extractDMARCFacts(dmarc map[string]any) dmarcFacts {
 // records are read together. results is the orchestrator's collected per-protocol
 // map, keyed "dmarc", "mta_sts", "bimi".
 //
+// Each rule is its own function so that adding one is a single edit in a single
+// place and each is independently testable — which the tests already treat them
+// as. The dispatch below is deliberately flat: no shared state between rules, no
+// ordering dependence, and every rule receives the same facts.
+//
 // R6 from the spec is deliberately NOT implemented: at 232/339 (68%) it is a
 // population statistic, and a per-domain finding that fires on two thirds of
 // domains conveys almost nothing. It belongs on the education surface.
+// TestCrossRecord_NoPopulationStatisticAsFinding is what keeps it absent.
 func EvaluateCrossRecordConsistency(results map[string]any) []CrossRecordFinding {
 	dmarcRes, _ := results["dmarc"].(map[string]any)
 	mtaRes, _ := results["mta_sts"].(map[string]any)
 	bimiRes, _ := results["bimi"].(map[string]any)
 
 	d := extractDMARCFacts(dmarcRes)
+
 	var out []CrossRecordFinding
-
-	// R1 — inverted enforcement ramp. Fires when sp is STRICTLY stronger than p.
-	// The conventional ramp tightens the apex first, because the organizational
-	// domain is the most impersonated identity. 13/339 observed.
-	if d.Known && d.Present && d.SubPol != "" {
-		if pr, sr := policyRank(d.Policy), policyRank(d.SubPol); pr >= 0 && sr > pr {
-			out = append(out, CrossRecordFinding{
-				Rule:       RuleInvertedRamp,
-				Records:    [2]string{"DMARC p", "DMARC sp"},
-				RFCSection: "RFC 7489 §6.3",
-				Tension:    "subdomains are held to a stricter policy than the organizational domain",
-				Observed:   "p=" + d.Policy + ", sp=" + d.SubPol,
-			})
+	for _, rule := range []func(dmarcFacts, map[string]any, map[string]any) *CrossRecordFinding{
+		ruleInvertedRamp,
+		ruleTransportOnly,
+		ruleStrictSoft,
+		rulePartialEnforcement,
+		ruleBIMIWithoutEnforcement,
+	} {
+		if f := rule(d, mtaRes, bimiRes); f != nil {
+			out = append(out, *f)
 		}
 	}
-
-	// R2 — transport enforced, sender identity not. Publishing MTA-STS asserts
-	// transport for this domain is worth protecting against downgrade
-	// (RFC 8461 §2); p=none requests no disposition for a message that fails
-	// authentication. The pipe is guaranteed; the sender is not. 11/339.
-	if mKnown, mPresent := recordKnown(mtaRes, mapKeyMtaStsState); mKnown && mPresent && d.Known {
-		if !d.Present || d.Policy == "none" {
-			observed := "MTA-STS present, DMARC absent"
-			if d.Present {
-				observed = "MTA-STS present, DMARC p=none"
-			}
-			out = append(out, CrossRecordFinding{
-				Rule:       RuleTransportOnly,
-				Records:    [2]string{"MTA-STS policy", "DMARC p"},
-				RFCSection: "RFC 8461 §2; RFC 7489 §6.3",
-				Tension:    "message transport is protected against downgrade while sender authentication failures receive no disposition",
-				Observed:   observed,
-			})
-		}
-	}
-
-	// R3 — strict alignment with soft disposition. Strict alignment
-	// (RFC 7489 §3.1) narrows what counts as a pass, increasing the failure
-	// rate; a soft disposition then declines to act on those additional
-	// failures. 10/339.
-	//
-	// PER THE SPEC, THIS MUST NOT BE REPORTED AS A WEAKNESS. Strict alignment
-	// with quarantine is a stricter matching rule with a retention-friendly
-	// disposition — a quarantined message is evidence still held, where a
-	// rejected one is gone. Plausibly an intelligence posture, not a gap. The
-	// wording below states the tension and ranks nothing.
-	if d.Known && d.Present && d.Aspf == alignStrict && d.Adkim == alignStrict && d.Policy != "reject" {
-		out = append(out, CrossRecordFinding{
-			Rule:       RuleStrictSoft,
-			Records:    [2]string{"DMARC aspf/adkim", "DMARC p"},
-			RFCSection: "RFC 7489 §3.1, §6.3",
-			Tension:    "strict alignment widens what fails authentication while the disposition stops short of rejection",
-			Observed:   "aspf=s, adkim=s, p=" + d.Policy,
-		})
-	}
-
-	// R4 — partial enforcement. RFC 7489 §6.3 defines pct as the percentage of
-	// messages the policy is applied to; below 100 a proportion of failing mail
-	// receives no disposition. Usually mid-rollout, which is legitimate — the
-	// finding is informational. 3/339.
-	if d.Known && d.Present && d.Pct < 100 && d.Policy != "none" {
-		out = append(out, CrossRecordFinding{
-			Rule:       RulePartialEnforce,
-			Records:    [2]string{"DMARC pct", "DMARC p"},
-			RFCSection: "RFC 7489 §6.3",
-			Tension:    "the stated policy is applied to only a fraction of failing messages",
-			Observed:   "pct=" + strconv.Itoa(d.Pct) + ", p=" + d.Policy,
-		})
-	}
-
-	// R5 — BIMI without enforcement. BIMI requires the domain to be at DMARC
-	// enforcement; a BIMI record on a non-enforcing domain asserts a
-	// precondition the DMARC policy does not provide. 1/339 — rare, which makes
-	// it high-signal when it fires.
-	if bKnown, bPresent := recordKnown(bimiRes, mapKeyBimiState); bKnown && bPresent && d.Known {
-		enforcing := d.Present && (d.Policy == "quarantine" || d.Policy == "reject")
-		if !enforcing {
-			observed := "BIMI present, DMARC absent"
-			if d.Present {
-				observed = "BIMI present, DMARC p=" + d.Policy
-			}
-			out = append(out, CrossRecordFinding{
-				Rule:       RuleBIMIWithoutEnforce,
-				Records:    [2]string{"BIMI record", "DMARC p/sp"},
-				RFCSection: "RFC 7489 §6.3",
-				Tension:    "a BIMI record asserts DMARC enforcement as a precondition that the published policy does not provide",
-				Observed:   observed,
-			})
-		}
-	}
-
 	return out
+}
+
+// ruleInvertedRamp — R1. Fires when sp is STRICTLY stronger than p. The
+// conventional deployment ramp tightens the apex first, because the
+// organizational domain is the most impersonated identity. 13/339 observed, and
+// the highest-value rule in the set: no conformance scanner reports it, because
+// both records are individually valid.
+func ruleInvertedRamp(d dmarcFacts, _, _ map[string]any) *CrossRecordFinding {
+	if !d.Known || !d.Present || d.SubPol == "" {
+		return nil
+	}
+	pr, sr := policyRank(d.Policy), policyRank(d.SubPol)
+	if pr < 0 || sr <= pr {
+		return nil
+	}
+	return &CrossRecordFinding{
+		Rule:       RuleInvertedRamp,
+		Records:    [2]string{"DMARC p", "DMARC sp"},
+		RFCSection: "RFC 7489 §6.3",
+		Tension:    "subdomains are held to a stricter policy than the organizational domain",
+		Observed:   "p=" + d.Policy + ", sp=" + d.SubPol,
+	}
+}
+
+// ruleTransportOnly — R2. Publishing MTA-STS asserts that message transport for
+// this domain is worth protecting against downgrade (RFC 8461 §2); p=none
+// requests no disposition for a message that fails authentication. The pipe is
+// guaranteed; the sender is not. 11/339.
+func ruleTransportOnly(d dmarcFacts, mtaRes, _ map[string]any) *CrossRecordFinding {
+	known, present := recordKnown(mtaRes, mapKeyMtaStsState)
+	if !known || !present || !d.Known {
+		return nil
+	}
+	if d.Present && d.Policy != "none" {
+		return nil
+	}
+	observed := "MTA-STS present, DMARC absent"
+	if d.Present {
+		observed = "MTA-STS present, DMARC p=none"
+	}
+	return &CrossRecordFinding{
+		Rule:       RuleTransportOnly,
+		Records:    [2]string{"MTA-STS policy", "DMARC p"},
+		RFCSection: "RFC 8461 §2; RFC 7489 §6.3",
+		Tension:    "message transport is protected against downgrade while sender authentication failures receive no disposition",
+		Observed:   observed,
+	}
+}
+
+// ruleStrictSoft — R3. Strict alignment (RFC 7489 §3.1) narrows what counts as a
+// pass, increasing the failure rate; a soft disposition then declines to act on
+// those additional failures. 10/339.
+//
+// PER THE SPEC, THIS MUST NOT BE REPORTED AS A WEAKNESS. Strict alignment with
+// quarantine is a stricter matching rule with a retention-friendly disposition —
+// a quarantined message is evidence still held, where a rejected one is gone.
+// Plausibly an intelligence posture, not a gap. The wording states the tension
+// and ranks nothing.
+func ruleStrictSoft(d dmarcFacts, _, _ map[string]any) *CrossRecordFinding {
+	if !d.Known || !d.Present {
+		return nil
+	}
+	if d.Aspf != alignStrict || d.Adkim != alignStrict || d.Policy == "reject" {
+		return nil
+	}
+	return &CrossRecordFinding{
+		Rule:       RuleStrictSoft,
+		Records:    [2]string{"DMARC aspf/adkim", "DMARC p"},
+		RFCSection: "RFC 7489 §3.1, §6.3",
+		Tension:    "strict alignment widens what fails authentication while the disposition stops short of rejection",
+		Observed:   "aspf=s, adkim=s, p=" + d.Policy,
+	}
+}
+
+// rulePartialEnforcement — R4. RFC 7489 §6.3 defines pct as the percentage of
+// messages the policy is applied to; below 100 a proportion of failing mail
+// receives no disposition. Usually mid-rollout, which is legitimate — the finding
+// is informational. 3/339.
+func rulePartialEnforcement(d dmarcFacts, _, _ map[string]any) *CrossRecordFinding {
+	if !d.Known || !d.Present || d.Pct >= 100 || d.Policy == "none" {
+		return nil
+	}
+	return &CrossRecordFinding{
+		Rule:       RulePartialEnforce,
+		Records:    [2]string{"DMARC pct", "DMARC p"},
+		RFCSection: "RFC 7489 §6.3",
+		Tension:    "the stated policy is applied to only a fraction of failing messages",
+		Observed:   "pct=" + strconv.Itoa(d.Pct) + ", p=" + d.Policy,
+	}
+}
+
+// ruleBIMIWithoutEnforcement — R5. BIMI requires the domain to be at DMARC
+// enforcement; a BIMI record on a non-enforcing domain asserts a precondition the
+// DMARC policy does not provide. 1/339 — rare, which makes it high-signal when it
+// fires.
+func ruleBIMIWithoutEnforcement(d dmarcFacts, _, bimiRes map[string]any) *CrossRecordFinding {
+	known, present := recordKnown(bimiRes, mapKeyBimiState)
+	if !known || !present || !d.Known {
+		return nil
+	}
+	if d.Present && (d.Policy == "quarantine" || d.Policy == "reject") {
+		return nil
+	}
+	observed := "BIMI present, DMARC absent"
+	if d.Present {
+		observed = "BIMI present, DMARC p=" + d.Policy
+	}
+	return &CrossRecordFinding{
+		Rule:       RuleBIMIWithoutEnforce,
+		Records:    [2]string{"BIMI record", "DMARC p/sp"},
+		RFCSection: "RFC 7489 §6.3",
+		Tension:    "a BIMI record asserts DMARC enforcement as a precondition that the published policy does not provide",
+		Observed:   observed,
+	}
 }
