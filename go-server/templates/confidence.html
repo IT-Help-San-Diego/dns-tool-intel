@@ -779,7 +779,7 @@
 
                 {{if .ICuAERuntimeMetrics.GradeDist}}
                 <h3 class="h6 fw-bold mt-4 mb-2">Grade Distribution</h3>
-                <p class="text-muted small mb-2">How often each currency grade appears across all evaluated scans. A healthy system clusters toward Excellent and Good.</p>
+                <p class="text-muted small mb-2">How often each currency grade appears across evaluated scans recorded since the grade-width migration{{if .ICuAERuntimeMetrics.GradeDistCutoff}} ({{.ICuAERuntimeMetrics.GradeDistCutoff}}){{end}}. A healthy system clusters toward Excellent and Good. Scans before that date are excluded: longer grade names could not be recorded under the prior schema, so including them would blend two incompatible recording regimes.</p>
                 <div class="row g-2 mb-3">
                     {{range .ICuAERuntimeMetrics.GradeDist}}
                     <div class="col">

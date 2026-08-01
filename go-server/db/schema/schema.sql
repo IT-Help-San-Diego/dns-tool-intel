@@ -669,7 +669,7 @@ CREATE TABLE public.icuae_dimension_scores (
     scan_id integer NOT NULL,
     dimension character varying(50) NOT NULL,
     score real DEFAULT 0 NOT NULL,
-    grade character varying(5) DEFAULT 'F'::character varying NOT NULL,
+    grade character varying(20) NOT NULL,
     record_types_evaluated integer DEFAULT 0 NOT NULL,
     record_types_list text[] DEFAULT '{}'::text[] NOT NULL
 );
@@ -703,7 +703,7 @@ CREATE TABLE public.icuae_scan_scores (
     id integer NOT NULL,
     domain character varying(255) NOT NULL,
     overall_score real DEFAULT 0 NOT NULL,
-    overall_grade character varying(5) DEFAULT 'F'::character varying NOT NULL,
+    overall_grade character varying(20) NOT NULL,
     resolver_count integer DEFAULT 0 NOT NULL,
     record_count integer DEFAULT 0 NOT NULL,
     app_version character varying(20) DEFAULT ''::character varying NOT NULL,

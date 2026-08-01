@@ -7,6 +7,7 @@ package dbq
 
 import (
 	"context"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -87,6 +88,11 @@ SELECT
     overall_grade AS grade,
     COUNT(*)::integer AS count
 FROM icuae_scan_scores
+WHERE created_at >= (
+    SELECT tstamp FROM goose_db_version
+    WHERE version_id = 18 AND is_applied = true
+    ORDER BY id DESC LIMIT 1
+)
 GROUP BY overall_grade
 ORDER BY overall_grade ASC
 `
@@ -114,6 +120,22 @@ func (q *Queries) ICuAEGetGradeDistribution(ctx context.Context) ([]ICuAEGetGrad
 		return nil, err
 	}
 	return items, nil
+}
+
+const iCuAEGetGradeDistributionCutoff = `-- name: ICuAEGetGradeDistributionCutoff :one
+SELECT tstamp FROM goose_db_version
+WHERE version_id = 18 AND is_applied = true
+ORDER BY id DESC LIMIT 1
+`
+
+// ICuAEGetGradeDistributionCutoff returns the 018 adoption timestamp the grade
+// distribution is scoped to, or pgx.ErrNoRows when 018 is not yet applied
+// (caller renders no distribution in that case).
+func (q *Queries) ICuAEGetGradeDistributionCutoff(ctx context.Context) (time.Time, error) {
+	row := q.db.QueryRow(ctx, iCuAEGetGradeDistributionCutoff)
+	var tstamp time.Time
+	err := row.Scan(&tstamp)
+	return tstamp, err
 }
 
 const iCuAEGetRecentTrend = `-- name: ICuAEGetRecentTrend :many

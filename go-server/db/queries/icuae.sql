@@ -16,12 +16,32 @@ SELECT
 FROM icuae_scan_scores;
 
 -- name: ICuAEGetGradeDistribution :many
+-- Scope to rows recorded at/after the 018 grade-width adoption, so the
+-- published distribution is not a blend of two regimes: pre-018 rows could
+-- only ever be 'good'/'stale' (longer grade names failed VARCHAR(5) insert),
+-- post-018 rows can carry any grade. The cutoff derives from the migration
+-- ledger (newest applied row for version 18), never a hardcoded date. If 018
+-- is not yet applied the subquery is NULL and created_at >= NULL matches
+-- nothing — correct (render no distribution), stated here so it is not "fixed"
+-- into an unfiltered query.
 SELECT
     overall_grade AS grade,
     COUNT(*)::integer AS count
 FROM icuae_scan_scores
+WHERE created_at >= (
+    SELECT tstamp FROM goose_db_version
+    WHERE version_id = 18 AND is_applied = true
+    ORDER BY id DESC LIMIT 1
+)
 GROUP BY overall_grade
 ORDER BY overall_grade ASC;
+
+-- name: ICuAEGetGradeDistributionCutoff :one
+-- The cutoff the distribution is scoped to, for the caption. Label and filter
+-- must come from ONE source (the ledger), or the caption drifts from the query.
+SELECT tstamp FROM goose_db_version
+WHERE version_id = 18 AND is_applied = true
+ORDER BY id DESC LIMIT 1;
 
 -- name: ICuAEGetDimensionAverages :many
 SELECT
