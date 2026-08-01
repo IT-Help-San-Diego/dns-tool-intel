@@ -32,6 +32,13 @@ type Config struct {
 	SessionSecret      string
 	Port               string
 	AppVersion         string
+	// CanonicalBaseURL is the public instrument's address, always the
+	// canonical host — never BASE_URL, which on a local build points at the
+	// local instance and would make the history flipper's "Cloud" link a
+	// circle. Local surfaces use it to LINK to the cloud counterpart
+	// (the flippers brief's direct-link fork: no fetch, no phone-home on
+	// page load; the disclosure is the user's own click).
+	CanonicalBaseURL   string
 	SMTPProbeMode      string
 	IPFSProbeMode      string
 	ProbeAPIURL        string
@@ -100,6 +107,7 @@ func Load() (*Config, error) {
 		SessionSecret:      sessionSecret,
 		Port:               port,
 		AppVersion:         Version,
+		CanonicalBaseURL:   canonicalBaseURL,
 		SMTPProbeMode:      smtpProbeMode,
 		IPFSProbeMode:      ipfsProbeMode,
 		ProbeAPIURL:        probeAPIURL,
