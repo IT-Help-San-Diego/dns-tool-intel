@@ -499,8 +499,8 @@ func TestMigrate_PlatformEmptyLedgerOnPopulatedDatabase(t *testing.T) {
 	}
 	if _, err := conn.ExecContext(ctx,
 		"WITH parent AS ("+
-			"INSERT INTO domain_analyses (domain, ascii_domain, created_at, full_results) "+
-			"VALUES ('example.test', 'example.test', NOW(), '{}'::jsonb) RETURNING id"+
+			"INSERT INTO domain_analyses (domain, ascii_domain, created_at, full_results, app_version) "+
+			"VALUES ('example.test', 'example.test', NOW(), '{}'::jsonb, 'test') RETURNING id"+
 			") INSERT INTO scan_phase_telemetry (analysis_id, phase_group, phase_task, started_at_ms, duration_ms) "+
 			"SELECT id, 'dns', 'lookup', 0, 42 FROM parent"); err != nil {
 		t.Fatalf("seed telemetry row: %v", err)
@@ -611,11 +611,19 @@ func TestMigrate_AdoptsPartialPreLedgerDatabase(t *testing.T) {
 	seedRow(t, ctx, conn)
 
 	// Rewind past 014 and 015: drop the ledger, then remove exactly the objects
-	// those two migrations create.
+	// those two migrations create — AND every object a LATER migration
+	// declares. The adoption rule reads later evidence as proof of earlier
+	// application (the chain is linear), so a "pre-014 database" that still
+	// carries a post-015 object is not a rewind, it's a contradiction — and
+	// adoption will correctly stamp through the newest object it can see.
+	// Anyone adding an object-bearing migration after 015 must extend this
+	// rewind list or the simulation silently stops meaning what it says.
 	makePreLedger(t, ctx, conn)
 	mustExec(t, ctx, conn, "DROP TABLE IF EXISTS analytics_meta")
 	mustExec(t, ctx, conn, "ALTER TABLE site_analytics DROP COLUMN IF EXISTS hll_visitors")
 	mustExec(t, ctx, conn, "ALTER TABLE confidence_scores DROP COLUMN IF EXISTS analysis_id")
+	// 019's producer-attribution column postdates the rewind point.
+	mustExec(t, ctx, conn, "ALTER TABLE domain_analyses DROP COLUMN IF EXISTS app_version")
 
 	if err := Migrate(ctx, scratchURL); err != nil {
 		t.Fatalf("adoption of a partial pre-ledger database failed: %v", err)
@@ -828,8 +836,8 @@ func makePreLedger(t *testing.T, ctx context.Context, conn *sql.DB) {
 func seedRow(t *testing.T, ctx context.Context, conn *sql.DB) {
 	t.Helper()
 	if _, err := conn.ExecContext(ctx, `
-		INSERT INTO domain_analyses (domain, ascii_domain, full_results)
-		VALUES ('irreplaceable.example', 'irreplaceable.example', '{}'::json)`); err != nil {
+		INSERT INTO domain_analyses (domain, ascii_domain, full_results, app_version)
+		VALUES ('irreplaceable.example', 'irreplaceable.example', '{}'::json, 'test')`); err != nil {
 		t.Fatalf("seed row: %v", err)
 	}
 }

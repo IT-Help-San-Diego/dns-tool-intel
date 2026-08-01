@@ -5,6 +5,8 @@
 package dbq
 
 import (
+	"time"
+
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -20,6 +22,7 @@ type AnalysisStat struct {
 	UpdatedAt          pgtype.Timestamp `db:"updated_at" json:"updated_at"`
 }
 
+// Server-side singleton config for analytics. Stores the stable HLL salt (key=hll_salt_v1, 32 bytes, generated once at first server start, never rotated) used to hash (ip, ua) tuples before insertion into HLL sketches. Stable salt enables mergeable HLL union across days for true unique-visitor counting.
 type AnalyticsMetum struct {
 	Key       string             `db:"key" json:"key"`
 	Value     []byte             `db:"value" json:"value"`
@@ -97,6 +100,7 @@ type DomainAnalysis struct {
 	ScanSource           *string          `db:"scan_source" json:"scan_source"`
 	ScanIp               *string          `db:"scan_ip" json:"scan_ip"`
 	WaybackUrl           *string          `db:"wayback_url" json:"wayback_url"`
+	AppVersion           string           `db:"app_version" json:"app_version"`
 }
 
 type DomainIndex struct {
@@ -223,6 +227,13 @@ type FindingEvent struct {
 	CommitSha  *string            `db:"commit_sha" json:"commit_sha"`
 	NoteMd     *string            `db:"note_md" json:"note_md"`
 	CreatedAt  pgtype.Timestamptz `db:"created_at" json:"created_at"`
+}
+
+type GooseDbVersion struct {
+	ID        int32     `db:"id" json:"id"`
+	VersionID int64     `db:"version_id" json:"version_id"`
+	IsApplied bool      `db:"is_applied" json:"is_applied"`
+	Tstamp    time.Time `db:"tstamp" json:"tstamp"`
 }
 
 type IceMaturity struct {
@@ -358,6 +369,12 @@ type ScanTelemetryHash struct {
 	CreatedAt       pgtype.Timestamp `db:"created_at" json:"created_at"`
 }
 
+type SchemaMigrationChecksum struct {
+	VersionID int64  `db:"version_id" json:"version_id"`
+	Filename  string `db:"filename" json:"filename"`
+	Sha256    string `db:"sha256" json:"sha256"`
+}
+
 type SecuritytrailsBudget struct {
 	MonthKey        string           `db:"month_key" json:"month_key"`
 	CallsUsed       int32            `db:"calls_used" json:"calls_used"`
@@ -384,9 +401,10 @@ type SiteAnalytic struct {
 	UniqueDomainsAnalyzed int32            `db:"unique_domains_analyzed" json:"unique_domains_analyzed"`
 	ReferrerSources       []byte           `db:"referrer_sources" json:"referrer_sources"`
 	TopPages              []byte           `db:"top_pages" json:"top_pages"`
-	HllVisitors           []byte           `db:"hll_visitors" json:"hll_visitors"`
 	CreatedAt             pgtype.Timestamp `db:"created_at" json:"created_at"`
 	UpdatedAt             pgtype.Timestamp `db:"updated_at" json:"updated_at"`
+	// HyperLogLog++ sketch (precision=14, m=16384) of stable-salted visitor hashes. Mergeable across days; expected relative standard error ~0.81%. Stores only register max values, no individual identifiers. Implementation: github.com/axiomhq/hyperloglog v0.2.6.
+	HllVisitors []byte `db:"hll_visitors" json:"hll_visitors"`
 }
 
 type SystemLogEntry struct {

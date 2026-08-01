@@ -210,7 +210,8 @@ CREATE TABLE public.domain_analyses (
     scan_flag boolean DEFAULT false NOT NULL,
     scan_source character varying(100),
     scan_ip character varying(45),
-    wayback_url text
+    wayback_url text,
+    app_version text NOT NULL
 );
 
 
@@ -629,7 +630,7 @@ ALTER SEQUENCE public.ice_results_id_seq OWNED BY public.ice_results.id;
 
 CREATE TABLE public.ice_test_runs (
     id integer NOT NULL,
-    app_version character varying(20) NOT NULL,
+    app_version text NOT NULL,
     git_commit character varying(40) DEFAULT ''::character varying NOT NULL,
     run_type character varying(20) DEFAULT 'ci'::character varying NOT NULL,
     total_cases integer DEFAULT 0 NOT NULL,
@@ -706,7 +707,7 @@ CREATE TABLE public.icuae_scan_scores (
     overall_grade character varying(20) NOT NULL,
     resolver_count integer DEFAULT 0 NOT NULL,
     record_count integer DEFAULT 0 NOT NULL,
-    app_version character varying(20) DEFAULT ''::character varying NOT NULL,
+    app_version text DEFAULT ''::character varying NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL
 );
 

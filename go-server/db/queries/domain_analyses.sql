@@ -56,9 +56,10 @@ INSERT INTO domain_analyses (
     analysis_success, error_message, analysis_duration,
     posture_hash, private, has_user_selectors,
     scan_flag, scan_source, scan_ip,
+    app_version,
     created_at
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, NOW()
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, NOW()
 ) RETURNING id, created_at;
 
 -- name: UpdateAnalysis :exec

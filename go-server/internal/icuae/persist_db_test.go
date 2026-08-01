@@ -124,6 +124,11 @@ func TestRecordScanResultRoundTripsEveryGrade(t *testing.T) {
 	for g := range icuae.GradeOrder {
 		grades = append(grades, g)
 	}
+	// The app version is deliberately the 23-character git-describe string
+	// production served on 2026-08-01: VARCHAR(20) columns refused exactly
+	// this value with SQLSTATE 22001 and silently dropped every scan score
+	// for six weeks. TEXT (migration 019) must round-trip it whole.
+	const longAppVersion = "26.50.05-473-ga9a88fad4"
 	for _, g := range grades {
 		icuae.RecordScanResult(ctx, queries, "roundtrip-"+g+".example", icuae.CurrencyReport{
 			OverallGrade: g,
@@ -135,7 +140,7 @@ func TestRecordScanResultRoundTripsEveryGrade(t *testing.T) {
 			}},
 			ResolverCount: 1,
 			RecordCount:   1,
-		}, "test")
+		}, longAppVersion)
 	}
 
 	// RecordScanResult reports storage failure only through slog, so the
