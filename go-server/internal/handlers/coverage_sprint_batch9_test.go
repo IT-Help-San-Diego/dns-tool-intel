@@ -17,37 +17,37 @@ import (
 )
 
 func TestShouldArchiveToWayback_AllConditionsTrue(t *testing.T) {
-        if !shouldArchiveToWayback(42, true, false, false, false) {
+        if !shouldArchiveToWayback(true, 42, true, false, false, false) {
                 t.Fatal("expected true when all conditions met")
         }
 }
 
 func TestShouldArchiveToWayback_ZeroID(t *testing.T) {
-        if shouldArchiveToWayback(0, true, false, false, false) {
+        if shouldArchiveToWayback(true, 0, true, false, false, false) {
                 t.Fatal("expected false for zero analysis ID")
         }
 }
 
 func TestShouldArchiveToWayback_FailedAnalysis(t *testing.T) {
-        if shouldArchiveToWayback(42, false, false, false, false) {
+        if shouldArchiveToWayback(true, 42, false, false, false, false) {
                 t.Fatal("expected false for failed analysis")
         }
 }
 
 func TestShouldArchiveToWayback_Ephemeral(t *testing.T) {
-        if shouldArchiveToWayback(42, true, true, false, false) {
+        if shouldArchiveToWayback(true, 42, true, true, false, false) {
                 t.Fatal("expected false for ephemeral scan")
         }
 }
 
 func TestShouldArchiveToWayback_Private(t *testing.T) {
-        if shouldArchiveToWayback(42, true, false, true, false) {
+        if shouldArchiveToWayback(true, 42, true, false, true, false) {
                 t.Fatal("expected false for private scan")
         }
 }
 
 func TestShouldArchiveToWayback_Flagged(t *testing.T) {
-        if shouldArchiveToWayback(42, true, false, false, true) {
+        if shouldArchiveToWayback(true, 42, true, false, false, true) {
                 t.Fatal("expected false for flagged scan")
         }
 }
@@ -425,9 +425,9 @@ func TestShouldArchiveToWayback_ExhaustiveMatrix(t *testing.T) {
         }
         for _, tt := range tests {
                 t.Run(tt.name, func(t *testing.T) {
-                        got := shouldArchiveToWayback(tt.id, tt.success, tt.eph, tt.priv, tt.flagged)
+                        got := shouldArchiveToWayback(true, tt.id, tt.success, tt.eph, tt.priv, tt.flagged)
                         if got != tt.expected {
-                                t.Fatalf("shouldArchiveToWayback(%d, %v, %v, %v, %v) = %v, want %v",
+                                t.Fatalf("shouldArchiveToWayback(true, %d, %v, %v, %v, %v) = %v, want %v",
                                         tt.id, tt.success, tt.eph, tt.priv, tt.flagged, got, tt.expected)
                         }
                 })

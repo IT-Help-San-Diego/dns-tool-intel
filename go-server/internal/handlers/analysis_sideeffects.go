@@ -153,7 +153,7 @@ func (h *AnalysisHandler) handlePostAnalysisSideEffects(ctx context.Context, c *
 		if p.drift.Detected && !p.isPrivate {
 			go h.persistDriftEvent(p.asciiDomain, p.analysisID, p.drift, p.postureHash)
 		}
-		if shouldArchiveToWayback(p.analysisID, p.analysisSuccess, p.ephemeral, p.isPrivate, p.isScanFlagged) {
+		if shouldArchiveToWayback(h.Config.IsCloudDeployment, p.analysisID, p.analysisSuccess, p.ephemeral, p.isPrivate, p.isScanFlagged) {
 			go h.archiveToWayback(p.analysisID, p.asciiDomain)
 		}
 		if p.analysisSuccess {
@@ -177,7 +177,7 @@ func (h *AnalysisHandler) handlePostAnalysisSideEffectsAsync(ctx context.Context
 		if p.drift.Detected && !p.isPrivate {
 			go h.persistDriftEvent(p.asciiDomain, p.analysisID, p.drift, p.postureHash)
 		}
-		if shouldArchiveToWayback(p.analysisID, p.analysisSuccess, p.ephemeral, p.isPrivate, p.isScanFlagged) {
+		if shouldArchiveToWayback(h.Config.IsCloudDeployment, p.analysisID, p.analysisSuccess, p.ephemeral, p.isPrivate, p.isScanFlagged) {
 			go h.archiveToWayback(p.analysisID, p.asciiDomain)
 		}
 		if p.analysisSuccess {
@@ -377,8 +377,17 @@ func (h *AnalysisHandler) queueDriftNotifications(domain string, driftEventID in
 	}
 }
 
-func shouldArchiveToWayback(analysisID int32, analysisSuccess, ephemeral, isPrivate, isScanFlagged bool) bool {
-	return analysisID > 0 && analysisSuccess && !ephemeral && !isPrivate && !isScanFlagged
+// shouldArchiveToWayback gates the Internet Archive submission. The
+// isCloudDeployment term is first and lives in the predicate, not at the call
+// sites, so a new caller cannot forget it: on a local build the archived URL
+// (BaseURL/analysis/N) is unreachable by the archive anyway, but the POST to
+// web.archive.org itself discloses "this IP runs DNS Tool and produced
+// analysis N" — measured 2026-07-31, the one violation of the local build's
+// nothing-leaves guarantee (the stronger promise, "your domains were never
+// disclosed", was intact: only the numeric analysisID travels). Local scans
+// must make no outbound requests beyond the measurement itself.
+func shouldArchiveToWayback(isCloudDeployment bool, analysisID int32, analysisSuccess, ephemeral, isPrivate, isScanFlagged bool) bool {
+	return isCloudDeployment && analysisID > 0 && analysisSuccess && !ephemeral && !isPrivate && !isScanFlagged
 }
 
 func computeDriftSeverity(fields []analyzer.PostureDiffField) string {
