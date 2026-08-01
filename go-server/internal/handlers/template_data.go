@@ -21,6 +21,10 @@ const (
 	keyActivePage      = "ActivePage"
 	keyOriginTrial     = "OriginTrialToken"
 	keyIsCloud         = "IsCloudDeployment"
+	// The public instrument's canonical address, for local surfaces that LINK
+	// to their cloud counterpart (history flipper). Deliberately not BASE_URL:
+	// on a local build BASE_URL is the local instance.
+	keyCloudBaseURL = "CloudBaseURL"
 )
 
 func NewTemplateData(c *gin.Context, cfg *config.Config, activePage string) gin.H {
@@ -35,6 +39,7 @@ func NewTemplateData(c *gin.Context, cfg *config.Config, activePage string) gin.
 		keyActivePage:      activePage,
 		keyOriginTrial:     cfg.OriginTrialToken,
 		keyIsCloud:         cfg.IsCloudDeployment,
+		keyCloudBaseURL:    cfg.CanonicalBaseURL,
 	}
 	mergeAuthData(c, cfg, data)
 	return data

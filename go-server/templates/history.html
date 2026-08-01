@@ -142,7 +142,19 @@
                 </h1>
                 <p class="text-muted mb-0">View all DNS analysis records</p>
             </div>
-            <div class="d-flex gap-2">
+            <div class="d-flex gap-2 align-items-center">
+                {{if not .IsCloudDeployment}}
+                {{/* Local ↔ Cloud flipper — the flippers brief's direct-link
+                     fork: the Cloud pill is a plain outbound link to the
+                     public instrument, so nothing is fetched on page load and
+                     the disclosure is the user's own click. Local-build only:
+                     the cloud has no "local" counterpart to link to. */}}
+                <div class="btn-group btn-group-sm" role="group" aria-label="History source">
+                    <span class="btn btn-secondary active" aria-current="page" title="This machine's history — scans never leave your database">Local</span>
+                    <a class="btn btn-outline-secondary" href="{{.CloudBaseURL}}/history" target="_blank" rel="noopener"
+                       title="Opens the public instrument's history at dnstool.it-help.tech — a different dataset, measured by the cloud">Cloud&nbsp;&#8599;</a>
+                </div>
+                {{end}}
                 <a href="/" class="btn btn-analyze">
                     {{icon "plus" "me-1"}}<span class="d-none d-sm-inline">New Analysis</span><span class="visually-hidden d-sm-none">New Analysis</span>
                 </a>
