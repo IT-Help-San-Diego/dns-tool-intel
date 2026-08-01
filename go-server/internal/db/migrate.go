@@ -112,6 +112,23 @@ func Migrate(ctx context.Context, databaseURL string) error {
 		return fmt.Errorf("migrate: probe version ledger: %w", err)
 	}
 
+	if ledgerPresent {
+		// A ledger table with zero rows is not a ledger — it is a table
+		// something else created (a platform schema sync copying the table's
+		// shape without its bookkeeping). Goose never leaves this state: it
+		// seeds version 0 in the same transaction that creates the table, and
+		// EnsureDBVersionContext returns ErrNoNextVersion on an empty list.
+		// Seed the zero row and fall through to adoption so the versions that
+		// are demonstrably present get stamped instead of re-executed.
+		seeded, err := seedEmptyLedger(ctx, sqlDB)
+		if err != nil {
+			return err
+		}
+		if seeded {
+			ledgerPresent = false
+		}
+	}
+
 	if !ledgerPresent {
 		if err := bootstrapLedger(ctx, sqlDB, files); err != nil {
 			return err
@@ -224,6 +241,28 @@ func versionFromFilename(name string) (int64, error) {
 	return version, nil
 }
 
+// seedEmptyLedger detects a version-ledger table that exists but holds zero
+// rows — a state goose itself never produces — and seeds the version-0 row
+// goose expects, returning true so the caller re-runs the adoption path.
+func seedEmptyLedger(ctx context.Context, sqlDB *sql.DB) (bool, error) {
+	var rows int
+	if err := sqlDB.QueryRowContext(ctx,
+		fmt.Sprintf("SELECT count(*) FROM %s", goose.TableName()),
+	).Scan(&rows); err != nil {
+		return false, fmt.Errorf("migrate: probe version ledger rows: %w", err)
+	}
+	if rows > 0 {
+		return false, nil
+	}
+	slog.Warn("migrate: version ledger table exists but has no rows — seeding version 0 and adopting the schema")
+	if _, err := sqlDB.ExecContext(ctx,
+		fmt.Sprintf("INSERT INTO %s (version_id, is_applied) VALUES (0, true)", goose.TableName()),
+	); err != nil {
+		return false, fmt.Errorf("migrate: seed version ledger zero row: %w", err)
+	}
+	return true, nil
+}
+
 // bootstrapLedger handles a database with no version ledger. An empty database
 // falls through and is installed from 001 by the normal path. A populated one
 // is ADOPTED: the migrations whose objects are already present are stamped, and
@@ -322,8 +361,24 @@ func bootstrapLedger(ctx context.Context, sqlDB *sql.DB, files []migrationFile) 
 // A migration that creates no objects at all (013 is pure INSERTs) carries no
 // evidence either way, so it inherits the run it sits in.
 func adoptionCutoff(files []migrationFile, existing schemaObjects) (int64, error) {
-	var cutoff int64
+	// Later evidence proves earlier application: the chain is linear, so if a
+	// later migration's objects are ALL present, every migration before it
+	// must have run — even one whose own objects a still-later migration
+	// dropped (017 removing the black-site tables makes 009 look "pending" to
+	// a per-migration probe; the presence of 010+'s objects says otherwise).
+	var evidencedThrough int64
 	for _, f := range files {
+		present, absent := f.Objects.partition(existing)
+		if len(present) > 0 && len(absent) == 0 {
+			evidencedThrough = f.Version
+		}
+	}
+
+	cutoff := evidencedThrough
+	for _, f := range files {
+		if f.Version <= evidencedThrough {
+			continue
+		}
 		present, absent := f.Objects.partition(existing)
 
 		if len(present) == 0 && len(absent) == 0 {

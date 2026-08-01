@@ -284,6 +284,29 @@ func TestAdoptionCutoff(t *testing.T) {
 		}
 	})
 
+	t.Run("later evidence outweighs objects a later migration dropped", func(t *testing.T) {
+		// The platform-empty-ledger incident shape: 002 dropped alpha (so 001's
+		// object is absent), but 002's and 004's objects are all present. A
+		// per-migration probe reads 001 as pending and would re-run it; the
+		// linear chain says everything through the last fully-present version
+		// must have run.
+		dropChain := []migrationFile{
+			{Version: 1, Filename: "001_a.sql", Objects: migrationObjects{Tables: []string{"alpha"}}},
+			{Version: 2, Filename: "002_b.sql", Objects: migrationObjects{Tables: []string{"bravo"}}},
+			{Version: 3, Filename: "003_drop_alpha.sql"}, // pure DROP: no created objects
+			{Version: 4, Filename: "004_c.sql", Objects: migrationObjects{Tables: []string{"charlie"}}},
+			{Version: 5, Filename: "005_d.sql", Objects: migrationObjects{Tables: []string{"delta"}}},
+		}
+		existing := schemaFrom([]string{"bravo", "charlie"}, nil, nil) // alpha dropped, 005 pending
+		got, err := adoptionCutoff(dropChain, existing)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if got != 4 {
+			t.Errorf("cutoff = %d, want 4 (charlie present proves 001-004 ran; alpha's absence is 003's drop, not a pending 001)", got)
+		}
+	})
+
 	t.Run("nothing recognisable adopts nothing", func(t *testing.T) {
 		existing := schemaFrom([]string{"some_other_app"}, nil, nil)
 		got, err := adoptionCutoff(chain, existing)
