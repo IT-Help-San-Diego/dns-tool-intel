@@ -40,6 +40,7 @@ import (
 	"dnstool/go-server/internal/notifier"
 	"dnstool/go-server/internal/scanner"
 	tmplFuncs "dnstool/go-server/internal/templates"
+	templatesembed "dnstool/go-server/templates"
 
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
@@ -404,16 +405,23 @@ func logSecurityHeadersMode(isDev bool) {
 	}
 }
 
+// parseEmbeddedTemplates is split from loadTemplates so tests can pin the
+// full embedded set parsing cleanly — a template syntax error fails the
+// suite, not the first production boot.
+func parseEmbeddedTemplates() (*template.Template, error) {
+	return template.New("").Funcs(tmplFuncs.FuncMap()).ParseFS(templatesembed.Files, "*.html")
+}
+
 func loadTemplates(router *gin.Engine) {
-	templatesDir := findTemplatesDir()
-	slog.Info("Templates directory resolved", "path", templatesDir)
-	globPattern := filepath.Join(templatesDir, "*.html")
-	tmpl, err := template.New("").Funcs(tmplFuncs.FuncMap()).ParseGlob(globPattern)
+	tmpl, err := parseEmbeddedTemplates()
 	if err != nil {
-		cwd, _ := os.Getwd()
-		slog.Error("Failed to parse templates", "error", err, "glob", globPattern, "cwd", cwd)
+		// Reachable only via a template syntax error that slipped past
+		// the test suite: the files themselves are compiled in, so
+		// "not found" is impossible regardless of cwd.
+		slog.Error("Failed to parse embedded templates", "error", err)
 		os.Exit(1)
 	}
+	slog.Info("Templates loaded from binary-embedded FS")
 	router.SetHTMLTemplate(tmpl)
 }
 
@@ -943,21 +951,6 @@ func awaitShutdown(srv *http.Server, syncCancel context.CancelFunc, ac *middlewa
 	slog.Info("Server exited cleanly")
 }
 
-func findTemplatesDir() string {
-	candidates := []string{
-		"go-server/templates",
-		"templates",
-		"../templates",
-	}
-	for _, c := range candidates {
-		if info, err := os.Stat(c); err == nil && info.IsDir() {
-			return c
-		}
-	}
-	slog.Warn("Templates directory not found, using default")
-	return "templates"
-}
-
 var cacheableExts = map[string]bool{
 	".css": true, ".js": true, ".woff": true, ".woff2": true, ".ttf": true,
 	".png": true, ".ico": true, ".svg": true, ".jpg": true, ".jpeg": true,
@@ -970,19 +963,12 @@ func isStaticAsset(fp string) bool {
 	return cacheableExts[filepath.Ext(fp)]
 }
 
+// findStaticDir delegates to handlers.ResolveStaticDir — ONE candidate list
+// for every cwd-relative static consumer (asset mounting here, the /stats
+// integrity read in handlers), so the two can never disagree about which
+// tree is live.
 func findStaticDir() string {
-	candidates := []string{
-		"static",
-		"go-server/static",
-		"../static",
-	}
-	for _, c := range candidates {
-		if info, err := os.Stat(c); err == nil && info.IsDir() {
-			return c
-		}
-	}
-	slog.Warn("Static directory not found, using default")
-	return "static"
+	return handlers.ResolveStaticDir()
 }
 
 // cspReportHandler receives CSP / NEL violation reports from browsers.

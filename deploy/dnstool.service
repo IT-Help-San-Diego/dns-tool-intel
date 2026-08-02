@@ -1,11 +1,13 @@
 # DNS Tool systemd unit — EC2 app box (the AWS successor to .replit [deployment]).
 # Install: /etc/systemd/system/dnstool.service, then `systemctl enable --now dnstool`.
 #
-# WorkingDirectory is LOAD-BEARING: the binary resolves go-server/templates/
-# (fatal if missing — os.Exit(1)) and static/ (silent 404s if missing) relative
-# to cwd, and /stats reads the literal path static/data/integrity_stats.json.
-# The bundle at /opt/dnstool must be repo-shaped. See deploy/README.md for the
-# required bundle contents and the deploy script that produces it.
+# WorkingDirectory is LOAD-BEARING, and the failure is now SILENT: templates
+# are compiled into the binary (a wrong cwd can no longer crash the boot),
+# but static/, the topology-solver layouts, CITATION.cff, and the /stats
+# integrity data all resolve relative to cwd and degrade quietly (404
+# assets, no SRI attributes, empty /stats) when it is wrong. A running unit
+# is NOT proof the bundle placement is right — after any change, verify a
+# static asset serves 200. Bundle contents: deploy/README.md.
 [Unit]
 Description=DNS Tool (dnstool.it-help.tech)
 Wants=network-online.target
