@@ -965,3 +965,99 @@ func migrationBytes(t *testing.T, name string) (string, error) {
 	}
 	return string(data), nil
 }
+
+// TestNoStrayGooseTokens guards the trap that broke every dbtest parse on
+// #273's first draft: goose treats ANY comment line containing the "+goose"
+// token as an annotation — the trigger is HasPrefix(TrimSpace(line), "--") &&
+// Contains(line, "+goose") (internal/sqlparser/parser.go:127, v3.27.3) — so a
+// prose comment like "No +goose Down" is parsed as the annotation "No Down"
+// and fails the whole migration at boot. This test finds any such line with
+// `go test` and no Postgres running, before CI or a database ever sees it.
+func TestNoStrayGooseTokens(t *testing.T) {
+	files, err := loadEmbeddedMigrations()
+	if err != nil {
+		t.Fatalf("loadEmbeddedMigrations: %v", err)
+	}
+
+	for _, f := range files {
+		body, err := migrationBytes(t, f.Filename)
+		if err != nil {
+			t.Fatalf("read %s: %v", f.Filename, err)
+		}
+		for i, line := range strings.Split(body, "\n") {
+			if reason := strayGooseToken(line); reason != "" {
+				t.Errorf("%s:%d: %s — goose parses the token as an annotation anywhere in a comment line, "+
+					"and an unrecognized annotation fails the whole migration at boot. "+
+					"Reword the comment so the token does not appear.\n  %s",
+					f.Filename, i+1, reason, truncate(strings.TrimSpace(line), 120))
+			}
+		}
+	}
+}
+
+// strayGooseToken mirrors goose v3.27.3 exactly: the trigger predicate from
+// parser.go:127, then extractAnnotation's steps (leading-whitespace error on
+// the raw line, strip all "--", strip the first "+goose", reject a second,
+// trim, case-insensitive match against the supported set). It returns "" for
+// lines goose accepts — including lines that are not annotations at all — and
+// a reason for any line goose would reject.
+func strayGooseToken(line string) string {
+	if !strings.HasPrefix(strings.TrimSpace(line), "--") || !strings.Contains(line, "+goose") {
+		return "" // goose never annotation-parses this line
+	}
+	if strings.HasPrefix(line, " ") || strings.HasPrefix(line, "\t") {
+		return "annotation line has leading whitespace"
+	}
+	cmd := strings.ReplaceAll(line, "--", "")
+	cmd = strings.Replace(cmd, "+goose", "", 1)
+	if strings.Contains(cmd, "+goose") {
+		return "multiple +goose tokens on one line"
+	}
+	cmd = strings.TrimSpace(cmd)
+	if cmd == "" {
+		return "empty annotation"
+	}
+	for _, supported := range []string{
+		"Up", "Down", "StatementBegin", "StatementEnd",
+		"NO TRANSACTION", "ENVSUB ON", "ENVSUB OFF",
+	} {
+		if strings.EqualFold(cmd, supported) {
+			return ""
+		}
+	}
+	return fmt.Sprintf("%q is not a recognized annotation", cmd)
+}
+
+// TestStrayGooseToken_Detector pins the detector against the verbatim line
+// that broke CI (020's first draft) and against every accepted form, so the
+// chain test above cannot silently stop detecting what it was built to catch.
+func TestStrayGooseToken_Detector(t *testing.T) {
+	cases := []struct {
+		line string
+		bad  bool
+	}{
+		// The verbatim first-draft line from #273 that failed every dbtest.
+		{"-- No +goose Down, deliberately: this drop is irreversible in-chain. A Down", true},
+		{"-- see the +goose docs for details", true},
+		{"  -- +goose StatementBegin", true}, // leading whitespace: goose errors
+		{"-- +goose Sideways", true},
+		{"-- +goose", true}, // empty annotation
+		{"-- +goose Up", false},
+		{"-- +goose Down", false},
+		{"-- +goose StatementBegin", false},
+		{"-- +goose StatementEnd", false},
+		{"-- +goose NO TRANSACTION", false},
+		{"-- +goose up", false},                            // goose matches case-insensitively
+		{"-- an ordinary comment about the ledger", false}, // no token, never parsed
+		{"DROP TABLE IF EXISTS public.alembic_version;", false},
+	}
+	for _, c := range cases {
+		got := strayGooseToken(c.line)
+		if c.bad && got == "" {
+			t.Errorf("detector missed a line goose rejects: %q", c.line)
+		}
+		if !c.bad && got != "" {
+			t.Errorf("detector false-positive (%s) on a line goose accepts: %q", got, c.line)
+		}
+	}
+}
