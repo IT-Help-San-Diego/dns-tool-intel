@@ -105,9 +105,12 @@
                         </ul>
                     </div>
                     {{else}}
-                    <a class="nav-link" href="/auth/login">
-                        {{icon "key" "me-1"}}Sign In
-                    </a>
+                    {{/* Public Sign In entry point removed 2026-08-02 (Carey,
+                         via Hermes at cutover): no public account need. The
+                         /auth/login route stays functional for deliberate URL
+                         access (admin). Re-add this link consciously if
+                         accounts return — e.g. monetization — rather than by
+                         reverting this commit blind. */}}
                     {{end}}
                 </li>
                 {{end}}
