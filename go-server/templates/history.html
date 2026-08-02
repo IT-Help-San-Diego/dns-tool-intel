@@ -355,9 +355,6 @@
     <output id="historyAnalyzeOverlay" class="loading-overlay" aria-live="polite" aria-busy="true" aria-label="Running domain analysis">
         <div class="loading-content">
             {{template "scan_overlay_content" .}}
-            <p class="text-warning small mt-3 mb-0 d-none u-maxw-440-center" id="historyTimeoutMsg">
-                {{icon "exclamation-triangle" "me-1"}}Analysis is taking longer than expected. <a href="/" class="text-info">Try from the home page</a> or refresh to retry.
-            </p>
         </div>
     </output>
 
@@ -382,46 +379,6 @@
         const sep=url.includes('?')?'&':'?';
         return url+sep+'covert=1';
     }
-    function handleHistoryPage(html,respUrl){
-        document.open();document.write(html);document.close();globalThis.scrollTo(0,0);
-        const mm=document.querySelector('meta[name="x-report-mode"]');
-        const ie=document.querySelector('[data-analysis-id]');
-        const rm=mm?mm.content:'';
-        const ra=ie?ie.dataset.analysisId:'';
-        if(ra&&rm){globalThis.history.replaceState(null,'','/analysis/'+ra+'/view/'+rm);}
-        else if(respUrl&&respUrl!==globalThis.location.href){globalThis.history.replaceState(null,'',respUrl);}
-    }
-    function showHistoryTimeoutMsg(){
-        const msg=document.getElementById('historyTimeoutMsg');
-        if(msg)msg.classList.remove('d-none');
-    }
-    function handleHistoryFetchResponse(resp){
-        return resp.text().then(function(html){ handleHistoryPage(html,resp.url); });
-    }
-    function fetchHistoryReanalyze(href,overlay){
-        var u=new URL(href,globalThis.location.origin);
-        var domain=u.searchParams.get('domain')||'';
-        var csrf=(document.querySelector('meta[name="csrf-token"]')||{}).content||'';
-        var body=new URLSearchParams({domain:domain,csrf_token:csrf});
-        if(u.searchParams.get('covert')==='1')body.set('covert','1');
-        fetch('/analyze',{
-            method:'POST',
-            body:body,
-            headers:{'X-Requested-With':'fetch','Accept':'application/json','Content-Type':'application/x-www-form-urlencoded'},
-            redirect:'follow'
-        }).then(function(resp){
-            if(!resp.ok)throw new Error('HTTP '+resp.status);
-            return resp.json();
-        }).then(function(data){
-            if(data.token&&typeof startProgressPolling==='function'){
-                startProgressPolling(data.token,overlay,null);
-            }
-        }).catch(function(){
-            fetch(href,{headers:{'X-Requested-With':'fetch'},redirect:'follow'}).then(function(resp){
-                return handleHistoryFetchResponse(resp);
-            }).catch(function(){globalThis.location.href=href;});
-        });
-    }
     document.addEventListener('DOMContentLoaded',function(){
         for(const btn of document.querySelectorAll('.history-view-btn')){
             btn.addEventListener('click',function(e){
@@ -436,6 +393,13 @@
                 globalThis.location.href=covertUrl(btn.href);
             });
         }
+        // Re-scan navigates to the button's own href (/topology?domain= —
+        // prefill + auto-run, arriving SCANNING), matching the home page and
+        // the button's title. The old handler preventDefault'ed this correct
+        // link and ran an in-place POST instead, landing on the results view
+        // — "looked like a rescan, read like the old scan" (Carey, 2026-08-02,
+        // reproduced on a fresh build). Overlay kept for feedback during the
+        // navigation, same shape as the view button above.
         for(const btn of document.querySelectorAll('.history-reanalyze-btn')){
             btn.addEventListener('click',function(e){
                 e.preventDefault();
@@ -446,11 +410,10 @@
                 if(overlay){
                     if(typeof showOverlay==='function'){showOverlay(overlay);}else{overlay.classList.add('is-active');}
                     if(typeof startStatusCycle==='function'){startStatusCycle(overlay);}
-                    setTimeout(showHistoryTimeoutMsg,90000);
                 }
                 disableAllActions();
                 btn.innerHTML='{{icon "spinner" "icon-spin"}}';
-                fetchHistoryReanalyze(covertUrl(btn.href),overlay);
+                globalThis.location.href=covertUrl(btn.href);
             });
         }
     });
