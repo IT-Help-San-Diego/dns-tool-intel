@@ -70,3 +70,10 @@ func TestGetTestInventory_KnownCategories(t *testing.T) {
 		}
 	}
 }
+
+func TestGetTestInventory_TotalDimensionsMatchesProducer(t *testing.T) {
+	inv := GetTestInventory()
+	if inv.TotalDimensions != len(DimensionDisplayNames) {
+		t.Errorf("TotalDimensions = %d, want %d (len of DimensionDisplayNames)", inv.TotalDimensions, len(DimensionDisplayNames))
+	}
+}

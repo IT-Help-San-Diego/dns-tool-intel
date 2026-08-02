@@ -112,11 +112,13 @@
                 </h1>
                 <p class="text-muted mb-0">Posture changes for <strong class="text-info">{{.Domain}}</strong></p>
             </div>
+            {{if .Authenticated}}
             <div>
                 <a href="/dossier?domain={{.Domain}}" class="btn btn-outline-secondary btn-sm">
                     {{icon "arrow-left" "me-1"}}Back to Dossier
                 </a>
             </div>
+            {{end}}
         </div>
 
         {{if .HasDrift}}

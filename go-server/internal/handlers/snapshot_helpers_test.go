@@ -17,7 +17,7 @@ import (
 func miniTemplates() *htmltemplate.Template {
         tmpl := htmltemplate.New("root")
         names := []string{
-                "about.html", "admin.html", "admin_analytics.html", "admin_ops.html",
+                "about.html", "admin.html", "admin_analytics.html",
                 "admin_probes.html", "approach.html", "architecture.html", "audit_log.html",
                 "communication_standards.html",
                 "badge_embed.html", "brand_colors.html", "changelog.html", "color_science.html",

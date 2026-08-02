@@ -90,3 +90,7 @@ func (h *AuthHandler) ValidateIDTokenClaims(tokenData map[string]any, expectedNo
 func ExtractOAuthCallbackParams(c *gin.Context) (string, string, string, string, bool) {
 	return extractOAuthCallbackParams(c)
 }
+
+func SanitizeNextPath(raw string) string {
+	return sanitizeNextPath(raw)
+}

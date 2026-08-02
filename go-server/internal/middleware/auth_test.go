@@ -5,6 +5,7 @@ import (
         "net/http/httptest"
         "testing"
 
+        "dnstool/go-server/internal/entitlements"
         "dnstool/go-server/internal/middleware"
 
         "github.com/gin-gonic/gin"
@@ -295,5 +296,109 @@ func TestRequireAdminBrowserRedirectNonAdmin(t *testing.T) {
         loc := w.Header().Get("Location")
         if loc != "/" {
                 t.Fatalf("expected redirect to /, got %s", loc)
+        }
+}
+
+func TestRequireFeatureBrowserRedirectAnonymous(t *testing.T) {
+        router := gin.New()
+        router.Use(middleware.RequireFeature(entitlements.FeatureDossier))
+        router.GET("/dossier", func(c *gin.Context) {
+                c.String(http.StatusOK, "ok")
+        })
+
+        w := httptest.NewRecorder()
+        req := httptest.NewRequest("GET", "/dossier", nil)
+        req.Header.Set("Accept", "text/html,application/xhtml+xml")
+        router.ServeHTTP(w, req)
+
+        if w.Code != http.StatusFound {
+                t.Fatalf("expected 302 redirect, got %d", w.Code)
+        }
+        loc := w.Header().Get("Location")
+        if loc != "/auth/login?next=%2Fdossier" {
+                t.Fatalf("expected redirect to /auth/login?next=%%2Fdossier, got %s", loc)
+        }
+}
+
+func TestRequireFeatureAnonymousJSON(t *testing.T) {
+        router := gin.New()
+        router.Use(middleware.RequireFeature(entitlements.FeatureDossier))
+        router.GET("/dossier", func(c *gin.Context) {
+                c.String(http.StatusOK, "ok")
+        })
+
+        w := httptest.NewRecorder()
+        req := httptest.NewRequest("GET", "/dossier", nil)
+        router.ServeHTTP(w, req)
+
+        if w.Code != http.StatusUnauthorized {
+                t.Fatalf("expected 401 for non-HTML client, got %d", w.Code)
+        }
+}
+
+func TestRequireFeatureBrowserRedirectUpgradeRequired(t *testing.T) {
+        router := gin.New()
+        router.Use(func(c *gin.Context) {
+                c.Set("authenticated", true)
+                c.Set("user_role", "user")
+                c.Next()
+        })
+        router.Use(middleware.RequireFeature(entitlements.FeatureBulkScan))
+        router.GET("/bulk", func(c *gin.Context) {
+                c.String(http.StatusOK, "ok")
+        })
+
+        w := httptest.NewRecorder()
+        req := httptest.NewRequest("GET", "/bulk", nil)
+        req.Header.Set("Accept", "text/html,application/xhtml+xml")
+        router.ServeHTTP(w, req)
+
+        if w.Code != http.StatusFound {
+                t.Fatalf("expected 302 redirect, got %d", w.Code)
+        }
+        if loc := w.Header().Get("Location"); loc != "/" {
+                t.Fatalf("expected redirect to /, got %s", loc)
+        }
+}
+
+func TestRequireFeatureUpgradeRequiredJSON(t *testing.T) {
+        router := gin.New()
+        router.Use(func(c *gin.Context) {
+                c.Set("authenticated", true)
+                c.Set("user_role", "user")
+                c.Next()
+        })
+        router.Use(middleware.RequireFeature(entitlements.FeatureBulkScan))
+        router.GET("/bulk", func(c *gin.Context) {
+                c.String(http.StatusOK, "ok")
+        })
+
+        w := httptest.NewRecorder()
+        req := httptest.NewRequest("GET", "/bulk", nil)
+        router.ServeHTTP(w, req)
+
+        if w.Code != http.StatusForbidden {
+                t.Fatalf("expected 403 for non-HTML client, got %d", w.Code)
+        }
+}
+
+func TestRequireFeatureAllowsEntitled(t *testing.T) {
+        router := gin.New()
+        router.Use(func(c *gin.Context) {
+                c.Set("authenticated", true)
+                c.Set("user_role", "user")
+                c.Next()
+        })
+        router.Use(middleware.RequireFeature(entitlements.FeatureDossier))
+        router.GET("/dossier", func(c *gin.Context) {
+                c.String(http.StatusOK, "ok")
+        })
+
+        w := httptest.NewRecorder()
+        req := httptest.NewRequest("GET", "/dossier", nil)
+        router.ServeHTTP(w, req)
+
+        if w.Code != http.StatusOK {
+                t.Fatalf("expected 200, got %d", w.Code)
         }
 }

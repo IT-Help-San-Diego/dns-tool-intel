@@ -33,6 +33,7 @@ const (
         oauthStateCookie  = "_oauth_state"
         oauthCVCookie     = "_oauth_cv"
         oauthNonceCookie  = "_oauth_nonce"
+        oauthNextCookie   = "_oauth_next"
         sessionCookieName = "_dns_session"
         sessionMaxAge     = 30 * 24 * 60 * 60
         oauthHTTPTimeout  = 10 * time.Second
@@ -118,6 +119,28 @@ func computeCodeChallenge(verifier string) string {
         return base64.RawURLEncoding.EncodeToString(h[:])
 }
 
+// sanitizeNextPath accepts a post-login destination only in absolute-path
+// form on this origin: it must start with a single "/", carry no scheme or
+// host, and contain no backslashes (browsers normalize "\" to "/", turning
+// "/\evil.com" into a protocol-relative redirect). Anything else — including
+// "//host", "https://host", or an unparseable value — collapses to "".
+func sanitizeNextPath(raw string) string {
+        if raw == "" || len(raw) > 512 {
+                return ""
+        }
+        if !strings.HasPrefix(raw, "/") || strings.HasPrefix(raw, "//") {
+                return ""
+        }
+        if strings.Contains(raw, "\\") {
+                return ""
+        }
+        u, err := url.Parse(raw)
+        if err != nil || u.Scheme != "" || u.Host != "" {
+                return ""
+        }
+        return raw
+}
+
 func (h *AuthHandler) Login(c *gin.Context) {
         state, err := generateRandomBase64URL(32)
         if err != nil {
@@ -146,6 +169,15 @@ func (h *AuthHandler) Login(c *gin.Context) {
         c.SetCookie(oauthStateCookie, state, 600, "/", "", true, true)
         c.SetCookie(oauthCVCookie, codeVerifier, 600, "/", "", true, true)
         c.SetCookie(oauthNonceCookie, nonce, 600, "/", "", true, true)
+
+        // Carry a safe ?next= across the Google round-trip so finalizeLogin can
+        // land the user where they asked. An absent/unsafe next clears any
+        // stale cookie from an abandoned earlier flow.
+        if next := sanitizeNextPath(c.Query("next")); next != "" {
+                c.SetCookie(oauthNextCookie, next, 600, "/", "", true, true)
+        } else {
+                c.SetCookie(oauthNextCookie, "", -1, "/", "", true, true)
+        }
 
         params := url.Values{
                 "client_id":             {h.Config.GoogleClientID},
@@ -251,11 +283,17 @@ func (h *AuthHandler) bootstrapAdminIfNeeded(ctx context.Context, userID int32, 
 }
 
 func (h *AuthHandler) finalizeLogin(c *gin.Context, sessionID string, user dbq.User, name, email string) {
+        next := ""
+        if cookie, err := c.Cookie(oauthNextCookie); err == nil {
+                next = sanitizeNextPath(cookie)
+        }
+
         c.SetSameSite(http.SameSiteLaxMode)
         c.SetCookie(sessionCookieName, sessionID, sessionMaxAge, "/", "", true, true)
         c.SetCookie(oauthStateCookie, "", -1, "/", "", true, true)
         c.SetCookie(oauthCVCookie, "", -1, "/", "", true, true)
         c.SetCookie(oauthNonceCookie, "", -1, "/", "", true, true)
+        c.SetCookie(oauthNextCookie, "", -1, "/", "", true, true)
 
         slog.Info("User authenticated", mapKeyEmail, email, "role", user.Role, mapKeyUserId, user.ID)
 
@@ -263,6 +301,13 @@ func (h *AuthHandler) finalizeLogin(c *gin.Context, sessionID string, user dbq.U
                 go h.seedAdminWatchlist(context.Background(), user.ID)
         }
 
+        // A requested destination wins: the user asked for a specific page
+        // before being sent through OAuth. The welcome banner only renders on
+        // "/", so it applies just to first logins without a pending next.
+        if next != "" {
+                c.Redirect(http.StatusFound, next)
+                return
+        }
         firstLogin := user.CreatedAt.Valid && user.LastLoginAt.Valid &&
                 user.LastLoginAt.Time.Sub(user.CreatedAt.Time).Abs() < 5*time.Second
         if firstLogin {

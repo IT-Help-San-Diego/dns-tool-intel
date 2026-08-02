@@ -864,8 +864,6 @@ func registerAdminRoutes(d routeDeps) {
 	d.Router.POST("/ops/user/:id/delete", middleware.RequireAdmin(), adminHandler.DeleteUser)
 	d.Router.POST("/ops/user/:id/reset-sessions", middleware.RequireAdmin(), adminHandler.ResetUserSessions)
 	d.Router.POST("/ops/sessions/purge-expired", middleware.RequireAdmin(), adminHandler.PurgeExpiredSessions)
-	d.Router.GET("/ops/operations", middleware.RequireAdmin(), adminHandler.OperationsPage)
-	d.Router.POST("/ops/run/:task", middleware.RequireAdmin(), adminHandler.RunOperation)
 
 	confidenceBackfillHandler := handlers.NewConfidenceBackfillHandler(d.DB)
 	d.Router.POST("/ops/confidence-backfill", middleware.RequireAdmin(), confidenceBackfillHandler.Start)

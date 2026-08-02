@@ -22,6 +22,7 @@ const (
 	OauthStateCookie  = oauthStateCookie
 	OauthCVCookie     = oauthCVCookie
 	OauthNonceCookie  = oauthNonceCookie
+	OauthNextCookie   = oauthNextCookie
 	SessionCookieName = sessionCookieName
 	GoogleAuthURL     = googleAuthURL
 	GoogleTokenURL    = googleTokenURL

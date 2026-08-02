@@ -34,7 +34,7 @@ func GetTestInventory() *TestInventory {
 
         return &TestInventory{
                 TotalCases:      total,
-                TotalDimensions: 5,
+                TotalDimensions: len(DimensionDisplayNames),
                 Categories:      categories,
         }
 }
