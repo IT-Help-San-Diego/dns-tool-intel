@@ -182,9 +182,13 @@ else
   FAIL=1
 fi
 
-# 11. gocyclo ratchet — functions with complexity >15 may only shrink.
+# 11. gocyclo ratchet — PRODUCTION functions with complexity >15 may only shrink.
+# Tests are reported separately (advisory): test helpers are allowed to be long
+# table-driven flows, and gating them against the production baseline made the
+# ratchet fire on test-code churn, not real debt (measured on main: 55 with
+# tests vs 21 production — the "regression" was 100% _test.go functions).
 echo ""
-echo "▸ [11/13] gocyclo ratchet (complexity >15)..."
+echo "▸ [11/13] gocyclo ratchet (complexity >15, production only)..."
 if [ -f "$BASE_DIR/gocyclo.count" ]; then
   GC_BASE=$(cat "$BASE_DIR/gocyclo.count")
   GC_OUT=$(go run github.com/fzipp/gocyclo/cmd/gocyclo@v0.6.0 -over 15 go-server/cmd go-server/internal 2>&1 || true)
@@ -192,15 +196,16 @@ if [ -f "$BASE_DIR/gocyclo.count" ]; then
   # start with a digit. gocyclo exits 1 whenever it has findings, so `go run`
   # appends "exit status 1" via stderr — counting that line inflates the total
   # by one and fails the gate at exactly-baseline counts.
-  GC_CUR=$(printf '%s' "$GC_OUT" | grep -c '^[0-9]' || true)
-  if [ "$GC_CUR" -le "$GC_BASE" ]; then
-    echo "  ✓ gocyclo: $GC_CUR function(s) over 15 (baseline $GC_BASE)"
-    if [ "$GC_CUR" -lt "$GC_BASE" ]; then
-      echo "    ↓ debt paid — tighten baseline: echo $GC_CUR > $BASE_DIR/gocyclo.count"
+  GC_PROD=$(printf '%s\n' "$GC_OUT" | grep '^[0-9]' | grep -v '_test\.go' | grep -c '^[0-9]' || true)
+  GC_TEST=$(printf '%s\n' "$GC_OUT" | grep '^[0-9]' | grep -c '_test\.go' || true)
+  if [ "$GC_PROD" -le "$GC_BASE" ]; then
+    echo "  ✓ gocyclo: $GC_PROD production function(s) over 15 (baseline $GC_BASE; tests: $GC_TEST, advisory)"
+    if [ "$GC_PROD" -lt "$GC_BASE" ]; then
+      echo "    ↓ debt paid — tighten baseline: echo $GC_PROD > $BASE_DIR/gocyclo.count"
     fi
   else
-    echo "  ✗ gocyclo REGRESSION: $GC_CUR function(s) vs baseline $GC_BASE. Worst offenders:"
-    printf '%s\n' "$GC_OUT" | sort -rn | head -10
+    echo "  ✗ gocyclo REGRESSION: $GC_PROD production function(s) vs baseline $GC_BASE. Worst offenders:"
+    printf '%s\n' "$GC_OUT" | grep '^[0-9]' | grep -v '_test\.go' | sort -rn | head -10
     FAIL=1
   fi
 else
@@ -241,6 +246,33 @@ if bash scripts/audit-scrutiny-tags.sh 2>&1 | tail -3; then
 else
   echo "  ✗ scrutiny tag audit FAILED — tag the files listed above"
   FAIL=1
+fi
+
+# ─── Advisory checks (WARN, never FAIL) ───────────────────────────────────────
+# New tools land advisory first so we can see what they report on this codebase
+# before any ratchet is set. A guard is trusted only after being watched fire.
+echo ""
+echo "▸ [advisory] gosec (security scan)..."
+GOSEC_OUT=$(cd go-server && GOFLAGS=-buildvcs=false go run github.com/securego/gosec/v2/cmd/gosec@v2.22.5 -quiet ./... 2>&1 || true)
+GOSEC_COUNT=$(printf '%s\n' "$GOSEC_OUT" | grep -cE '^\[' || true)
+if [ "$GOSEC_COUNT" -eq 0 ]; then
+  echo "  ✓ gosec: no findings"
+else
+  echo "  ⚠ gosec: $GOSEC_COUNT finding(s) — review below (advisory, not gated)"
+  printf '%s\n' "$GOSEC_OUT" | grep -E '^\[' | head -15
+  WARN=1
+fi
+
+echo ""
+echo "▸ [advisory] golangci-lint (meta-linter)..."
+GOLANGCI_OUT=$(cd go-server && GOFLAGS=-buildvcs=false go run github.com/golangci/golangci-lint/cmd/golangci-lint@v1.64.8 run --timeout 5m ./... 2>&1 || true)
+GOLANGCI_COUNT=$(printf '%s\n' "$GOLANGCI_OUT" | grep -cE '\.go:[0-9]+:[0-9]+:' || true)
+if [ "$GOLANGCI_COUNT" -eq 0 ]; then
+  echo "  ✓ golangci-lint: no findings"
+else
+  echo "  ⚠ golangci-lint: $GOLANGCI_COUNT finding(s) — review below (advisory, not gated)"
+  printf '%s\n' "$GOLANGCI_OUT" | grep -E '\.go:[0-9]+:[0-9]+:' | head -15
+  WARN=1
 fi
 
 ELAPSED=$(( $(date +%s) - START ))

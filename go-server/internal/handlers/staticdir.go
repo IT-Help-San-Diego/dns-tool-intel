@@ -4,8 +4,8 @@
 package handlers
 
 import (
-        "log/slog"
-        "os"
+	"log/slog"
+	"os"
 )
 
 // ResolveStaticDir returns the root of the live static tree, probing the
@@ -20,16 +20,16 @@ import (
 // anything — it fails SILENTLY, which is why the systemd unit pins
 // WorkingDirectory and the deploy verifies a static asset after changes.
 func ResolveStaticDir() string {
-        candidates := []string{
-                "static",
-                "go-server/static",
-                "../static",
-        }
-        for _, c := range candidates {
-                if info, err := os.Stat(c); err == nil && info.IsDir() {
-                        return c
-                }
-        }
-        slog.Warn("Static directory not found, using default")
-        return "static"
+	candidates := []string{
+		"static",
+		"go-server/static",
+		"../static",
+	}
+	for _, c := range candidates {
+		if info, err := os.Stat(c); err == nil && info.IsDir() {
+			return c
+		}
+	}
+	slog.Warn("Static directory not found, using default")
+	return "static"
 }
