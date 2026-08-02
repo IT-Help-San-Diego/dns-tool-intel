@@ -94,7 +94,7 @@ Replit absorbed scan-floods / TikTok-spikes invisibly for the $100/mo. On our ow
 **DRESS REHEARSAL: PASS (2026-08-01).** Migration path measured, not inferred: `stamp_through=18` → `adopted stamped=18` → `pending from_version=18 to_version=19` → `schema upgraded applied=1`. **`stamp_through=19` did NOT occur** (019 executed: score tables → `text`, `app_version` created). Second boot `schema up to date version=19` (one-time adoption). Freeze-ending scan wrote the first `icuae_scan_scores` row since Jun 20.
 
 **Two deploy gotchas the rehearsal caught (bake into the build):**
-1. **cwd** — the binary resolves templates relative to cwd (`go-server/templates`) and **exits on boot** if run from the wrong directory. The deploy must set cwd to the repo root.
+1. **cwd** — the binary resolves templates relative to cwd (`go-server/templates`). Pre-#264 it **exits on boot** from the wrong directory; post-#264 (template embed) the wrong-cwd failure becomes **SILENT degradation** (404 assets, no SRI, empty `/stats`) — which makes `WorkingDirectory` *more* critical, not less. The deploy must set cwd to the repo root.
 2. **version stamping** — built with plain `go build`, `app_version` read `'dev'`. The AWS build MUST use `build.sh` (ldflags stamps the ~23-char git-describe string — the value `VARCHAR(20)` rejected for six weeks).
 
 1. **Region lock:** us-west-2. Re-measure all pricing there (earlier figures were us-east-1).

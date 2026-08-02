@@ -151,6 +151,8 @@ echo "== STEP 8: certbot (Let's Encrypt) for dnstool.it-help.tech =="
 echo "  certbot --nginx (or standalone) -d dnstool.it-help.tech"
 echo "  CHECK: https://dnstool.it-help.tech/healthz -> 200 AND body contains '\"status\":\"ok\"'"
 echo "         (503 body for starting/degraded/crash-loop — a 200 alone routes traffic to a dying box)"
+echo "  CHECK (post-#264 embed): a /static/css/*.css URL returns 200, not just /healthz —"
+echo "         wrong-cwd is now SILENT degradation (404 assets, no SRI, empty /stats), not a fatal exit"
 
 # ---------------------------------------------------------------------------
 # STEP 9 — Flip Route53 to the Elastic IP.
