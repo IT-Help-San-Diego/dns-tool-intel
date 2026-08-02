@@ -264,15 +264,24 @@ func resolveListenAddr() string {
 func startingHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		slog.Info("Starting handler serving request", "path", r.URL.Path, "method", r.Method)
+		// Non-ready states answer non-200: a load balancer keyed on the
+		// status code must not route traffic here (this handler also
+		// serves the instant before a config-failure os.Exit, so a 200
+		// would make a crash-loop read healthy). Bodies keep the status
+		// text for humans and scripts; ready is the router's /healthz,
+		// which is the only 200.
+		middleware.SetEarlyHeaders(w.Header())
 		if r.URL.Path == "/healthz" {
 			w.Header().Set(headerContentType, contentTypeJSON)
-			w.WriteHeader(http.StatusOK)
+			w.Header().Set("Retry-After", "2")
+			w.WriteHeader(http.StatusServiceUnavailable)
 			_, _ = w.Write([]byte(`{"status":"starting"}`))
 			return
 		}
 		w.Header().Set(headerContentType, contentTypeHTML)
 		w.Header().Set(headerCacheControl, "no-store")
-		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Retry-After", "2")
+		w.WriteHeader(http.StatusServiceUnavailable)
 		_, _ = w.Write([]byte(`<!DOCTYPE html><html lang="en" data-bs-theme="dark"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DNS Tool — Starting</title><meta http-equiv="refresh" content="2"><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#0d1117;color:#e6edf3;font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh}div{text-align:center}.spinner{width:40px;height:40px;border:3px solid #30363d;border-top-color:#58a6ff;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 1rem}@keyframes spin{to{transform:rotate(360deg)}}h1{font-size:1.2rem;font-weight:500;margin-bottom:.5rem}p{color:#8b949e;font-size:.85rem}</style></head><body><div><div class="spinner"></div><h1>DNS Tool</h1><p>Initializing analysis engine…</p></div></body></html>`))
 	})
 }
@@ -307,9 +316,14 @@ func runDegradedMode(handler *atomic.Value, cfg *config.Config, srv *http.Server
 
 func degradedHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		middleware.SetEarlyHeaders(w.Header())
 		if r.URL.Path == "/healthz" {
 			w.Header().Set(headerContentType, contentTypeJSON)
-			w.WriteHeader(http.StatusOK)
+			// 503, same as the maintenance page below: degraded mode
+			// serves no analysis traffic, so a health check must not
+			// report it able to take any.
+			w.Header().Set("Retry-After", "30")
+			w.WriteHeader(http.StatusServiceUnavailable)
 			_, _ = w.Write([]byte(`{"status":"degraded","reason":"database_unavailable"}`))
 			return
 		}
@@ -334,10 +348,16 @@ func retryDatabaseLoop(dbURL string) {
 func buildRouter(cfg *config.Config, database *db.Database, scannerWatch *middleware.ScannerWatch) (*gin.Engine, *middleware.AnalyticsCollector) {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
-	router.SetTrustedProxies([]string{"127.0.0.1/8", "::1/128"})
+	// Entries are validated in config.Load (resolveTrustedProxies), so an
+	// error here is a gin-side surprise, not a config typo — still fatal:
+	// silently trusting the wrong peers mis-attributes every client IP.
+	if err := router.SetTrustedProxies(cfg.TrustedProxies); err != nil {
+		slog.Error("Failed to set trusted proxies", mapKeyError, err, "proxies", cfg.TrustedProxies)
+		os.Exit(1)
+	}
 	router.ForwardedByClientIP = true
 	router.RemoteIPHeaders = []string{"X-Forwarded-For", "X-Real-Ip"}
-	slog.Info("Trusted proxies configured — reading client IP from X-Forwarded-For via local proxy")
+	slog.Info("Trusted proxies configured — client IP read from X-Forwarded-For when the peer matches", "proxies", cfg.TrustedProxies)
 
 	logSecurityHeadersMode(cfg.IsDevEnvironment)
 

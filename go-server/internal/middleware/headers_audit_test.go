@@ -42,8 +42,8 @@ func TestProdHeadersAudit_v26_47_0(t *testing.T) {
                                 if h.Get("Report-To") == "" {
                                         t.Errorf("prod / missing Report-To header")
                                 }
-                                if got := h.Get("Strict-Transport-Security"); got != "" {
-                                        t.Errorf("prod / must NOT emit app-side HSTS (edge handles it); got %q", got)
+                                if got := h.Get("Strict-Transport-Security"); got != "max-age=63072000; includeSubDomains; preload" {
+                                        t.Errorf("prod / must emit app-side HSTS (no edge injects it off Replit); got %q", got)
                                 }
                                 if got := h.Get("X-Frame-Options"); got != "DENY" {
                                         t.Errorf("prod / X-Frame-Options expected DENY, got %q", got)

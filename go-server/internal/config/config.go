@@ -5,6 +5,7 @@ package config
 
 import (
 	"fmt"
+	"net"
 	"os"
 	"strings"
 )
@@ -57,6 +58,23 @@ type Config struct {
 	DiscordWebhookURL  string
 	YouTubeVideoIDs    map[string]string
 	OriginTrialToken   string
+	// TrustedProxies is the list of peer CIDRs gin may accept
+	// X-Forwarded-For from. Defaults to loopback only (an on-box proxy);
+	// TRUSTED_PROXIES overrides it entirely — the deployment declares the
+	// full list, because an implicit merge would hide which peers are
+	// actually trusted when reading the unit file.
+	TrustedProxies []string
+}
+
+// IsCloudDeploymentEnv reports whether this process is the deployed cloud
+// instance — the cloud→local lever. Two keys are recognized:
+// CLOUD_DEPLOYMENT (platform-neutral; the AWS unit file sets it) and
+// REPLIT_DEPLOYMENT (set by the Replit platform on published deployments).
+// Recognizing both means a rollback deploy onto Replit behaves as cloud
+// with no env change. Shared with db.go's production-database guard so the
+// two can never disagree about what "deployed" means.
+func IsCloudDeploymentEnv() bool {
+	return os.Getenv("CLOUD_DEPLOYMENT") != "" || os.Getenv("REPLIT_DEPLOYMENT") != ""
 }
 
 var betaPagesMap = map[string]bool{
@@ -96,6 +114,10 @@ func Load() (*Config, error) {
 	baseURL, isDevEnv := resolveBaseURL()
 	googleRedirectURL := envOrDefault("GOOGLE_REDIRECT_URL", baseURL+"/auth/callback")
 	betaPages := copyBetaPages()
+	trustedProxies, err := resolveTrustedProxies()
+	if err != nil {
+		return nil, err
+	}
 
 	ipfsProbeMode := envOrDefault("IPFS_PROBE_MODE", "off")
 	if ipfsProbeMode == "remote" && len(probes) == 0 {
@@ -124,11 +146,13 @@ func Load() (*Config, error) {
 		IsDevEnvironment:   isDevEnv,
 		// The cloud→local lever: true only on the deployed cloud
 		// instance. Local and Replit-dev runs skip cloud-only UI
-		// (e.g. the privacy/cookie banner).
-		IsCloudDeployment: os.Getenv("REPLIT_DEPLOYMENT") != "",
+		// (e.g. the privacy/cookie banner) — and cloud-only side
+		// effects: Wayback archival is gated on this same field.
+		IsCloudDeployment: IsCloudDeploymentEnv(),
 		DiscordWebhookURL: os.Getenv("DISCORD_WEBHOOK_URL"),
 		YouTubeVideoIDs:   parseYouTubeIDs(os.Getenv("YOUTUBE_VIDEO_IDS")),
 		OriginTrialToken:  strings.TrimSpace(os.Getenv("ORIGIN_TRIAL_TOKEN")),
+		TrustedProxies:    trustedProxies,
 	}, nil
 }
 
@@ -239,8 +263,7 @@ func resolveBaseURL() (string, bool) {
 	if baseURL == "" {
 		baseURL = canonicalBaseURL
 	}
-	replitDeployment := os.Getenv("REPLIT_DEPLOYMENT")
-	if replitDeployment != "" {
+	if IsCloudDeploymentEnv() {
 		// In production, never emit a Replit-ephemeral host in absolute URLs.
 		// A dev BASE_URL inherited by the deployment container would otherwise
 		// break external consumers that key off the canonical public domain.
@@ -268,15 +291,16 @@ func resolveBaseURL() (string, bool) {
 // Called from config.Load(), which runs AFTER the early listener binds
 // (main.go: waitForListener + "Early listener started", then config.Load()).
 // Until config.Load() succeeds, the early listener is serving startingHandler():
-// /healthz answers {"status":"starting"} with HTTP 200 and every other route a
-// spinner page. So a misconfigured deployment accepts traffic and answers
-// healthchecks 200 OK in the moments before config.Load() fails and os.Exit(1)
-// fires — a platform healthcheck can read green immediately before the process
-// dies (a crash-loop that looks healthy), not a clean refusal. The assertion
-// still prevents the bad configuration from serving real analysis traffic, but
-// it does NOT prevent the early listener from accepting connections first.
+// /healthz answers {"status":"starting"} with HTTP 503 and every other route a
+// 503 spinner page (503 since the AWS pre-cutover change — these answered 200
+// before, so a platform healthcheck could read green in the instant before
+// config.Load() failed and os.Exit(1) fired: a crash-loop that looked
+// healthy). The assertion still cannot stop the early listener from accepting
+// connections first; it only guarantees the bad configuration never serves
+// real analysis traffic. Readiness is the router's /healthz — the only 200,
+// body {"status":"ok"}.
 func assertDeploymentEnvironment() error {
-	if os.Getenv("REPLIT_DEPLOYMENT") == "" {
+	if !IsCloudDeploymentEnv() {
 		return nil
 	}
 
@@ -289,6 +313,50 @@ func assertDeploymentEnvironment() error {
 	}
 
 	return nil
+}
+
+// defaultTrustedProxies is loopback only: correct when nothing fronts the
+// binary (direct serving) and when an on-box proxy (nginx/caddy terminating
+// TLS) forwards over localhost. Any off-box hop — ALB, CloudFront-to-origin —
+// must be declared via TRUSTED_PROXIES or its X-Forwarded-For is ignored and
+// every client resolves to the hop's address (rate limiting, analytics, geo,
+// and the My-IP tool all collapse onto the proxy).
+var defaultTrustedProxies = []string{"127.0.0.1/8", "::1/128"}
+
+func resolveTrustedProxies() ([]string, error) {
+	raw := strings.TrimSpace(os.Getenv("TRUSTED_PROXIES"))
+	if raw == "" {
+		return defaultTrustedProxies, nil
+	}
+	var proxies []string
+	for _, entry := range strings.Split(raw, ",") {
+		entry = strings.TrimSpace(entry)
+		if entry == "" {
+			continue
+		}
+		// Validate here, at boot, so a typo'd CIDR fails the deploy
+		// loudly instead of silently trusting nobody: gin would return
+		// the same error from SetTrustedProxies, but a config error
+		// should name the env var that carries it.
+		if _, ipnet, err := net.ParseCIDR(entry); err != nil {
+			if net.ParseIP(entry) == nil {
+				return nil, fmt.Errorf("misconfiguration: TRUSTED_PROXIES entry %q is neither a CIDR nor an IP; fix the deployment env (comma-separated CIDRs/IPs, e.g. \"127.0.0.1/8,::1/128\")", entry)
+			}
+		} else if ones, _ := ipnet.Mask.Size(); ones == 0 {
+			// /0 trusts every peer on the internet, which makes
+			// X-Forwarded-For client-forgeable: rate limits become
+			// evadable by rotating fake XFF values and every stored
+			// client IP (analytics, geo, abuse logs, the My-IP tool)
+			// records an attacker-chosen address. There is no valid
+			// deployment of this instrument where that is intended.
+			return nil, fmt.Errorf("misconfiguration: TRUSTED_PROXIES entry %q trusts every peer, making client IPs forgeable via X-Forwarded-For; list the actual proxy CIDRs instead", entry)
+		}
+		proxies = append(proxies, entry)
+	}
+	if len(proxies) == 0 {
+		return nil, fmt.Errorf("misconfiguration: TRUSTED_PROXIES is set but contains no entries; unset it to use the loopback default or list the proxy CIDRs")
+	}
+	return proxies, nil
 }
 
 func copyBetaPages() map[string]bool {

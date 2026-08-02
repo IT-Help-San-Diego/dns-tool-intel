@@ -350,11 +350,13 @@ func TestSecurityHeadersPresent(t *testing.T) {
                 }
         }
 
-        // HSTS is intentionally NOT emitted by app middleware — the Replit
-        // edge is the sole authority to avoid duplicate Strict-Transport-Security
-        // headers. See middleware.go for the restore path on non-Replit hosting.
-        if hsts := w.Header().Get("Strict-Transport-Security"); hsts != "" {
-                t.Errorf("Strict-Transport-Security must not be set by app (edge-only); got: %s", hsts)
+        // HSTS is app-emitted since the move off the Replit edge (which used
+        // to inject it): the app is now the single authoritative source, and
+        // the value must match what the edge sent so preload-list state
+        // never regresses.
+        wantHSTS := "max-age=63072000; includeSubDomains; preload"
+        if hsts := w.Header().Get("Strict-Transport-Security"); hsts != wantHSTS {
+                t.Errorf("Strict-Transport-Security must be %q in prod mode; got: %q", wantHSTS, hsts)
         }
 
         csp := w.Header().Get("Content-Security-Policy")
