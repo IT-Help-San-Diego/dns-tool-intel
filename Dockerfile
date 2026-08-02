@@ -60,16 +60,12 @@ COPY --from=build /out/dns-tool-server /usr/local/bin/dns-tool-server
 
 # Runtime-read assets — these paths are load-bearing, not cosmetic.
 #
-# loadTemplates() searches go-server/templates, then templates, then
-# ../templates, and calls os.Exit(1) if the glob parses nothing. findStaticDir()
-# searches static, then go-server/static. Both resolve relative to the working
-# directory, so WORKDIR and these destinations must agree.
-#
-# The SQL migrations are NOT copied: they are compiled into the binary via
-# go:embed (go-server/db/migrations/embed.go). That is deliberate — the schema
-# the binary migrates to is now the schema it was built with, and there is no
-# way to run the image against a stale copy on disk.
-COPY --chown=dnstool:dnstool go-server/templates/     ./go-server/templates/
+# Templates are NOT copied: compiled into the binary via go:embed
+# (go-server/templates/embed.go), same as the SQL migrations — the pages the
+# binary renders are the pages it was built with, from any cwd. findStaticDir()
+# searches static, then go-server/static, relative to the working directory,
+# so WORKDIR and the static destination must agree; a mismatch no longer
+# crashes the boot — it silently 404s assets and empties /stats.
 COPY --chown=dnstool:dnstool static/                  ./static/
 COPY --chown=dnstool:dnstool docs/                    ./docs/
 

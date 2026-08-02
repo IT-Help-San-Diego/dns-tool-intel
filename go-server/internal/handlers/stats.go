@@ -9,6 +9,7 @@ import (
         "log/slog"
         "net/http"
         "os"
+        "path/filepath"
         "strings"
         "sync"
         "time"
@@ -99,7 +100,10 @@ func loadIntegrityData() IntegrityData {
                 return integrityCache
         }
 
-        data, err := os.ReadFile("static/data/integrity_stats.json")
+        // Resolved through the same candidate list as asset serving — a bare
+        // "static/…" path here silently emptied /stats whenever the live tree
+        // was go-server/static (candidate 2) or the cwd was wrong.
+        data, err := os.ReadFile(filepath.Join(ResolveStaticDir(), "data", "integrity_stats.json"))
         if err != nil {
                 slog.Warn("Stats: failed to read integrity_stats.json", mapKeyError, err)
                 return IntegrityData{}

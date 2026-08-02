@@ -148,46 +148,6 @@ func TestIsStaticAsset(t *testing.T) {
         }
 }
 
-func TestFindTemplatesDir(t *testing.T) {
-        origDir, err := os.Getwd()
-        if err != nil {
-                t.Fatal(err)
-        }
-        defer os.Chdir(origDir)
-
-        tmp := t.TempDir()
-        if err := os.Mkdir(filepath.Join(tmp, "templates"), 0o755); err != nil {
-                t.Fatal(err)
-        }
-
-        if err := os.Chdir(tmp); err != nil {
-                t.Fatal(err)
-        }
-
-        got := findTemplatesDir()
-        if got != "templates" {
-                t.Errorf("findTemplatesDir() = %q, want %q", got, "templates")
-        }
-}
-
-func TestFindTemplatesDirFallback(t *testing.T) {
-        origDir, err := os.Getwd()
-        if err != nil {
-                t.Fatal(err)
-        }
-        defer os.Chdir(origDir)
-
-        tmp := t.TempDir()
-        if err := os.Chdir(tmp); err != nil {
-                t.Fatal(err)
-        }
-
-        got := findTemplatesDir()
-        if got != "templates" {
-                t.Errorf("findTemplatesDir() fallback = %q, want %q", got, "templates")
-        }
-}
-
 func TestFindStaticDir(t *testing.T) {
         origDir, err := os.Getwd()
         if err != nil {
@@ -336,28 +296,6 @@ func TestFindStaticDirGoServer(t *testing.T) {
         got := findStaticDir()
         if got != "go-server/static" {
                 t.Errorf("findStaticDir() with go-server/static = %q, want %q", got, "go-server/static")
-        }
-}
-
-func TestFindTemplatesDirGoServer(t *testing.T) {
-        origDir, err := os.Getwd()
-        if err != nil {
-                t.Fatal(err)
-        }
-        defer os.Chdir(origDir)
-
-        tmp := t.TempDir()
-        goServerTemplates := filepath.Join(tmp, "go-server", "templates")
-        if err := os.MkdirAll(goServerTemplates, 0o755); err != nil {
-                t.Fatal(err)
-        }
-        if err := os.Chdir(tmp); err != nil {
-                t.Fatal(err)
-        }
-
-        got := findTemplatesDir()
-        if got != "go-server/templates" {
-                t.Errorf("findTemplatesDir() with go-server/templates = %q, want %q", got, "go-server/templates")
         }
 }
 

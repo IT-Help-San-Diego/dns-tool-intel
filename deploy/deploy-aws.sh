@@ -9,8 +9,10 @@
 #      freezes the ?v= asset cache key + service-worker version.
 #   2. The version must be tag-derived (X.Y.Z…): a bare-SHA or "dev" version
 #      means the checkout has no tags fetched — refuse, don't ship.
-#   3. Ship the BUNDLE, not the binary: templates are fatal-if-missing at
-#      boot; static/, solver layouts, and CITATION.cff degrade silently.
+#   3. Ship the BUNDLE, not the binary: static/, solver layouts, and
+#      CITATION.cff degrade silently when missing. (Templates are compiled
+#      into the binary since the embed PR — no longer shipped, cannot be
+#      missing.)
 #   4. Stage OUTSIDE the live dir, swap stopped, restart after: SRI hashes
 #      are boot-computed (changed bytes under a live server are refused by
 #      real browsers), and a swap whose staging dirs live INSIDE the rsync
@@ -51,7 +53,6 @@ ssh "$DEPLOY_HOST" "rm -rf '${STAGE_PATH}' && mkdir -p '${STAGE_PATH}'"
 rsync -azR \
   dns-tool-server \
   CITATION.cff \
-  go-server/templates \
   static \
   go-server/tools/topology-solver/output \
   "${DEPLOY_HOST}:${STAGE_PATH}/"
