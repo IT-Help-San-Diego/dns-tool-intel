@@ -19,7 +19,7 @@ Import from GitHub `main`. This import carries the deposit republication (four d
 
 ## NEW this import — startup ordering
 
-**`config.Load()` runs AFTER the early listener binds.** `main.go` binds the early listener first (`waitForListener` + "Early listener started"), THEN calls `config.Load()`. Until config succeeds, the early listener serves `/healthz` with **HTTP 200 `{"status":"starting"}`**. So a misconfigured deployment answers healthchecks 200 OK in the moments before `config.Load()` fails and `os.Exit(1)` fires — **a crash-loop that reads healthy**, not a clean refusal. If the deployment crash-loops after import, do not assume "healthcheck passed so config is fine" — check the log for the `config.Load` error.
+**`config.Load()` runs AFTER the early listener binds.** `main.go` binds the early listener first (`waitForListener` + "Early listener started"), THEN calls `config.Load()`. Until config succeeds, the early listener serves `/healthz` with `{"status":"starting"}`. **Update 2026-08-01 (`aws/pre-cutover-levers`): that answer is now HTTP 503, not 200 — starting, degraded, and crash-looping states all read non-200, so a status-code healthcheck no longer reads green on a dying process. The only 200 `/healthz` is the ready router's, body `{"status":"ok"}` — verify readiness by that body.** If the deployment crash-loops after import, check the log for the `config.Load` error.
 
 **Before importing, check these in the deployment's secrets:**
 - `REPLIT_DEV_BANNER` — must NOT be `1` in the published deployment.

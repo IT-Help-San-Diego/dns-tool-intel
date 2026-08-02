@@ -8,9 +8,9 @@ import (
         "fmt"
         "log/slog"
         "net/url"
-        "os"
         "time"
 
+        "dnstool/go-server/internal/config"
         "dnstool/go-server/internal/dbq"
 
         "github.com/jackc/pgx/v5/pgxpool"
@@ -40,7 +40,7 @@ func ConnectWithRetry(databaseURL string, connector ConnectorFunc, maxRetries in
 }
 
 func connectWithRetry(databaseURL string, connector ConnectorFunc, maxRetries int, retryDelay time.Duration) (*Database, error) {
-        if os.Getenv("REPLIT_DEPLOYMENT") != "" {
+        if config.IsCloudDeploymentEnv() {
                 if u, err := url.Parse(databaseURL); err == nil && u.Hostname() == "helium" {
                         return nil, fmt.Errorf("misconfiguration: production deployment is using development database host 'helium'; set DATABASE_URL in production app secrets to the production database connection string")
                 }

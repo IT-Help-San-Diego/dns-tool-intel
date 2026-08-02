@@ -112,6 +112,33 @@ func CookieSameSite(c *gin.Context) http.SameSite {
         return http.SameSiteStrictMode
 }
 
+// hstsHeaderValue matches what the Replit edge injected, byte for byte, so
+// preload-list state never changes across platforms.
+const hstsHeaderValue = "max-age=63072000; includeSubDomains; preload"
+
+// EmitHSTS reports whether the app is the HSTS authority: everywhere except
+// behind Replit's edge, which injects the identical header itself — emitting
+// both recreates the duplicate-header scanner flag that kept the app-side
+// line commented out while the site lived on Replit. Keyed on the platform
+// env directly (not Config) because the early listener needs it before
+// config loads.
+func EmitHSTS() bool {
+        return os.Getenv("REPLIT_DEPLOYMENT") == ""
+}
+
+// SetEarlyHeaders applies the minimal security headers to early-listener
+// responses (starting/degraded), which never pass through gin middleware:
+// HSTS parity (the departed Replit edge covered those exact responses) plus
+// sniffing and framing protection for the inline-HTML splash/maintenance
+// pages. No CSP: those pages carry inline styles by design.
+func SetEarlyHeaders(h http.Header) {
+        h.Set("X-Content-Type-Options", "nosniff")
+        h.Set("X-Frame-Options", "DENY")
+        if EmitHSTS() {
+                h.Set("Strict-Transport-Security", hstsHeaderValue)
+        }
+}
+
 func SecurityHeaders(isDev ...bool) gin.HandlerFunc {
         devMode := len(isDev) > 0 && isDev[0]
         return func(c *gin.Context) {
@@ -120,6 +147,13 @@ func SecurityHeaders(isDev ...bool) gin.HandlerFunc {
                 if strings.HasPrefix(c.Request.URL.Path, "/static/") {
                         c.Header("X-Content-Type-Options", "nosniff")
                         c.Header("X-Frame-Options", "DENY")
+                        // HSTS on static too: a client whose only origin
+                        // contact is a hotlinked asset must still learn the
+                        // policy, and scanners crawl /static heavily (see
+                        // the ScannerWatch note in main.go).
+                        if !devMode && EmitHSTS() {
+                                c.Header("Strict-Transport-Security", hstsHeaderValue)
+                        }
                         if strings.HasSuffix(c.Request.URL.Path, ".svg") {
                                 c.Header(cspHeader, "default-src 'none'; style-src 'unsafe-inline'; script-src 'none'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'")
                         } else {
@@ -158,14 +192,16 @@ func setCommonSecurityHeaders(c *gin.Context, devMode bool) {
                 }
         }
         if !devMode {
-                // HSTS is intentionally NOT emitted here. The Replit edge proxy
-                // already injects `Strict-Transport-Security: max-age=63072000;
-                // includeSubDomains; preload` on every TLS response. Emitting it
-                // twice causes Mozilla Observatory and some scanners to flag a
-                // duplicate header; deferring entirely to the edge keeps a single
-                // authoritative source. If the deployment ever moves off the
-                // Replit edge, restore the line below.
-                // c.Header("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload")
+                // HSTS restored 2026-08-01 for the move off Replit: off that
+                // edge the app is the single authoritative source. EmitHSTS
+                // yields back to the edge when REPLIT_DEPLOYMENT is set, so a
+                // rollback deploy onto Replit does NOT produce the duplicate
+                // header that kept this line commented out. Browsers ignore
+                // HSTS on plain-HTTP responses (RFC 6797 §8.1), so local runs
+                // over http://localhost are unaffected.
+                if EmitHSTS() {
+                        c.Header("Strict-Transport-Security", hstsHeaderValue)
+                }
 
                 // CSP / NEL violation reporting endpoint group. The legacy Report-To
                 // header is required for Reporting API v0 (Chrome <94), and the

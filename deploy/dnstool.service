@@ -1,0 +1,45 @@
+# DNS Tool systemd unit — EC2 app box (the AWS successor to .replit [deployment]).
+# Install: /etc/systemd/system/dnstool.service, then `systemctl enable --now dnstool`.
+#
+# WorkingDirectory is LOAD-BEARING: the binary resolves go-server/templates/
+# (fatal if missing — os.Exit(1)) and static/ (silent 404s if missing) relative
+# to cwd, and /stats reads the literal path static/data/integrity_stats.json.
+# The bundle at /opt/dnstool must be repo-shaped. See deploy/README.md for the
+# required bundle contents and the deploy script that produces it.
+[Unit]
+Description=DNS Tool (dnstool.it-help.tech)
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=dnstool
+Group=dnstool
+WorkingDirectory=/opt/dnstool
+ExecStart=/opt/dnstool/dns-tool-server
+# Secrets live outside the unit so `systemctl cat` never shows them.
+# Expected keys: DATABASE_URL, SESSION_SECRET, PORT, CLOUD_DEPLOYMENT=1,
+# and later TRUSTED_PROXIES (phase 2, CloudFront). See deploy/README.md.
+EnvironmentFile=/etc/dnstool/env
+Restart=always
+RestartSec=3
+
+# Hardening. ProtectSystem=strict makes the whole filesystem read-only for the
+# service, /opt/dnstool included — which is wanted: the server only READS its
+# templates/static trees, and boot-time SRI hashes stay honest because nothing
+# can rewrite an asset under a running server (the measured blank-canvas
+# class). Logs get the one writable path; deploys write as a different user
+# and then restart the unit.
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+# ReadWritePaths entries must EXIST or namespace setup fails (226/NAMESPACE
+# crash-loop before the binary ever runs). provision-ec2.sh creates it; the
+# `+` ExecStartPre self-heals a box where it went missing (runs privileged,
+# outside the sandbox, so it can create the dir ProtectSystem would block).
+ExecStartPre=+/usr/bin/install -d -o dnstool -g dnstool /opt/dnstool/logs
+ReadWritePaths=/opt/dnstool/logs
+
+[Install]
+WantedBy=multi-user.target
