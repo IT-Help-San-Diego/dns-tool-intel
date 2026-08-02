@@ -2,7 +2,7 @@
 
 **Status: DRAFT for ratification.** One contract, two renderers: the screen report (results.html successor) and the minted PDF (`/analysis/:id/pdf`). Blessed sequencing (Carey, 2026-08-01): this contract lands before either renderer is built. Full rationale, research grounding, and measured baselines live in `docs/research/SCIENTIFIC-PDF-MINT-BRIEF-DRAFT.md` (rev 3); this file is the operative spec both renderers consume and CI checks against.
 
-Ratification state: **§2 canonical assignments RATIFIED by Carey 2026-08-02** ("ratify" — SPF/DMARC/DKIM home in Email Security, MTA-STS/TLS-RPT in Transport Security, BIMI in Brand & Trust, pointers from Email Security); Science's §2 pass pending. Still open: §6 per-protocol governing sentences (Science), visual system (design lane — out of scope here).
+Ratification state: **§2 RATIFIED by Carey AND Science (2026-08-02)** — assignments as proposed, plus Science's `see-also`/`requires` edge split (in §2). **§6 ACCEPTED by Science** with its normative-language rule; the per-protocol sentence *selections* remain Science's open work items. Still open: the sentence selections themselves, and the visual system (design lane — out of scope here).
 
 ---
 
@@ -18,19 +18,22 @@ One stable identifier per group and per card — **the same string** in the HTML
 
 Binding rule: an automated check must be able to walk artifact → anchor → producer field. An anchor that appears in one renderer and not the other fails the build.
 
-## 2. Groups and canonical assignment (RATIFIED by Carey 2026-08-02; Science pass pending — resolves the wireframe double-slotting)
+## 2. Groups and canonical assignment (RATIFIED by Carey + Science 2026-08-02 — resolves the wireframe double-slotting)
 
 Each verdict renders **exactly once**, at its canonical card; every other appearance is a cross-reference to that anchor. (Science's citability rule 1: duplication is provenance ambiguity — one measurement shown twice is indistinguishable from two that agree.)
 
-| Group | Canonical cards | Cross-references shown |
+| Group | Canonical cards | Cross-reference edges |
 |---|---|---|
-| Email Security | `spf`, `dmarc`, `dkim` | → `mta-sts`, `tls-rpt`, `bimi` |
+| Email Security | `spf`, `dmarc`, `dkim` | see-also → `mta-sts`, `tls-rpt`, `bimi` |
 | Domain Security | `dnssec`, `dane`, `caa` | — |
-| Transport Security | `mta-sts`, `tls-rpt` (+ SMTP/STARTTLS transport findings) | → `dane` |
-| Brand & Trust | `bimi` (+ VMC/CT brand findings) | → `caa`, `dmarc` |
+| Transport Security | `mta-sts`, `tls-rpt` (+ SMTP/STARTTLS transport findings) | see-also → `dane` |
+| Brand & Trust | `bimi` (+ VMC/CT brand findings) | see-also → `caa`; **requires → `dmarc`** |
 | Infrastructure Intelligence | `registrar`, `email-provider`, `web-hosting`, `dns-hosting`, `asn`, `ct-log`, `subdomains`, `rdap` | — |
 
-Cross-references are typed links ("MTA-STS: see §Transport / Appendix B.4"), never restated verdicts.
+Cross-references are **typed edges**, never restated verdicts (Science's amendment, 2026-08-02):
+
+- **`see-also`** — navigational only: a signpost to the canonical anchor ("MTA-STS: see §Transport / Appendix B.4"). Carries no status. Transport→`dane` is this kind (verified: no DANE/TLSA reference in mtasts.go — the adjacency is conceptual, not computational).
+- **`requires`** — a real producer dependency: the dependent card renders the target's **status inline** (still sourced from the target's single canonical measurement — inline status display is not a second rendering of the verdict), and **a `requires` edge whose target is `not-measured` forces the dependent card to `not-measured`.** BIMI→DMARC is this kind: BIMI's meaning depends on DMARC enforcement, so a BIMI verdict over an unmeasured DMARC would be a claim standing on nothing.
 
 ## 3. Status vocabulary
 
