@@ -7,6 +7,32 @@ WHERE domain = $1
 ORDER BY created_at DESC
 LIMIT 1;
 
+-- Badge path only: the anti-gaming guarantee ("private/local scans are
+-- unbadgeable") must be STRUCTURAL, not procedural. These two queries carry the
+-- public-row exclusion in the SQL itself — a badge can only ever resolve a
+-- successful, public, unflagged measurement row. The shared queries above are
+-- deliberately left unfiltered: report view, compare, remediation, and agent
+-- paths legitimately read private/failed rows. A badge minted from a private,
+-- failed, or flagged scan is impossible at the query layer here, not merely
+-- unchecked at the app layer.
+-- name: GetPublicAnalysisByID :one
+SELECT * FROM domain_analyses
+WHERE id = $1
+  AND private = FALSE
+  AND scan_flag = FALSE
+  AND analysis_success = TRUE
+  AND full_results IS NOT NULL;
+
+-- name: GetRecentPublicAnalysisByDomain :one
+SELECT * FROM domain_analyses
+WHERE domain = $1
+  AND private = FALSE
+  AND scan_flag = FALSE
+  AND analysis_success = TRUE
+  AND full_results IS NOT NULL
+ORDER BY created_at DESC
+LIMIT 1;
+
 -- name: ListSuccessfulAnalyses :many
 SELECT * FROM domain_analyses
 WHERE full_results IS NOT NULL AND analysis_success = TRUE AND private = FALSE AND scan_flag = FALSE

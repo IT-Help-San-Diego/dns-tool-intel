@@ -305,12 +305,12 @@ func TestCovertSummaryLines_FewVectors_B13(t *testing.T) {
 
 func TestExtractPostureRisk_B13(t *testing.T) {
         label, color := badgepkg.ExtractPostureRisk(nil)
-        if label != "Unknown" || color != "" {
+        if label != "Indeterminate" || color != "" {
                 t.Errorf("nil: got %q,%q", label, color)
         }
 
         label, color = badgepkg.ExtractPostureRisk(map[string]any{})
-        if label != "Unknown" {
+        if label != "Indeterminate" {
                 t.Errorf("empty: got %q", label)
         }
 

@@ -33,6 +33,11 @@
         .badge-preview-area > a { display: block; max-width: 720px; width: 100%; }
         .badge-preview-area svg, .badge-preview-area img { display: block; width: 100%; height: auto; }
         #badgePreviewCard { scroll-margin-top: 1rem; }
+        .validation-status-badge { display: inline-block; font-size: 0.68rem; font-weight: 600; padding: 0.15rem 0.55rem; border-radius: 10px; white-space: nowrap; vertical-align: middle; }
+        .validation-status-beta { background: rgba(210,153,34,0.12); color: #d2992a; border: 1px solid rgba(210,153,34,0.2); }
+        .badge-truth h6 { color: #e6edf3; font-weight: 600; }
+        .badge-truth p { color: #9da7b3; }
+        .badge-truth code { color: #79b8ff; }
     </style>
 </head>
 <body>
@@ -41,8 +46,21 @@
     <main id="main-content" class="container my-4">
         {{template "flash_messages" .}}
 
-        <h1 class="h3 mb-1">{{icon "shield-halved" "me-2 text-brand-cobalt"}}Security Badge</h1>
+        <h1 class="h3 mb-1">{{icon "shield-halved" "me-2 text-brand-cobalt"}}Security Badge <span class="validation-status-badge validation-status-beta ms-1">Beta</span></h1>
         <p class="text-muted mb-4">Generate a live security posture badge for any scanned domain. Embed it in your GitHub README, documentation, blog, or website.</p>
+
+        <div class="card mb-4 badge-truth border-secondary">
+            <div class="card-body small">
+                <h6 class="mb-1">A badge is a measurement, not a compliment.</h6>
+                <p class="mb-2">Every DNS Tool badge describes what the instrument measured about your zone — declared policy, measured from a <strong>single vantage point</strong> across three independent public resolvers (<code>Quad9</code>, <code>Cloudflare</code>, <code>Google</code>) at one recorded instant. Single vantage is a stated limitation, not a footnote: split-horizon DNS, GeoDNS, and regional anycast can make your local view legitimately differ. (Multi-vantage probing is on the roadmap; this changes when it ships, not before.) <code>Hardened</code> means your published records met the strongest posture the measurement can establish. It does not mean "safe." No badge we issue says <code>Safe</code>, <code>Secure</code>, or <code>Verified</code>, because the instrument cannot measure those claims.</p>
+
+                <h6 class="mb-1 mt-3">Why you can't game it — and why we won't help.</h6>
+                <p class="mb-2">A badge renders only from a stored measurement row in the public database — keyed to its analysis id, carrying its measurement date. There is no parameter that makes a badge say something the instrument didn't measure, for you, for your robot, or for ours. If your posture is <code>Exposed</code>, the badge says <code>Exposed</code> until a new public measurement says otherwise. Every badge shows <strong>when</strong> it was measured; a green badge with an old date is an old reading, and says so on its face. The fix for a bad badge is fixing your zone.</p>
+
+                <h6 class="mb-1 mt-3">Local is sovereign — and unbadgeable.</h6>
+                <p class="mb-0">Badges read only the public database. That's not a policy; it's the construction — private, failed, and flagged scans are excluded at the query layer, so a local-only scan has nothing public for a badge to read. Publishing a scan (the publish toggle, default off, labeled with exactly what leaves your machine) is what creates the public measurement a badge can point at. While the program is in beta its vocabulary and rendering may evolve; the discipline — a badge only ever describes a stored public measurement, and never says <code>Safe</code> — is the stable API.</p>
+            </div>
+        </div>
 
         <div class="card mb-4 d-none" id="badgePreviewCard">
             <div class="card-header d-flex justify-content-between align-items-center">

@@ -322,8 +322,8 @@ func TestAPIDNSHistory_NoAPIKey(t *testing.T) {
 
 func TestExtractPostureRisk_NilResults(t *testing.T) {
         label, color := badgepkg.ExtractPostureRisk(nil)
-        if label != "Unknown" {
-                t.Errorf("expected Unknown, got %s", label)
+        if label != "Indeterminate" {
+                t.Errorf("expected Indeterminate, got %s", label)
         }
         if color != "" {
                 t.Errorf("expected empty color, got %s", color)
@@ -332,8 +332,8 @@ func TestExtractPostureRisk_NilResults(t *testing.T) {
 
 func TestExtractPostureRisk_NoPosture(t *testing.T) {
         label, _ := badgepkg.ExtractPostureRisk(map[string]any{})
-        if label != "Unknown" {
-                t.Errorf("expected Unknown, got %s", label)
+        if label != "Indeterminate" {
+                t.Errorf("expected Indeterminate, got %s", label)
         }
 }
 
@@ -440,7 +440,7 @@ func TestUnmarshalResults_Invalid(t *testing.T) {
 func TestExtractPostureRisk_PostureNotMap(t *testing.T) {
         results := map[string]any{"posture": "not-a-map"}
         label, _ := badgepkg.ExtractPostureRisk(results)
-        if label != "Unknown" {
-                t.Errorf("expected Unknown for non-map posture, got %s", label)
+        if label != "Indeterminate" {
+                t.Errorf("expected Indeterminate for non-map posture, got %s", label)
         }
 }

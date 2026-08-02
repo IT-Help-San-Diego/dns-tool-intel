@@ -374,6 +374,62 @@ func (q *Queries) GetPreviousPostureHash(ctx context.Context, domain string) (Ge
 	return i, err
 }
 
+const getPublicAnalysisByID = `-- name: GetPublicAnalysisByID :one
+SELECT id, domain, ascii_domain, basic_records, authoritative_records, spf_status, spf_records, dmarc_status, dmarc_policy, dmarc_records, dkim_status, dkim_selectors, registrar_name, registrar_source, analysis_success, error_message, analysis_duration, created_at, updated_at, country_code, country_name, ct_subdomains, full_results, posture_hash, private, has_user_selectors, scan_flag, scan_source, scan_ip, wayback_url, app_version FROM domain_analyses
+WHERE id = $1
+  AND private = FALSE
+  AND scan_flag = FALSE
+  AND analysis_success = TRUE
+  AND full_results IS NOT NULL
+`
+
+// Badge path only: the anti-gaming guarantee ("private/local scans are
+// unbadgeable") must be STRUCTURAL, not procedural. These two queries carry the
+// public-row exclusion in the SQL itself — a badge can only ever resolve a
+// successful, public, unflagged measurement row. The shared queries above are
+// deliberately left unfiltered: report view, compare, remediation, and agent
+// paths legitimately read private/failed rows. A badge minted from a private,
+// failed, or flagged scan is impossible at the query layer here, not merely
+// unchecked at the app layer.
+func (q *Queries) GetPublicAnalysisByID(ctx context.Context, id int32) (DomainAnalysis, error) {
+	row := q.db.QueryRow(ctx, getPublicAnalysisByID, id)
+	var i DomainAnalysis
+	err := row.Scan(
+		&i.ID,
+		&i.Domain,
+		&i.AsciiDomain,
+		&i.BasicRecords,
+		&i.AuthoritativeRecords,
+		&i.SpfStatus,
+		&i.SpfRecords,
+		&i.DmarcStatus,
+		&i.DmarcPolicy,
+		&i.DmarcRecords,
+		&i.DkimStatus,
+		&i.DkimSelectors,
+		&i.RegistrarName,
+		&i.RegistrarSource,
+		&i.AnalysisSuccess,
+		&i.ErrorMessage,
+		&i.AnalysisDuration,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.CountryCode,
+		&i.CountryName,
+		&i.CtSubdomains,
+		&i.FullResults,
+		&i.PostureHash,
+		&i.Private,
+		&i.HasUserSelectors,
+		&i.ScanFlag,
+		&i.ScanSource,
+		&i.ScanIp,
+		&i.WaybackUrl,
+		&i.AppVersion,
+	)
+	return i, err
+}
+
 const getRecentAnalysisByDomain = `-- name: GetRecentAnalysisByDomain :one
 SELECT id, domain, ascii_domain, basic_records, authoritative_records, spf_status, spf_records, dmarc_status, dmarc_policy, dmarc_records, dkim_status, dkim_selectors, registrar_name, registrar_source, analysis_success, error_message, analysis_duration, created_at, updated_at, country_code, country_name, ct_subdomains, full_results, posture_hash, private, has_user_selectors, scan_flag, scan_source, scan_ip, wayback_url, app_version FROM domain_analyses
 WHERE domain = $1
@@ -462,6 +518,56 @@ func (q *Queries) GetRecentHashedAnalyses(ctx context.Context, limit int32) ([]G
 		return nil, err
 	}
 	return items, nil
+}
+
+const getRecentPublicAnalysisByDomain = `-- name: GetRecentPublicAnalysisByDomain :one
+SELECT id, domain, ascii_domain, basic_records, authoritative_records, spf_status, spf_records, dmarc_status, dmarc_policy, dmarc_records, dkim_status, dkim_selectors, registrar_name, registrar_source, analysis_success, error_message, analysis_duration, created_at, updated_at, country_code, country_name, ct_subdomains, full_results, posture_hash, private, has_user_selectors, scan_flag, scan_source, scan_ip, wayback_url, app_version FROM domain_analyses
+WHERE domain = $1
+  AND private = FALSE
+  AND scan_flag = FALSE
+  AND analysis_success = TRUE
+  AND full_results IS NOT NULL
+ORDER BY created_at DESC
+LIMIT 1
+`
+
+func (q *Queries) GetRecentPublicAnalysisByDomain(ctx context.Context, domain string) (DomainAnalysis, error) {
+	row := q.db.QueryRow(ctx, getRecentPublicAnalysisByDomain, domain)
+	var i DomainAnalysis
+	err := row.Scan(
+		&i.ID,
+		&i.Domain,
+		&i.AsciiDomain,
+		&i.BasicRecords,
+		&i.AuthoritativeRecords,
+		&i.SpfStatus,
+		&i.SpfRecords,
+		&i.DmarcStatus,
+		&i.DmarcPolicy,
+		&i.DmarcRecords,
+		&i.DkimStatus,
+		&i.DkimSelectors,
+		&i.RegistrarName,
+		&i.RegistrarSource,
+		&i.AnalysisSuccess,
+		&i.ErrorMessage,
+		&i.AnalysisDuration,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.CountryCode,
+		&i.CountryName,
+		&i.CtSubdomains,
+		&i.FullResults,
+		&i.PostureHash,
+		&i.Private,
+		&i.HasUserSelectors,
+		&i.ScanFlag,
+		&i.ScanSource,
+		&i.ScanIp,
+		&i.WaybackUrl,
+		&i.AppVersion,
+	)
+	return i, err
 }
 
 const insertAnalysis = `-- name: InsertAnalysis :one

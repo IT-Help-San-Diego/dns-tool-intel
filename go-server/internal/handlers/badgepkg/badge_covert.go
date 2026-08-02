@@ -300,9 +300,8 @@ func BadgeSVGCovert(domain string, results map[string]any, scanTime time.Time, s
         riskLabel, riskColorName := ExtractPostureRisk(results)
         score := ExtractPostureScore(results)
         if IsGatewayDerivedResult(results) {
-                riskLabel = labelGatewayDerived
-                riskColorName = "warning"
-                score = -1
+                // Provenance beside posture, not in its place (Science's ruling).
+                riskLabel += " · gateway-derived"
         }
         nodes := ExtractProtocolIndicators(results)
         vulnerable := CountVulnerable(nodes)
