@@ -620,6 +620,7 @@ func registerAnalysisRoutes(d routeDeps, analysis *handlers.AnalysisHandler, his
 	d.Router.GET("/analysis/:id/view", d.HeavyShed, analysis.ViewAnalysisStatic)
 	d.Router.GET("/analysis/:id/view/:mode", d.HeavyShed, analysis.ViewAnalysisStatic)
 	d.Router.GET("/analysis/:id/executive", d.HeavyShed, analysis.ViewAnalysisExecutive)
+	d.Router.GET("/analysis/:id/v2", d.HeavyShed, analysis.ViewAnalysisV2)
 	d.Router.GET("/stats", stats.Stats)
 	d.Router.GET("/statistics", stats.StatisticsRedirect)
 	d.Router.GET("/compare", compare.Compare)
