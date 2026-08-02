@@ -43,3 +43,9 @@
 
 DROP TABLE IF EXISTS public.alembic_version;
 DROP TABLE IF EXISTS _system.replit_database_migrations_v1;
+
+-- No +goose Down, deliberately: this drop is irreversible in-chain. A Down
+-- that recreates two empty tables would be worse than nothing — it restores
+-- the shape without the 384 rows. The recovery path is the preserved dump
+-- (sha256 08dcbbadf79b97389e8eb3ef93a33b78dac0fc8e795bfc1e48cd0332d1f988b7),
+-- held outside the database, not a rollback.
