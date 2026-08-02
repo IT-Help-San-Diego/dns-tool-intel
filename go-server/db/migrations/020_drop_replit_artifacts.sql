@@ -1,0 +1,54 @@
+-- +goose Up
+-- 020_drop_replit_artifacts.sql
+-- Drops the two dead Replit-era ledgers that crossed over in the July 26 dump.
+--
+-- Both tables are platform artifacts, not DNS Tool data:
+--
+--   * public.alembic_version — the pre-goose Python-era migration ledger. 0
+--     rows. Nothing in go-server/ or db/ references it (grep: zero hits for
+--     'alembic'). Goose owns the ledger now (goose_db_version); this is the
+--     abandoned predecessor's empty table.
+--
+--   * _system.replit_database_migrations_v1 — Replit's own platform migration
+--     ledger, in a separate _system schema. 384 rows of how the Neon host was
+--     built. No app code reads it; it is not our ledger. Its presence makes
+--     tables_present report 37 where the public schema holds 36 — a counting
+--     anomaly, not data.
+--
+-- This project's standing rule is that a migration renames and never drops,
+-- because a drop loses the ledger (017's reasoning). That rule protects DATA,
+-- and measurement (2026-08-02) shows the blast radius here is empty:
+--
+--   * 0 inbound foreign keys to either table (pg_constraint.confrelid)
+--   * 0 triggers on either table (pg_trigger)
+--   * 0 views depending on either table (pg_depend/pg_rewrite)
+--   * 0 outbound foreign keys from either table
+--   * 0 references anywhere in go-server/ or db/ (grep: 'alembic',
+--     'replit_database_migrations', '_system.')
+--
+-- Dropping cannot cascade and cannot take the site down: nothing depends on
+-- either object, and no code path knows they exist.
+--
+-- The 384-row Replit ledger is preserved before the drop, because a dump is
+-- the only honest way to delete provenance: pg_dump --data-only
+-- --column-inserts -t _system.replit_database_migrations_v1, 384 INSERT rows,
+-- sha256 08dcbbadf79b97389e8eb3ef93a33b78dac0fc8e795bfc1e48cd0332d1f988b7,
+-- held outside the database. alembic_version is 0 rows — nothing to preserve.
+--
+-- DROP TABLE IF EXISTS on both: idempotent, so this is a no-op on the current
+-- production database (where the tables were hand-dropped 2026-08-02) and
+-- load-bearing on every future restore from neondb.dump, which would otherwise
+-- resurrect both. That is the whole point of codifying it: production is ahead
+-- of the dump, and 020 is what makes the drop stick across restores.
+
+DROP TABLE IF EXISTS public.alembic_version;
+DROP TABLE IF EXISTS _system.replit_database_migrations_v1;
+
+-- No Down section, deliberately (note for the next author: the migration
+-- parser reads its annotation token as an annotation wherever it appears in a
+-- comment line, so this note must name the token only obliquely — CI proved
+-- that on this file's first draft): this drop is irreversible in-chain. A
+-- Down that recreates two empty tables would be worse than nothing — it
+-- restores the shape without the 384 rows. The recovery path is the preserved
+-- dump (sha256 08dcbbadf79b97389e8eb3ef93a33b78dac0fc8e795bfc1e48cd0332d1f988b7),
+-- held outside the database, not a rollback.
