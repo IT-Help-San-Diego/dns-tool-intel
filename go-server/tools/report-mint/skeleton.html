@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SKELETON MINT — Engineer's DNS Intelligence Report — google.com (analysis 47)</title>
+<style>
+  /* Skeleton mint: engine + contract proof ONLY. Deliberately unstyled beyond
+     what the contract requires (status words, redundant encoding, gradient
+     order). The design lane owns everything visual. */
+  @page { size: letter; margin: 22mm 14mm 20mm 14mm; }
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+         color: #1a1a2e; margin: 0; font-size: 9.5pt; line-height: 1.45; }
+  .watermark { position: fixed; top: 40%; left: 8%; transform: rotate(-24deg);
+               font-size: 46pt; color: rgba(150,150,150,.13); font-weight: 800;
+               letter-spacing: .2em; z-index: 0; }
+  main { position: relative; z-index: 1; }
+  .page-break { break-before: page; }
+  h1 { font-size: 15pt; margin: 0 0 2pt; }
+  h2 { font-size: 11pt; border-bottom: 1pt solid #d1d5db; padding-bottom: 2pt; margin: 10pt 0 6pt; }
+  h3 { font-size: 9.5pt; margin: 8pt 0 3pt; }
+  .skeleton-banner { border: 1.5pt dashed #b45309; color: #b45309; padding: 4pt 8pt;
+                     font-weight: 700; font-size: 8pt; margin-bottom: 8pt; }
+  /* L0 header band */
+  .hdr { display: flex; align-items: flex-start; gap: 10pt; }
+  .hdr img.owl { width: 34pt; height: 34pt; border-radius: 50%; background: #0d1117; padding: 2pt; }
+  .hdr .meta { margin-left: auto; text-align: right; font-size: 7.5pt; color: #4b5563; }
+  .tlp { display: inline-block; background: #ffc000; color: #000; font-weight: 800;
+         font-size: 7.5pt; padding: 1.5pt 8pt; border-radius: 2pt; letter-spacing: .08em; }
+  .epistemic-slot { border: 1.2pt dashed #6b7280; color: #6b7280; font-size: 7pt;
+                    padding: 3pt 6pt; max-width: 130pt; }
+  /* Provenance block — §7: six fields, sentinel-aware */
+  .prov { border: .8pt solid #d1d5db; padding: 5pt 8pt; margin: 8pt 0; font-size: 7.5pt; }
+  .prov dt { font-weight: 700; color: #4b5563; display: inline; }
+  .prov dd { display: inline; margin: 0 10pt 0 3pt; }
+  .not-recorded { color: #9ca3af; font-style: italic; }
+  /* L0 dashboard */
+  .dash { display: flex; gap: 8pt; }
+  .posture { border: 1.4pt solid #166534; border-radius: 4pt; padding: 8pt; min-width: 110pt; text-align: center; }
+  .posture .grade { color: #166534; font-size: 14pt; font-weight: 800; }
+  .chips { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4pt; flex: 1; }
+  .chip { border: .8pt solid #d1d5db; border-radius: 3pt; padding: 3pt 6pt; font-size: 7.5pt; }
+  .chip b { font-size: 8.5pt; }
+  .status-word { font-weight: 700; text-transform: uppercase; font-size: 6.5pt; letter-spacing: .04em; }
+  .st-configured   { color: #166534; }  .st-configured::before   { content: "● "; }
+  .st-notconfigured{ color: #6b7280; }  .st-notconfigured::before{ content: "○ "; }
+  .st-providerlimited { color: #6b7280; } .st-providerlimited::before { content: "◐ "; }
+  .st-warning { color: #b45309; } .st-warning::before { content: "▲ "; }
+  .st-critical { color: #991b1b; } .st-critical::before { content: "■ "; }
+  .st-notmeasured { color: #6b7280; border-bottom: 1pt dashed #6b7280; } .st-notmeasured::before { content: "◇ "; }
+  .st-error { color: #991b1b; } .st-error::before { content: "✕ "; }
+  .tiles { display: flex; gap: 6pt; margin-top: 8pt; }
+  .tile { flex: 1; border: .8pt solid #d1d5db; border-radius: 3pt; padding: 5pt; text-align: center; font-size: 7.5pt; }
+  .tile .v { font-weight: 800; font-size: 8.5pt; }
+  .infra { display: grid; grid-template-columns: 1fr 1fr; gap: 5pt; margin-top: 8pt; }
+  .infra .card { border: .8pt solid #d1d5db; border-radius: 3pt; padding: 5pt 8pt; font-size: 8pt; }
+  .infra .k { font-size: 6.5pt; color: #6b7280; text-transform: uppercase; letter-spacing: .05em; }
+  /* L1/L2 samples */
+  .bpq { font-style: italic; color: #92400e; margin: 3pt 0; }
+  .guidance { font-size: 8pt; color: #4b5563; border-left: 2pt solid #e5e7eb; padding-left: 6pt; margin: 3pt 0; }
+  .edge { font-size: 8pt; margin: 2pt 0; }
+  .edge .kind { font-weight: 700; font-size: 6.5pt; text-transform: uppercase; color: #4b5563;
+                border: .8pt solid #d1d5db; padding: 0 3pt; border-radius: 2pt; margin-right: 4pt; }
+  .cite { font-size: 8pt; background: #f5f7fa; border: .8pt solid #e5e7eb; padding: 4pt 6pt; margin: 4pt 0; }
+  .cite q { font-style: italic; }
+  code, .mono { font-family: ui-monospace, Menlo, monospace; font-size: 7.5pt; }
+  .cmd { background: #f5f7fa; border: .8pt solid #e5e7eb; padding: 3pt 6pt; display: block; margin: 3pt 0; }
+  .anchor-tag { color: #9ca3af; font-size: 6.5pt; font-family: ui-monospace, Menlo, monospace; }
+</style>
+</head>
+<body>
+<div class="watermark">SKELETON&nbsp;MINT</div>
+<main>
+
+<!-- ============================ PAGE 1 — L0 ============================ -->
+<div class="skeleton-banner">SKELETON MINT — engine and contract proof (REPORT-IA-CONTRACT.md v0). Real data from
+analysis 47, hand-bound; NOT the visual design; NOT a distributable report.</div>
+
+<div class="hdr">
+  <div style="text-align:center"><img class="owl" src="{{OWL_DATA_URI}}" alt="DNS Tool owl signature"><br>
+    <span class="anchor-tag">brand signature —<br>not the &sect;7 mark</span></div>
+  <div>
+    <h1>Engineer's DNS Intelligence Report</h1>
+    <div>google.com &middot; <span class="tlp">TLP:AMBER</span></div>
+  </div>
+  <div class="epistemic-slot"><b>EPISTEMIC MARK SLOT</b><br>
+    producer rule pending (§7) — once the rule lands, a mint that cannot
+    resolve a mark fails loudly; this placeholder is that failure made visible.</div>
+  <div class="meta">Skeleton mint of <b>/analysis/47</b><br>contract: REPORT-IA-CONTRACT.md v0</div>
+</div>
+
+<dl class="prov">
+  <dt>app_version:</dt><dd><span class="not-recorded">not recorded</span>
+      <span class="anchor-tag">(row value is '' — the schema's sentinel, NOT NULL; §7.1)</span></dd>
+  <dt>analysis:</dt><dd>#47 &middot; <span class="not-recorded">no public permalink</span>
+      <span class="anchor-tag">(local dev row, scan_ip ::1 — a published mint must render a permalink that resolves; §7.2)</span></dd>
+  <dt>measured:</dt><dd>2026-07-31 06:14:17 UTC</dd>
+  <dt>minted:</dt><dd>{{MINT_TIME}} <span class="anchor-tag">(distinct from measurement; §7.3)</span></dd>
+  <dt>vantage:</dt><dd><span class="mono">::1</span> &middot; local scan, scan_source: human</dd>
+  <dt>resolver:</dt><dd><span class="not-recorded">not recorded</span>
+      <span class="anchor-tag">(no resolver-identity field on this row — real absence, not a default; §7.4)</span></dd>
+  <dt>producer identity:</dt><dd>per-claim at L2 — see the DMARC card, p.2 (§7.5)</dd>
+  <dt>evidence:</dt><dd>reachable per verdict via gradient cross-references (§7.6)</dd>
+</dl>
+
+<div class="dash">
+  <div class="posture">
+    <div class="grade">Low Risk</div>
+    <div style="font-size:7.5pt">SECURITY POSTURE &middot; score 72</div>
+    <div style="font-size:7pt;color:#4b5563">6 configured &middot; 2 not-configured &middot; 1 provider-limited</div>
+  </div>
+  <div class="chips">
+    <div class="chip" id="spf"><b>SPF</b> <span class="anchor-tag">#spf</span><br><span class="status-word st-configured">configured</span></div>
+    <div class="chip" id="dmarc"><b>DMARC</b> <span class="anchor-tag">#dmarc</span><br><span class="status-word st-configured">configured &middot; p=reject</span></div>
+    <div class="chip" id="dkim"><b>DKIM</b> <span class="anchor-tag">#dkim</span><br><span class="status-word st-configured">configured</span> <span class="anchor-tag">inferred via provider — selector not directly verified</span></div>
+    <div class="chip" id="dnssec"><b>DNSSEC</b> <span class="anchor-tag">#dnssec</span><br><span class="status-word st-notconfigured">not-configured</span></div>
+    <div class="chip" id="dane"><b>DANE</b> <span class="anchor-tag">#dane</span><br><span class="status-word st-providerlimited">provider-limited</span></div>
+    <div class="chip" id="mta-sts"><b>MTA-STS</b> <span class="anchor-tag">#mta-sts</span><br><span class="status-word st-configured">configured &middot; enforce</span></div>
+    <div class="chip" id="tls-rpt"><b>TLS-RPT</b> <span class="anchor-tag">#tls-rpt</span><br><span class="status-word st-configured">configured</span></div>
+    <div class="chip" id="bimi"><b>BIMI</b> <span class="anchor-tag">#bimi</span><br><span class="status-word st-notconfigured">not-configured &middot; draft-spec</span></div>
+    <div class="chip" id="caa"><b>CAA</b> <span class="anchor-tag">#caa</span><br><span class="status-word st-configured">configured</span></div>
+  </div>
+</div>
+
+<div style="font-size:6.5pt;color:#6b7280;margin-top:5pt">&sect;3 vocabulary rendering proof (all seven, incl. the three this analysis does not produce):
+  <span class="status-word st-configured">configured</span> &middot;
+  <span class="status-word st-notconfigured">not-configured</span> &middot;
+  <span class="status-word st-providerlimited">provider-limited</span> &middot;
+  <span class="status-word st-warning">warning</span> &middot;
+  <span class="status-word st-critical">critical</span> &middot;
+  <span class="status-word st-notmeasured">not-measured</span> &middot;
+  <span class="status-word st-error">error</span></div>
+<div style="font-size:6.5pt;color:#9ca3af;margin-top:6pt">verdict tiles — producer verdict labels (posture.verdicts), not &sect;3 card statuses:</div>
+<div class="tiles">
+  <div class="tile"><div class="k">EMAIL SPOOFING</div><div class="v" style="color:#166534">Protected</div>
+    <div>No — SPF and DMARC reject policy enforced</div></div>
+  <div class="tile"><div class="k">TRANSPORT</div><div class="v" style="color:#166534">Protected</div>
+    <div>MTA-STS enforces TLS for inbound mail</div></div>
+  <div class="tile"><div class="k">DNS TAMPERING</div><div class="v" style="color:#6b7280">Possible</div>
+    <div>DNSSEC not deployed — responses unsigned</div></div>
+  <div class="tile"><div class="k">CERTIFICATE CONTROL</div><div class="v" style="color:#166534">Configured</div>
+    <div>CAA restricts issuance to pki.goog</div></div>
+</div>
+
+<div class="infra" id="infrastructure-intel">
+  <div class="card" id="registrar"><div class="k">Registrar <span class="anchor-tag">#registrar</span></div>MarkMonitor Inc.</div>
+  <div class="card" id="email-provider"><div class="k">Email provider <span class="anchor-tag">#email-provider</span></div>Google Workspace</div>
+  <div class="card" id="web-hosting"><div class="k">Web hosting <span class="anchor-tag">#web-hosting</span></div>Google Cloud</div>
+  <div class="card" id="dns-hosting"><div class="k">DNS hosting <span class="anchor-tag">#dns-hosting</span></div>Google Cloud DNS &middot; Enterprise</div>
+</div>
+
+<!-- ==================== PAGE 2 — gradient mechanisms ==================== -->
+<div class="page-break"></div>
+
+<h2>Appendix A — remaining verdict evidence <span class="anchor-tag">(&sect;4: every L0 claim resolves to &ge;1 record — no verdict on p.1 is evidence-free in this artifact)</span></h2>
+<div style="font-size:8pt">
+  <div><b>SPF</b> <span class="anchor-tag">#spf</span>: <code>v=spf1 include:_spf.google.com ~all</code></div>
+  <div><b>DNSSEC</b> <span class="anchor-tag">#dnssec</span>: no DS records at the parent — unsigned delegation (basis of the DNS-tampering tile).</div>
+  <div><b>CAA</b> <span class="anchor-tag">#caa</span>: <code>0 issue "pki.goog"</code> (basis of the certificate-control tile).</div>
+  <div><b>DKIM</b> <span class="anchor-tag">#dkim</span>: provider-inferred (Google Workspace rotating selectors); selector not directly verified.</div>
+  <div><b>TLS-RPT</b> <span class="anchor-tag">#tls-rpt</span>: <code>v=TLSRPTv1;rua=mailto:sts-reports@google.com</code></div>
+</div>
+
+<h2 id="email-security">Email Security <span class="anchor-tag">#email-security</span> — L1 sample</h2>
+<div class="bpq">Big Picture Question: Can this domain be impersonated by email? &mdash; No: SPF and DMARC reject policy enforced.</div>
+<div class="bpq" style="font-size:8pt">Per-card framing (SPF): Does this domain declare who may send email on its behalf? &mdash; Yes.</div>
+<div class="guidance">Guidance aside (content class proven, wording owned upstream): ~all is the industry
+standard &mdash; Google, Apple, and most providers default to soft fail; DMARC policy, not SPF alone,
+is the primary enforcement control.</div>
+
+<h3>Canonical card sample — DMARC <span class="anchor-tag">#dmarc &middot; producer: dmarc_analysis (§7.5)</span></h3>
+<div>Finding: <b>p=reject</b> at 100% &mdash; strongest compatible enforcement.
+  Record: <code>v=DMARC1; p=reject; rua=mailto:mailauth-reports@google.com</code></div>
+<div class="cite">Normative citation (L2, §6): RFC 7489 §6.3 &mdash; <q>Only tags defined in this document or
+in later extensions, and thus added to that registry, are to be processed; unknown tags MUST be
+ignored</q><br>
+<span class="mono">rfc-editor.org/rfc/rfc7489.html#section-6.3:~:text=unknown%20tags%20MUST%20be%20ignored</span>
+<span class="anchor-tag">— fragment targets normative language; sentence selection = Science's open item</span></div>
+
+<h3>Typed cross-reference edges (§2)</h3>
+<div class="edge"><span class="kind">see-also</span> MTA-STS — see Appendix B.4 (#mta-sts).
+  <span class="anchor-tag">navigational; carries no status; Email Security's only edge kind (&sect;2)</span></div>
+
+<h2 id="brand-trust">Brand &amp; Trust <span class="anchor-tag">#brand-trust</span> — card stub (hosts the requires-edge per &sect;2)</h2>
+<div class="edge">BIMI <span class="anchor-tag">#bimi &middot; draft-spec</span> — not-configured; no BIMI record found.<br>
+  <span class="kind">requires</span> DMARC:
+  <span class="status-word st-configured">configured &middot; p=reject</span>
+  <span class="anchor-tag">target's status shown inline from its single canonical measurement; a
+  requires-edge to a not-measured target would force BIMI itself to not-measured</span></div>
+
+<h2>Scale rule (§5) — enumeration sample</h2>
+<div id="subdomains">Subdomains (CT logs + DNS probing) <span class="anchor-tag">#subdomains</span>:
+<b>819 total</b> &mdash; first 2 shown here; <b>bound stated; the full set lives in the source analysis record</b> (no public permalink for this local-dev row — see provenance; silent truncation is a contract violation).
+<div class="mono" style="margin-top:2pt">1.google.com &middot; 216-239-33-25.google.com &middot; &hellip; (817 more)</div></div>
+
+<h2>Appendix B.4 — MTA-STS evidence <span class="anchor-tag">#mta-sts (same anchor string as p.1 chip — §1 identity)</span></h2>
+<div>Policy: <code>v=STSv1; id=20210803T010101;</code> &middot; mode <b>enforce</b> &middot; max_age 604800 &middot; 3 MX patterns.</div>
+<div class="cmd mono">dig +short _mta-sts.google.com TXT<br>curl -sL https://mta-sts.google.com/.well-known/mta-sts.txt</div>
+<div class="anchor-tag">L3: verification commands relocated here, never dropped (§4) — copy-to-clipboard on screen, listed in print.</div>
+
+</main>
+</body>
+</html>

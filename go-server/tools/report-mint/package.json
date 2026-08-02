@@ -1,0 +1,8 @@
+{
+  "name": "report-mint-skeleton",
+  "private": true,
+  "description": "Skeleton mint: renders the report IA contract's L0/gradient proof to PDF via headless Chromium",
+  "dependencies": {
+    "puppeteer-core": "^24.0.0"
+  }
+}
