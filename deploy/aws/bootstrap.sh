@@ -151,6 +151,13 @@ echo "== STEP 8: certbot (Let's Encrypt) for dnstool.it-help.tech =="
 echo "  certbot --nginx (or standalone) -d dnstool.it-help.tech"
 echo "  CHECK: https://dnstool.it-help.tech/healthz -> 200 AND body contains '\"status\":\"ok\"'"
 echo "         (503 body for starting/degraded/crash-loop — a 200 alone routes traffic to a dying box)"
+echo "  CHECK (post-#264 embed — wrong-cwd is now SILENT degradation, not a fatal exit):"
+echo "    (a) fetch a VERSIONED static asset (/static/css/*.css?v=...) -> 200 AND its SRI integrity"
+echo "        attribute present. Process liveness does NOT prove the deploy is correct — a"
+echo "        healthz-only check passes while the site serves 404s / no SRI / stale assets."
+echo "    (b) load /stats and confirm the integrity numbers RENDER (not just 200). The JSON read"
+echo "        (static/data/integrity_stats.json) is a different path resolution from asset serving —"
+echo "        a 200 on a CSS file does not prove the JSON resolved, even though both use ResolveStaticDir."
 
 # ---------------------------------------------------------------------------
 # STEP 9 — Flip Route53 to the Elastic IP.
