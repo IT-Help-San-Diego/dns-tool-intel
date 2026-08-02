@@ -1187,14 +1187,14 @@ func TestExtractPostureRiskCB3(t *testing.T) {
 
 	t.Run("nil results", func(t *testing.T) {
 		label, _ := badgepkg.ExtractPostureRisk(nil)
-		if label != "Unknown" {
+		if label != "Indeterminate" {
 			t.Errorf("label = %q", label)
 		}
 	})
 
 	t.Run("no posture", func(t *testing.T) {
 		label, _ := badgepkg.ExtractPostureRisk(map[string]any{})
-		if label != "Unknown" {
+		if label != "Indeterminate" {
 			t.Errorf("label = %q", label)
 		}
 	})

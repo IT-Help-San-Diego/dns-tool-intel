@@ -383,6 +383,13 @@ func TestLoadAuditData_WithData(t *testing.T) {
         }
 }
 
+// badgePublicRow mirrors a successful, public, unflagged measurement row for the
+// badge lookup contract — the real SQL requires analysis_success=TRUE, so the
+// success-path tests must set it (the mock reproduces the same predicate).
+var badgePublicRow = struct{ success bool }{success: true}
+
+func badgeAnalysisSuccess() *bool { return &badgePublicRow.success }
+
 func TestBadgeResolveAnalysis_MissingParams(t *testing.T) {
         gin.SetMode(gin.TestMode)
         w := httptest.NewRecorder()
@@ -462,10 +469,11 @@ func TestBadgeResolveAnalysis_ByIDSuccess(t *testing.T) {
         mock := &mockLookupStore{
                 GetAnalysisByIDFn: func(ctx context.Context, id int32) (dbq.DomainAnalysis, error) {
                         return dbq.DomainAnalysis{
-                                ID:          1,
-                                Domain:      "example.com",
-                                FullResults: json.RawMessage(`{"spf_analysis":{"status":"pass"}}`),
-                                CreatedAt:   pgtype.Timestamp{Time: time.Now(), Valid: true},
+                                ID:             1,
+                                Domain:         "example.com",
+                                FullResults:    json.RawMessage(`{"spf_analysis":{"status":"pass"}}`),
+                                AnalysisSuccess: badgeAnalysisSuccess(),
+                                CreatedAt:      pgtype.Timestamp{Time: time.Now(), Valid: true},
                         }, nil
                 },
         }
@@ -523,10 +531,11 @@ func TestBadgeResolveAnalysis_ByDomainSuccess(t *testing.T) {
         mock := &mockLookupStore{
                 GetRecentAnalysisByDomainFn: func(ctx context.Context, domain string) (dbq.DomainAnalysis, error) {
                         return dbq.DomainAnalysis{
-                                ID:          5,
-                                Domain:      "example.com",
-                                FullResults: json.RawMessage(`{"dmarc_analysis":{"policy":"reject"}}`),
-                                CreatedAt:   pgtype.Timestamp{Time: time.Now(), Valid: true},
+                                ID:             5,
+                                Domain:         "example.com",
+                                FullResults:    json.RawMessage(`{"dmarc_analysis":{"policy":"reject"}}`),
+                                AnalysisSuccess: badgeAnalysisSuccess(),
+                                CreatedAt:      pgtype.Timestamp{Time: time.Now(), Valid: true},
                         }, nil
                 },
         }

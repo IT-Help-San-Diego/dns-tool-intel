@@ -435,10 +435,10 @@ func TestExtractPostureRisk_NewCode(t *testing.T) {
                 wantLabel string
                 wantColor string
         }{
-                {"nil results", nil, "Unknown", ""},
-                {"empty results", map[string]any{}, "Unknown", ""},
-                {"no posture key", map[string]any{"other": "x"}, "Unknown", ""},
-                {"posture wrong type", map[string]any{"posture": "string"}, "Unknown", ""},
+                {"nil results", nil, "Indeterminate", ""},
+                {"empty results", map[string]any{}, "Indeterminate", ""},
+                {"no posture key", map[string]any{"other": "x"}, "Indeterminate", ""},
+                {"posture wrong type", map[string]any{"posture": "string"}, "Indeterminate", ""},
                 {
                         "posture with label and color",
                         map[string]any{"posture": map[string]any{

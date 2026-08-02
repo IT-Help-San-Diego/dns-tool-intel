@@ -213,6 +213,33 @@ func (m *mockLookupStore) GetRecentAnalysisByDomain(ctx context.Context, domain 
         return dbq.DomainAnalysis{}, errors.New("not found")
 }
 
+// Badge-only public lookups (badgepkg.LookupStore). The public-row exclusion
+// lives in the real SQL (private=FALSE AND scan_flag=FALSE AND
+// analysis_success=TRUE AND full_results IS NOT NULL); the mock reproduces that
+// same predicate so badge tests exercise the actual contract — a private,
+// flagged, failed, or empty row resolves as "not found", never as a badge.
+func (m *mockLookupStore) GetPublicAnalysisByID(ctx context.Context, id int32) (dbq.DomainAnalysis, error) {
+        a, err := m.GetAnalysisByID(ctx, id)
+        if err != nil {
+                return dbq.DomainAnalysis{}, err
+        }
+        if a.Private || a.ScanFlag || a.AnalysisSuccess == nil || !*a.AnalysisSuccess || len(a.FullResults) == 0 {
+                return dbq.DomainAnalysis{}, errors.New("not found")
+        }
+        return a, nil
+}
+
+func (m *mockLookupStore) GetRecentPublicAnalysisByDomain(ctx context.Context, domain string) (dbq.DomainAnalysis, error) {
+        a, err := m.GetRecentAnalysisByDomain(ctx, domain)
+        if err != nil {
+                return dbq.DomainAnalysis{}, err
+        }
+        if a.Private || a.ScanFlag || a.AnalysisSuccess == nil || !*a.AnalysisSuccess || len(a.FullResults) == 0 {
+                return dbq.DomainAnalysis{}, errors.New("not found")
+        }
+        return a, nil
+}
+
 type mockAuthStore struct {
         upsertUserFn                      func(ctx context.Context, arg dbq.UpsertUserParams) (dbq.User, error)
         promoteUserToAdminFn              func(ctx context.Context, id int32) error
