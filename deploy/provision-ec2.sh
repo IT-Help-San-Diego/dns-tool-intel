@@ -22,6 +22,10 @@ echo "== provision: directories =="
 # Live tree + stage owned by the deploy user (rsync writes them); logs/ owned
 # by the service user (the ONLY path the unit's ProtectSystem=strict leaves
 # writable, and systemd refuses to start if a ReadWritePaths entry is absent).
+# NOTE the ownership contract with deploy-aws.sh: these dirs live under
+# root-owned /opt, so the deploy user can manage their CONTENTS but can never
+# remove the directory entries themselves — deploy-aws.sh therefore CLEARS
+# the stage (find -mindepth 1 -delete), it must never `rm -rf` it.
 install -d -o "$DEPLOY_USER" -g "$DEPLOY_USER" "$DEPLOY_PATH" "$STAGE_PATH"
 install -d -o dnstool -g dnstool "$DEPLOY_PATH/logs"
 echo "  CHECK: $(ls -ld "$DEPLOY_PATH" "$DEPLOY_PATH/logs" "$STAGE_PATH")"
