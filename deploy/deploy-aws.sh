@@ -48,8 +48,17 @@ echo "Building v${VERSION} for linux/arm64…"
 GOOS=linux GOARCH=arm64 bash build.sh --deploy
 
 # --- 3: stage the bundle (clean slate; -R creates the full relative tree) --
+# Clear the stage's CONTENTS, never `rm -rf` the directory itself: removing a
+# directory ENTRY requires write on its parent, and the parent (/opt) is
+# root-owned — so `rm -rf $STAGE_PATH` fails for the non-root deploy user on
+# every properly provisioned box (measured on the first real deploy,
+# 2026-08-02; provision-ec2.sh creates the dir deploy-user-owned, which
+# grants control of the contents, not the entry). `find -mindepth 1 -delete`
+# empties it as the owner, dotfiles included. mkdir -p still covers a box
+# where provisioning was skipped — and fails loudly there if /opt is not
+# writable, which is the correct pointer to run provision-ec2.sh first.
 echo "Staging bundle at ${DEPLOY_HOST}:${STAGE_PATH}…"
-ssh "$DEPLOY_HOST" "rm -rf '${STAGE_PATH}' && mkdir -p '${STAGE_PATH}'"
+ssh "$DEPLOY_HOST" "mkdir -p '${STAGE_PATH}' && find '${STAGE_PATH}' -mindepth 1 -delete"
 rsync -azR \
   dns-tool-server \
   CITATION.cff \
