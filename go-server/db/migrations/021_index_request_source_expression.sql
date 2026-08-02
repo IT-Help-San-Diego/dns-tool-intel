@@ -1,0 +1,33 @@
+-- +goose Up
+-- 021_index_request_source_expression.sql
+-- Adds an expression index on (full_results ->> '_request_source') so the
+-- provenance-bucket popularity queries stop parsing ~400MB of JSON per page view.
+--
+-- Measured on production (RDS, 2026-08-02): /stats took ~11.6s. The cause is
+-- ListPopularDomainsPlugin (and its Human/VerifiedBot/Investigate siblings) at
+-- go-server/db/queries/domain_analyses.sql:142 — its only selective predicate is
+--   full_results ->> '_request_source' = 'agent'
+-- a text-storage json column with no index on the expression. Postgres must
+-- detoast-and-parse every row's full_results document to test the predicate:
+-- SUM(pg_column_size(full_results)) = 403MB across 17,678 rows (~24KB avg).
+-- EXPLAIN (ANALYZE, BUFFERS) on the Plugin query measured 12,917ms, a Seq Scan
+-- with 56,617 buffer reads — the entire /stats gap, matching the pre-registered
+-- parse-rate curve (403MB / 40-60 MB/s Graviton RDS).
+--
+-- The sibling buckets (Human/VerifiedBot/Investigate) pre-filter on scan_source,
+-- a plain column, so they only parse their tiny tagged subsets — which is why an
+-- earlier census that measured ListPopularDomainsHuman (163ms) read "all buckets
+-- fast" while Plugin was unmeasured at 12.9s. Different predicates, different cost.
+--
+-- PLAIN CREATE INDEX, never CONCURRENTLY: migrate.go wraps every migration in a
+-- transaction, and CREATE INDEX CONCURRENTLY is rejected inside a transaction
+-- (Postgres ERROR: CREATE INDEX CONCURRENTLY cannot run inside a transaction block).
+-- At 17,678 rows the index build is milliseconds, so the write lock is a non-issue.
+--
+-- The durable follow-up (separate migration, by design): promote _request_source
+-- to a producer-stamped plain column and index that, removing the JSON parse from
+-- the predicate entirely. That is bigger (backfill + producer change) and is NOT
+-- jammed into 021.
+
+CREATE INDEX IF NOT EXISTS ix_da_request_source
+    ON domain_analyses ((full_results ->> '_request_source'));
