@@ -35,19 +35,6 @@
     <main id="main-content" class="container my-4">
         {{template "flash_messages" .}}
 
-        {{if .RequiresAuth}}
-        <div class="text-center py-5">
-            {{icon "briefcase" "icon-3x text-muted mb-3"}}
-            <h1 class="h3 mb-2">Intelligence Reports</h1>
-            <p class="text-muted mb-4">Sign in to access your intelligence reports and track your domain security assessments.</p>
-            {{if .GoogleAuthEnabled}}
-            <a href="/auth/login" class="btn btn-primary">
-                {{icon "key" "me-2"}}Sign In to Access Reports
-            </a>
-            {{end}}
-        </div>
-        {{else}}
-
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h1 class="h3 mb-1">
@@ -222,7 +209,6 @@
                     </a>
                 {{end}}
             </div>
-        {{end}}
         {{end}}
 
         {{template "footer" .}}

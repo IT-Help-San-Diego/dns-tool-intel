@@ -3,7 +3,6 @@
 package handlers
 
 import (
-	"dnstool/go-server/internal/handlers/adminpkg"
         "encoding/json"
         "testing"
         "time"
@@ -388,40 +387,4 @@ func TestBatch2_buildDossierItemFromSearch_populated(t *testing.T) {
         }
 }
 
-func TestBatch2_opsTaskList_coversWhitelist(t *testing.T) {
-        tasks := adminpkg.OpsTaskList()
-        if len(tasks) != len(adminpkg.OpsWhitelist) {
-                t.Errorf("adminpkg.OpsTaskList returned %d tasks, adminpkg.OpsWhitelist has %d entries", len(tasks), len(adminpkg.OpsWhitelist))
-        }
-        seen := make(map[string]bool)
-        for _, task := range tasks {
-                seen[task.ID] = true
-                if task.Label == "" {
-                        t.Errorf("task %q has empty Label", task.ID)
-                }
-                if task.Command == "" {
-                        t.Errorf("task %q has empty Command", task.ID)
-                }
-                if len(task.Args) == 0 {
-                        t.Errorf("task %q has no Args", task.ID)
-                }
-        }
-        for id := range adminpkg.OpsWhitelist {
-                if !seen[id] {
-                        t.Errorf("adminpkg.OpsWhitelist key %q not in adminpkg.OpsTaskList output", id)
-                }
-        }
-}
 
-func TestBatch2_opsWhitelist_allKeys(t *testing.T) {
-        expectedKeys := []string{
-                "css-cohesion", "feature-inventory", "scientific-colors",
-                "render-diagrams", "figma-bundle", "figma-verify",
-                "miro-sync", "full-pipeline",
-        }
-        for _, key := range expectedKeys {
-                if _, ok := adminpkg.OpsWhitelist[key]; !ok {
-                        t.Errorf("adminpkg.OpsWhitelist missing key %q", key)
-                }
-        }
-}

@@ -125,10 +125,20 @@ func RequireFeature(feature entitlements.Feature) gin.HandlerFunc {
                 plan := resolveCurrentPlan(c)
                 if !entitlements.HasAccess(plan, feature) {
                         if plan == entitlements.PlanAnonymous {
+                                if wantsHTML(c) {
+                                        c.Redirect(http.StatusFound, "/auth/login?next="+url.QueryEscape(c.Request.URL.Path))
+                                        c.Abort()
+                                        return
+                                }
                                 c.JSON(http.StatusUnauthorized, gin.H{
                                         mapKeyError: msgAuthRequired,
                                 })
                         } else {
+                                if wantsHTML(c) {
+                                        c.Redirect(http.StatusFound, "/")
+                                        c.Abort()
+                                        return
+                                }
                                 c.JSON(http.StatusForbidden, gin.H{
                                         mapKeyError: "Upgrade required for this feature",
                                 })

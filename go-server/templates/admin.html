@@ -22,9 +22,6 @@
                 <a href="/ops/probes" class="btn btn-outline-warning me-2">
                     {{icon "satellite-dish" "me-1"}}Probes
                 </a>
-                <a href="/ops/operations" class="btn btn-outline-info me-2">
-                    {{icon "terminal" "me-1"}}Operations
-                </a>
                 <a href="/ops/pipeline" class="btn btn-outline-primary me-2">
                     {{icon "flask" "me-1"}}Pipeline
                 </a>
@@ -266,19 +263,19 @@
                         <div class="row text-center">
                             <div class="col-md-4">
                                 <div class="border border-secondary rounded p-3">
-                                    <div class="text-info fw-bold fs-5">5</div>
+                                    <div class="text-info fw-bold fs-5">{{.ICuAEStats.Dimensions}}</div>
                                     <small class="text-muted">Dimensions</small>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="border border-secondary rounded p-3">
-                                    <div class="text-info fw-bold fs-5">5</div>
+                                    <div class="text-info fw-bold fs-5">{{.ICuAEStats.GradeTiers}}</div>
                                     <small class="text-muted">Grade Tiers</small>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="border border-secondary rounded p-3">
-                                    <div class="text-info fw-bold fs-5">4</div>
+                                    <div class="text-info fw-bold fs-5">{{.ICuAEStats.Standards}}</div>
                                     <small class="text-muted">Standards</small>
                                 </div>
                             </div>

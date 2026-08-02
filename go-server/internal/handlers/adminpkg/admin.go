@@ -4,18 +4,16 @@
 package adminpkg
 
 import (
-        "bytes"
         "context"
         "fmt"
         "log/slog"
         "net/http"
-        "os/exec"
-        "strings"
         "time"
 
         "dnstool/go-server/internal/config"
         "dnstool/go-server/internal/db"
         "dnstool/go-server/internal/icae"
+        "dnstool/go-server/internal/icuae"
 
         "github.com/gin-gonic/gin"
 )
@@ -25,49 +23,18 @@ type TemplateDataFunc func(c *gin.Context, cfg *config.Config, activePage string
 const timeFormatAdmin = "2006-01-02 15:04"
 
 const (
-        opsCSSCohesion      = "css-cohesion"
-        opsFeatureInventory = "feature-inventory"
-        opsScientificColors = "scientific-colors"
-        opsRenderDiagrams   = "render-diagrams"
-        opsFigmaBundle      = "figma-bundle"
-        opsFigmaVerify      = "figma-verify"
-        opsMiroSync         = "miro-sync"
-        opsFullPipeline     = "full-pipeline"
-
         errDeleteUserData = "Failed to delete user data"
 
-        mapKeyAdmin   = "admin"
-        mapKeyError   = "error"
-        mapKeyUserId  = "user_id"
+        mapKeyAdmin  = "admin"
+        mapKeyError  = "error"
+        mapKeyUserId = "user_id"
 )
-
-type CmdRunResult struct {
-        Stdout string
-        Stderr string
-        Err    error
-}
-
-type CmdRunner func(ctx context.Context, command string, args []string) CmdRunResult
-
-func defaultCmdRunner(ctx context.Context, command string, args []string) CmdRunResult {
-        cmd := exec.CommandContext(ctx, command, args...)
-        var stdout, stderr bytes.Buffer
-        cmd.Stdout = &stdout
-        cmd.Stderr = &stderr
-        err := cmd.Run()
-        return CmdRunResult{
-                Stdout: stdout.String(),
-                Stderr: stderr.String(),
-                Err:    err,
-        }
-}
 
 type AdminHandler struct {
         DB                    *db.Database
         Config                *config.Config
         TemplateData          TemplateDataFunc
         BackpressureCountFunc func() int64
-        RunCmd                CmdRunner
 }
 
 func NewAdminHandler(database *db.Database, cfg *config.Config, tdf TemplateDataFunc, bpFunc func() int64) *AdminHandler {
@@ -76,7 +43,7 @@ func NewAdminHandler(database *db.Database, cfg *config.Config, tdf TemplateData
                         return gin.H{}
                 }
         }
-        return &AdminHandler{DB: database, Config: cfg, TemplateData: tdf, BackpressureCountFunc: bpFunc, RunCmd: defaultCmdRunner}
+        return &AdminHandler{DB: database, Config: cfg, TemplateData: tdf, BackpressureCountFunc: bpFunc}
 }
 
 type AdminUser struct {
@@ -156,6 +123,7 @@ func (h *AdminHandler) Dashboard(c *gin.Context) {
         data["ICAERuns"] = icaeRuns
         data["ScannerAlerts"] = scannerAlerts
         data["ICAEMetrics"] = icaeMetrics
+        data["ICuAEStats"] = icuae.Stats()
         data["BackpressureRejections"] = bpCount
         c.HTML(http.StatusOK, "admin.html", data)
 }
@@ -420,141 +388,4 @@ func (h *AdminHandler) PurgeExpiredSessions(c *gin.Context) {
         count := result.RowsAffected()
         slog.Info("Admin: expired sessions purged", "count", count)
         c.Redirect(http.StatusSeeOther, "/ops")
-}
-
-const (
-        cmdNode    = "node"
-        mapKeyTask = "task"
-)
-
-type opsTask struct {
-        ID      string
-        Label   string
-        Icon    string
-        Command string
-        Args    []string
-}
-
-var opsWhitelist = map[string]opsTask{
-        opsCSSCohesion: {
-                ID:      opsCSSCohesion,
-                Label:   "CSS Cohesion Audit",
-                Icon:    "palette",
-                Command: cmdNode,
-                Args:    []string{"scripts/audit-css-cohesion.js"},
-        },
-        opsFeatureInventory: {
-                ID:      opsFeatureInventory,
-                Label:   "Feature Inventory",
-                Icon:    "boxes-stacked",
-                Command: cmdNode,
-                Args:    []string{"scripts/feature-inventory.js"},
-        },
-        opsScientificColors: {
-                ID:      opsScientificColors,
-                Label:   "Scientific Color Validation",
-                Icon:    "flask",
-                Command: cmdNode,
-                Args:    []string{"scripts/validate-scientific-colors.js"},
-        },
-        opsRenderDiagrams: {
-                ID:      opsRenderDiagrams,
-                Label:   "Render Mermaid Diagrams",
-                Icon:    "diagram-project",
-                Command: "bash",
-                Args:    []string{"scripts/render-diagrams.sh"},
-        },
-        opsFigmaBundle: {
-                ID:      opsFigmaBundle,
-                Label:   "Figma Asset Bundle",
-                Icon:    "box-archive",
-                Command: cmdNode,
-                Args:    []string{"scripts/figma-asset-bundle.mjs"},
-        },
-        opsFigmaVerify: {
-                ID:      opsFigmaVerify,
-                Label:   "Figma Verification",
-                Icon:    "magnifying-glass-chart",
-                Command: cmdNode,
-                Args:    []string{"scripts/figma-verify.mjs"},
-        },
-        opsMiroSync: {
-                ID:      opsMiroSync,
-                Label:   "Sync Diagrams to Miro",
-                Icon:    "arrow-up-from-bracket",
-                Command: cmdNode,
-                Args:    []string{"scripts/sync-mermaid-miro.mjs"},
-        },
-        opsFullPipeline: {
-                ID:      opsFullPipeline,
-                Label:   "Full Pipeline Sync",
-                Icon:    "rotate",
-                Command: cmdNode,
-                Args:    []string{"scripts/sync-pipeline.mjs"},
-        },
-}
-
-func (h *AdminHandler) RunOperation(c *gin.Context) {
-        taskID := c.Param("task")
-        task, ok := opsWhitelist[taskID]
-        if !ok {
-                slog.Warn("Admin: unknown operation requested", mapKeyTask, taskID)
-                c.String(http.StatusBadRequest, "Unknown operation")
-                return
-        }
-
-        slog.Info("Admin: running operation", mapKeyTask, task.ID, "command", task.Command, "args", task.Args)
-
-        ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
-        defer cancel()
-
-        runner := h.RunCmd
-        if runner == nil {
-                runner = defaultCmdRunner
-        }
-        result := runner(ctx, task.Command, task.Args)
-        output := strings.TrimSpace(result.Stdout)
-        errOutput := strings.TrimSpace(result.Stderr)
-
-        success := result.Err == nil
-        combined := output
-        if errOutput != "" {
-                if combined != "" {
-                        combined += "\n" + errOutput
-                } else {
-                        combined = errOutput
-                }
-        }
-
-        if !success {
-                slog.Warn("Admin: operation failed", mapKeyTask, task.ID, mapKeyError, result.Err, "stderr", errOutput)
-        } else {
-                slog.Info("Admin: operation completed", mapKeyTask, task.ID)
-        }
-
-        data := h.TemplateData(c, h.Config, mapKeyAdmin)
-        data["OpResult"] = gin.H{
-                "Task":    task,
-                "Success": success,
-                "Output":  combined,
-        }
-        data["OpsTasks"] = opsTaskList()
-        c.HTML(http.StatusOK, "admin_ops.html", data)
-}
-
-func (h *AdminHandler) OperationsPage(c *gin.Context) {
-        data := h.TemplateData(c, h.Config, mapKeyAdmin)
-        data["OpsTasks"] = opsTaskList()
-        c.HTML(http.StatusOK, "admin_ops.html", data)
-}
-
-func opsTaskList() []opsTask {
-        order := []string{opsCSSCohesion, opsFeatureInventory, opsScientificColors, opsRenderDiagrams, opsFigmaBundle, opsFigmaVerify, opsMiroSync, opsFullPipeline}
-        tasks := make([]opsTask, 0, len(order))
-        for _, id := range order {
-                if t, ok := opsWhitelist[id]; ok {
-                        tasks = append(tasks, t)
-                }
-        }
-        return tasks
 }

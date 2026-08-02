@@ -1170,3 +1170,19 @@ func TestSOAComplianceReport_HasFindings(t *testing.T) {
                 t.Error("non-empty findings should return true")
         }
 }
+
+func TestStats_DerivedFromCanonicalMaps(t *testing.T) {
+        s := Stats()
+        if s.Dimensions != len(DimensionDisplayNames) {
+                t.Errorf("Dimensions = %d, want %d", s.Dimensions, len(DimensionDisplayNames))
+        }
+        if s.GradeTiers != len(GradeDisplayNames) {
+                t.Errorf("GradeTiers = %d, want %d", s.GradeTiers, len(GradeDisplayNames))
+        }
+        // The five dimensions are graded against four distinct standards:
+        // ISO/IEC 25012, RFC 8767, NIST SP 800-53 SI-7, and SPJ (the last via
+        // the "ISO/IEC 25012 + SPJ" compound on Source Credibility).
+        if s.Standards != 4 {
+                t.Errorf("Standards = %d, want 4 distinct standards", s.Standards)
+        }
+}

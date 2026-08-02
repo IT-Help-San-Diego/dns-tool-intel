@@ -121,23 +121,9 @@ func buildDossierItemFrom(a analysisRow) dossierItem {
 }
 
 func (h *DossierHandler) Dossier(c *gin.Context) {
-        auth, exists := c.Get("authenticated")
-        if !exists || auth != true {
-                data := NewTemplateData(c, h.Config, mapKeyDossier)
-                data["RequiresAuth"] = true
-                data["TotalReports"] = int64(0)
-                data["Analyses"] = []dossierItem{}
-                data["Pagination"] = BuildPagination(1, 1, 0)
-                data["SearchDomain"] = ""
-                data["SearchAction"] = pathDossier
-                data["SearchPlaceholder"] = "Search your assessed domains..."
-                data["SearchAriaLabel"] = "Search dossier by domain name"
-                data["PaginationLabel"] = "Intelligence reports pagination"
-                data["PaginationBase"] = pathDossier
-                c.HTML(http.StatusOK, templateDossier, data)
-                return
-        }
-
+        // Signed-out access never reaches here: the /dossier route is gated by
+        // middleware.RequireFeature, which redirects browsers to /auth/login
+        // and answers API clients with 401 JSON.
         uid, _ := c.Get("user_id")
         userID, _ := uid.(int32)
 

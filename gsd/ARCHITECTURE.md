@@ -108,7 +108,6 @@ go-server/templates/
 ├── dossier.html             # Domain dossier
 ├── history.html             # Scan history
 ├── stats.html               # Analytics dashboard
-├── admin_ops.html           # Admin operations
 ├── admin_probes.html        # Probe fleet management
 └── (others)                 # Zone, badge, toolkit, etc.
 ```

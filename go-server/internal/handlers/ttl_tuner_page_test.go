@@ -227,8 +227,6 @@ func adminRouter_CB10(t *testing.T) *gin.Engine {
         r.GET("/admin/delete-user", h.DeleteUser)
         r.GET("/admin/reset-sessions", h.ResetUserSessions)
         r.GET("/admin/purge-sessions", h.PurgeExpiredSessions)
-        r.GET("/admin/ops", h.OperationsPage)
-        r.POST("/admin/ops/run", h.RunOperation)
 
         ph := adminpkg.NewProbeAdminHandler(database, cfg, handlers.NewTemplateData)
         r.GET("/admin/probes", ph.ProbeDashboard)
@@ -267,27 +265,7 @@ func TestAdminPurgeExpiredSessions_CB10(t *testing.T) {
         }
 }
 
-func TestAdminOpsPage_CB10(t *testing.T) {
-        r := adminRouter_CB10(t)
-        w := httptest.NewRecorder()
-        req := httptest.NewRequest(http.MethodGet, "/admin/ops", nil)
-        r.ServeHTTP(w, req)
-        if w.Code >= 500 {
-                t.Fatalf("expected non-500, got %d; body: %s", w.Code, w.Body.String())
-        }
-}
 
-func TestAdminRunOperationNoAuth_CB10(t *testing.T) {
-        r := adminRouter_CB10(t)
-        w := httptest.NewRecorder()
-        form := url.Values{"operation": {"test"}}
-        req := httptest.NewRequest(http.MethodPost, "/admin/ops/run", strings.NewReader(form.Encode()))
-        req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-        r.ServeHTTP(w, req)
-        if w.Code >= 500 {
-                t.Fatalf("expected non-500, got %d", w.Code)
-        }
-}
 
 func TestAdminProbesDashboard_CB10(t *testing.T) {
         r := adminRouter_CB10(t)

@@ -19,6 +19,7 @@ package icuae
 import (
         "encoding/json"
         "fmt"
+        "strings"
 )
 
 const (
@@ -75,6 +76,31 @@ var GradeBootstrapClass = map[string]string{
         GradeAdequate:  "info",
         GradeDegraded:  "warning",
         GradeStale:     "danger",
+}
+
+// EngineStats summarizes the engine's shape for dashboard display.
+type EngineStats struct {
+        Dimensions int
+        GradeTiers int
+        Standards  int
+}
+
+// Stats derives the engine's dimension, grade-tier, and standards counts from
+// the canonical maps above, so displayed numbers cannot drift from the engine.
+// Standards counts the distinct standards the dimensions are graded against
+// (compound entries like "ISO/IEC 25012 + SPJ" contribute each member).
+func Stats() EngineStats {
+        distinct := map[string]bool{}
+        for _, std := range DimensionStandards {
+                for _, part := range strings.Split(std, " + ") {
+                        distinct[part] = true
+                }
+        }
+        return EngineStats{
+                Dimensions: len(DimensionDisplayNames),
+                GradeTiers: len(GradeDisplayNames),
+                Standards:  len(distinct),
+        }
 }
 
 type DimensionScore struct {

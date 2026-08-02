@@ -32,7 +32,7 @@ func allTemplates() *gin.Engine {
         r.Use(injectCSPAndCSRF())
         tmpl := template.New("root")
         names := []string{
-                "about.html", "admin.html", "admin_analytics.html", "admin_ops.html",
+                "about.html", "admin.html", "admin_analytics.html",
                 "admin_probes.html", "approach.html", "architecture.html", "audit_log.html",
                 "badge_embed.html", "brand_colors.html", "changelog.html", "color_science.html",
                 "communication_standards.html",
@@ -69,21 +69,6 @@ func TestAdminDashboardIntegration_CB7(t *testing.T) {
         }
 }
 
-func TestAdminOpsPageIntegration_CB7(t *testing.T) {
-        database := setupTestDB(t)
-        defer cleanupTestDB(t, database)
-
-        cfg := testConfig()
-        router := allTemplates()
-        handler := adminpkg.NewAdminHandler(database, cfg, handlers.NewTemplateData, func() int64 { return 0 })
-        router.GET("/admin/ops", handler.OperationsPage)
-        w := httptest.NewRecorder()
-        req := httptest.NewRequest(http.MethodGet, "/admin/ops", nil)
-        router.ServeHTTP(w, req)
-        if w.Code != http.StatusOK {
-                t.Fatalf("Admin Ops: got %d, want 200; body: %s", w.Code, w.Body.String())
-        }
-}
 
 func TestAnalyticsPageIntegration_CB7(t *testing.T) {
         database := setupTestDB(t)

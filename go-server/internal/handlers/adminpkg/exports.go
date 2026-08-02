@@ -30,11 +30,3 @@ func FindPEMFooter(tokens []string, start int) (string, []string) {
 func NormalizePEM(s string) string {
 	return normalizePEM(s)
 }
-
-// OpsTaskList is the exported test alias for opsTaskList.
-func OpsTaskList() []opsTask {
-	return opsTaskList()
-}
-
-// OpsWhitelist exposes the unexported opsWhitelist map for tests.
-var OpsWhitelist = opsWhitelist
