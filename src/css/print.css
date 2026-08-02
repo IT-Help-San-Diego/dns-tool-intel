@@ -362,6 +362,18 @@
         line-height: 1.4;
     }
 
+    /* Provenance line (methodology URL, DOI, ORCID) under the disclaimer.
+       Declarations must match the shipped minified rule and the inline copy
+       in results_executive.html — added to the min files directly in
+       48549690d and reconciled into this source 2026-08-01. */
+    .print-footer-provenance {
+        font-size: 7.5pt;
+        color: #9ca3af;
+        text-align: center;
+        margin-top: 4pt;
+        letter-spacing: 0.02em;
+    }
+
     /* ================================================
        TYPOGRAPHY — Strong Hierarchy
        ================================================ */
