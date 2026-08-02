@@ -14,14 +14,14 @@ func TestExtractPostureRisk(t *testing.T) {
                 wantLabel string
                 wantColor string
         }{
-                {"nil results", nil, "Unknown", ""},
-                {"empty results", map[string]any{}, "Unknown", ""},
-                {"no posture key", map[string]any{"other": "data"}, "Unknown", ""},
-                {"posture not a map", map[string]any{"posture": "string"}, "Unknown", ""},
+                {"nil results", nil, "Indeterminate", ""},
+                {"empty results", map[string]any{}, "Indeterminate", ""},
+                {"no posture key", map[string]any{"other": "data"}, "Indeterminate", ""},
+                {"posture not a map", map[string]any{"posture": "string"}, "Indeterminate", ""},
                 {"posture with label", map[string]any{"posture": map[string]any{"label": "Secure", "color": "success"}}, "Secure", "success"},
                 {"posture with grade fallback", map[string]any{"posture": map[string]any{"grade": "A+", "color": "success"}}, "A+", "success"},
                 {"posture with empty label uses grade", map[string]any{"posture": map[string]any{"label": "", "grade": "B", "color": "warning"}}, "B", "warning"},
-                {"posture with no label or grade", map[string]any{"posture": map[string]any{"color": "danger"}}, "Unknown", "danger"},
+                {"posture with no label or grade", map[string]any{"posture": map[string]any{"color": "danger"}}, "Indeterminate", "danger"},
         }
         for _, tt := range tests {
                 t.Run(tt.name, func(t *testing.T) {

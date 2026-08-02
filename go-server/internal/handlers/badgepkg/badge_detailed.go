@@ -398,8 +398,8 @@ func RenderTopoNodes(nodeSVG, glowDefs *strings.Builder, nodes []ProtocolNode, p
 func BadgeSVGDetailed(domain string, results map[string]any, scanTime time.Time, scanID int32, postureHash, baseURL string) []byte {
         riskLabel, riskColorName := ExtractPostureRisk(results)
         if IsGatewayDerivedResult(results) {
-                riskLabel = labelGatewayDerived
-                riskColorName = "warning"
+                // Provenance beside posture, not in its place (Science's ruling).
+                riskLabel += " · gateway-derived"
         }
         riskColorName = NormalizeRiskColor(riskLabel, riskColorName)
         nodes := ExtractProtocolIndicators(results)

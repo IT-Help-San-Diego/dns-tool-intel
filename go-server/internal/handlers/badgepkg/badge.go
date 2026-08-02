@@ -24,8 +24,8 @@ import (
 type TemplateDataFunc func(c *gin.Context, cfg *config.Config, activePage string) gin.H
 
 type LookupStore interface {
-        GetAnalysisByID(ctx context.Context, id int32) (dbq.DomainAnalysis, error)
-        GetRecentAnalysisByDomain(ctx context.Context, domain string) (dbq.DomainAnalysis, error)
+        GetPublicAnalysisByID(ctx context.Context, id int32) (dbq.DomainAnalysis, error)
+        GetRecentPublicAnalysisByDomain(ctx context.Context, domain string) (dbq.DomainAnalysis, error)
 }
 
 const (
@@ -51,8 +51,6 @@ const (
         hexScYellow = "#C7C400"
         hexScRed    = "#B43C29"
         hexDimGrey  = "#30363d"
-
-        labelGatewayDerived = "Gateway Derived"
 
         protoMTASTS = "MTA-STS"
         protoTLSRPT = "TLS-RPT"
@@ -125,8 +123,13 @@ func (h *BadgeHandler) resolveAnalysis(c *gin.Context) (domain string, results m
                         c.Data(http.StatusBadRequest, contentTypeSVG, BadgeSVG(mapKeyError, "invalid scan id", colorDanger))
                         return "", nil, time.Time{}, 0, "", false
                 }
-                analysis, err := h.store().GetAnalysisByID(ctx, int32(sid))
-                if err != nil || analysis.Private {
+                analysis, err := h.store().GetPublicAnalysisByID(ctx, int32(sid))
+                if err != nil {
+                        // Query-level exclusion: a private, failed, flagged, or
+                        // missing row all return no-rows here — the badge simply
+                        // has no measurement to read. ("not found" is the
+                        // no-measurement-exists state, distinct from the
+                        // measured-but-indeterminate "Indeterminate" label.)
                         c.Data(http.StatusNotFound, contentTypeSVG, BadgeSVG(labelDNSTool, "scan not found", colorGrey))
                         return "", nil, time.Time{}, 0, "", false
                 }
@@ -140,8 +143,8 @@ func (h *BadgeHandler) resolveAnalysis(c *gin.Context) (domain string, results m
                 return "", nil, time.Time{}, 0, "", false
         }
 
-        analysis, err := h.store().GetRecentAnalysisByDomain(ctx, ascii)
-        if err != nil || analysis.Private {
+        analysis, err := h.store().GetRecentPublicAnalysisByDomain(ctx, ascii)
+        if err != nil {
                 c.Data(http.StatusNotFound, contentTypeSVG, BadgeSVG(labelDNSTool, "not scanned", colorGrey))
                 return "", nil, time.Time{}, 0, "", false
         }
@@ -165,23 +168,27 @@ func (h *BadgeHandler) Badge(c *gin.Context) {
         exposure := ExtractExposure(results)
         style := c.DefaultQuery("style", "flat")
 
-        if IsGatewayDerivedResult(results) {
-                riskLabel = labelGatewayDerived
-                riskHex = hexYellow
-                score = -1
-        }
+        // Provenance (how the measurement was obtained) renders BESIDE the
+        // posture, never in its place — Science's vocabulary ruling. A gateway-
+        // derived row still has a measured posture; we show it and flag the
+        // limited attribution adjacently rather than collapsing the two axes.
+        gatewayDerived := IsGatewayDerivedResult(results)
 
         compactValue := riskLabel
         if score >= 0 {
                 compactValue = fmt.Sprintf("%s (%d/100)", riskLabel, score)
         }
-        if IsGatewayDerivedResult(results) {
-                compactValue = "Gateway Derived — attribution limited"
+        if gatewayDerived {
+                compactValue += " · gateway-derived"
         }
         if exposure.Status == "exposed" && exposure.FindingCount > 0 {
                 compactValue += fmt.Sprintf(" · %d secret%s exposed", exposure.FindingCount, PluralS(exposure.FindingCount))
                 riskHex = hexRed
         }
+        // Freshness is an anti-gaming surface: every badge wears its measurement
+        // date so an old reading reads as old. The compact style is the one that
+        // previously hid it.
+        compactValue += " · " + scanTime.UTC().Format("2006-01-02")
 
         c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
         c.Header("Pragma", "no-cache")
@@ -216,7 +223,12 @@ func UnmarshalResults(fullResults []byte, caller string) map[string]any {
 }
 
 func ExtractPostureRisk(results map[string]any) (string, string) {
-        riskLabel := "Unknown"
+        // "Indeterminate" is the measured-but-no-conclusion state: the instrument
+        // ran and could not establish a posture. That is a different fact from
+        // "no measurement exists" — which the resolveAnalysis layer already serves
+        // separately as "not scanned" / "no data". A reader must be able to tell a
+        // failed check from an absent one (Science's tri-state ruling).
+        riskLabel := "Indeterminate"
         riskColor := ""
         if results == nil {
                 return riskLabel, riskColor
@@ -366,8 +378,8 @@ func (h *BadgeHandler) BadgeShieldsIO(c *gin.Context) {
 
         riskLabel, riskColorRaw := ExtractPostureRisk(results)
         if IsGatewayDerivedResult(results) {
-                riskLabel = labelGatewayDerived
-                riskColorRaw = "warning"
+                // Provenance beside posture, not in its place (Science's ruling).
+                riskLabel += " · gateway-derived"
         }
         shieldsColor := RiskColorToShields(riskColorRaw)
 
@@ -393,8 +405,8 @@ func (h *BadgeHandler) loadShieldsResults(ctx context.Context, idQ, domainQ stri
                 if err != nil {
                         return nil, ShieldsErrorJSON("invalid scan id", true)
                 }
-                analysis, err := h.store().GetAnalysisByID(ctx, int32(scanID))
-                if err != nil || analysis.Private {
+                analysis, err := h.store().GetPublicAnalysisByID(ctx, int32(scanID))
+                if err != nil {
                         return nil, ShieldsErrorJSON("scan not found", false)
                 }
                 return UnmarshalResults(analysis.FullResults, "BadgeShieldsIO"), nil
@@ -403,8 +415,8 @@ func (h *BadgeHandler) loadShieldsResults(ctx context.Context, idQ, domainQ stri
         if err != nil || !dnsclient.ValidateDomain(ascii) {
                 return nil, ShieldsErrorJSON("invalid domain", true)
         }
-        analysis, err := h.store().GetRecentAnalysisByDomain(ctx, ascii)
-        if err != nil || analysis.Private {
+        analysis, err := h.store().GetRecentPublicAnalysisByDomain(ctx, ascii)
+        if err != nil {
                 return nil, ShieldsErrorJSON("not scanned", false)
         }
         return UnmarshalResults(analysis.FullResults, "BadgeShieldsIO"), nil
