@@ -2,7 +2,7 @@
 
 **Status: DRAFT for ratification.** One contract, two renderers: the screen report (results.html successor) and the minted PDF (`/analysis/:id/pdf`). Blessed sequencing (Carey, 2026-08-01): this contract lands before either renderer is built. Full rationale, research grounding, and measured baselines live in `docs/research/SCIENTIFIC-PDF-MINT-BRIEF-DRAFT.md` (rev 3); this file is the operative spec both renderers consume and CI checks against.
 
-Ratification needed on: §2 canonical assignments (Science + Carey), §6 per-protocol governing sentences (Science), visual system (design lane — out of scope here).
+Ratification state: **§2 canonical assignments RATIFIED by Carey 2026-08-02** ("ratify" — SPF/DMARC/DKIM home in Email Security, MTA-STS/TLS-RPT in Transport Security, BIMI in Brand & Trust, pointers from Email Security); Science's §2 pass pending. Still open: §6 per-protocol governing sentences (Science), visual system (design lane — out of scope here).
 
 ---
 
@@ -18,7 +18,7 @@ One stable identifier per group and per card — **the same string** in the HTML
 
 Binding rule: an automated check must be able to walk artifact → anchor → producer field. An anchor that appears in one renderer and not the other fails the build.
 
-## 2. Groups and canonical assignment (PROPOSED — resolves the wireframe's double-slotting)
+## 2. Groups and canonical assignment (RATIFIED by Carey 2026-08-02; Science pass pending — resolves the wireframe double-slotting)
 
 Each verdict renders **exactly once**, at its canonical card; every other appearance is a cross-reference to that anchor. (Science's citability rule 1: duplication is provenance ambiguity — one measurement shown twice is indistinguishable from two that agree.)
 
