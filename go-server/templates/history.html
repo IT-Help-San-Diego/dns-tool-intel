@@ -144,15 +144,15 @@
             </div>
             <div class="d-flex gap-2 align-items-center">
                 {{if not .IsCloudDeployment}}
-                {{/* Local ↔ Cloud flipper — the flippers brief's direct-link
-                     fork: the Cloud pill is a plain outbound link to the
-                     public instrument, so nothing is fetched on page load and
-                     the disclosure is the user's own click. Local-build only:
-                     the cloud has no "local" counterpart to link to. */}}
+                {{/* Local ↔ Cloud flipper — inline same-origin: Cloud loads
+                     /cloud/history, which reverse-proxies the public
+                     instrument's history page INTO the local app (no new tab,
+                     no iframe — frame-ancestors/frame-src armor stays intact).
+                     Local-build only: the cloud has no "local" counterpart. */}}
                 <div class="btn-group btn-group-sm" role="group" aria-label="History source">
                     <span class="btn btn-secondary active" aria-current="page" title="This machine's history — scans never leave your database">Local</span>
-                    <a class="btn btn-outline-secondary" href="{{.CloudBaseURL}}/history" target="_blank" rel="noopener"
-                       title="Opens the public instrument's history at dnstool.it-help.tech — a different dataset, measured by the cloud">Cloud&nbsp;&#8599;</a>
+                    <a class="btn btn-outline-secondary" href="/cloud/history"
+                       title="The public instrument's history, shown inside this app — a different dataset, measured by the cloud">Cloud</a>
                 </div>
                 {{end}}
                 <a href="/" class="btn btn-analyze">
