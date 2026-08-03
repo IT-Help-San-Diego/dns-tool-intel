@@ -80,16 +80,16 @@ func (h *CloudHistoryHandler) CloudHistory(c *gin.Context) {
 	}
 	html := string(body)
 
-	// The proxied document carries the CLOUD's CSP nonces; the local app stamps
-	// its OWN CSP on the response, so those nonces would be blocked — and the
-	// cloud page's critical-CSS lives in inline <style nonce> blocks (dark theme,
-	// table layout), so blocking them renders the embedded view unstyled. Strip
-	// the nonce attribute from inline <style> tags so the local CSP (style-src
-	// 'self' + the document's own inline styles, which are already in the markup)
-	// lets them apply. This is presentational CSS only — no script is touched, so
-	// the cloud page's interactive JS stays off in the embedded read view, which
-	// is the honest price of keeping the CSP armor intact rather than weakening it.
-	html = stripStyleNonce(html)
+	// The proxied document's inline critical-CSS (dark theme, table layout) lives
+	// in <style nonce="CLOUD"> blocks. The local app stamps its OWN CSP on the
+	// response, whose style-src requires the LOCAL nonce — so the cloud nonce is
+	// rejected and the styles go inert (unstyled white page). Re-key those style
+	// tags to the LOCAL nonce so the local CSP accepts them. <script nonce> is
+	// left as-is (cloud interactive JS stays off in the read view, by design).
+	localNonce, _ := c.Get("csp_nonce")
+	if ns, ok := localNonce.(string); ok && ns != "" {
+		html = rekeyStyleNonce(html, ns)
+	}
 
 	// Rewrite root-relative links so navigation inside the cloud view goes to
 	// the PUBLIC instrument, not the local one. Absolute URLs are left alone.
@@ -116,29 +116,25 @@ func (h *CloudHistoryHandler) CloudHistory(c *gin.Context) {
 	c.String(http.StatusOK, html)
 }
 
-// toggleHTML builds the same-origin banner. Inline styles are used because the
-// proxied cloud document carries its own CSP with its own nonces — a <style>
-// block from us would be blocked, but the document's CSP style-src 'self'
-// permits styles already present in its markup. Keep it minimal and dark-theme
-// neutral so it reads as the instrument, not an overlay.
+// toggleHTML builds the same-origin banner. Inline styles are used (style="" is
+// not CSP-blocked), and the two controls are separated by real markup so they
+// never run together. Reads: "Analysis History · the public instrument's view"
+// on the left, "Local | Cloud" toggle on the right.
 func (h *CloudHistoryHandler) toggleHTML(sourceURL string) string {
-	return `<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:8px 14px;background:#161b22;border-bottom:1px solid #30363d;font:500 13px/1.4 system-ui,sans-serif;color:#9da7b3;position:sticky;top:0;z-index:9999;">` +
-		`<span style="display:inline-flex;align-items:center;gap:8px;">` +
-		`<strong style="color:#e6edf3;">Analysis History</strong>` +
-		`<span style="color:#8b949e;">· the public instrument's view</span>` +
-		`</span>` +
-		`<span style="display:inline-flex;gap:6px;align-items:center;">` +
-		`<a href="/history" style="padding:3px 12px;border-radius:6px;border:1px solid #30363d;background:transparent;color:#8b949e;text-decoration:none;font-weight:600;">Local</a>` +
-		`<span style="padding:3px 12px;border-radius:6px;background:#3fb95022;color:#3fb950;border:1px solid #3fb95044;font-weight:600;">Cloud</span>` +
+	return `<div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:10px 16px;background:#161b22;border-bottom:1px solid #30363d;font-family:system-ui,sans-serif;position:sticky;top:0;z-index:9999;">` +
+		`<span style="font-size:14px;font-weight:600;color:#e6edf3;">Analysis History <span style="font-weight:400;color:#8b949e;">· the public instrument&#8217;s view</span></span>` +
+		`<span style="display:inline-flex;border:1px solid #30363d;border-radius:7px;overflow:hidden;font-size:13px;font-weight:600;">` +
+		`<a href="/history" style="padding:5px 14px;background:transparent;color:#8b949e;text-decoration:none;">Local</a>` +
+		`<span style="padding:5px 14px;background:rgba(63,185,80,.15);color:#3fb950;">Cloud</span>` +
 		`</span>` +
 		`</div>`
 }
 
-// stripStyleNonce removes the nonce attribute from <style> tags only, so the
-// proxied page's inline critical-CSS still applies under the local app's CSP
-// (whose style-src does not know the cloud's nonce). <script nonce> is left
-// untouched — those stay blocked in the embedded read view by design.
-func stripStyleNonce(html string) string {
+// rekeyStyleNonce rewrites the nonce attribute on <style> tags to the LOCAL
+// app's CSP nonce, so the proxied page's inline critical-CSS is accepted by the
+// local app's CSP (whose style-src requires the local nonce). <script nonce> is
+// left untouched — those stay blocked in the embedded read view by design.
+func rekeyStyleNonce(html, localNonce string) string {
 	var b strings.Builder
 	rest := html
 	for {
@@ -155,18 +151,15 @@ func stripStyleNonce(html string) string {
 			break
 		}
 		open := seg[:j] // the <style ...> opening tag (attrs, no '>')
-		// drop a nonce="..." attribute if present
-		for {
-			k := strings.Index(open, ` nonce="`)
-			if k < 0 {
-				break
-			}
+		if k := strings.Index(open, ` nonce="`); k >= 0 {
 			end := strings.Index(open[k+8:], `"`)
-			if end < 0 {
-				open = open[:k]
-				break
+			if end >= 0 {
+				open = open[:k] + ` nonce="` + localNonce + `"` + open[k+8+end+1:]
+			} else {
+				open = open[:k] + ` nonce="` + localNonce + `"`
 			}
-			open = open[:k] + open[k+8+end+1:]
+		} else {
+			open += ` nonce="` + localNonce + `"`
 		}
 		b.WriteString(open)
 		rest = seg[j:]
