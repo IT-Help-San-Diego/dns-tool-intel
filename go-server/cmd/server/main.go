@@ -567,6 +567,7 @@ func registerRoutes(d routeDeps) {
 	homeHandler := handlers.NewHomeHandler(d.Cfg, d.DB)
 	healthHandler := handlers.NewHealthHandler(d.DB, d.Analyzer)
 	historyHandler := handlers.NewHistoryHandler(d.DB, d.Cfg)
+	cloudHistoryHandler := handlers.NewCloudHistoryHandler(d.DB, d.Cfg)
 	analysisHandler := handlers.NewAnalysisHandler(d.DB, d.Cfg, d.Analyzer, d.HistoryCache)
 	statsHandler := handlers.NewStatsHandler(d.DB, d.Cfg)
 	compareHandler := handlers.NewCompareHandler(d.DB, d.Cfg)
@@ -576,7 +577,7 @@ func registerRoutes(d routeDeps) {
 	proxyHandler := handlers.NewProxyHandler()
 
 	registerCoreRoutes(d.Router, homeHandler, healthHandler, staticHandler)
-	registerAnalysisRoutes(d, analysisHandler, historyHandler, statsHandler, compareHandler, exportHandler, snapshotHandler)
+	registerAnalysisRoutes(d, analysisHandler, historyHandler, statsHandler, compareHandler, exportHandler, snapshotHandler, cloudHistoryHandler)
 	registerFeatureRoutes(d, analysisHandler, proxyHandler, staticHandler)
 	registerAdminRoutes(d)
 	registerAuthRoutes(d)
@@ -607,7 +608,7 @@ func registerCoreRoutes(router *gin.Engine, home *handlers.HomeHandler, health *
 	router.GET("/sw.js", static.ServiceWorker)
 }
 
-func registerAnalysisRoutes(d routeDeps, analysis *handlers.AnalysisHandler, history *handlers.HistoryHandler, stats *handlers.StatsHandler, compare *handlers.CompareHandler, export *handlers.ExportHandler, snapshot *handlers.SnapshotHandler) {
+func registerAnalysisRoutes(d routeDeps, analysis *handlers.AnalysisHandler, history *handlers.HistoryHandler, stats *handlers.StatsHandler, compare *handlers.CompareHandler, export *handlers.ExportHandler, snapshot *handlers.SnapshotHandler, cloudHistory *handlers.CloudHistoryHandler) {
 	d.Router.GET("/analyze", analysis.Analyze)
 	// HEAD must mirror GET semantics (RFC 9110 §9.3.2): same status, same headers,
 	// no body. CDNs and link-validators use HEAD to revalidate cached responses;
@@ -616,6 +617,7 @@ func registerAnalysisRoutes(d routeDeps, analysis *handlers.AnalysisHandler, his
 	d.Router.POST("/analyze", middleware.AnalyzeRateLimit(d.RateLimiter), analysis.Analyze)
 	d.Router.GET("/api/scan/progress/:token", handlers.ScanProgressHandler(analysis.ProgressStore))
 	d.Router.GET("/history", d.HeavyShed, history.History)
+	d.Router.GET("/cloud/history", d.HeavyShed, cloudHistory.CloudHistory)
 	d.Router.GET("/analysis/:id", d.HeavyShed, analysis.ViewAnalysis)
 	d.Router.GET("/analysis/:id/view", d.HeavyShed, analysis.ViewAnalysisStatic)
 	d.Router.GET("/analysis/:id/view/:mode", d.HeavyShed, analysis.ViewAnalysisStatic)
