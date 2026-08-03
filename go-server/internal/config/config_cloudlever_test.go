@@ -17,10 +17,10 @@ import (
 
 func TestIsCloudDeploymentEnv_BothKeysRecognized(t *testing.T) {
 	cases := []struct {
-		name    string
-		replit  string
-		cloud   string
-		want    bool
+		name   string
+		replit string
+		cloud  string
+		want   bool
 	}{
 		{"neither set", "", "", false},
 		{"replit key only", "1", "", true},
