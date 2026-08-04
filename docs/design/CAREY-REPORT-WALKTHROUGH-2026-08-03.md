@@ -14,6 +14,29 @@ lane, and the defect chips. Verbatim flavor kept where it carries judgment.
 The moat is the depth. The defect is the navigation. Every design decision is
 judged against both halves at once.
 
+## THE BALANCE DOCTRINE (Carey, same session — binding on every lane)
+
+Balance is not half-attention to each side; it is FULL attention to all of it at
+once: the research of what users want AND the creative vision AND visual
+perfection as scientific rigor ("the most high kinds of science are visually
+perfect… because communication must happen if it will succeed"). Getting
+corrected in one dimension is never license to swing to an extreme in another.
+
+Operational consequences, each one checkable:
+- **Multi-age readability bar:** a 10-, 15-, 22-, 35-, 55-, and 80-year-old must
+  all be able to read it for it to survive. The gradient is the mechanism: L0/L1
+  (Big Picture Questions, plain verdicts, glosses) is the everyone-layer and can
+  carry a measured readability target; L2/L3 is the practitioner ramp. This
+  makes "readable by all ages" a ratchet, not a vibe.
+- Secure AND clean AND lightweight — simultaneously, not traded off.
+- Privacy as architecture: no spying, no cookie sprawl (and no consent-popup
+  circus, because there is nothing to consent to).
+- Valid AND validated AND code quality that MEANS something: no badge earned by
+  gaming the gate — "write a unit test that goddamn means something." (House
+  exemplar: the goose-token detector pins the verbatim line that broke CI, so
+  the test cannot rot into decoration.)
+- Timeline: "all of it, and as long as it takes."
+
 ## KEEP — confirmed working, do not regress
 
 | Element | Verdict |
