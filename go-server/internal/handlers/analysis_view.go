@@ -81,11 +81,26 @@ func (h *AnalysisHandler) ViewAnalysis(c *gin.Context) {
 	h.viewAnalysisWithMode(c, resolveReportMode(c))
 }
 
+// ViewAnalysisV2 renders the structural-preview template (report IA contract:
+// grouped disclosure + nav) over the same data assembly as the v1 report.
+// Fixed template name: the covert/executive split does not apply to the
+// preview by design.
+func (h *AnalysisHandler) ViewAnalysisV2(c *gin.Context) {
+	h.viewAnalysisTemplate(c, resolveReportMode(c), "results_v2.html")
+}
+
 func (h *AnalysisHandler) ViewAnalysisExecutive(c *gin.Context) {
 	h.viewAnalysisWithMode(c, "B")
 }
 
 func (h *AnalysisHandler) viewAnalysisWithMode(c *gin.Context, mode string) {
+	h.viewAnalysisTemplate(c, mode, "")
+}
+
+// viewAnalysisTemplate is viewAnalysisWithMode with an optional template
+// override; empty means reportModeTemplate(mode), preserving v1 behavior for
+// every existing caller (including the tests that call viewAnalysisWithMode).
+func (h *AnalysisHandler) viewAnalysisTemplate(c *gin.Context, mode string, tmplName string) {
 	nonce, ok := c.Get("csp_nonce")
 	if !ok {
 		nonce = ""
@@ -186,7 +201,10 @@ func (h *AnalysisHandler) viewAnalysisWithMode(c *gin.Context, mode string) {
 	h.enrichViewDataMetrics(ctx, viewData, results, analysis.Domain, analysis.ID)
 	viewData["CovertMode"] = isCovertMode(mode)
 
-	c.HTML(http.StatusOK, reportModeTemplate(mode), viewData)
+	if tmplName == "" {
+		tmplName = reportModeTemplate(mode)
+	}
+	c.HTML(http.StatusOK, tmplName, viewData)
 }
 
 func resolveCovertMode(c *gin.Context, asciiDomain string) string {

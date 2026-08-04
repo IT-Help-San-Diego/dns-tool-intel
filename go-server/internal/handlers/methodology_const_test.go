@@ -36,6 +36,7 @@ var icd203TemplateFiles = map[string]bool{
         "templates/publications.html":      true,
         "templates/reference_library.html": true,
         "templates/results.html":           true,
+        "templates/results_v2.html":        true,
         "templates/stats.html":             true,
         "static/manifest.json":              true,
         "static/data/integrity_stats.json":   true,
