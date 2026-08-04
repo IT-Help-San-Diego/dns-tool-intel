@@ -1068,6 +1068,23 @@ contract sit under "Ungrouped" in original order.</div>
   <a href="#dns-evidence">Evidence &amp; History</a>
   <a href="#findings-summary">Findings</a>
 </nav>
+<script nonce="{{.CspNonce}}">
+(function(){
+  // Fragment navigation + scrollIntoView silently no-op inside closed <details>.
+  // Open every ancestor group before any in-page jump (persona-coverage finding).
+  function openFor(el){ for(var d=el; d; d=d.parentElement){ if(d.tagName==='DETAILS') d.open=true; } }
+  function goHash(){ var id=decodeURIComponent(location.hash.slice(1)); if(!id) return;
+    var t=document.getElementById(id); if(t){ openFor(t); t.scrollIntoView(); } }
+  window.addEventListener('hashchange', goHash);
+  if (location.hash) setTimeout(goHash, 0);
+  document.addEventListener('click', function(e){
+    var a = e.target && e.target.closest ? e.target.closest('a[href^="#"]') : null;
+    if(!a) return;
+    var t=document.getElementById(decodeURIComponent(a.getAttribute('href').slice(1)));
+    if(t) openFor(t);
+  }, true);
+})();
+</script>
 
 <details class="v2-group" id="email-security" open>
 <summary>Email Security <span class="v2-anchor">#email-security</span></summary>
