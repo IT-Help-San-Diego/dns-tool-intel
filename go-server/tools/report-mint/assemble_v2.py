@@ -24,7 +24,7 @@ GROUPS = [
     ('domain-security', 'Domain Security', False, [(2588, 2772), (3897, 4047), (4156, 4295), (4915, 5379)]),
     ('transport-security', 'Transport Security', False, [(4393, 4763)]),
     ('brand-trust', 'Brand & Trust', False, [(2773, 3030)]),
-    ('infrastructure-intel', 'Infrastructure Intelligence', False, [(4048, 4155), (4764, 4914), (5380, 5532), (5533, 5942)]),
+    ('infrastructure-intel', 'Infrastructure Intelligence', False, [(4048, 4155), (4764, 4914), ('ANCHOR:mx-routing', None), (5380, 5532), ('ANCHOR:subdomains-section', None), (5533, 5942)]),
 ]
 TAIL = [(2224, 2265), (2266, 2496), (2497, 2551), (2552, 2587), (3031, 3160),
         (3161, 3260), (3261, 3426), (3427, 3707), (3708, 3807), (3808, 3896),
@@ -33,7 +33,7 @@ TAIL = [(2224, 2265), (2266, 2496), (2497, 2551), (2552, 2587), (3031, 3160),
 # Coverage proof: every line 1..7340 exactly once.
 covered = []
 covered.append((1, 1036))
-for _, _, _, ranges in GROUPS: covered += ranges
+for _, _, _, ranges in GROUPS: covered += [r for r in ranges if not (isinstance(r[0], str))]
 covered += TAIL
 covered.append((5982, 7340))
 seen = [0] * (7340 + 1)
@@ -70,6 +70,8 @@ contract sit under "Ungrouped" in original order.</div>
   <a href="#transport-security">Transport Security</a>
   <a href="#brand-trust">Brand &amp; Trust</a>
   <a href="#infrastructure-intel">Infrastructure Intelligence</a>
+  <a href="#mx-routing">MX &amp; Routing</a>
+  <a href="#subdomains-section">Subdomains</a>
   <a href="#v2-ungrouped">Ungrouped</a>
   <a href="#dns-evidence">Evidence &amp; History</a>
   <a href="#findings-summary">Findings</a>
@@ -85,6 +87,9 @@ for anchor, title, is_open, ranges in GROUPS:
     out.append(f'<summary>{title} <span class="v2-anchor">#{anchor}</span></summary>')
     out.append('<div class="v2-group-body">')
     for a, b in ranges:
+        if isinstance(a, str) and a.startswith('ANCHOR:'):
+            out.append(f'<div id="{a[7:]}"></div>')
+            continue
         out.append(seg(a, b))
     out.append('</div>\n</details>')
 out.append('<details class="v2-group" id="v2-ungrouped">')
