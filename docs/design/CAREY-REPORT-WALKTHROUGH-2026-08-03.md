@@ -51,6 +51,7 @@ Operational consequences, each one checkable:
 | Email Security content + **Big Picture Questions** | "really important" — first big destination, good detailed info |
 | Analysis Confidence expandable | good |
 | DKIM absent-selector handling | fine that it may not show — operators obfuscate selectors legitimately |
+| **ROE decline roll** (main.js:1280 — declining Rules of Engagement redirects to a certain youtu.be link) | protected personality. The humor is part of the "no one else is doing this" moat; survives every redesign. Note: it fires on DECLINE of the covert-mode gate, which is consent-coherent — the user opted out of the serious path, not into a trap |
 
 ## DEFECTS — live in v1, independent of the redesign
 
