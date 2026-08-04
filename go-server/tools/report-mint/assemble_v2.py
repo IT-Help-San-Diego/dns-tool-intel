@@ -19,13 +19,25 @@ assert len(lines) >= 7340, f"results.html has {len(lines)} lines; map expects 73
 def seg(a, b):  # 1-indexed inclusive
     return '\n'.join(lines[a-1:b])
 
+# (group_anchor, title, open_by_default, ranges, toc_chips[(label, target_anchor)])
 GROUPS = [
-    ('email-security', 'Email Security', True, [(1037, 2223)]),
-    ('domain-security', 'Domain Security', False, [(2588, 2772), (3897, 4047), (4156, 4295), (4915, 5379)]),
-    ('transport-security', 'Transport Security', False, [(4393, 4763)]),
-    ('brand-trust', 'Brand & Trust', False, [(2773, 3030)]),
-    ('infrastructure-intel', 'Infrastructure Intelligence', False, [(4048, 4155), (4764, 4914), ('ANCHOR:mx-routing', None), (5380, 5532), ('ANCHOR:subdomains-section', None), (5533, 5942)]),
+    ('email-security', 'Email Security', True, [(1037, 2223)],
+     [('SPF · DMARC · DKIM · MTA-STS · TLS-RPT · BIMI', 'section-email')]),
+    ('domain-security', 'Domain Security', False, [(2588, 2772), (3897, 4047), (4156, 4295), (4915, 5379)],
+     [('DANE / TLSA', 'section-dane'), ('Delegation Consistency', 'section-delegation-consistency'),
+      ('DNSSEC Operations', 'section-dnssec-ops'), ('DNSSEC & NS Delegation', 'section-dnssec')]),
+    ('transport-security', 'Transport Security', False, [(4393, 4763)],
+     [('Mail Transport — STARTTLS · MTA-STS policy · TLS-RPT', 'section-smtp')]),
+    ('brand-trust', 'Brand & Trust', False, [(2773, 3030)],
+     [('Brand Security — BIMI · VMC · CAA', 'section-brand')]),
+    ('infrastructure-intel', 'Infrastructure Intelligence', False, [(4048, 4155), (4764, 4914), ('ANCHOR:mx-routing', None), (5380, 5532), ('ANCHOR:subdomains-section', None), (5533, 5942)],
+     [('Nameserver Fleet', 'section-ns-fleet'), ('Infrastructure Intel', 'section-infra'),
+      ('Traffic & MX', 'section-traffic'), ('Subdomains', 'section-subdomains')]),
 ]
+UNGROUPED_CHIPS = [('Analysis Confidence', 'v2-ungrouped'), ('security.txt', 'section-securitytxt'),
+    ('Web3', 'section-web3'), ('AI Surface', 'section-ai'), ('Secret Exposure', 'section-secrets'),
+    ('Nmap DNS', 'section-nmap-dns'), ('Web Exposure', 'section-web-exposure'),
+    ('Propagation', 'section-propagation')]
 TAIL = [(2224, 2265), (2266, 2496), (2497, 2551), (2552, 2587), (3031, 3160),
         (3161, 3260), (3261, 3426), (3427, 3707), (3708, 3807), (3808, 3896),
         (4296, 4392), (5943, 5981)]
@@ -33,7 +45,7 @@ TAIL = [(2224, 2265), (2266, 2496), (2497, 2551), (2552, 2587), (3031, 3160),
 # Coverage proof: every line 1..7340 exactly once.
 covered = []
 covered.append((1, 1036))
-for _, _, _, ranges in GROUPS: covered += [r for r in ranges if not (isinstance(r[0], str))]
+for _, _, _, ranges, _ in GROUPS: covered += [r for r in ranges if not (isinstance(r[0], str))]
 covered += TAIL
 covered.append((5982, 7340))
 seen = [0] * (7340 + 1)
@@ -59,6 +71,11 @@ STYLE = '''
   details.v2-group > summary .v2-anchor { color: #9ca3af; font-size: .7rem;
                      font-family: ui-monospace, monospace; font-weight: 400; }
   .v2-group-body { padding: 0 .9rem .9rem; }
+  .v2-toc { display: inline-flex; gap: .35rem; flex-wrap: wrap; margin-top: .35rem; }
+  .v2-toc-chip { font-size: .72rem; font-weight: 400; padding: .1rem .5rem;
+                 border: 1px solid var(--border-muted, #3a3a3a); border-radius: 999px;
+                 text-decoration: none; color: var(--text-secondary, #9ca3af); white-space: nowrap; }
+  .v2-toc-chip:hover { border-color: var(--text-secondary, #9ca3af); }
   details.v2-group[open] > summary { border-bottom: 1px solid var(--border-default, #333); }
 </style>
 <div class="v2-banner screen-only">V2 STRUCTURAL PREVIEW — contract IA (groups + disclosure + nav); zero visual design;
@@ -89,7 +106,13 @@ contract sit under "Ungrouped" in original order.</div>
     var a = e.target && e.target.closest ? e.target.closest('a[href^="#"]') : null;
     if(!a) return;
     var t=document.getElementById(decodeURIComponent(a.getAttribute('href').slice(1)));
-    if(t) openFor(t);
+    if(!t) return;
+    openFor(t);
+    if (a.closest('summary')) {
+      // A chip inside a summary must navigate, not toggle the group shut.
+      e.preventDefault();
+      if ('#'+t.id === location.hash) { t.scrollIntoView(); } else { location.hash = t.id; }
+    }
   }, true);
 })();
 </script>
@@ -98,10 +121,14 @@ contract sit under "Ungrouped" in original order.</div>
 out = []
 out.append(seg(1, 1036))
 out.append(STYLE)
-for anchor, title, is_open, ranges in GROUPS:
+def chip_row(chips):
+    links = ' '.join(f'<a class="v2-toc-chip" href="#{a}">{l}</a>' for l, a in chips)
+    return f'<span class="v2-toc">{links}</span>'
+
+for anchor, title, is_open, ranges, chips in GROUPS:
     openattr = ' open' if is_open else ''
     out.append(f'<details class="v2-group" id="{anchor}"{openattr}>')
-    out.append(f'<summary>{title} <span class="v2-anchor">#{anchor}</span></summary>')
+    out.append(f'<summary>{title} <span class="v2-anchor">#{anchor}</span><br>{chip_row(chips)}</summary>')
     out.append('<div class="v2-group-body">')
     for a, b in ranges:
         if isinstance(a, str) and a.startswith('ANCHOR:'):
@@ -110,7 +137,7 @@ for anchor, title, is_open, ranges in GROUPS:
         out.append(seg(a, b))
     out.append('</div>\n</details>')
 out.append('<details class="v2-group" id="v2-ungrouped">')
-out.append('<summary>Ungrouped — pending contract v1.1 group homes <span class="v2-anchor">#v2-ungrouped</span></summary>')
+out.append('<summary>Ungrouped — pending contract v1.1 group homes <span class="v2-anchor">#v2-ungrouped</span><br>' + chip_row(UNGROUPED_CHIPS) + '</summary>')
 out.append('<div class="v2-group-body">')
 for a, b in TAIL:
     out.append(seg(a, b))

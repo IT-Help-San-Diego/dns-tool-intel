@@ -1051,6 +1051,11 @@
   details.v2-group > summary .v2-anchor { color: #9ca3af; font-size: .7rem;
                      font-family: ui-monospace, monospace; font-weight: 400; }
   .v2-group-body { padding: 0 .9rem .9rem; }
+  .v2-toc { display: inline-flex; gap: .35rem; flex-wrap: wrap; margin-top: .35rem; }
+  .v2-toc-chip { font-size: .72rem; font-weight: 400; padding: .1rem .5rem;
+                 border: 1px solid var(--border-muted, #3a3a3a); border-radius: 999px;
+                 text-decoration: none; color: var(--text-secondary, #9ca3af); white-space: nowrap; }
+  .v2-toc-chip:hover { border-color: var(--text-secondary, #9ca3af); }
   details.v2-group[open] > summary { border-bottom: 1px solid var(--border-default, #333); }
 </style>
 <div class="v2-banner screen-only">V2 STRUCTURAL PREVIEW — contract IA (groups + disclosure + nav); zero visual design;
@@ -1081,13 +1086,19 @@ contract sit under "Ungrouped" in original order.</div>
     var a = e.target && e.target.closest ? e.target.closest('a[href^="#"]') : null;
     if(!a) return;
     var t=document.getElementById(decodeURIComponent(a.getAttribute('href').slice(1)));
-    if(t) openFor(t);
+    if(!t) return;
+    openFor(t);
+    if (a.closest('summary')) {
+      // A chip inside a summary must navigate, not toggle the group shut.
+      e.preventDefault();
+      if ('#'+t.id === location.hash) { t.scrollIntoView(); } else { location.hash = t.id; }
+    }
   }, true);
 })();
 </script>
 
 <details class="v2-group" id="email-security" open>
-<summary>Email Security <span class="v2-anchor">#email-security</span></summary>
+<summary>Email Security <span class="v2-anchor">#email-security</span><br><span class="v2-toc"><a class="v2-toc-chip" href="#section-email">SPF · DMARC · DKIM · MTA-STS · TLS-RPT · BIMI</a></span></summary>
 <div class="v2-group-body">
         {{if not .IsPublicSuffix}}
         <div class="row section-email-security" id="section-email">
@@ -2279,7 +2290,7 @@ contract sit under "Ungrouped" in original order.</div>
 </div>
 </details>
 <details class="v2-group" id="domain-security">
-<summary>Domain Security <span class="v2-anchor">#domain-security</span></summary>
+<summary>Domain Security <span class="v2-anchor">#domain-security</span><br><span class="v2-toc"><a class="v2-toc-chip" href="#section-dane">DANE / TLSA</a> <a class="v2-toc-chip" href="#section-delegation-consistency">Delegation Consistency</a> <a class="v2-toc-chip" href="#section-dnssec-ops">DNSSEC Operations</a> <a class="v2-toc-chip" href="#section-dnssec">DNSSEC & NS Delegation</a></span></summary>
 <div class="v2-group-body">
         <hr class="section-separator-major">
 
@@ -3225,7 +3236,7 @@ contract sit under "Ungrouped" in original order.</div>
 </div>
 </details>
 <details class="v2-group" id="transport-security">
-<summary>Transport Security <span class="v2-anchor">#transport-security</span></summary>
+<summary>Transport Security <span class="v2-anchor">#transport-security</span><br><span class="v2-toc"><a class="v2-toc-chip" href="#section-smtp">Mail Transport — STARTTLS · MTA-STS policy · TLS-RPT</a></span></summary>
 <div class="v2-group-body">
         <!-- Mail Transport Security Section -->
         {{if and (not .IsPublicSuffix) $smtp (ne (mapGetStr "status" $smtp) "n/a")}}
@@ -3601,7 +3612,7 @@ contract sit under "Ungrouped" in original order.</div>
 </div>
 </details>
 <details class="v2-group" id="brand-trust">
-<summary>Brand & Trust <span class="v2-anchor">#brand-trust</span></summary>
+<summary>Brand & Trust <span class="v2-anchor">#brand-trust</span><br><span class="v2-toc"><a class="v2-toc-chip" href="#section-brand">Brand Security — BIMI · VMC · CAA</a></span></summary>
 <div class="v2-group-body">
         <hr class="section-separator-major">
 
@@ -3864,7 +3875,7 @@ contract sit under "Ungrouped" in original order.</div>
 </div>
 </details>
 <details class="v2-group" id="infrastructure-intel">
-<summary>Infrastructure Intelligence <span class="v2-anchor">#infrastructure-intel</span></summary>
+<summary>Infrastructure Intelligence <span class="v2-anchor">#infrastructure-intel</span><br><span class="v2-toc"><a class="v2-toc-chip" href="#section-ns-fleet">Nameserver Fleet</a> <a class="v2-toc-chip" href="#section-infra">Infrastructure Intel</a> <a class="v2-toc-chip" href="#section-traffic">Traffic & MX</a> <a class="v2-toc-chip" href="#section-subdomains">Subdomains</a></span></summary>
 <div class="v2-group-body">
         <!-- Nameserver Fleet Matrix Section -->
         {{if $ns_fleet}}
@@ -4693,7 +4704,7 @@ contract sit under "Ungrouped" in original order.</div>
 </div>
 </details>
 <details class="v2-group" id="v2-ungrouped">
-<summary>Ungrouped — pending contract v1.1 group homes <span class="v2-anchor">#v2-ungrouped</span></summary>
+<summary>Ungrouped — pending contract v1.1 group homes <span class="v2-anchor">#v2-ungrouped</span><br><span class="v2-toc"><a class="v2-toc-chip" href="#v2-ungrouped">Analysis Confidence</a> <a class="v2-toc-chip" href="#section-securitytxt">security.txt</a> <a class="v2-toc-chip" href="#section-web3">Web3</a> <a class="v2-toc-chip" href="#section-ai">AI Surface</a> <a class="v2-toc-chip" href="#section-secrets">Secret Exposure</a> <a class="v2-toc-chip" href="#section-nmap-dns">Nmap DNS</a> <a class="v2-toc-chip" href="#section-web-exposure">Web Exposure</a> <a class="v2-toc-chip" href="#section-propagation">Propagation</a></span></summary>
 <div class="v2-group-body">
         <!-- Analysis Confidence & Intelligence Currency — relocated below host/email so "who is doing what" leads -->
         {{if .UnifiedConfidence}}

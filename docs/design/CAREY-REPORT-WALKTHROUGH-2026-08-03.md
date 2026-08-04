@@ -58,6 +58,10 @@ Operational consequences, each one checkable:
 1. **Topology button ignores context.** It does not take you to *that report's* topology.
    "Valuable real estate — why is topology there if it doesn't even…" Either the button
    deep-links to `/topology?domain=<this>` (prefill + auto-run, the #235 pattern) or it goes.
+   **SHARPENED (2026-08-03 second pass): Carey leans REMOVAL — "why should it be there?
+   There's already a nav link back to topology." The chip should present both (deep-link
+   vs delete) with removal as the default unless the deep-link demonstrably earns the
+   real estate.**
 2. **Posture drift false-positives on DKIM keys.** Drift banner sometimes reports a DKIM
    key as changed when "it is the same fucking key." Suspected class: TXT representation
    artifacts (multi-string chunking / quoting / whitespace) comparing unequal strings for
@@ -77,6 +81,14 @@ Operational consequences, each one checkable:
    provider-limited items must be visually loud inside the posture card, not prose.
 6. **Density: full-screen-wide strips for tiny info** (registrar/RDAP, footprint).
    Compact grid treatment (the wireframe already does this).
+6b. **Collapsed groups must show their own table of contents (Carey, 2026-08-03 second
+   pass): "the rest of that row needs to be everything else that's in there so they can
+   see the hierarchy of what would be expanded… and if they ever click them it expands
+   and takes them to it."** DONE in the preview same night: TOC chips in every group
+   summary, click = open ancestors + navigate (verified: closed group opens, hash set,
+   target in viewport). RDAP/summary-strip "big long wasteful bar" reconfirmed on the
+   second pass — compaction stays a top design-lane item (ruling #6).
+
 7. **The hurry-path is MX → subdomains → DNSSEC.** "If I was really in a hurry the thing
    I'd be looking for is MX… then subdomains… then DNSSEC." MX renders ~line 5428
    (Traffic & Routing); subdomains at 5533; both were deep below the fold. Direct nav
