@@ -112,6 +112,37 @@ func TestResultsIndeterminate_AuxProtocols_NoFabrication(t *testing.T) {
         }
 }
 
+// TestResultsHeaderTopologyLinkCarriesDomain guards the report-to-topology
+// handoff: the live topology console must open with the exact ASCII domain
+// from the report, including URL encoding, rather than dropping the user's
+// context at the generic topology page.
+func TestResultsHeaderTopologyLinkCarriesDomain(t *testing.T) {
+        tmpl := mustLoadRealTemplates(t)
+        c, cfg := resultsRenderContext(t)
+
+        data := NewTemplateData(c, cfg, "")
+        data["Domain"] = "münchen.de"
+        data["AsciiDomain"] = "xn--mnchen-3ya.de"
+        data["AnalysisID"] = "test-id"
+        data["ReportMode"] = "E"
+        data["CovertMode"] = false
+        data["DomainExists"] = false
+        data["IsPublicSuffix"] = false
+        data["IsTLD"] = false
+        data["SectionTuning"] = map[string]string{}
+        data["Results"] = map[string]any{}
+
+        var buf strings.Builder
+        if err := tmpl.ExecuteTemplate(&buf, "results.html", data); err != nil {
+                t.Fatalf("results.html render failed: %v", err)
+        }
+        body := buf.String()
+        want := `href="/topology?domain=xn--mnchen-3ya.de"`
+        if !strings.Contains(body, want) {
+                t.Fatalf("Topology action dropped report domain; want %s", want)
+        }
+}
+
 // TestResultsIndeterminate_RegistryZone_CAA verifies the registry-zone health
 // card does not label CAA as "Not Set" when the CAA lookup was indeterminate.
 func TestResultsIndeterminate_RegistryZone_CAA(t *testing.T) {
