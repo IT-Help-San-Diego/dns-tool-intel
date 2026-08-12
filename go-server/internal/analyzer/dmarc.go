@@ -239,8 +239,39 @@ func suppressNoMailDMARCReporting(results map[string]any) {
         dmarc[mapKeyIssues] = filtered
 }
 
+// buildRUFNote reads ruf= in the context of the rest of the record rather than
+// on its own. A domain that publishes ruf= alongside rua= while holding an
+// enforcing policy has made a different choice than one that left a legacy tag
+// in place: ruf= is deprecated for reasons of PII exposure and receiver
+// support, neither of which speaks to whether the operator meant to ask for it.
+// Recommending removal without reading the policy mistakes a collection posture
+// for cruft — the analysis-of-alternatives failure that structured analytic
+// standards exist to catch.
 func buildRUFNote(tags dmarcTags) map[string]any {
         if tags.ruf != nil {
+                // Deliberate collection is only a defensible reading at FULL
+                // enforcement: pct<100 or t=y is a rollout in progress, where
+                // a leftover ruf= is most plausibly legacy cruft — exactly the
+                // case the conventional note handles, and asserting "alongside
+                // full enforcement" there would contradict the enforcement
+                // classifier's own "partial protection" verdict on the same
+                // report.
+                enforcing := tags.policy != nil && (*tags.policy == mapKeyQuarantine || *tags.policy == mapKeyReject) &&
+                        tags.pct == 100 && (tags.tTesting == nil || *tags.tTesting != "y")
+                if enforcing && tags.rua != nil {
+                        note := map[string]any{
+                                mapKeyStatus: "present",
+                                "posture":    "deliberate_collection",
+                        }
+                        if *tags.policy == mapKeyQuarantine {
+                                note["summary"] = "Forensic reporting (ruf) is published with aggregate reporting under a quarantine policy — a combination consistent with deliberate intelligence collection."
+                                note["detail"] = "This record pairs p=quarantine with both rua= and ruf=, which is not a default configuration. DMARCbis (draft-ietf-dmarc-dmarcbis) removed ruf= from the specification, and Google, Microsoft, and Yahoo do not honour ruf= requests, so publishing it collects from a minority of receivers at a known PII cost (RFC 7489 §7.3). Analysis of alternatives: the conventional reading is incomplete enforcement, but a competing hypothesis fits this evidence at least as well — the operator may value visibility into spoofing attempts over maximal blocking. Quarantine keeps failing mail inside the delivery path (RFC 7489 §6.3) rather than refusing it, and returns no SMTP failure to the sender, so a spoofing campaign is not told it has been caught and continues to run — and continues to be reported through rua=. This tool cannot observe intent and does not assert it; it reports that the configuration is consistent with deliberate collection, and on that basis does not recommend removing ruf= or raising the policy from the record alone. What this means if you receive mail from this domain: under quarantine, messages that fail DMARC are still delivered — typically to a spam or junk folder — not refused. A domain at p=quarantine is not a domain from which spoofed mail cannot reach you."
+                        } else {
+                                note["summary"] = "Forensic reporting (ruf) is published with aggregate reporting under a reject policy — deliberate forensic collection alongside full enforcement."
+                                note["detail"] = "This record pairs p=reject with both rua= and ruf=. DMARCbis (draft-ietf-dmarc-dmarcbis) removed ruf= from the specification and the major providers do not honour it, so publishing ruf= here appears to be a deliberate request for per-message forensics from the receivers that still send them, accepted at a known PII cost (RFC 7489 §7.3). Enforcement is already at its strongest setting, so this tool does not recommend removing the tag on the strength of the record alone — the PII exposure in RFC 7489 §7.3 is the trade-off worth reviewing, not the enforcement posture."
+                        }
+                        return note
+                }
                 return map[string]any{
                         mapKeyStatus: "present",
                         "summary":    "Forensic reporting (ruf) is configured, but most major providers do not send forensic reports.",

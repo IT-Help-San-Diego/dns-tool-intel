@@ -195,6 +195,76 @@ func TestBuildRUFNote_AbsentContent(t *testing.T) {
 	}
 }
 
+func TestBuildRUFNote_EnforcingWithRUA_DeliberateCollection(t *testing.T) {
+	ruf := "mailto:f@example.com"
+	rua := "mailto:a@example.com"
+	for _, tc := range []struct {
+		policy string
+		want   string
+	}{
+		{mapKeyQuarantine, "quarantine"},
+		{mapKeyReject, "reject"},
+	} {
+		policy := tc.policy
+		// pct: 100 mirrors parseDMARCTags' default for an absent pct= tag.
+		note := buildRUFNote(dmarcTags{ruf: &ruf, rua: &rua, policy: &policy, pct: 100})
+		if note["status"] != "present" {
+			t.Fatalf("%s: expected status=present", tc.policy)
+		}
+		if note["posture"] != "deliberate_collection" {
+			t.Fatalf("%s: expected posture=deliberate_collection, got %v", tc.policy, note["posture"])
+		}
+		summary := note["summary"].(string)
+		if !strings.Contains(summary, tc.want) {
+			t.Fatalf("%s: expected %q in summary, got %s", tc.policy, tc.want, summary)
+		}
+		if note["detail"] == nil || note["detail"] == "" {
+			t.Fatalf("%s: expected detail to be set", tc.policy)
+		}
+	}
+}
+
+func TestBuildRUFNote_ContextRequiresBothRUAAndEnforcement(t *testing.T) {
+	ruf := "mailto:f@example.com"
+	rua := "mailto:a@example.com"
+	none := "none"
+	quarantine := mapKeyQuarantine
+	// p=none with both reports: a legacy tag, not a collection posture.
+	note := buildRUFNote(dmarcTags{ruf: &ruf, rua: &rua, policy: &none})
+	if _, ok := note["posture"]; ok {
+		t.Fatal("p=none: expected legacy note without posture key")
+	}
+	// Enforcing policy but no rua: nothing indicates a deliberate reporting setup.
+	note = buildRUFNote(dmarcTags{ruf: &ruf, policy: &quarantine})
+	if _, ok := note["posture"]; ok {
+		t.Fatal("no rua: expected legacy note without posture key")
+	}
+}
+
+func TestBuildRUFNote_PartialEnforcementIsNotCollection(t *testing.T) {
+	ruf := "mailto:f@example.com"
+	rua := "mailto:a@example.com"
+	reject := mapKeyReject
+	testing_ := "y"
+	// pct<100 is a rollout in progress: the enforcement classifier calls the
+	// same record "partial protection", so the note must not assert full
+	// enforcement.
+	note := buildRUFNote(dmarcTags{ruf: &ruf, rua: &rua, policy: &reject, pct: 25})
+	if _, ok := note["posture"]; ok {
+		t.Fatal("pct=25: expected legacy note without posture key")
+	}
+	// t=y (testing) likewise reduces enforcement below "full".
+	note = buildRUFNote(dmarcTags{ruf: &ruf, rua: &rua, policy: &reject, pct: 100, tTesting: &testing_})
+	if _, ok := note["posture"]; ok {
+		t.Fatal("t=y: expected legacy note without posture key")
+	}
+	// pct=100, no t= — the deliberate-collection reading applies.
+	note = buildRUFNote(dmarcTags{ruf: &ruf, rua: &rua, policy: &reject, pct: 100})
+	if note["posture"] != "deliberate_collection" {
+		t.Fatalf("pct=100: expected deliberate_collection, got %v", note["posture"])
+	}
+}
+
 func TestEvaluateDMARCPolicy_NilPolicy(t *testing.T) {
 	status, msg, _ := evaluateDMARCPolicy(dmarcTags{pct: 100, aspf: "relaxed", adkim: "relaxed"})
 	if status != "info" {
