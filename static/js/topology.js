@@ -3891,6 +3891,14 @@
         // entry point the homepage form, the results-page Topology button and
         // history all land on: the scan starts on arrival rather than showing
         // an empty box whose placeholder reads like a wrong prefill.
+        //
+        // The autorun itself is gated SERVER-SIDE: the /topology handler
+        // injects window.__TOPO_AUTORUN=true only for botverify-HumanVerified
+        // page loads (completed classification, zero bot signal). JS-executing
+        // crawlers (Ahrefs Site Audit, Chrome-Lighthouse) render this page
+        // with ?domain= from history links — they get the prefill, never the
+        // auto-start. Missing/undefined flag (stale cache, replay, error)
+        // means NO autorun: fail closed.
         let AUTORUN_DOMAIN = null;
         if (!REPLAY && scanEls.form && scanEls.domain) {
             let raw = new URLSearchParams(location.search).get('domain') || '';
@@ -3986,7 +3994,7 @@
             } catch (e) { /* restore is best-effort */ }
         }
 
-        if (AUTORUN_DOMAIN && scanEls.run && scanEls.hud) {
+        if (AUTORUN_DOMAIN && window.__TOPO_AUTORUN === true && scanEls.run && scanEls.hud) {
             scanStart();
         }
 
