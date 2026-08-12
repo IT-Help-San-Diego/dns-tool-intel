@@ -214,3 +214,75 @@ func TestResult_StringFallthrough(t *testing.T) {
 		t.Errorf("VerifiedBot with empty BotName: got %q want verified_bot", got)
 	}
 }
+
+func TestClassify_AhrefsSiteAuditVerified(t *testing.T) {
+	// Live-verified 2026-08-12: PTR sardine530.ahrefs.net <-> 202.8.42.18.
+	ptr := map[string][]string{"202.8.42.18": {"sardine530.ahrefs.net."}}
+	forward := map[string][]string{"sardine530.ahrefs.net": {"202.8.42.18"}}
+	defer stubLookups(t, ptr, forward)()
+
+	r := Classify("Mozilla/5.0 (compatible; AhrefsSiteAudit/6.1; +http://ahrefs.com/robot/site-audit)", "202.8.42.18")
+	if r.Class != ClassVerifiedBot {
+		t.Fatalf("AhrefsSiteAudit must verify on .ahrefs.net PTR, got %v (%s)", r.Class, r.String())
+	}
+	if r.BotName != "AhrefsSiteAudit" {
+		t.Errorf("BotName=%q want AhrefsSiteAudit", r.BotName)
+	}
+	if got, want := r.String(), "verified_bot:AhrefsSiteAudit"; got != want {
+		t.Errorf("String()=%q want %q", got, want)
+	}
+}
+
+func TestClassify_ChromeLighthouseVerified(t *testing.T) {
+	// Live-verified 2026-08-12: PTR google-proxy-*.google.com <-> source IP.
+	ptr := map[string][]string{"74.125.215.199": {"google-proxy-74-125-215-199.google.com."}}
+	forward := map[string][]string{"google-proxy-74-125-215-199.google.com": {"74.125.215.199"}}
+	defer stubLookups(t, ptr, forward)()
+
+	r := Classify("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Chrome-Lighthouse", "74.125.215.199")
+	if r.Class != ClassVerifiedBot {
+		t.Fatalf("Chrome-Lighthouse must verify on .google.com PTR, got %v (%s)", r.Class, r.String())
+	}
+	if got, want := r.String(), "verified_bot:Chrome-Lighthouse"; got != want {
+		t.Errorf("String()=%q want %q", got, want)
+	}
+}
+
+func TestClassify_ChromeLighthouseSpoofedIsInvestigate(t *testing.T) {
+	// UA claims Chrome-Lighthouse but PTR does not verify — must NOT be human.
+	ptr := map[string][]string{"198.51.100.9": {"some-unrelated-vps.example.net."}}
+	forward := map[string][]string{"some-unrelated-vps.example.net": {"198.51.100.9"}}
+	defer stubLookups(t, ptr, forward)()
+
+	r := Classify("Chrome/136.0.0.0 Safari/537.36 Chrome-Lighthouse", "198.51.100.9")
+	if r.Class != ClassInvestigate {
+		t.Fatalf("spoofed Chrome-Lighthouse must be ClassInvestigate, got %v", r.Class)
+	}
+}
+
+func TestHumanVerified_FailClosedContract(t *testing.T) {
+	// A zero-value Result (any future error/short-circuit path) must NEVER
+	// report a verified human: ClassHuman is the zero value of Class, so the
+	// gate relies on the explicit Classified flag.
+	var zero Result
+	if zero.HumanVerified() {
+		t.Fatal("zero Result must fail closed (not HumanVerified)")
+	}
+
+	defer stubLookups(t, nil, nil)()
+	// Completed, no-bot-signal classification IS the one true positive.
+	r := Classify("Mozilla/5.0 (Macintosh; Intel Mac OS X) Safari/605", "203.0.113.7")
+	if !r.HumanVerified() {
+		t.Fatal("completed human classification must be HumanVerified")
+	}
+	// Investigate — empty UA — must not be HumanVerified.
+	r2 := Classify("", "203.0.113.8")
+	if r2.HumanVerified() {
+		t.Fatal("investigate classification must not be HumanVerified")
+	}
+	// Verified bot must not be HumanVerified.
+	r3 := Classify("DEVONagent/3.5 (Macintosh; Intel)", "73.45.12.99")
+	if r3.HumanVerified() {
+		t.Fatal("verified bot must not be HumanVerified")
+	}
+}

@@ -175,6 +175,10 @@ func (h *AnalysisHandler) ReplayPage(topo *TopologyHandler) gin.HandlerFunc {
 		data["ReplayDomain"] = analysis.Domain
 		data["ReplayTotalMs"] = hash.TotalDurationMs
 		data["ReplaySeconds"] = fmt.Sprintf("%.1f", float64(hash.TotalDurationMs)/1000.0)
+		// REPLAY mode never autoruns (topology.js: !REPLAY gate), and the
+		// template requires the key — explicit false keeps the fail-closed
+		// contract: only a live human page load may autorun.
+		data["Autorun"] = false
 		c.HTML(http.StatusOK, "topology.html", data)
 	}
 }

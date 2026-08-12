@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"sync"
 
+	"dnstool/go-server/internal/botverify"
 	"dnstool/go-server/internal/config"
 	"dnstool/go-server/internal/fixturecorpus"
 
@@ -64,6 +65,13 @@ func (h *TopologyHandler) Topology(c *gin.Context) {
 	data := NewTemplateData(c, h.Config, "topology")
 	data["SolverLayouts"] = h.SolverJSON()
 	data["FixtureCorpusJSON"] = FixtureCorpusJS()
+	// Autorun is the fail-closed server-side gate on the ?domain= scan
+	// auto-start. Only a COMPLETED botverify classification with zero bot
+	// signal (HumanVerified) may inject the autorun flag; JS-executing
+	// crawlers (Ahrefs Site Audit, Google Chrome-Lighthouse, Applebot, …)
+	// arrive here with ?domain= from history links and must get a prefilled
+	// idle box, not a scan. See topology.js AUTORUN_DOMAIN gate.
+	data["Autorun"] = botverify.Classify(c.Request.UserAgent(), c.ClientIP()).HumanVerified()
 	c.HTML(http.StatusOK, "topology.html", data)
 }
 
