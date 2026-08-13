@@ -207,6 +207,7 @@ The platform focuses on five major areas: email authentication (SPF, DKIM, DMARC
 <h3>2.1 DNS Query Process</h3>
 <p>DNS Tool collects records by querying multiple upstream resolvers (including Google Public DNS, Cloudflare, and Quad9) and comparing responses for consistency. The multi-resolver approach improves confidence by detecting resolver-specific anomalies such as caching artifacts, SERVFAIL responses, or DNSSEC validation failures.</p>
 <p>All queries use standard DNS protocols over UDP/53 and TCP/53. DNS-over-HTTPS (DoH) is used as a secondary validation channel when available.</p>
+<p><strong>Lookup-status tri-state (Zero-Fabrication).</strong> Every record query carries a <em>lookup status</em> through analysis, not only its answer set: <code>present</code> (an authoritative answer was received), <code>absent_confirmed</code> (the authoritative resolver returned NXDOMAIN/NODATA &mdash; a real, published absence), or <code>indeterminate</code> (the lookup did not complete authoritatively &mdash; a transient SERVFAIL, timeout, or network error, or a multi-resolver conflict with no majority winner while DNS is mid-propagation). An indeterminate result is <strong>never</strong> reported as &ldquo;no record found,&rdquo; because a transient failure is not evidence of absence. This discipline follows the error semantics defined for the email-authentication protocols &mdash; an SPF temperror is not a &ldquo;none&rdquo; result (RFC 7208 &sect;4.6) and a DMARC temporary DNS error is a TempError, not an absence of policy (RFC 7489 &sect;6.6.3) &mdash; and is applied uniformly across SPF, DMARC, DANE/TLSA (RFC 6698; RFC 7672 for SMTP), DNSSEC, BIMI, MTA-STS, TLS-RPT, and CAA. When a control is indeterminate, the security posture marks it &ldquo;could not verify&rdquo; and invites a re-run rather than scoring it as a missing control.</p>
 
 <h3>2.2 Record Types Collected</h3>
 <p>For each domain analyzed, DNS Tool collects and evaluates:</p>
@@ -420,7 +421,7 @@ The platform focuses on five major areas: email authentication (SPF, DKIM, DMARC
     <a href="https://dnstool.it-help.tech/reference-library">Reference Library</a> &middot;
     <a href="https://dnstool.it-help.tech/sources">Sources &amp; Citations</a>
   </p>
-  <p>&copy; 2024&ndash;2026 IT Help San Diego Inc. &middot; This document: CC BY 4.0 &middot; DNS Tool software: BUSL-1.1</p>
+  <p><strong>This document is licensed under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></strong> &mdash; you may share, adapt, translate, and build upon it for any purpose, including commercially, with attribution (&copy; 2024&ndash;2026 IT Help San Diego Inc. / Carey James Balboa). The DNS Tool software itself remains licensed under <a href="https://github.com/IT-Help-San-Diego/dns-tool-intel/blob/main/LICENSE">BUSL-1.1</a>.</p>
 </div>
 
 </body>
