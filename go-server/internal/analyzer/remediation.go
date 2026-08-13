@@ -521,7 +521,7 @@ func appendDKIMFixes(fixes []fix, ps protocolState, ds DKIMState, results map[st
                 selector := dkimSelectorForProvider(ps.primaryProvider)
                 fixes = append(fixes, fix{
                         Title:         "Provide Your DKIM Selector",
-                        Description:   fmt.Sprintf("No DKIM record was found at any of the %d common selector names this tool probes. DKIM selectors are arbitrary labels with no enumerating DNS record (RFC 6376), so this is not evidence that DKIM is absent. If you know your selector, provide it for a definitive check.", len(defaultDKIMSelectors)),
+                        Description:   fmt.Sprintf("No DKIM record was found at any of the %d common selector names this tool probes. DKIM selectors are arbitrary labels with no enumerating DNS record (RFC 6376), so this is not evidence that DKIM is absent. Find your selector — the s= value in the DKIM-Signature header of any email from this domain (RFC 6376 §3.5), the record at <selector>._domainkey.<domain>, or your mail provider's DKIM setup console — and provide it for a definitive check.", len(defaultDKIMSelectors)),
                         DNSHost:       selector + "._domainkey." + domain,
                         DNSType:       "TXT (or CNAME)",
                         DNSValue:      "v=DKIM1; k=rsa; p=<public_key>",
