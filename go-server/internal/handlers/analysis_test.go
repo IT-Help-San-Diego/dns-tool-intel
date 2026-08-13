@@ -411,6 +411,34 @@ func TestComputeDriftFromPrev(t *testing.T) {
                         t.Error("expected drift detected")
                 }
         })
+
+        // The dkim_selectors hash part was pinned to "" while extractSortedSelectors
+        // ignored the map shape AnalyzeDKIM emits; fixing the extractor changes every
+        // domain's canonical hash exactly once. That flip must be swallowed by the
+        // empty-fields guard: the fixed extractor reads both sides' (equal) selector
+        // sets, the field diff comes back empty, and no drift banner fires.
+        t.Run("one-time selector hash flip with equal results is swallowed", func(t *testing.T) {
+                prevHash := "hash_before_extractor_fix"
+                results := map[string]any{
+                        "dkim_analysis": map[string]any{
+                                "status": "success",
+                                "selectors": map[string]any{
+                                        "selector1._domainkey": map[string]any{"records": []any{"v=DKIM1; k=rsa; p=AAAA"}},
+                                        "klaviyo._domainkey":   map[string]any{"records": []any{"v=DKIM1; k=rsa; p=BBBB"}},
+                                },
+                        },
+                        "spf_analysis": map[string]any{"status": "success"},
+                }
+                prevJSON, _ := json.Marshal(results)
+                di := computeDriftFromPrev("hash_after_extractor_fix", prevAnalysisSnapshot{
+                        Hash:        &prevHash,
+                        ID:          7,
+                        FullResults: prevJSON,
+                }, results)
+                if di.Detected {
+                        t.Errorf("expected the hash-formula flip to be swallowed, got drift with fields %+v", di.Fields)
+                }
+        })
 }
 
 func TestAnalysisDuration(t *testing.T) {

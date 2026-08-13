@@ -35,8 +35,13 @@ const (
 )
 
 func dkimAnalysisCases() []TestCase {
-        rsa2048Record := testDKIMPrefix + strings.Repeat("A", 266)
-        rsa1024Record := testDKIMPrefix + strings.Repeat("A", 134)
+        // Base64 lengths chosen so the decoded byte counts equal REAL RSA
+        // SubjectPublicKeyInfo DER sizes (RFC 6376 p= is SPKI, not a bare
+        // modulus): 392 chars → 294 bytes = 2048-bit, 216 chars → 162 bytes =
+        // 1024-bit. The previous lengths (266/134) decoded to 199/102 bytes —
+        // sizes no real key has, calibrated to the old bare-modulus buckets.
+        rsa2048Record := testDKIMPrefix + strings.Repeat("A", 392)
+        rsa1024Record := testDKIMPrefix + strings.Repeat("A", 216)
 
         return []TestCase{
                 {

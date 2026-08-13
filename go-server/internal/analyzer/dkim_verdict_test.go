@@ -12,12 +12,14 @@ func TestEstimateKeyBits_Boundaries(t *testing.T) {
 		keyBytes int
 		want     int
 	}{
-		{"exactly 140", 140, 1024},
-		{"141 is 2048", 141, 2048},
-		{"exactly 300", 300, 2048},
-		{"301 is 4096", 301, 4096},
-		{"exactly 600", 600, 4096},
-		{"601 is large", 601, 601 * 8 / 10},
+		{"exactly 228", 228, 1024},
+		{"229 is 2048", 229, 2048},
+		{"exactly 358", 358, 2048},
+		{"359 is 3072", 359, 3072},
+		{"exactly 486", 486, 3072},
+		{"487 is 4096", 487, 4096},
+		{"exactly 700", 700, 4096},
+		{"701 is large", 701, (701 - 38) * 8},
 	}
 
 	for _, tt := range tests {

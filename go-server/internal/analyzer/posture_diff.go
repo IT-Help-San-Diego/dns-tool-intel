@@ -69,30 +69,44 @@ func ComputePostureDiff(prev, curr map[string]any) []PostureDiffField {
                 postureFieldEquals(curr, "tlsrpt_analysis", mapKeyTlsrptState, triStateIndeterminate)
         bimiIndet := postureFieldEquals(prev, "bimi_analysis", mapKeyBimiState, triStateIndeterminate) ||
                 postureFieldEquals(curr, "bimi_analysis", mapKeyBimiState, triStateIndeterminate)
+        // DKIM joins the same tri-state contract via its selector-census state:
+        // indeterminate means at least one selector probe never completed, so
+        // neither the status verdict nor the selector set can be compared —
+        // one side's census may simply be missing the selectors the other side
+        // saw. An absent_confirmed census (every probe authoritatively
+        // answered, nothing found) is NOT suppressed: that is real drift.
+        dkimIndet := postureFieldEquals(prev, mapKeyDkimAnalysis, mapKeyDkimState, triStateIndeterminate) ||
+                postureFieldEquals(curr, mapKeyDkimAnalysis, mapKeyDkimState, triStateIndeterminate)
+
+        // The DKIM status is a verdict DERIVED from the published key records
+        // plus provider inference — not a measurement. When both scans'
+        // canonicalized record sets are identical the domain's DKIM did not
+        // change, so a status flip is representation/parser/inference skew and
+        // reporting it fabricates drift ("it is the same key" — 2026-08-03
+        // walkthrough, defect 2). Suppression requires BOTH sets non-empty: an
+        // empty set proves nothing, so a disappearance still surfaces, and any
+        // real record change makes the sets differ. The genuine mover (MX, SPF)
+        // reports through its own fields.
+        pset := canonicalDKIMRecordSet(prev)
+        dkimSameRecords := pset != "" && pset == canonicalDKIMRecordSet(curr)
+
+        // Which status rows to suppress — same map idiom as suppressSorted below.
+        suppressStatus := map[string]bool{
+                "DKIM Status":    dkimSameRecords || dkimIndet,
+                "DANE Status":    daneIndet,
+                "DNSSEC Status":  dnssecIndet,
+                "SPF Status":     spfIndet,
+                "DMARC Status":   dmarcIndet,
+                "DMARC Policy":   dmarcIndet,
+                "CAA Status":     caaIndet,
+                "MTA-STS Status": mtaStsIndet,
+                "MTA-STS Mode":   mtaStsIndet,
+                "TLS-RPT Status": tlsRptIndet,
+                "BIMI Status":    bimiIndet,
+        }
 
         for _, f := range fields {
-                if daneIndet && f.label == "DANE Status" {
-                        continue
-                }
-                if dnssecIndet && f.label == "DNSSEC Status" {
-                        continue
-                }
-                if spfIndet && f.label == "SPF Status" {
-                        continue
-                }
-                if dmarcIndet && (f.label == "DMARC Status" || f.label == "DMARC Policy") {
-                        continue
-                }
-                if caaIndet && f.label == "CAA Status" {
-                        continue
-                }
-                if mtaStsIndet && (f.label == "MTA-STS Status" || f.label == "MTA-STS Mode") {
-                        continue
-                }
-                if tlsRptIndet && f.label == "TLS-RPT Status" {
-                        continue
-                }
-                if bimiIndet && f.label == "BIMI Status" {
+                if suppressStatus[f.label] {
                         continue
                 }
                 prevVal := extractPostureField(prev, f.section, f.key)
@@ -123,9 +137,10 @@ func ComputePostureDiff(prev, curr map[string]any) []PostureDiffField {
         // lookup yields an empty array that is NOT a confirmed removal. Suppress those
         // set diffs on the same tri-state basis as the status diffs above.
         suppressSorted := map[string]bool{
-                "SPF Records":   spfIndet,
-                "DMARC Records": dmarcIndet,
-                "CAA Tags":      caaIndet,
+                "SPF Records":    spfIndet,
+                "DMARC Records":  dmarcIndet,
+                "CAA Tags":       caaIndet,
+                "DKIM Selectors": dkimIndet,
         }
         for _, sf := range sortedFields {
                 if suppressSorted[sf.label] {
