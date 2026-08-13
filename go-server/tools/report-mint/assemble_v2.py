@@ -16,7 +16,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 SRC = ROOT / "templates" / "results.html"
 DST = ROOT / "templates" / "results_v2.html"
-SOURCE_LINE_COUNT = 7340
+SOURCE_LINE_COUNT = 7277
 
 lines = SRC.read_text().split("\n")
 assert len(lines) >= SOURCE_LINE_COUNT, (
@@ -52,7 +52,7 @@ GROUPS = (
         "Can this domain be impersonated by email?",
         "L1",
         True,
-        ((1037, 2223),),
+        ((974, 2160),),
         (
             ("SPF", "section-email"),
             ("DMARC", "section-email"),
@@ -70,7 +70,7 @@ GROUPS = (
         "Can DNS answers and certificate issuance be trusted?",
         "L1",
         False,
-        ((2588, 2772), (2909, 2963), (3897, 4047), (4156, 4295), (4915, 5379)),
+        ((2525, 2709), (2846, 2900), (3834, 3984), (4093, 4232), (4852, 5316)),
         (
             ("DANE / TLSA", "section-dane"),
             ("CAA", "section-caa"),
@@ -87,7 +87,7 @@ GROUPS = (
         "Will mail transport resist downgrade and interception?",
         "L1",
         False,
-        ((4393, 4763),),
+        ((4330, 4700),),
         (("STARTTLS", "section-smtp"), ("MTA-STS policy", "section-smtp"), ("TLS-RPT", "section-smtp")),
     ),
     Group(
@@ -98,7 +98,7 @@ GROUPS = (
         "Can this brand be convincingly faked?",
         "L1",
         False,
-        ((2773, 2908), (2964, 3030)),
+        ((2710, 2845), (2901, 2967)),
         (("BIMI & VMC", "section-brand"), ("CAA · see Domain Security", "section-caa")),
     ),
     Group(
@@ -110,18 +110,18 @@ GROUPS = (
         "L1",
         False,
         (
-            (3031, 3160),
-            (3161, 3260),
-            (3261, 3426),
-            (3427, 3707),
-            (3708, 3807),
-            (3808, 3896),
-            (4048, 4155),
-            (4296, 4392),
-            (4764, 4914),
-            (5380, 5532),
-            (5533, 5942),
-            (5943, 5981),
+            (2968, 3097),
+            (3098, 3197),
+            (3198, 3363),
+            (3364, 3644),
+            (3645, 3744),
+            (3745, 3833),
+            (3985, 4092),
+            (4233, 4329),
+            (4701, 4851),
+            (5317, 5469),
+            (5470, 5879),
+            (5880, 5918),
         ),
         (
             ("Registrar / RDAP", "section-infra"),
@@ -141,11 +141,11 @@ GROUPS = (
         "L2–L3",
         False,
         (
-            (2224, 2265),
-            (2266, 2496),
-            (2497, 2551),
-            (2552, 2587),
-            (5982, 6520),
+            (2161, 2202),
+            (2203, 2433),
+            (2434, 2488),
+            (2489, 2524),
+            (5919, 6457),
         ),
         (
             ("Analysis Confidence", "confidencePanel"),
@@ -160,7 +160,7 @@ GROUPS = (
 
 # Coverage proof: every canonical source line appears exactly once. Generated
 # workspace chrome is additive and therefore excluded from source coverage.
-covered: list[tuple[int, int]] = [(1, 1036), (6521, SOURCE_LINE_COUNT)]
+covered: list[tuple[int, int]] = [(1, 973), (6458, SOURCE_LINE_COUNT)]
 for group in GROUPS:
     covered.extend(group.ranges)
 seen = [0] * (SOURCE_LINE_COUNT + 1)
@@ -397,9 +397,9 @@ NAV = '<nav class="v2-nav screen-only" aria-label="Engineer report workspace">\n
 
 # Frame the report immediately after the subject header. The old L0 stack still
 # renders below, but the workspace/navigation now owns the first decision frame.
-out = [seg(1, 372), CSS, ORIENTATION, NAV, SCRIPT, seg(373, 1036), '<div class="v2-groups">']
+out = [seg(1, 372), CSS, ORIENTATION, NAV, SCRIPT, seg(373, 973), '<div class="v2-groups">']
 out.extend(group_markup(group) for group in GROUPS)
-out.extend(("</div>", seg(6521, SOURCE_LINE_COUNT)))
+out.extend(("</div>", seg(6458, SOURCE_LINE_COUNT)))
 html = "\n".join(out)
 html = html.replace('<main id="main-content" class="container my-4"', '<main id="main-content" class="container my-4 v2-workspace"', 1)
 html = html.replace("<title>", "<title>[ENGINEER WORKSPACE] ", 1)
