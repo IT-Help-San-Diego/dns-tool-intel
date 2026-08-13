@@ -1031,6 +1031,7 @@ func (a *Analyzer) CalculatePosture(results map[string]any) map[string]any {
 		"configured":                 acc.configured,
 		"absent":                     acc.absent,
 		"provider_limited":           acc.providerLimited,
+		"dkim_inconclusive":          ds == DKIMInconclusive,
 		"deliberate_monitoring":      deliberate,
 		"deliberate_monitoring_note": deliberateNote,
 		"verdicts":                   verdicts,

@@ -492,9 +492,9 @@
                                    spellcheck="false"
                                    autocomplete="off">
                             <button type="submit" class="topo-scan-btn" id="topoScanRun">Run</button>
-                            <button type="button" class="topo-scan-adv-btn" id="topoScanAdvBtn" aria-expanded="false" aria-controls="topoScanAdv">Adv</button>
+                            <button type="button" class="topo-scan-adv-btn" id="topoScanAdvBtn" aria-expanded="{{if .DKIMExpand}}true{{else}}false{{end}}" aria-controls="topoScanAdv">Adv</button>
                         </div>
-                        <div class="topo-scan-adv" id="topoScanAdv" hidden>
+                        <div class="topo-scan-adv" id="topoScanAdv"{{if not .DKIMExpand}} hidden{{end}}>
                             <label class="topo-scan-adv-label" for="topoDkim1">DKIM Selector 1</label>
                             <input type="text" class="topo-scan-input" id="topoDkim1" name="dkim_selector1" placeholder="e.g. google" autocapitalize="none" spellcheck="false" autocomplete="off">
                             <label class="topo-scan-adv-label" for="topoDkim2">DKIM Selector 2</label>
