@@ -1406,19 +1406,20 @@ html[data-bs-theme="dark"] .tooltip-inner {
 }
 
 .navbar .navbar-brand {
-    /* Fibonacci identity cluster: 5/8/13/21/34/55 px.
-       34px owl seal + 13px gap anchors the brand; 21px status chips
-       carry version/Beta; 8px chip gap; 5px name→status rhythm; 55px
-       target block gives the whole mark a stable optical center. */
-    --nav-fib-1: 5px;
-    --nav-fib-2: 8px;
-    --nav-fib-3: 13px;
-    --nav-fib-4: 21px;
-    --nav-fib-5: 34px;
-    --nav-fib-6: 55px;
+    /* Fibonacci identity rail: one horizontal read path.
+       34px owl seal anchors the rail; 13px gaps separate semantic groups;
+       8px separates adjacent status chips; 21px gives title/chips one optical
+       text rail. This avoids the stacked-pill illusion where the version text
+       appears unaligned even when the boxes are mathematically aligned. */
+    --nav-fib-1: 3px;
+    --nav-fib-2: 5px;
+    --nav-fib-3: 8px;
+    --nav-fib-4: 13px;
+    --nav-fib-5: 21px;
+    --nav-fib-6: 34px;
     display: grid;
-    grid-template-columns: var(--nav-fib-5) auto;
-    column-gap: var(--nav-fib-3);
+    grid-template-columns: var(--nav-fib-6) auto;
+    column-gap: var(--nav-fib-4);
     align-items: center;
     min-height: var(--nav-fib-6);
     flex-shrink: 1;
@@ -1432,32 +1433,35 @@ html[data-bs-theme="dark"] .tooltip-inner {
     grid-row: 1;
     flex-shrink: 0;
     line-height: 0;
-    width: var(--nav-fib-5);
-    height: var(--nav-fib-5);
+    width: var(--nav-fib-6);
+    height: var(--nav-fib-6);
 }
 
 .navbar-brand-owl {
     flex-shrink: 0;
-    width: var(--nav-fib-5);
-    height: var(--nav-fib-5);
+    width: var(--nav-fib-6);
+    height: var(--nav-fib-6);
 }
 
 .navbar-brand-text {
     grid-column: 2;
     grid-row: 1;
-    display: grid;
-    grid-template-rows: auto var(--nav-fib-4);
-    row-gap: var(--nav-fib-1);
+    display: inline-flex;
     align-items: center;
-    line-height: 1;
+    gap: var(--nav-fib-4);
     min-width: 0;
+    min-height: var(--nav-fib-6);
+    line-height: 1;
 }
 
 .navbar-brand-name {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--nav-fib-5);
     font-size: 1rem;
     font-weight: 600;
     letter-spacing: 0.01em;
-    line-height: 1;
+    line-height: var(--nav-fib-5);
 }
 
 .navbar .u-nav-controls {
@@ -1465,13 +1469,12 @@ html[data-bs-theme="dark"] .tooltip-inner {
     white-space: nowrap;
 }
 
-/* Brand sub-line: version chip + Beta tag on one row under the name.
-   Mirrors the Calibration Scope control-strip identity cluster. */
+/* Brand status rail: version + Beta read inline with the product name. */
 .navbar-brand-sub {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: var(--nav-fib-2);
-    min-height: var(--nav-fib-4);
+    gap: var(--nav-fib-3);
+    min-height: var(--nav-fib-5);
     margin-top: 0;
     flex-wrap: nowrap;
 }
@@ -1480,14 +1483,15 @@ html[data-bs-theme="dark"] .tooltip-inner {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: var(--nav-fib-4);
+    min-height: var(--nav-fib-5);
+    height: var(--nav-fib-5);
     margin: 0;
     align-self: center;
     line-height: 1;
     padding-top: 0;
     padding-bottom: 0;
-    padding-left: var(--nav-fib-2);
-    padding-right: var(--nav-fib-2);
+    padding-left: var(--nav-fib-3);
+    padding-right: var(--nav-fib-3);
 }
 .navbar-brand-sub .u-beta-tag {
     position: static;
@@ -1598,9 +1602,9 @@ html[data-bs-theme="dark"] .tooltip-inner {
         --nav-fib-1: 3px;
         --nav-fib-2: 5px;
         --nav-fib-3: 8px;
-        --nav-fib-4: 21px;
-        --nav-fib-5: 34px;
-        --nav-fib-6: 55px;
+        --nav-fib-4: 13px;
+        --nav-fib-5: 21px;
+        --nav-fib-6: 34px;
     }
 
     .navbar-brand-owl {
@@ -1850,9 +1854,9 @@ html[data-bs-theme="dark"] .tooltip-inner {
         --nav-fib-1: 3px;
         --nav-fib-2: 5px;
         --nav-fib-3: 8px;
-        --nav-fib-4: 21px;
-        --nav-fib-5: 34px;
-        --nav-fib-6: 55px;
+        --nav-fib-4: 13px;
+        --nav-fib-5: 21px;
+        --nav-fib-6: 34px;
     }
 
     .navbar-brand-owl {
