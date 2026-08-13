@@ -48,16 +48,18 @@ def find_declaration_line(path, symbol):
 def declaration_block(path, decl):
     """Return the source text of the declaration at 1-indexed `decl`.
 
-    A `func`/`var ( ... )`/`const ( ... )` guard hashes from its declaration
-    line through the closing brace at the declaration's INDENT level — the
-    whole validator body, not just the first line — so gutting a function to
-    `return true` (or weakening a validator) changes the hash. A single-line
-    declaration (no `{`) hashes as its line alone."""
+    Keyed on the Go TOKEN, not brace presence: only a `func` has a body whose
+    content must be hashed (gutting it to `return true` must change the hash),
+    so a func hashes from its declaration line through the closing brace at the
+    declaration's indent level. A `var`/`const`/`type` is a single-line
+    declaration and hashes as its line alone — so brace characters that are
+    REGEX syntax (e.g. `{0,61}` in a validator pattern) or a composite-literal
+    opener are never misread as Go block syntax."""
     with open(path, "r", encoding="utf-8") as fh:
         lines = fh.readlines()
     first = lines[decl - 1]
-    if "{" not in first:
-        return first.strip()  # single-line var/const — hash the line
+    if not first.lstrip().startswith(("func ", "func (")):
+        return first.strip()  # var/const/type — hash the line
     if "}" in first:
         return first.strip()  # one-liner func — { ... } on the decl line
     indent = len(first) - len(first.lstrip())
