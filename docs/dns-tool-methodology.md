@@ -96,6 +96,12 @@ DKIM evaluation checks:
 - Selector discovery using common selector patterns
 - Key rotation indicators
 
+**Absence is not a reportable DKIM finding.** A DKIM public key is published at `selector._domainkey.domain`, where the selector is an arbitrary label chosen by the signer. No DNS record enumerates a domain's selectors, so a negative probe is a statement about the names tried, never about the domain: it establishes that the domain does not publish keys under *those* selectors, not that it does not sign. DNS Tool therefore probes a curated list of 81 selector names in wide use, and when none resolves it records the result as `inconclusive` rather than absent, following the lookup-status discipline described in §2.1. An inconclusive DKIM control is not listed among a domain's missing controls, because the analysis did not establish that it is missing.
+
+An inconclusive DKIM result is resolvable by the reader, and it is the only verdict in the system for which the deciding input exists outside the instrument. The selector appears in the `s=` tag of the `DKIM-Signature` header of any message the domain has signed (RFC 6376 §3.5), it is visible in the zone at `selector._domainkey.domain`, and mail providers display it during DKIM setup. A selector supplied to the analyzer is merged with the default list before probing, and the evaluation records which selectors were tried and whether any were user-supplied. That provenance is asymmetric evidence: a supplied selector that resolves strengthens the finding, because any reader can re-query the same name; a supplied selector that fails to resolve does not establish absence, for the reason above.
+
+**Key strength is recorded independently of the verification outcome.** Weak-key detection is orthogonal to whether DKIM verifies — a domain may sign correctly with a key below the recommended strength — so a key at or below 1024 bits raises an RFC 6376 §3.3.3 finding alongside the primary result rather than replacing it. Both facts are reported: that signing works, and that the key should be upgraded to 2048-bit RSA or Ed25519.
+
 ### 3.4 DMARC Analysis (RFC 7489)
 
 DMARC evaluation checks:
@@ -272,7 +278,7 @@ Published EDE entries are governed by a tamper resistance policy that permits am
 
 DNS Tool operates exclusively on publicly available DNS information. As a result, it cannot evaluate internal email infrastructure, private key security, or server-side enforcement mechanisms. The tool focuses on observable infrastructure posture rather than complete operational security evaluation.
 
-- DKIM analysis is limited to known selectors unless additional selectors are provided
+- DKIM analysis probes 81 known selector names; a domain signing under an unlisted selector is recorded as inconclusive rather than absent, and is not listed among that domain's missing controls. Supplying the selector resolves the check.
 - DNSSEC validation depends on resolver support and may vary across network environments
 - Results represent a point-in-time snapshot; DNS configurations change frequently
 - The confidence model is heuristic-based and may not capture all edge cases

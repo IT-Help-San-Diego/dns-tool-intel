@@ -8,6 +8,23 @@ Version 26.46.15 · Effective 2026-03-18
 
 ---
 
+## The Owl Semaphore System
+
+The Owl Semaphore is a separately published work: Balboa, C. J. (2026). *Owl Semaphore Badge System* (v3.0.1). Zenodo. DOI [10.5281/zenodo.21524422](https://doi.org/10.5281/zenodo.21524422) (version-specific; concept DOI [10.5281/zenodo.19473697](https://doi.org/10.5281/zenodo.19473697)). The classification below renders the normative specification for reader convenience; the authoritative definition and its machine-verified algebra live in the owl-semaphore repository.
+
+The Owl of Athena encodes document classification as semantic state through orientation and color. Each designation is a distance-preserving isometry drawn from the orthogonal group O(2). The system uses four transforms — the Klein four-group V₄ — to classify every publication in the DNS Tool corpus.
+
+| Designation | Transform | Mapping | Meaning | RFC 2119 |
+|---|---|---|---|---|
+| **NORMATIVE** | `T = I`, det = +1 | (x, y) → (x, y) | "This is the standard." | MUST / SHALL |
+| **NON-NORMATIVE** | `T = σᵥ`, det = −1 | (x, y) → (−x, y) | "This reflects the standard." | Informative / Advisory (NOTE) |
+| **CRITICAL** | `T = C₂`, det = +1 | (x, y) → (−x, −y) | "This inverts the standard." | MUST NOT / SHALL NOT |
+| **METACOGNITIVE** | `T = σₕ`, det = −1 | (x, y) → (x, −y) | "This audits the standard." | Observer audit / Frame inversion |
+
+**Klein Four-Group V₄ — Closure in O(2):** `I · σᵥ · C₂ · σₕ`  |  `σ ∘ σ = I` · `C₂ = σᵥ ∘ σₕ` · Every element is its own inverse.
+
+**Redundant encoding:** In the HTML/PDF edition, color, orientation, and context label provide three independent channels; this markdown copy carries the label channel only. **Standards mapping:** Normative = RFC 2119 MUST/SHALL. Non-normative = Informative/NOTE. Critical = RFC 2119 MUST NOT/SHALL NOT; CVE/Security advisory. Metacognitive = Observer audit/Frame inversion.
+
 ## 1. Dual-Gate Requirement
 
 Every piece of user-facing text must pass **both** gates simultaneously. Passing one gate but failing the other is a failure.
