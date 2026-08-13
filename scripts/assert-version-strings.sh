@@ -80,7 +80,7 @@ extract_version_values() {
         -e 's/.*version(&nbsp;)+[[:space:]]*=[[:space:]]*\{([^}]*)\}.*/\2/p' \
         -e 's/^Version[[:space:]]+([^[:space:]]+).*/\1/p' \
         -e 's/.*DNS Tool v([^[:space:]]+).*/\1/p' \
-        -e 's/.*Enforced values as of v([0-9][0-9A-Za-z.\-]*).*/\1/p' \
+        -e 's/.*[Ee]nforced values as of v([0-9][0-9A-Za-z.\-]*).*/\1/p' \
     | sed -E 's/["{},]//g; s/^[[:space:]]+//; s/[[:space:]]+$//' \
     | grep -vE '^$' || true
 }
@@ -180,7 +180,7 @@ has_distinct_version_doi() {
 # signal-clean. Only keyed occurrences are version declarations a human must
 # see; incidental matches are not classified as version-bearing at all.
 has_version_keyed_26() {
-  grep -qE '("version"[[:space:]]*:[[:space:]]*"?26\.[0-9]|^version[[:space:]]*:[[:space:]]*"?26\.[0-9]|version[[:space:]]*=[[:space:]]*\{26\.[0-9]|Version[[:space:]]+26\.[0-9]|\*\*Version:\*\*[[:space:]]*v?26\.[0-9]|Version</span>&ensp;26\.[0-9]|version(&nbsp;)+[[:space:]]*=[[:space:]]*\{26\.[0-9]|DNS Tool v26\.[0-9]|Enforced values as of v26\.[0-9])' "$1" 2>/dev/null
+  grep -qE '("version"[[:space:]]*:[[:space:]]*"?26\.[0-9]|^version[[:space:]]*:[[:space:]]*"?26\.[0-9]|version[[:space:]]*=[[:space:]]*\{26\.[0-9]|Version[[:space:]]+26\.[0-9]|\*\*Version:\*\*[[:space:]]*v?26\.[0-9]|Version</span>&ensp;26\.[0-9]|version(&nbsp;)+[[:space:]]*=[[:space:]]*\{26\.[0-9]|DNS Tool v26\.[0-9]|[Ee]nforced values as of v26\.[0-9])' "$1" 2>/dev/null
 }
 
 MANIFEST_RE=$(printf '|%s' "${DEPOSIT_VERSION_FILES[@]}"); MANIFEST_RE="${MANIFEST_RE:1}"

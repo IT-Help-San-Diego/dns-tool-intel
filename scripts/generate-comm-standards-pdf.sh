@@ -20,10 +20,10 @@ if [ -n "$VERSION" ]; then
   echo "Updating communication standards version to ${VERSION}..."
 
   "$SED" -i -E "s/Version<\/span>\&ensp;[0-9]+\.[0-9]+\.[0-9]+/Version<\/span>\&ensp;${VERSION}/" docs/communication-standards.html
-  "$SED" -i -E "s/Enforced values as of v[0-9]+\.[0-9]+\.[0-9]+/Enforced values as of v${VERSION}/" docs/communication-standards.html
+  "$SED" -i -E "s/([Ee])nforced values as of v[0-9]+\.[0-9]+\.[0-9]+/\1nforced values as of v${VERSION}/" docs/communication-standards.html
   "$SED" -i -E "s/DNS Tool v[0-9]+\.[0-9]+\.[0-9]+/DNS Tool v${VERSION}/" docs/communication-standards.html
   "$SED" -i -E "s/Version [0-9]+\.[0-9]+\.[0-9]+/Version ${VERSION}/" docs/COMMUNICATION_STANDARDS.md
-  "$SED" -i -E "s/Enforced values as of v[0-9]+\.[0-9]+\.[0-9]+/Enforced values as of v${VERSION}/" docs/COMMUNICATION_STANDARDS.md
+  "$SED" -i -E "s/([Ee])nforced values as of v[0-9]+\.[0-9]+\.[0-9]+/\1nforced values as of v${VERSION}/" docs/COMMUNICATION_STANDARDS.md
   "$SED" -i -E "s/DNS Tool v[0-9]+\.[0-9]+\.[0-9]+/DNS Tool v${VERSION}/" docs/COMMUNICATION_STANDARDS.md
 
   echo "Version updated in .html and .md"
