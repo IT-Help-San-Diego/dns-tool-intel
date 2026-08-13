@@ -1444,6 +1444,51 @@ html[data-bs-theme="dark"] .tooltip-inner {
     white-space: nowrap;
 }
 
+/* Brand sub-line: version chip + Beta tag on one row under the name.
+   Mirrors the Calibration Scope control-strip identity cluster. */
+.navbar-brand-sub {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.15rem;
+    flex-wrap: nowrap;
+}
+.navbar-brand-sub .nav-version-badge {
+    margin-top: 0;
+    align-self: center;
+}
+.navbar-brand-sub .u-covert-beta-tag {
+    position: static;
+    margin: 0;
+}
+
+/* LOCAL ⇄ WEB context flipper — left, next to the brand identity.
+   LOCAL ⇄ WEB with spaces around ⇄ (Calibration Scope #context-flip pattern). */
+.nav-context-flip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-left: 0.85rem;
+    padding: 0.2rem 0.6rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    border: 1px solid rgba(212, 168, 83, 0.4);
+    border-radius: 999px;
+    text-decoration: none;
+    white-space: nowrap;
+    align-self: center;
+    transition: border-color 0.2s, background 0.2s;
+}
+.nav-context-flip .cur { color: var(--accent-gold, #d4a853); }
+.nav-context-flip .s { color: rgba(230, 237, 243, 0.45); font-weight: 400; }
+.nav-context-flip { color: rgba(230, 237, 243, 0.6); }
+.nav-context-flip:hover {
+    border-color: rgba(212, 168, 83, 0.75);
+    background: rgba(212, 168, 83, 0.08);
+    text-decoration: none;
+}
+
 /* ============================================
    NAVBAR COLLAPSE — Right-Aligned Dropdown Overlay
    ============================================ */
