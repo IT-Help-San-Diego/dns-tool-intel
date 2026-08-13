@@ -341,17 +341,6 @@ func TestAppendDKIMFixes_WeakKeys(t *testing.T) {
 	}
 }
 
-func TestAppendDKIMFixes_Absent(t *testing.T) {
-	ps := protocolState{}
-	fixes := appendDKIMFixes(nil, ps, DKIMAbsent, nil, "example.com")
-	if len(fixes) != 1 {
-		t.Fatalf("expected 1 fix, got %d", len(fixes))
-	}
-	if fixes[0].Title != "Configure DKIM Signing" {
-		t.Errorf("title = %q", fixes[0].Title)
-	}
-}
-
 func TestAppendDKIMFixes_ThirdPartyOnly(t *testing.T) {
 	ps := protocolState{}
 	fixes := appendDKIMFixes(nil, ps, DKIMThirdPartyOnly, nil, "example.com")
@@ -775,7 +764,7 @@ func TestAppendDKIMFixes_Inconclusive(t *testing.T) {
 	if len(fixes) != 1 {
 		t.Fatalf("expected 1 fix for inconclusive, got %d", len(fixes))
 	}
-	if fixes[0].Title != "Configure DKIM Signing" {
+	if fixes[0].Title != "Provide Your DKIM Selector" {
 		t.Errorf("title = %q", fixes[0].Title)
 	}
 }

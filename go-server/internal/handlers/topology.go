@@ -72,6 +72,7 @@ func (h *TopologyHandler) Topology(c *gin.Context) {
 	// arrive here with ?domain= from history links and must get a prefilled
 	// idle box, not a scan. See topology.js AUTORUN_DOMAIN gate.
 	data["Autorun"] = botverify.Classify(c.Request.UserAgent(), c.ClientIP()).HumanVerified()
+	data["DKIMExpand"] = c.Query("dkim") != ""
 	c.HTML(http.StatusOK, "topology.html", data)
 }
 

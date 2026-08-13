@@ -8,11 +8,16 @@ import "fmt"
 type DKIMState int
 
 const (
-	DKIMAbsent DKIMState = iota
+	// DKIMInconclusive is the zero value so an unassigned or zero-valued
+	// DKIMState defaults to the HONEST state ("could not determine") rather
+	// than DKIMAbsent — which the classifier can no longer produce and which
+	// would wrongly read as a positive "no DKIM" claim (and route to the
+	// now-removed NeedsAction).
+	DKIMInconclusive DKIMState = iota
+	DKIMAbsent
 	DKIMSuccess
 	DKIMProviderInferred
 	DKIMThirdPartyOnly
-	DKIMInconclusive
 	DKIMWeakKeysOnly
 	DKIMNoMailDomain
 )
@@ -54,10 +59,6 @@ func (s DKIMState) IsConfigured() bool {
 	return false
 }
 
-func (s DKIMState) NeedsAction() bool {
-	return s == DKIMAbsent
-}
-
 func (s DKIMState) NeedsMonitoring() bool {
 	return s == DKIMInconclusive
 }
@@ -78,5 +79,10 @@ func classifyDKIMState(ps protocolState) DKIMState {
 	if ps.dkimWeakKeys {
 		return DKIMWeakKeysOnly
 	}
-	return DKIMAbsent
+	// No selector matched on a mail domain. DKIM selectors are arbitrary
+	// labels with no enumerating DNS record (RFC 6376), so "nothing found at
+	// any probed selector" is INCONCLUSIVE — it proves only that the domain
+	// does not use THOSE names, never that it does not sign. Reporting it as
+	// DKIMAbsent would count a guess as a measurement.
+	return DKIMInconclusive
 }

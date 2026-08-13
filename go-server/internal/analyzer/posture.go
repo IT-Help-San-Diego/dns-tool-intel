@@ -582,7 +582,7 @@ func classifyDMARCWarning(ps protocolState, acc *postureAccumulator) {
 	}
 }
 
-func classifyDKIMPosture(ds DKIMState, primaryProvider string, acc *postureAccumulator) {
+func classifyDKIMPosture(ps protocolState, ds DKIMState, primaryProvider string, acc *postureAccumulator) {
 	switch ds {
 	case DKIMSuccess:
 		acc.configured = append(acc.configured, "DKIM")
@@ -594,8 +594,6 @@ func classifyDKIMPosture(ds DKIMState, primaryProvider string, acc *postureAccum
 		acc.recommendations = append(acc.recommendations, "Configure DKIM signing for your primary domain selector in addition to third-party services")
 	case DKIMWeakKeysOnly:
 		acc.configured = append(acc.configured, "DKIM (weak keys)")
-		acc.issues = append(acc.issues, "DKIM keys are weak (1024-bit or less) — RFC 6376 §3.3.3 requires minimum 1024-bit RSA; 2048-bit is the current operational standard. Keys below 1024-bit are considered cryptographically breakable")
-		acc.recommendations = append(acc.recommendations, "Upgrade DKIM keys to 2048-bit RSA or Ed25519")
 	case DKIMNoMailDomain:
 		acc.configured = append(acc.configured, "DKIM (not applicable — no-mail domain)")
 	case DKIMInconclusive:
@@ -611,10 +609,22 @@ func classifyDKIMPosture(ds DKIMState, primaryProvider string, acc *postureAccum
 		// unverifiable control there reported a guess as a measurement. The
 		// monitoring note carries it instead: visible, flagged as needing
 		// attention, counted as neither configured nor absent.
-		acc.monitoring = append(acc.monitoring, "DKIM status is inconclusive — no record was found at any selector name this tool probes, and selectors are not enumerable from DNS, so this is not evidence that DKIM is absent")
+		acc.monitoring = append(acc.monitoring, fmt.Sprintf(
+			"DKIM status is inconclusive — no record was found at any of the %d common selector names this tool probes. DKIM selectors are arbitrary labels with no enumerating DNS record (RFC 6376), so this is not evidence that DKIM is absent. To resolve it, find the selector: the s= value in the DKIM-Signature header of any email from this domain (RFC 6376 §3.5), the record at <selector>._domainkey.<domain>, or your mail provider's DKIM setup console — then enter it and we'll verify.",
+			len(defaultDKIMSelectors),
+		))
 	case DKIMAbsent:
 		acc.absent = append(acc.absent, "DKIM")
 		acc.recommendations = append(acc.recommendations, "Configure DKIM signing to cryptographically authenticate outgoing email — RFC 6376 defines the mechanism; without it, messages cannot be verified as unaltered in transit")
+	}
+	// Co-occurring weak-key warning: weakKeys is derived independently of the
+	// primary state in evaluateDKIMIssues, so it pairs with success,
+	// provider-inferred, or third-party. Emitting it only in the
+	// DKIMWeakKeysOnly case masks a breakable-key finding behind a passing
+	// label. Fire it whenever weak keys were detected, alongside the primary.
+	if ps.dkimWeakKeys {
+		acc.issues = append(acc.issues, "DKIM keys are weak (1024-bit or less) — RFC 6376 §3.3.3 requires minimum 1024-bit RSA; 2048-bit is the current operational standard. Keys below 1024-bit are considered cryptographically breakable")
+		acc.recommendations = append(acc.recommendations, "Upgrade DKIM keys to 2048-bit RSA or Ed25519")
 	}
 }
 
@@ -947,7 +957,7 @@ func (a *Analyzer) CalculatePosture(results map[string]any) map[string]any {
 	if !isTLD {
 		classifySPF(ps, acc)
 		classifyDMARC(ps, acc)
-		classifyDKIMPosture(ds, ps.primaryProvider, acc)
+		classifyDKIMPosture(ps, ds, ps.primaryProvider, acc)
 	}
 	classifySimpleProtocols(ps, isTLD, acc)
 	classifyDanglingDNS(results, acc)
@@ -1028,6 +1038,7 @@ func (a *Analyzer) CalculatePosture(results map[string]any) map[string]any {
 		"configured":                 acc.configured,
 		"absent":                     acc.absent,
 		"provider_limited":           acc.providerLimited,
+		"dkim_inconclusive":          ds == DKIMInconclusive,
 		"deliberate_monitoring":      deliberate,
 		"deliberate_monitoring_note": deliberateNote,
 		"verdicts":                   verdicts,
