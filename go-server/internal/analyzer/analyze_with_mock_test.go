@@ -245,6 +245,33 @@ func TestAnalyzeDKIM_WithMock_NoSelectors(t *testing.T) {
         }
 }
 
+func TestAnalyzeDKIM_ProvenanceFields(t *testing.T) {
+        a := newMockAnalyzer()
+        mock := a.DNS.(*MockDNSClient)
+
+        mock.AddResponse("MX", "prov.example.com", []string{"10 mail.prov.example.com."})
+        mock.AddResponse("TXT", "prov.example.com", []string{})
+        mock.AddResponse("NS", "_domainkey.prov.example.com", []string{})
+
+        ctx := context.Background()
+
+        res := a.AnalyzeDKIM(ctx, "prov.example.com", []string{"10 mail.prov.example.com."}, nil)
+        if got := res["probe_scope"]; got != len(defaultDKIMSelectors) {
+                t.Errorf("probe_scope = %v, want %d (defaults only)", got, len(defaultDKIMSelectors))
+        }
+        if got := res["selector_source"]; got != "defaults_only" {
+                t.Errorf("selector_source = %v, want defaults_only", got)
+        }
+
+        res2 := a.AnalyzeDKIM(ctx, "prov.example.com", []string{"10 mail.prov.example.com."}, []string{"mycustom"})
+        if got := res2["selector_source"]; got != "user_supplied" {
+                t.Errorf("selector_source = %v, want user_supplied", got)
+        }
+        if got := res2["probe_scope"]; got != len(defaultDKIMSelectors)+1 {
+                t.Errorf("probe_scope = %v, want %d (defaults + 1 custom)", got, len(defaultDKIMSelectors)+1)
+        }
+}
+
 func TestAnalyzeCAA_WithMock_HasRecords(t *testing.T) {
         a := newMockAnalyzer()
         mock := a.DNS.(*MockDNSClient)
