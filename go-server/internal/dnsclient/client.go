@@ -926,15 +926,15 @@ func (c *Client) exchangeWithFallback(ctx context.Context, msg *dns.Msg, resolve
 // server that does not implement NSID returns an empty string with no error —
 // the absence of an NSID is a capability gap, not a failure (RFC 5001 makes the
 // option optional). miekg/dns v2 models EDNS0 options as pseudo-RRs in msg.Pseudo.
-func (c *Client) QueryNSID(ctx context.Context, nameserverIP string) (nsid string, rttMs int64, err error) {
+// nameserverAddr is a host:port string.
+func (c *Client) QueryNSID(ctx context.Context, nameserverAddr string) (nsid string, rttMs int64, err error) {
         msg := dns.NewMsg(".", dns.TypeNS)
         msg.RecursionDesired = false
         msg.Pseudo = append(msg.Pseudo, &dns.NSID{})
 
         client := newDNSClient(c.timeout)
-        addr := net.JoinHostPort(nameserverIP, dnsPort)
         start := time.Now()
-        r, _, err := client.Exchange(ctx, msg, protoUDP, addr)
+        r, _, err := client.Exchange(ctx, msg, protoUDP, nameserverAddr)
         rttMs = time.Since(start).Milliseconds()
         if err != nil {
                 return "", rttMs, err
