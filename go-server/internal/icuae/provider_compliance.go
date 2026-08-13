@@ -13,6 +13,7 @@ package icuae
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 )
 
@@ -352,10 +353,29 @@ func AnalyzeSOACompliance(soaRaw, providerName string) SOAComplianceReport {
 	report.Serial = parts[2]
 
 	var refresh, retry, expire, minTTL uint32
-	fmt.Sscanf(parts[3], "%d", &refresh)
-	fmt.Sscanf(parts[4], "%d", &retry)
-	fmt.Sscanf(parts[5], "%d", &expire)
-	fmt.Sscanf(parts[6], "%d", &minTTL)
+	// Strictly parse the four SOA timers. A non-numeric field means the SOA
+	// record is malformed — return early rather than emit findings built on
+	// silently-zeroed values, which would misreport every timer as "0s".
+	parseTTL := func(s string) (uint32, bool) {
+		v, err := strconv.ParseUint(s, 10, 32)
+		if err != nil {
+			return 0, false
+		}
+		return uint32(v), true
+	}
+	var ok bool
+	if refresh, ok = parseTTL(parts[3]); !ok {
+		return report
+	}
+	if retry, ok = parseTTL(parts[4]); !ok {
+		return report
+	}
+	if expire, ok = parseTTL(parts[5]); !ok {
+		return report
+	}
+	if minTTL, ok = parseTTL(parts[6]); !ok {
+		return report
+	}
 
 	report.Refresh = refresh
 	report.Retry = retry
