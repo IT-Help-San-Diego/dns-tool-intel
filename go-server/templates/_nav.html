@@ -8,7 +8,7 @@
                 <span class="navbar-brand-name">DNS Tool</span>
                 <span class="navbar-brand-sub">
                     {{if .IsCloudDeployment}}<span class="nav-version-badge">v{{displayVersion .AppVersion}}</span>{{else}}<span class="nav-version-badge nav-version-badge--local" title="Running locally — not the cloud deployment">local{{if ne .AppVersion "dev"}} · v{{displayVersion .AppVersion}}{{end}}</span>{{end}}
-                    <span class="u-covert-beta-tag" title="Public beta — the core pipeline works; the science is being validated. Expect weekly improvement.">Beta</span>
+                    <span class="u-beta-tag" title="Public beta — the core pipeline works; the science is being validated. Expect weekly improvement.">Beta</span>
                 </span>
             </span>
         </a>

@@ -1406,9 +1406,21 @@ html[data-bs-theme="dark"] .tooltip-inner {
 }
 
 .navbar .navbar-brand {
-    display: flex;
+    /* Fibonacci identity cluster: 5/8/13/21/34/55 px.
+       34px owl seal + 13px gap anchors the brand; 21px status chips
+       carry version/Beta; 8px chip gap; 5px name→status rhythm; 55px
+       target block gives the whole mark a stable optical center. */
+    --nav-fib-1: 5px;
+    --nav-fib-2: 8px;
+    --nav-fib-3: 13px;
+    --nav-fib-4: 21px;
+    --nav-fib-5: 34px;
+    --nav-fib-6: 55px;
+    display: grid;
+    grid-template-columns: var(--nav-fib-5) auto;
+    column-gap: var(--nav-fib-3);
     align-items: center;
-    gap: 0.45rem;
+    min-height: var(--nav-fib-6);
     flex-shrink: 1;
     min-width: 0;
     text-decoration: none;
@@ -1416,19 +1428,27 @@ html[data-bs-theme="dark"] .tooltip-inner {
 }
 
 .navbar-brand picture {
+    grid-column: 1;
+    grid-row: 1;
     flex-shrink: 0;
     line-height: 0;
+    width: var(--nav-fib-5);
+    height: var(--nav-fib-5);
 }
 
 .navbar-brand-owl {
     flex-shrink: 0;
-    width: 32px;
-    height: 32px;
+    width: var(--nav-fib-5);
+    height: var(--nav-fib-5);
 }
 
 .navbar-brand-text {
-    display: flex;
-    flex-direction: column;
+    grid-column: 2;
+    grid-row: 1;
+    display: grid;
+    grid-template-rows: auto var(--nav-fib-4);
+    row-gap: var(--nav-fib-1);
+    align-items: center;
     line-height: 1;
     min-width: 0;
 }
@@ -1437,6 +1457,7 @@ html[data-bs-theme="dark"] .tooltip-inner {
     font-size: 1rem;
     font-weight: 600;
     letter-spacing: 0.01em;
+    line-height: 1;
 }
 
 .navbar .u-nav-controls {
@@ -1449,17 +1470,27 @@ html[data-bs-theme="dark"] .tooltip-inner {
 .navbar-brand-sub {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
-    margin-top: 0.15rem;
+    gap: var(--nav-fib-2);
+    min-height: var(--nav-fib-4);
+    margin-top: 0;
     flex-wrap: nowrap;
 }
-.navbar-brand-sub .nav-version-badge {
-    margin-top: 0;
-    align-self: center;
-}
-.navbar-brand-sub .u-covert-beta-tag {
-    position: static;
+.navbar-brand-sub .nav-version-badge,
+.navbar-brand-sub .u-beta-tag {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--nav-fib-4);
     margin: 0;
+    align-self: center;
+    line-height: 1;
+    padding-top: 0;
+    padding-bottom: 0;
+    padding-left: var(--nav-fib-2);
+    padding-right: var(--nav-fib-2);
+}
+.navbar-brand-sub .u-beta-tag {
+    position: static;
 }
 
 /* LOCAL ⇄ WEB context flipper — left, next to the brand identity.
@@ -1564,12 +1595,17 @@ html[data-bs-theme="dark"] .tooltip-inner {
     }
 
     .navbar-brand {
-        gap: 0.35rem;
+        --nav-fib-1: 3px;
+        --nav-fib-2: 5px;
+        --nav-fib-3: 8px;
+        --nav-fib-4: 21px;
+        --nav-fib-5: 34px;
+        --nav-fib-6: 55px;
     }
 
     .navbar-brand-owl {
-        width: 28px;
-        height: 28px;
+        width: var(--nav-fib-5);
+        height: var(--nav-fib-5);
     }
 
     .navbar-brand-name {
@@ -1578,7 +1614,6 @@ html[data-bs-theme="dark"] .tooltip-inner {
 
     .navbar-brand .nav-version-badge {
         font-size: 0.75rem;
-        padding: 0.04rem 0.35rem;
     }
 
     .u-maintenance-tag {
@@ -1812,12 +1847,17 @@ html[data-bs-theme="dark"] .tooltip-inner {
 
 @media (max-width: 390px) {
     .navbar-brand {
-        gap: 0.3rem;
+        --nav-fib-1: 3px;
+        --nav-fib-2: 5px;
+        --nav-fib-3: 8px;
+        --nav-fib-4: 21px;
+        --nav-fib-5: 34px;
+        --nav-fib-6: 55px;
     }
 
     .navbar-brand-owl {
-        width: 26px;
-        height: 26px;
+        width: var(--nav-fib-5);
+        height: var(--nav-fib-5);
     }
 
     .navbar-brand-name {
@@ -1826,7 +1866,6 @@ html[data-bs-theme="dark"] .tooltip-inner {
 
     .navbar-brand .nav-version-badge {
         font-size: 0.75rem;
-        padding: 0.03rem 0.3rem;
     }
 
     .u-maintenance-tag {
