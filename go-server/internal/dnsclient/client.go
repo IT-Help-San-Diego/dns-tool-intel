@@ -919,6 +919,34 @@ func (c *Client) exchangeWithFallback(ctx context.Context, msg *dns.Msg, resolve
         return r, err
 }
 
+// QueryNSID sends an RFC 5001 NSID probe to a single nameserver and returns the
+// server's self-identification string (hex-encoded) plus the round-trip time in
+// milliseconds. NSID is how an anycast node identifies itself, so this is the
+// cheapest way to audit "which node answered me" from a single vantage point. A
+// server that does not implement NSID returns an empty string with no error —
+// the absence of an NSID is a capability gap, not a failure (RFC 5001 makes the
+// option optional). miekg/dns v2 models EDNS0 options as pseudo-RRs in msg.Pseudo.
+func (c *Client) QueryNSID(ctx context.Context, nameserverIP string) (nsid string, rttMs int64, err error) {
+        msg := dns.NewMsg(".", dns.TypeNS)
+        msg.RecursionDesired = false
+        msg.Pseudo = append(msg.Pseudo, &dns.NSID{})
+
+        client := newDNSClient(c.timeout)
+        addr := net.JoinHostPort(nameserverIP, dnsPort)
+        start := time.Now()
+        r, _, err := client.Exchange(ctx, msg, protoUDP, addr)
+        rttMs = time.Since(start).Milliseconds()
+        if err != nil {
+                return "", rttMs, err
+        }
+        for _, rr := range r.Pseudo {
+                if o, ok := rr.(*dns.NSID); ok && o.Nsid != "" {
+                        return o.Nsid, rttMs, nil
+                }
+        }
+        return "", rttMs, nil
+}
+
 func (c *Client) QuerySpecificResolver(ctx context.Context, recordType, domain, resolverIP string) ([]string, error) {
         qtype, err := dnsTypeFromString(recordType)
         if err != nil {
