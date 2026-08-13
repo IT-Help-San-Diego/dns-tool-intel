@@ -775,6 +775,9 @@
                             {{range $mon := $postureMonitoring}}
                             <a href="#findings-summary" class="d-block text-info text-decoration-none small mb-1">{{icon "eye" "me-2"}}{{$mon}}</a>
                             {{end}}
+                            {{if mapGetBool "dkim_inconclusive" $posture}}
+                            <a href="/topology?domain={{.AsciiDomain | urlquery}}&amp;dkim=1" class="d-block text-info text-decoration-none small mb-1">{{icon "key" "me-2"}}DKIM inconclusive &mdash; provide your selector to verify</a>
+                            {{end}}
                         </div>
                         {{end}}
                         {{if $postureAbsent}}
