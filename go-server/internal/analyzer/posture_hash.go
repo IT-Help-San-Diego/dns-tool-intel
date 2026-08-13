@@ -20,7 +20,12 @@ const (
 	mapKeySpfAnalysis    = "spf_analysis"
 )
 
-func CanonicalPostureHash(results map[string]any) string {
+// canonicalPostureString builds the hash preimage. The dkim_selectors part is
+// injected by the caller: rows hashed before the 2026-08 extractor fix carry
+// a then-pinned "" there, and the frozen legacy formulas must keep
+// reproducing those bytes forever — sharing the live extractor is exactly
+// what un-freezes them (the proxy-defect class).
+func canonicalPostureString(results map[string]any, dkimSelectors string) string {
 	var parts []string
 
 	parts = append(parts, "spf:"+extractPostureField(results, mapKeySpfAnalysis, mapKeyStatus))
@@ -31,7 +36,7 @@ func CanonicalPostureHash(results map[string]any) string {
 	parts = append(parts, "dmarc_records:"+extractSortedRecords(results, mapKeyDmarcAnalysis, mapKeyRecords))
 
 	parts = append(parts, "dkim:"+extractPostureField(results, mapKeyDkimAnalysis, mapKeyStatus))
-	parts = append(parts, "dkim_selectors:"+extractSortedSelectors(results))
+	parts = append(parts, "dkim_selectors:"+dkimSelectors)
 
 	parts = append(parts, "mta_sts:"+extractPostureField(results, mapKeyMtaStsAnalysis, mapKeyStatus))
 	parts = append(parts, "mta_sts_mode:"+extractPostureField(results, mapKeyMtaStsAnalysis, "mode"))
@@ -53,36 +58,30 @@ func CanonicalPostureHash(results map[string]any) string {
 	parts = append(parts, "mx:"+extractSortedMX(results))
 	parts = append(parts, "ns:"+extractSortedNS(results))
 
-	canonical := strings.Join(parts, "|")
-	hash := sha3.Sum512([]byte(canonical))
+	return strings.Join(parts, "|")
+}
+
+func CanonicalPostureHash(results map[string]any) string {
+	hash := sha3.Sum512([]byte(canonicalPostureString(results, extractSortedSelectors(results))))
 	return hex.EncodeToString(hash[:])
 }
 
+// CanonicalPostureHashLegacySelectors reproduces the sha3 formula as it stood
+// before extractSortedSelectors learned the map[string]any shape: the
+// dkim_selectors part pinned to "". Rows hashed before that fix verify
+// against this frozen form; without it the hash audit would fail every
+// pre-fix row whose domain publishes selectors.
+func CanonicalPostureHashLegacySelectors(results map[string]any) string {
+	hash := sha3.Sum512([]byte(canonicalPostureString(results, "")))
+	return hex.EncodeToString(hash[:])
+}
+
+// CanonicalPostureHashLegacySHA256 reproduces the frozen sha256-era formula.
+// Every row of that era predates the selector-extractor fix, so its
+// dkim_selectors part is pinned to "" — the pin IS the frozen formula, and it
+// must not follow the live extractor.
 func CanonicalPostureHashLegacySHA256(results map[string]any) string {
-	var parts []string
-
-	parts = append(parts, "spf:"+extractPostureField(results, mapKeySpfAnalysis, mapKeyStatus))
-	parts = append(parts, "spf_records:"+extractSortedRecords(results, mapKeySpfAnalysis, mapKeyRecords))
-	parts = append(parts, "dmarc:"+extractPostureField(results, mapKeyDmarcAnalysis, mapKeyStatus))
-	parts = append(parts, "dmarc_policy:"+extractPostureField(results, mapKeyDmarcAnalysis, "policy"))
-	parts = append(parts, "dmarc_records:"+extractSortedRecords(results, mapKeyDmarcAnalysis, mapKeyRecords))
-	parts = append(parts, "dkim:"+extractPostureField(results, mapKeyDkimAnalysis, mapKeyStatus))
-	parts = append(parts, "dkim_selectors:"+extractSortedSelectors(results))
-	parts = append(parts, "mta_sts:"+extractPostureField(results, mapKeyMtaStsAnalysis, mapKeyStatus))
-	parts = append(parts, "mta_sts_mode:"+extractPostureField(results, mapKeyMtaStsAnalysis, "mode"))
-	parts = append(parts, "tlsrpt:"+extractPostureField(results, "tlsrpt_analysis", mapKeyStatus))
-	parts = append(parts, "bimi:"+extractPostureField(results, "bimi_analysis", mapKeyStatus))
-	parts = append(parts, "dane:"+extractPostureField(results, mapKeyDaneAnalysis, mapKeyStatus))
-	parts = append(parts, "dane_has:"+extractPostureBool(results, mapKeyDaneAnalysis, "has_dane"))
-	parts = append(parts, "caa:"+extractPostureField(results, mapKeyCaaAnalysis, mapKeyStatus))
-	parts = append(parts, "caa_tags:"+extractSortedCAATags(results))
-	parts = append(parts, "dnssec:"+extractPostureField(results, "dnssec_analysis", mapKeyStatus))
-	parts = append(parts, "mail_posture:"+extractPostureField(results, "mail_posture", "label"))
-	parts = append(parts, "mx:"+extractSortedMX(results))
-	parts = append(parts, "ns:"+extractSortedNS(results))
-
-	canonical := strings.Join(parts, "|")
-	hash := sha256.Sum256([]byte(canonical))
+	hash := sha256.Sum256([]byte(canonicalPostureString(results, "")))
 	return hex.EncodeToString(hash[:])
 }
 
@@ -153,6 +152,17 @@ func extractSortedSelectors(results map[string]any) string {
 		return ""
 	}
 	switch v := selectors.(type) {
+	case map[string]any:
+		// The shape AnalyzeDKIM emits (and every stored snapshot holds): a
+		// map keyed by selector name. Until this branch existed the hash
+		// part was pinned to "" and the "DKIM Selectors" drift row could
+		// never fire — a check that cannot fail (2026-08-03 walkthrough).
+		names := make([]string, 0, len(v))
+		for name := range v {
+			names = append(names, strings.ToLower(strings.TrimSpace(name)))
+		}
+		sort.Strings(names)
+		return strings.Join(names, ",")
 	case []any:
 		var names []string
 		for _, s := range v {

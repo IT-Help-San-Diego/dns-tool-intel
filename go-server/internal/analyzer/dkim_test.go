@@ -11,10 +11,11 @@ func TestEstimateKeyBits(t *testing.T) {
 		keyBytes int
 		want     int
 	}{
-		{"1024-bit range", 128, 1024},
-		{"2048-bit range", 256, 2048},
-		{"4096-bit range", 512, 4096},
-		{"large key", 700, 700 * 8 / 10},
+		{"1024-bit SPKI (162 bytes measured)", 162, 1024},
+		{"2048-bit SPKI (294 bytes measured)", 294, 2048},
+		{"3072-bit SPKI (422 bytes measured)", 422, 3072},
+		{"4096-bit SPKI (550 bytes measured)", 550, 4096},
+		{"8192-bit SPKI (1062 bytes measured)", 1062, 8192},
 	}
 
 	for _, tt := range tests {
