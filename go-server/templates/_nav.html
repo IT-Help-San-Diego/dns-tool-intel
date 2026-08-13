@@ -6,12 +6,23 @@
             <picture><source srcset="{{staticVersionURL "icons/icon-48x48.webp" .AppVersion}}" type="image/webp"><img src="{{staticVersionURL "icons/icon-48x48.png" .AppVersion}}" width="32" height="32" alt="DNS Tool" class="navbar-brand-owl rounded-circle" loading="eager" decoding="sync" fetchpriority="high"></picture>
             <span class="navbar-brand-text">
                 <span class="navbar-brand-name">DNS Tool</span>
-                {{if .IsCloudDeployment}}<span class="nav-version-badge">v{{displayVersion .AppVersion}}</span>{{else}}<span class="nav-version-badge nav-version-badge--local" title="Running locally — not the cloud deployment">local{{if ne .AppVersion "dev"}} · v{{displayVersion .AppVersion}}{{end}}</span>{{end}}
+                <span class="navbar-brand-sub">
+                    {{if .IsCloudDeployment}}<span class="nav-version-badge">v{{displayVersion .AppVersion}}</span>{{else}}<span class="nav-version-badge nav-version-badge--local" title="Running locally — not the cloud deployment">local{{if ne .AppVersion "dev"}} · v{{displayVersion .AppVersion}}{{end}}</span>{{end}}
+                    <span class="u-beta-tag" title="Public beta — the core pipeline works; the science is being validated. Expect weekly improvement.">Beta</span>
+                </span>
             </span>
         </a>
+        {{if and (not .IsCloudDeployment) .CloudBaseURL}}
+        {{/* LOCAL ⇄ WEB flipper — left, next to identity (Calibration Scope
+             control-strip pattern). Spacing: LOCAL ⇄ WEB with spaces around ⇄.
+             Lands on the public instrument's ROOT (root↔root = a surface flip,
+             "which room am I in"), not a deep link. Local-build only: the cloud
+             has no "local" counterpart to flip to. Pages whose hand-built data
+             lacks CloudBaseURL render no flipper at all — never a self-link. */}}
+        <a class="nav-context-flip" href="{{.CloudBaseURL}}/" title="You are on the local instrument — flip to the web side (dnstool.it-help.tech, the public instrument)"><span class="cur">LOCAL</span><span class="s">⇄</span>WEB</a>
+        {{end}}
         <div class="u-nav-controls d-flex align-items-center ms-auto gap-2">
             {{if .MaintenanceNote}}<span class="u-maintenance-tag">{{icon "wrench" "me-1"}}{{.MaintenanceNote}}</span>{{end}}
-            <span class="u-covert-beta-tag">Beta</span>
             <button class="btn btn-link u-covert-toggle p-0" type="button" id="covertToggle" title="Covert Recon Mode — adversarial lens for offensive awareness" aria-pressed="false">
                 <span class="visually-hidden">Covert Recon Mode</span>{{icon "biohazard"}}
             </button>

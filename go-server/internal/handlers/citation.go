@@ -281,6 +281,7 @@ func (h *CitationHandler) CitePage(c *gin.Context) {
 		"BetaPages":         h.Config.BetaPages,
 		"OriginTrialToken":  h.Config.OriginTrialToken,
 		"IsCloudDeployment": h.Config.IsCloudDeployment,
+		"CloudBaseURL":      h.Config.CanonicalBaseURL,
 		"CspNonce":          nonce,
 		"Title":             title,
 		"Version":           version,

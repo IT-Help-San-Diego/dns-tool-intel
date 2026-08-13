@@ -5,6 +5,9 @@ package analyzer
 
 import (
 	"context"
+	"crypto/ed25519"
+	"crypto/rsa"
+	"crypto/x509"
 	"encoding/base64"
 	"fmt"
 	"regexp"
@@ -134,6 +137,7 @@ const (
 	mapKeyKeyBits     = "key_bits"
 	mapKeyProvider    = "provider"
 	mapKeyRevoked     = "revoked"
+	mapKeyDkimState   = "dkim_state"
 	strActivecampaign = "ActiveCampaign"
 	strEverlytic      = "Everlytic"
 	strFreshdesk      = "Freshdesk"
@@ -554,6 +558,19 @@ func classifySelectorProvider(selectorName, primaryProvider string) string {
 	return provider
 }
 
+// filterDKIMRecords returns the subset of TXT answers that carry DKIM key
+// markers (v=DKIM1 / k= / p=).
+func filterDKIMRecords(records []string) []string {
+	var dkimRecords []string
+	for _, r := range records {
+		lower := strings.ToLower(r)
+		if strings.Contains(lower, "v=dkim1") || strings.Contains(lower, "k=") || strings.Contains(lower, "p=") {
+			dkimRecords = append(dkimRecords, r)
+		}
+	}
+	return dkimRecords
+}
+
 func checkDKIMSelector(ctx context.Context, dns interface {
 	QueryDNS(ctx context.Context, recordType, domain string) []string
 }, selector, domain string) (string, []string) {
@@ -562,31 +579,82 @@ func checkDKIMSelector(ctx context.Context, dns interface {
 	if len(records) == 0 {
 		return "", nil
 	}
-
-	var dkimRecords []string
-	for _, r := range records {
-		lower := strings.ToLower(r)
-		if strings.Contains(lower, "v=dkim1") || strings.Contains(lower, "k=") || strings.Contains(lower, "p=") {
-			dkimRecords = append(dkimRecords, r)
-		}
-	}
-	if len(dkimRecords) > 0 {
+	if dkimRecords := filterDKIMRecords(records); len(dkimRecords) > 0 {
 		return selector, dkimRecords
 	}
 	return "", nil
 }
 
+// checkDKIMSelectorWithStatus is the census-path variant of checkDKIMSelector.
+// The flat QueryDNS returns an empty slice for BOTH "record absent" and
+// "lookup failed", so a scan whose probes transiently failed was
+// indistinguishable from one that authoritatively found nothing — flipping the
+// verdict (and the posture hash) on a probe that never completed. The third
+// result reports that indeterminacy: true means the probe did not complete
+// (timeout/SERVFAIL/resolver conflict) and says nothing about the selector.
+func (a *Analyzer) checkDKIMSelectorWithStatus(ctx context.Context, selector, domain string) (string, []string, bool) {
+	fqdn := fmt.Sprintf("%s.%s", selector, domain)
+	records, status := a.resolveWithStatus(ctx, "TXT", fqdn)
+	if isIndeterminateLookup(status) {
+		return "", nil, true
+	}
+	if dkimRecords := filterDKIMRecords(records); len(dkimRecords) > 0 {
+		return selector, dkimRecords, false
+	}
+	return "", nil, false
+}
+
+// estimateKeyBits infers an RSA key size from the decoded p= byte length when
+// the DER itself will not parse. RFC 6376 p= carries a SubjectPublicKeyInfo,
+// not a bare modulus, so real keys are modulus + ~34–38 bytes of fixed ASN.1
+// framing (measured 2026-08-03 from live captures and openssl-generated keys):
+// 1024-bit → 162 bytes, 2048 → 294, 3072 → 422, 4096 → 550. Thresholds sit at
+// the midpoints between adjacent real sizes so truncated or nonstandard
+// material lands in the nearest bucket. (The previous thresholds — ≤140 →
+// 1024 — assumed a bare modulus; every real 1024-bit SPKI is 162 bytes, so
+// all real 1024-bit keys were reported as 2048 and the weak-key warning could
+// never fire.)
 func estimateKeyBits(keyBytes int) int {
 	switch {
-	case keyBytes <= 140:
+	case keyBytes <= 228: // (162+294)/2
 		return 1024
-	case keyBytes <= 300:
+	case keyBytes <= 358: // (294+422)/2
 		return 2048
-	case keyBytes <= 600:
+	case keyBytes <= 486: // (422+550)/2
+		return 3072
+	case keyBytes <= 700:
 		return 4096
 	default:
-		return keyBytes * 8 / 10
+		// Above 4096 bits the ASN.1 framing is a constant 38 bytes
+		// (measured: 8192-bit SPKI = 1062 bytes), so bits = (len−38)·8.
+		return (keyBytes - 38) * 8
 	}
+}
+
+// dkimKeyBits measures the key size from the decoded p= material itself
+// rather than bucketing its byte length. For k=rsa the material is DER the
+// parser can state the modulus of exactly; for k=ed25519 (RFC 8463 §3) it is
+// the bare 32-byte public key. The length estimate above is the fallback for
+// material that will not parse. isRSA gates the weak-key warning: a bit count
+// is only comparable to RFC 8301's RSA thresholds when the key is RSA.
+func dkimKeyBits(decoded []byte, keyType string) (bits int, isRSA bool) {
+	if pub, err := x509.ParsePKIXPublicKey(decoded); err == nil {
+		switch k := pub.(type) {
+		case *rsa.PublicKey:
+			return k.N.BitLen(), true
+		case ed25519.PublicKey:
+			return 256, false
+		}
+	}
+	if keyType == "ed25519" {
+		if len(decoded) == ed25519.PublicKeySize {
+			return 256, false
+		}
+		// Malformed ed25519 material: no honest bit count exists, and the
+		// RSA length estimate would assert one anyway.
+		return 0, false
+	}
+	return estimateKeyBits(len(decoded)), true
 }
 
 func analyzePublicKey(record string) (keyBits interface{}, revoked bool, issues []string) {
@@ -608,14 +676,34 @@ func analyzePublicKey(record string) (keyBits interface{}, revoked bool, issues 
 			return nil, false, nil
 		}
 	}
-	bits := estimateKeyBits(len(decoded))
-	if bits == 1024 {
-		return bits, false, []string{"1024-bit key (weak, upgrade to 2048)"}
+	keyType := "rsa"
+	if km := dkimKeyTypeRe.FindStringSubmatch(strings.ToLower(record)); km != nil {
+		keyType = km[1]
 	}
-	return bits, false, nil
+	bits, isRSA := dkimKeyBits(decoded, keyType)
+	if bits == 0 {
+		return nil, false, nil
+	}
+	if !isRSA && len(decoded) != ed25519.PublicKeySize {
+		// Parsed via x509, so the record carries an SPKI wrapper — but
+		// RFC 8463 §3 defines p= as the bare 32-octet key, and strict
+		// verifiers reject the wrapped form even though the key inside
+		// is sound. The bit count stays honest; the interop break is
+		// the finding.
+		issues = append(issues, "Ed25519 key is SPKI-wrapped; RFC 8463 requires the bare 32-byte public key, so strict verifiers will treat this record as invalid")
+	}
+	if isRSA && bits < 2048 {
+		issues = append(issues, fmt.Sprintf("%d-bit key (weak, upgrade to 2048)", bits))
+	}
+	return bits, false, issues
 }
 
 func analyzeDKIMKey(record string) map[string]any {
+	// Same key, same analysis, regardless of how the transport rejoined the
+	// 255-byte TXT chunks: the raw form can carry chunk-boundary spaces or
+	// character-string quotes mid-base64, which the tag regexes would read as
+	// value terminators — truncating p= and misclassifying the key.
+	record = canonicalDKIMRecord(record)
 	keyInfo := map[string]any{
 		"key_type":    "rsa",
 		mapKeyKeyBits: nil,
@@ -805,7 +893,10 @@ func buildDKIMVerdict(foundSelectors map[string]map[string]any, keyIssues, keySt
 	hasWeakKey := false
 	hasRevoked := false
 	for _, issue := range keyIssues {
-		if strings.Contains(issue, "1024-bit") {
+		// Weak keys are no longer always exactly 1024-bit: exact DER parsing
+		// can measure 512/768/1536 etc., so match the marker every weak-key
+		// issue carries, not one bit count.
+		if strings.Contains(issue, "1024-bit") || strings.Contains(issue, "(weak") {
 			hasWeakKey = true
 		}
 		if strings.Contains(issue, mapKeyRevoked) {
@@ -819,7 +910,7 @@ func buildDKIMVerdict(foundSelectors map[string]map[string]any, keyIssues, keySt
 		return "warning", fmt.Sprintf("Found %d DKIM selector(s) but some keys are revoked", len(foundSelectors))
 	}
 	if hasWeakKey {
-		return "warning", fmt.Sprintf("Found %d DKIM selector(s) with weak key(s) (1024-bit)", len(foundSelectors))
+		return "warning", fmt.Sprintf("Found %d DKIM selector(s) with weak key(s) (below 2048-bit RSA)", len(foundSelectors))
 	}
 	if thirdPartyOnly {
 		if len(uniqueStrengths) > 0 {
@@ -964,12 +1055,13 @@ type dkimScanResult struct {
 	keyStrengths []string
 }
 
-func processDKIMSelector(ctx context.Context, dns interface {
-	QueryDNS(ctx context.Context, recordType, domain string) []string
-}, sel, domain, primaryProvider string, customSelectors []string) *dkimScanResult {
-	selectorName, records := checkDKIMSelector(ctx, dns, sel, domain)
+// processDKIMSelector probes one selector for the census. The bool reports an
+// indeterminate probe (see checkDKIMSelectorWithStatus) — nil result plus true
+// means "could not tell", never "absent".
+func (a *Analyzer) processDKIMSelector(ctx context.Context, sel, domain, primaryProvider string, customSelectors []string) (*dkimScanResult, bool) {
+	selectorName, records, indeterminate := a.checkDKIMSelectorWithStatus(ctx, sel, domain)
 	if selectorName == "" {
-		return nil
+		return nil, indeterminate
 	}
 
 	provider := classifySelectorProvider(selectorName, primaryProvider)
@@ -987,7 +1079,7 @@ func processDKIMSelector(ctx context.Context, dns interface {
 		selectorInfo: selectorInfo,
 		keyIssues:    localIssues,
 		keyStrengths: localStrengths,
-	}
+	}, false
 }
 
 func collectFoundProviders(foundSelectors map[string]map[string]any) map[string]bool {
@@ -1146,6 +1238,31 @@ func buildDKIMSelectorMap(foundSelectors map[string]map[string]any, lockdownColl
 	return selectorMap
 }
 
+// dkimCensusState returns the selector-census tri-state, mirroring
+// spf_state/dmarc_state/dnssec_state: drift may only compare two selector
+// censuses when both are authoritative. Indeterminate outranks present
+// because even one incomplete probe can hide a selector the previous scan
+// found — an incomplete census can neither confirm the selector set nor
+// confirm absence. Absence is only absent_confirmed when every probe
+// authoritatively answered. When the census is both incomplete and empty,
+// the returned message replaces the caller's: "not discoverable" is a
+// claim about probes that completed, and when they did not, we say so
+// instead of implying the selectors were checked and found empty
+// (RFC 7208 §4.6 / RFC 7489 §6.6.3 logic applied to selector discovery).
+func dkimCensusState(found, indeterminate, probed int, message string) (string, string) {
+	switch {
+	case indeterminate > 0 && found == 0:
+		return triStateIndeterminate, fmt.Sprintf(
+			"DKIM could not be verified: %d of %d selector probes did not complete (transient SERVFAIL/timeout/network error). This is not evidence that DKIM is absent — re-run before concluding it is unconfigured.",
+			indeterminate, probed)
+	case indeterminate > 0:
+		return triStateIndeterminate, message
+	case found > 0:
+		return triStatePresent, message
+	}
+	return triStateAbsentConf, message
+}
+
 func (a *Analyzer) AnalyzeDKIM(ctx context.Context, domain string, mxRecords, customSelectors []string) map[string]any {
 	selectors := buildSelectorList(customSelectors)
 
@@ -1162,6 +1279,7 @@ func (a *Analyzer) AnalyzeDKIM(ctx context.Context, domain string, mxRecords, cu
 	foundSelectors := make(map[string]map[string]any)
 	var keyIssues []string
 	var keyStrengths []string
+	var indeterminateProbes int
 	var mu sync.Mutex
 	var wg sync.WaitGroup
 
@@ -1169,15 +1287,18 @@ func (a *Analyzer) AnalyzeDKIM(ctx context.Context, domain string, mxRecords, cu
 		wg.Add(1)
 		go func(s string) {
 			defer wg.Done()
-			result := processDKIMSelector(ctx, a.DNS, s, domain, res.Primary, customSelectors)
+			result, indeterminate := a.processDKIMSelector(ctx, s, domain, res.Primary, customSelectors)
+			mu.Lock()
+			defer mu.Unlock()
+			if indeterminate {
+				indeterminateProbes++
+			}
 			if result == nil {
 				return
 			}
-			mu.Lock()
 			foundSelectors[result.selectorName] = result.selectorInfo
 			keyIssues = append(keyIssues, result.keyIssues...)
 			keyStrengths = append(keyStrengths, result.keyStrengths...)
-			mu.Unlock()
 		}(sel)
 	}
 	wg.Wait()
@@ -1217,6 +1338,8 @@ func (a *Analyzer) AnalyzeDKIM(ctx context.Context, domain string, mxRecords, cu
 		foundProviders = map[string]bool{}
 	}
 
+	dkimState, message := dkimCensusState(len(foundSelectors), indeterminateProbes, len(selectors), message)
+
 	var sortedProviders []string
 	for p := range foundProviders {
 		sortedProviders = append(sortedProviders, p)
@@ -1237,6 +1360,7 @@ func (a *Analyzer) AnalyzeDKIM(ctx context.Context, domain string, mxRecords, cu
 	return map[string]any{
 		"status":               status,
 		"message":              message,
+		mapKeyDkimState:        dkimState,
 		"selectors":            selectorMap,
 		"key_issues":           keyIssues,
 		"key_strengths":        uniqueStrings(keyStrengths),

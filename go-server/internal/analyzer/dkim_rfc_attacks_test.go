@@ -658,12 +658,14 @@ func TestDKIMRFCAttackEstimateKeyBitsBoundaries(t *testing.T) {
                 keyBytes int
                 want     int
         }{
-                {"exactly 140 bytes (1024-bit boundary)", 140, 1024},
-                {"exactly 141 bytes (crosses to 2048)", 141, 2048},
-                {"exactly 300 bytes (2048-bit boundary)", 300, 2048},
-                {"exactly 301 bytes (crosses to 4096)", 301, 4096},
-                {"exactly 600 bytes (4096-bit boundary)", 600, 4096},
-                {"exactly 601 bytes (above 4096)", 601, 601 * 8 / 10},
+                {"exactly 228 bytes (1024-bit boundary, midpoint 162/294)", 228, 1024},
+                {"exactly 229 bytes (crosses to 2048)", 229, 2048},
+                {"exactly 358 bytes (2048-bit boundary, midpoint 294/422)", 358, 2048},
+                {"exactly 359 bytes (crosses to 3072)", 359, 3072},
+                {"exactly 486 bytes (3072-bit boundary, midpoint 422/550)", 486, 3072},
+                {"exactly 487 bytes (crosses to 4096)", 487, 4096},
+                {"exactly 700 bytes (4096-bit boundary)", 700, 4096},
+                {"exactly 701 bytes (above 4096)", 701, (701 - 38) * 8},
         }
 
         for _, tt := range tests {

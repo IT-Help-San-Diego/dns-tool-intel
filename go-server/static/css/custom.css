@@ -1406,9 +1406,22 @@ html[data-bs-theme="dark"] .tooltip-inner {
 }
 
 .navbar .navbar-brand {
-    display: flex;
+    /* Fibonacci identity rail: one horizontal read path.
+       34px owl seal anchors the rail; 13px gaps separate semantic groups;
+       8px separates adjacent status chips; 21px gives title/chips one optical
+       text rail. This avoids the stacked-pill illusion where the version text
+       appears unaligned even when the boxes are mathematically aligned. */
+    --nav-fib-1: 3px;
+    --nav-fib-2: 5px;
+    --nav-fib-3: 8px;
+    --nav-fib-4: 13px;
+    --nav-fib-5: 21px;
+    --nav-fib-6: 34px;
+    display: grid;
+    grid-template-columns: var(--nav-fib-6) auto;
+    column-gap: var(--nav-fib-4);
     align-items: center;
-    gap: 0.45rem;
+    min-height: var(--nav-fib-6);
     flex-shrink: 1;
     min-width: 0;
     text-decoration: none;
@@ -1416,32 +1429,99 @@ html[data-bs-theme="dark"] .tooltip-inner {
 }
 
 .navbar-brand picture {
+    grid-column: 1;
+    grid-row: 1;
     flex-shrink: 0;
     line-height: 0;
+    width: var(--nav-fib-6);
+    height: var(--nav-fib-6);
 }
 
 .navbar-brand-owl {
     flex-shrink: 0;
-    width: 32px;
-    height: 32px;
+    width: var(--nav-fib-6);
+    height: var(--nav-fib-6);
 }
 
 .navbar-brand-text {
-    display: flex;
-    flex-direction: column;
-    line-height: 1;
+    grid-column: 2;
+    grid-row: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nav-fib-4);
     min-width: 0;
+    min-height: var(--nav-fib-6);
+    line-height: 1;
 }
 
 .navbar-brand-name {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--nav-fib-5);
     font-size: 1rem;
     font-weight: 600;
     letter-spacing: 0.01em;
+    line-height: var(--nav-fib-5);
 }
 
 .navbar .u-nav-controls {
     flex-shrink: 0;
     white-space: nowrap;
+}
+
+/* Brand status rail: version + Beta read inline with the product name. */
+.navbar-brand-sub {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nav-fib-3);
+    min-height: var(--nav-fib-5);
+    margin-top: 0;
+    flex-wrap: nowrap;
+}
+.navbar-brand-sub .nav-version-badge,
+.navbar-brand-sub .u-beta-tag {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--nav-fib-5);
+    height: var(--nav-fib-5);
+    margin: 0;
+    align-self: center;
+    line-height: 1;
+    padding-top: 0;
+    padding-bottom: 0;
+    padding-left: var(--nav-fib-3);
+    padding-right: var(--nav-fib-3);
+}
+.navbar-brand-sub .u-beta-tag {
+    position: static;
+}
+
+/* LOCAL ⇄ WEB context flipper — left, next to the brand identity.
+   LOCAL ⇄ WEB with spaces around ⇄ (Calibration Scope #context-flip pattern). */
+.nav-context-flip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-left: 0.85rem;
+    padding: 0.2rem 0.6rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    border: 1px solid rgba(212, 168, 83, 0.4);
+    border-radius: 999px;
+    text-decoration: none;
+    white-space: nowrap;
+    align-self: center;
+    transition: border-color 0.2s, background 0.2s;
+}
+.nav-context-flip .cur { color: var(--accent-gold, #d4a853); }
+.nav-context-flip .s { color: rgba(230, 237, 243, 0.45); font-weight: 400; }
+.nav-context-flip { color: rgba(230, 237, 243, 0.6); }
+.nav-context-flip:hover {
+    border-color: rgba(212, 168, 83, 0.75);
+    background: rgba(212, 168, 83, 0.08);
+    text-decoration: none;
 }
 
 /* ============================================
@@ -1519,12 +1599,17 @@ html[data-bs-theme="dark"] .tooltip-inner {
     }
 
     .navbar-brand {
-        gap: 0.35rem;
+        --nav-fib-1: 3px;
+        --nav-fib-2: 5px;
+        --nav-fib-3: 8px;
+        --nav-fib-4: 13px;
+        --nav-fib-5: 21px;
+        --nav-fib-6: 34px;
     }
 
     .navbar-brand-owl {
-        width: 28px;
-        height: 28px;
+        width: var(--nav-fib-5);
+        height: var(--nav-fib-5);
     }
 
     .navbar-brand-name {
@@ -1533,7 +1618,6 @@ html[data-bs-theme="dark"] .tooltip-inner {
 
     .navbar-brand .nav-version-badge {
         font-size: 0.75rem;
-        padding: 0.04rem 0.35rem;
     }
 
     .u-maintenance-tag {
@@ -1767,12 +1851,17 @@ html[data-bs-theme="dark"] .tooltip-inner {
 
 @media (max-width: 390px) {
     .navbar-brand {
-        gap: 0.3rem;
+        --nav-fib-1: 3px;
+        --nav-fib-2: 5px;
+        --nav-fib-3: 8px;
+        --nav-fib-4: 13px;
+        --nav-fib-5: 21px;
+        --nav-fib-6: 34px;
     }
 
     .navbar-brand-owl {
-        width: 26px;
-        height: 26px;
+        width: var(--nav-fib-5);
+        height: var(--nav-fib-5);
     }
 
     .navbar-brand-name {
@@ -1781,7 +1870,6 @@ html[data-bs-theme="dark"] .tooltip-inner {
 
     .navbar-brand .nav-version-badge {
         font-size: 0.75rem;
-        padding: 0.03rem 0.3rem;
     }
 
     .u-maintenance-tag {

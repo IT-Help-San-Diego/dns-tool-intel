@@ -64,8 +64,7 @@ func auditSingleRow(row dbq.GetRecentHashedAnalysesRow, result *HashAuditResult)
 		return
 	}
 
-	recomputed := recomputeHash(row.PostureHash, fullResults)
-	if recomputed == *row.PostureHash {
+	if hashMatches(*row.PostureHash, fullResults) {
 		result.TotalVerified++
 		if result.LastVerifiedAt == "" && row.CreatedAt.Valid {
 			result.LastVerifiedAt = row.CreatedAt.Time.Format(time.DateOnly)
@@ -75,13 +74,24 @@ func auditSingleRow(row dbq.GetRecentHashedAnalysesRow, result *HashAuditResult)
 		result.FailedDomains = append(result.FailedDomains, row.Domain)
 		slog.Warn("ICAE hash audit: posture hash mismatch",
 			"id", row.ID, "domain", row.Domain,
-			"stored", *row.PostureHash, "recomputed", recomputed)
+			"stored", *row.PostureHash,
+			"recomputed", analyzer.CanonicalPostureHash(fullResults))
 	}
 }
 
-func recomputeHash(storedHash *string, fullResults map[string]any) string {
-	if len(*storedHash) == 64 {
-		return analyzer.CanonicalPostureHashLegacySHA256(fullResults)
+// hashMatches verifies a stored hash against every formula that ever
+// legitimately produced one: the live formula, the sha3 formula as it stood
+// before extractSortedSelectors learned the map shape (dkim_selectors pinned
+// to ""), and the sha256-era formula for 64-char rows. Without the pinned
+// sha3 fallback, every pre-fix row whose domain publishes selectors would
+// read as an integrity failure on the public audit — a failure the audit
+// itself measured into existence, not one that happened to the data.
+func hashMatches(stored string, fullResults map[string]any) bool {
+	if len(stored) == 64 {
+		return analyzer.CanonicalPostureHashLegacySHA256(fullResults) == stored
 	}
-	return analyzer.CanonicalPostureHash(fullResults)
+	if analyzer.CanonicalPostureHash(fullResults) == stored {
+		return true
+	}
+	return analyzer.CanonicalPostureHashLegacySelectors(fullResults) == stored
 }
