@@ -432,7 +432,7 @@ func TestClassifyDKIMPosture(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			acc := &postureAccumulator{issues: []string{}, recommendations: []string{}, configured: []string{}, absent: []string{}, monitoring: []string{}}
-			classifyDKIMPosture(tc.ds, tc.provider, acc)
+			classifyDKIMPosture(protocolState{}, tc.ds, tc.provider, acc)
 			if tc.wantConf && len(acc.configured) == 0 {
 				t.Error("expected configured entry")
 			}
