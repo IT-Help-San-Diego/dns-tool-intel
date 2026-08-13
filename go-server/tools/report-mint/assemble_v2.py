@@ -259,6 +259,14 @@ CSS = r'''
   .v2-workspace .domain-summary-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .v2-workspace .domain-summary-row > [class*="col-"] { width: auto; max-width: none; padding: .75rem 1rem; margin: 0 !important; }
   .v2-workspace .tech-footprint-strip { border-radius: var(--er-radius); }
+  /* Bird's-eye posture verdicts: compact strip instead of a tall 4-up stack. */
+  .v2-workspace .v2-posture-strip { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem 1.15rem; text-align: left; }
+  .v2-workspace .v2-posture-strip > [class*="col-"] { width: auto; max-width: none; flex: none; padding: 0 !important; margin: 0 !important; display: inline-flex; align-items: center; gap: .5rem; }
+  .v2-workspace .v2-posture-strip .small { margin: 0 !important; font-size: .68rem !important; letter-spacing: .05em; }
+  .v2-workspace .v2-posture-strip .badge { padding: .28rem .6rem !important; font-size: .72rem !important; }
+  /* Priority-action DNS record tables: let long values wrap instead of squinting mid-token. */
+  .v2-workspace .table-dark td code { overflow-wrap: anywhere; word-break: break-word; white-space: normal; }
+  .v2-workspace .u-col-label-70 { width: 3.4rem; }
   .v2-edge { display: inline-flex; margin-left: .5rem; padding: .15rem .45rem; color: var(--er-blue); border: 1px solid rgba(120,169,212,.35); border-radius: 999px; font-size: .68rem; text-decoration: none; }
   [data-v2-level="L0"] { --v2-level-color: var(--er-gold); }
   [data-v2-level="L1"] { --v2-level-color: var(--er-blue); }
@@ -283,7 +291,14 @@ CSS = r'''
     .v2-workspace .domain-summary-row { grid-template-columns: 1fr 1fr; }
   }
   @media (prefers-reduced-motion: reduce) { .v2-summary-toggle { transition: none; } }
-  @media print { .v2-orientation, .v2-nav, .v2-summary-toggle { display: none !important; } details.v2-group { border: 0; } details.v2-group > summary { display: block; } }
+  @media print {
+    .v2-orientation, .v2-nav, .v2-summary-toggle, .screen-only { display: none !important; }
+    details.v2-group { border: 0; }
+    details.v2-group > summary { display: block; }
+    details.v2-group:not([open]) > *:not(summary) { display: block !important; }
+    .v2-workspace .v2-group-body, .v2-workspace .card, .v2-workspace .results-header { break-inside: avoid; page-break-inside: avoid; }
+    .v2-workspace .table-dark td code { overflow-wrap: anywhere; }
+  }
 </style>
 '''
 
@@ -328,6 +343,8 @@ SCRIPT = r'''
   window.addEventListener('scroll', updateCurrent, {passive:true});
   if(location.hash) setTimeout(goHash,0);
   setTimeout(updateCurrent,0);
+  window.addEventListener('beforeprint',function(){ for(var d of document.querySelectorAll('details')){ d.setAttribute('data-was-open', d.open); d.open=true; } });
+  window.addEventListener('afterprint',function(){ for(var d of document.querySelectorAll('details')){ if(d.getAttribute('data-was-open')==='false') d.open=false; } });
   document.addEventListener('click',function(e){
     var a=e.target&&e.target.closest?e.target.closest('a[href^="#"]'):null; if(!a)return;
     var t=document.getElementById(decodeURIComponent(a.getAttribute('href').slice(1))); if(!t)return;
@@ -386,6 +403,7 @@ out.extend(("</div>", seg(6521, SOURCE_LINE_COUNT)))
 html = "\n".join(out)
 html = html.replace('<main id="main-content" class="container my-4"', '<main id="main-content" class="container my-4 v2-workspace"', 1)
 html = html.replace("<title>", "<title>[ENGINEER WORKSPACE] ", 1)
+html = html.replace('<div class="row g-3 text-center">', '<div class="row g-3 text-center v2-posture-strip">', 1)
 # The source template contains a few whitespace-only lines; normalize generated
 # output so repository gates fail only on semantic drift, not template spacing.
 html = "\n".join(line.rstrip() for line in html.splitlines()) + "\n"
