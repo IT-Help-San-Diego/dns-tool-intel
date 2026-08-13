@@ -29,10 +29,10 @@ type ProbeEndpoint struct {
 }
 
 type Config struct {
-	DatabaseURL        string
-	SessionSecret      string
-	Port               string
-	AppVersion         string
+	DatabaseURL   string
+	SessionSecret string
+	Port          string
+	AppVersion    string
 	// CanonicalBaseURL is the public instrument's address, always the
 	// canonical host — never BASE_URL, which on a local build points at the
 	// local instance and would make the history flipper's "Cloud" link a
@@ -202,9 +202,17 @@ func loadProbeEndpoints(probeAPIURL string) []ProbeEndpoint {
 	if probeAPIURL2 := os.Getenv("PROBE_API_URL_2"); probeAPIURL2 != "" {
 		probes = append(probes, ProbeEndpoint{
 			ID:    "probe-02",
-			Label: envOrDefault("PROBE_LABEL_2", "US-East (Kali/02)"),
+			Label: envOrDefault("PROBE_LABEL_2", "EU (Paris)"),
 			URL:   probeAPIURL2,
 			Key:   os.Getenv("PROBE_API_KEY_2"),
+		})
+	}
+	if probeAPIURL3 := os.Getenv("PROBE_API_URL_3"); probeAPIURL3 != "" {
+		probes = append(probes, ProbeEndpoint{
+			ID:    "probe-03",
+			Label: envOrDefault("PROBE_LABEL_3", "APAC (Singapore)"),
+			URL:   probeAPIURL3,
+			Key:   os.Getenv("PROBE_API_KEY_3"),
 		})
 	}
 	return probes
