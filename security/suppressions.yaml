@@ -1,0 +1,36 @@
+# Suppression ledger — NOT a dismissal list.
+#
+# A "false positive" is a time-bound claim about the current data-flow, not a
+# fact about the world. Code moves: a field gets re-routed, a server-controlled
+# string becomes user-controlled, and a dismissal that was true when written
+# silently flips false. Every entry here must therefore KEEP EARNING ITSELF.
+#
+# An entry means: "this finding is real, I verified it is safe as of the date
+# below, and here is the precise fact that must hold for it to stay safe."
+#
+# scripts/check-suppressions.sh re-scans with gosec and enforces two invariants:
+#   (1) NO finding may exist without an entry here — fix it, or suppress it
+#       WITH a reason, assumption, and date.
+#   (2) NO entry may exist whose finding has disappeared — the code drifted;
+#       either you fixed it (remove the entry) or it moved (re-locate + re-verify).
+#
+# Removing an entry because you FIXED the underlying finding is the healthy
+# end-state. A suppression should never outlive the code it was true about.
+#
+# Schema per entry:
+#   rule:          gosec rule id (G402, G203, G115, ...)
+#   file:          path relative to go-server/ (matches gosec's report)
+#   line:          start line the finding is reported at
+#   reason:        WHY it is safe (the justification — not "false positive")
+#   assumption:    the precise data-flow fact that must hold for it to stay safe
+#   verified_at:   ISO date it was last re-verified
+#   invalidated_by: what change would make it unsafe again (the re-check trigger)
+#
+suppressions:
+  - rule: G101
+    file: internal/handlers/authpkg/auth.go
+    line: 31
+    reason: "Google OAuth endpoint URL constant, not a credential"
+    assumption: "the OAuth client secret is loaded from config/env; these are endpoint URLs only"
+    verified_at: "2026-08-13"
+    invalidated_by: "hardcoding an actual secret/token near the OAuth URL constants"
