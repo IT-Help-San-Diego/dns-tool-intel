@@ -25,13 +25,17 @@
 # `line` is a HUMAN HINT only — it is not part of the match.
 # `file` is REPO-ROOT-RELATIVE (so the key is identical across machines).
 #
-# The `guard` field (OPTIONAL) is what makes the `assumption` ENFORCED instead
-# of documentary. When a suppression's safety depends on a specific validator
+# The `guard` field is what makes the `assumption` ENFORCED instead of
+# documentary. When a suppression's safety depends on a specific validator
 # (e.g. validDomainRe gating an exec), record it as `guard: file|symbol|hash`
-# where hash = sha256 of that validator's declaration line. If the guard is
-# deleted or its content changes, the entry goes stale. A suppression whose
-# assumption is a data-flow fact with no single guard symbol (e.g. "the client
-# secret lives in config/env") has no guard and relies on the prose alone.
+# where hash = sha256 of that validator's DECLARATION THROUGH ITS CLOSING BRACE
+# (the whole body, not just the first line — gutting a function to `return
+# true` must change the hash). If the guard is deleted or its content changes,
+# the entry goes stale. `guard` is REQUIRED for rule classes whose safety claim
+# is "input is validated upstream" (G204 exec, G304 path traversal, G402 TLS) —
+# an entry without one is fail-open and the gate reports it. A suppression whose
+# assumption is about the statement alone (e.g. G101 "this is a URL constant,
+# not a credential") has no upstream validator and may omit `guard`.
 #
 # Removing an entry because you FIXED the underlying finding is the healthy
 # end-state. A suppression should never outlive the code it was true about.
@@ -41,7 +45,7 @@
 #   file:          path relative to REPO ROOT (matches gosec's report)
 #   line:          start line of the finding (HINT ONLY — not the key)
 #   hash:          sha256 of the flagged statement, first 16 hex (THE KEY)
-#   guard:         OPTIONAL "file|symbol|hash" of the validator the entry depends on
+#   guard:         "file|symbol|hash" of the validator the entry depends on (REQUIRED for G204/G304/G402)
 #   reason:        WHY it is safe (the justification — not "false positive")
 #   assumption:    the precise data-flow fact that must hold for it to stay safe
 #   verified_at:   ISO date it was last re-verified

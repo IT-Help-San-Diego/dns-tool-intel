@@ -6,8 +6,15 @@ A suppression's reasoning is usually about a GUARD above the flagged statement
 is deleted or changed, the statement may be byte-identical but the suppression
 is no longer valid. Each ledger entry may carry a `guard` field of the form
 `file|symbol|hash`; this helper re-locates the symbol in the file, re-hashes its
-declaration line, and reports any entry whose guard hash no longer matches (or
-whose symbol has vanished).
+DECLARATION THROUGH ITS CLOSING BRACE (the whole validator — body included —
+not just the declaration's first line), and reports any entry whose guard hash
+no longer matches (or whose symbol has vanished).
+
+Some rule classes (G204 exec, G304 path traversal, G402 TLS) are only safe
+because an upstream validator gates the flagged statement. For those, `guard`
+is REQUIRED — an entry without one is fail-open and is reported here. A
+statement-alone claim (e.g. G101 "this is a URL constant, not a credential")
+has no upstream validator and may omit `guard`.
 
 Reads the ledger directly (flat YAML line format). Emits one line per STALE or
 MISSING guard as `rule|file|symbol`; exits non-zero if any are found.
@@ -17,6 +24,11 @@ Usage: guard_check.py --ledger security/suppressions.yaml --root /abs/repo
 import argparse
 import hashlib
 import sys
+
+# Rules whose safety claim is "input is validated upstream" — a guard MUST be
+# named so the gate can prove the validator still exists. Without a guard the
+# claim is unverifiable prose and the suppression is fail-open.
+REQUIRED_GUARD_RULES = {"G204", "G304", "G402"}
 
 
 def find_declaration_line(path, symbol):
@@ -33,6 +45,53 @@ def find_declaration_line(path, symbol):
     return None
 
 
+def declaration_block(path, decl):
+    """Return the source text of the declaration at 1-indexed `decl`.
+
+    A `func`/`var ( ... )`/`const ( ... )` guard hashes from its declaration
+    line through the closing brace at the declaration's INDENT level — the
+    whole validator body, not just the first line — so gutting a function to
+    `return true` (or weakening a validator) changes the hash. A single-line
+    declaration (no `{`) hashes as its line alone."""
+    with open(path, "r", encoding="utf-8") as fh:
+        lines = fh.readlines()
+    first = lines[decl - 1]
+    if "{" not in first:
+        return first.strip()  # single-line var/const — hash the line
+    if "}" in first:
+        return first.strip()  # one-liner func — { ... } on the decl line
+    indent = len(first) - len(first.lstrip())
+    block = [first]
+    for i in range(decl, len(lines)):
+        line = lines[i]
+        block.append(line)
+        stripped = line.lstrip()
+        if stripped.startswith("}") and (len(line) - len(line.lstrip())) == indent:
+            break
+    return "".join(block).strip()
+
+
+def parse_ledger(path):
+    """Parse the flat YAML ledger into a list of entry dicts."""
+    entries = []
+    cur = None
+    with open(path, "r", encoding="utf-8") as fh:
+        for raw in fh:
+            line = raw.strip()
+            if line.startswith("- rule:"):
+                if cur is not None:
+                    entries.append(cur)
+                cur = {"rule": line.split(":", 1)[1].strip(), "guard": None}
+            elif cur is not None and line.startswith("guard:"):
+                val = line.split(":", 1)[1].strip().strip('"')
+                parts = val.split("|")
+                if len(parts) == 3:
+                    cur["guard"] = (parts[0], parts[1], parts[2])
+    if cur is not None:
+        entries.append(cur)
+    return entries
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--ledger", required=True)
@@ -40,30 +99,22 @@ def main() -> int:
     args = ap.parse_args()
     root = args.root.rstrip("/") + "/"
 
-    # Parse the flat ledger: track the current rule, collect guard fields.
-    entries = []
-    rule = ""
-    with open(args.ledger, "r", encoding="utf-8") as fh:
-        for raw in fh:
-            line = raw.strip()
-            if line.startswith("- rule:"):
-                rule = line.split(":", 1)[1].strip()
-            elif line.startswith("guard:") and rule:
-                val = line.split(":", 1)[1].strip().strip('"')
-                parts = val.split("|")
-                if len(parts) == 3:
-                    entries.append((rule, parts[0], parts[1], parts[2]))
-
     stale = 0
-    for rule, gfile, gsymbol, ghash in entries:
+    for e in parse_ledger(args.ledger):
+        rule = e["rule"]
+        if e["guard"] is None:
+            if rule in REQUIRED_GUARD_RULES:
+                print(f"{rule}|<no guard>|—\tMISSING GUARD (required for {rule})")
+                stale += 1
+            continue  # statement-alone claim — no upstream validator to check
+        gfile, gsymbol, ghash = e["guard"]
         path = root + gfile
         decl = find_declaration_line(path, gsymbol)
         if decl is None:
             print(f"{rule}|{gfile}|{gsymbol}\tMISSING (symbol not found)")
             stale += 1
             continue
-        with open(path, "r", encoding="utf-8") as fh:
-            content = fh.readlines()[decl - 1].strip()
+        content = declaration_block(path, decl)
         cur = hashlib.sha256(content.encode()).hexdigest()[:16]
         if cur != ghash:
             print(f"{rule}|{gfile}|{gsymbol}\tCHANGED (hash {cur} != {ghash})")
