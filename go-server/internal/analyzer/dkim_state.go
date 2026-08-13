@@ -78,5 +78,10 @@ func classifyDKIMState(ps protocolState) DKIMState {
 	if ps.dkimWeakKeys {
 		return DKIMWeakKeysOnly
 	}
-	return DKIMAbsent
+	// No selector matched on a mail domain. DKIM selectors are arbitrary
+	// labels with no enumerating DNS record (RFC 6376), so "nothing found at
+	// any probed selector" is INCONCLUSIVE — it proves only that the domain
+	// does not use THOSE names, never that it does not sign. Reporting it as
+	// DKIMAbsent would count a guess as a measurement.
+	return DKIMInconclusive
 }

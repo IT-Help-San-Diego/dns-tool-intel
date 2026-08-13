@@ -611,7 +611,10 @@ func classifyDKIMPosture(ds DKIMState, primaryProvider string, acc *postureAccum
 		// unverifiable control there reported a guess as a measurement. The
 		// monitoring note carries it instead: visible, flagged as needing
 		// attention, counted as neither configured nor absent.
-		acc.monitoring = append(acc.monitoring, "DKIM status is inconclusive — no record was found at any selector name this tool probes, and selectors are not enumerable from DNS, so this is not evidence that DKIM is absent")
+		acc.monitoring = append(acc.monitoring, fmt.Sprintf(
+			"DKIM status is inconclusive — no record was found at any of the %d common selector names this tool probes. DKIM selectors are arbitrary labels with no enumerating DNS record (RFC 6376), so this is not evidence that DKIM is absent. If you know your selector, enter it for a definitive check.",
+			len(defaultDKIMSelectors),
+		))
 	case DKIMAbsent:
 		acc.absent = append(acc.absent, "DKIM")
 		acc.recommendations = append(acc.recommendations, "Configure DKIM signing to cryptographically authenticate outgoing email — RFC 6376 defines the mechanism; without it, messages cannot be verified as unaltered in transit")

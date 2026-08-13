@@ -82,7 +82,7 @@ func TestClassifyDKIMState(t *testing.T) {
                 {"partial", protocolState{dkimPartial: true}, DKIMThirdPartyOnly},
                 {"third_party_only", protocolState{dkimThirdPartyOnly: true}, DKIMThirdPartyOnly},
                 {"weak_keys", protocolState{dkimWeakKeys: true}, DKIMWeakKeysOnly},
-                {"absent", protocolState{}, DKIMAbsent},
+                {"inconclusive", protocolState{}, DKIMInconclusive},
         }
         for _, tt := range tests {
                 t.Run(tt.name, func(t *testing.T) {
