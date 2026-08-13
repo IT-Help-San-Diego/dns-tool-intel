@@ -16,7 +16,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 SRC = ROOT / "templates" / "results.html"
 DST = ROOT / "templates" / "results_v2.html"
-SOURCE_LINE_COUNT = 7147
+SOURCE_LINE_COUNT = 7159
 
 lines = SRC.read_text().split("\n")
 assert len(lines) >= SOURCE_LINE_COUNT, (
@@ -70,7 +70,7 @@ GROUPS = (
         "Can DNS answers and certificate issuance be trusted?",
         "L1",
         False,
-        ((2395, 2579), (2716, 2770), (3704, 3854), (3963, 4102), (4722, 5186)),
+        ((2395, 2579), (2716, 2770), (3704, 3854), (3975, 4114), (4734, 5198)),
         (
             ("DANE / TLSA", "section-dane"),
             ("CAA", "section-caa"),
@@ -87,7 +87,7 @@ GROUPS = (
         "Will mail transport resist downgrade and interception?",
         "L1",
         False,
-        ((4200, 4570),),
+        ((4212, 4582),),
         (("STARTTLS", "section-smtp"), ("MTA-STS policy", "section-smtp"), ("TLS-RPT", "section-smtp")),
     ),
     Group(
@@ -116,12 +116,12 @@ GROUPS = (
             (3234, 3514),
             (3515, 3614),
             (3615, 3703),
-            (3855, 3962),
-            (4103, 4199),
-            (4571, 4721),
-            (5187, 5339),
-            (5340, 5749),
-            (5750, 5788),
+            (3855, 3974),
+            (4115, 4211),
+            (4583, 4733),
+            (5199, 5351),
+            (5352, 5761),
+            (5762, 5800),
         ),
         (
             ("Registrar / RDAP", "section-infra"),
@@ -145,7 +145,7 @@ GROUPS = (
             (2073, 2303),
             (2304, 2358),
             (2359, 2394),
-            (5789, 6327),
+            (5801, 6339),
         ),
         (
             ("Analysis Confidence", "confidencePanel"),
@@ -160,7 +160,7 @@ GROUPS = (
 
 # Coverage proof: every canonical source line appears exactly once. Generated
 # workspace chrome is additive and therefore excluded from source coverage.
-covered: list[tuple[int, int]] = [(1, 973), (6328, SOURCE_LINE_COUNT)]
+covered: list[tuple[int, int]] = [(1, 973), (6340, SOURCE_LINE_COUNT)]
 for group in GROUPS:
     covered.extend(group.ranges)
 seen = [0] * (SOURCE_LINE_COUNT + 1)
@@ -399,7 +399,7 @@ NAV = '<nav class="v2-nav screen-only" aria-label="Engineer report workspace">\n
 # renders below, but the workspace/navigation now owns the first decision frame.
 out = [seg(1, 372), CSS, ORIENTATION, NAV, SCRIPT, seg(373, 973), '<div class="v2-groups">']
 out.extend(group_markup(group) for group in GROUPS)
-out.extend(("</div>", seg(6328, SOURCE_LINE_COUNT)))
+out.extend(("</div>", seg(6340, SOURCE_LINE_COUNT)))
 html = "\n".join(out)
 html = html.replace('<main id="main-content" class="container my-4"', '<main id="main-content" class="container my-4 v2-workspace"', 1)
 html = html.replace("<title>", "<title>[ENGINEER WORKSPACE] ", 1)
