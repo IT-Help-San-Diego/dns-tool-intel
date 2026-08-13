@@ -212,7 +212,6 @@ func TestDKIMState_Methods(t *testing.T) {
                 }
                 _ = s.IsPresent()
                 _ = s.IsConfigured()
-                _ = s.NeedsAction()
                 _ = s.NeedsMonitoring()
         }
 }

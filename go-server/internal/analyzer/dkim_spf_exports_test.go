@@ -46,18 +46,6 @@ func TestDKIMStateIsConfigured(t *testing.T) {
         }
 }
 
-func TestDKIMStateNeedsAction(t *testing.T) {
-        if !DKIMAbsent.NeedsAction() {
-                t.Error("DKIMAbsent.NeedsAction() should be true")
-        }
-        if DKIMSuccess.NeedsAction() {
-                t.Error("DKIMSuccess.NeedsAction() should be false")
-        }
-        if DKIMInconclusive.NeedsAction() {
-                t.Error("DKIMInconclusive.NeedsAction() should be false")
-        }
-}
-
 func TestDKIMStateNeedsMonitoring(t *testing.T) {
         if !DKIMInconclusive.NeedsMonitoring() {
                 t.Error("DKIMInconclusive.NeedsMonitoring() should be true")

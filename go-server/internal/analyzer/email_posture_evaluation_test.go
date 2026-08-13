@@ -380,9 +380,9 @@ func TestAppendDMARCFixes_CB7(t *testing.T) {
 func TestAppendDKIMFixes_CB7(t *testing.T) {
         ps := protocolState{}
         results := map[string]any{"domain": "example.com"}
-        fixes := appendDKIMFixes(nil, ps, DKIMAbsent, results, "example.com")
+        fixes := appendDKIMFixes(nil, ps, DKIMInconclusive, results, "example.com")
         if len(fixes) == 0 {
-                t.Fatal("expected fixes for absent DKIM")
+                t.Fatal("expected fixes for inconclusive DKIM")
         }
 }
 
@@ -502,15 +502,6 @@ func TestDKIMStateIsConfigured_CB7(t *testing.T) {
         }
         if DKIMWeakKeysOnly.IsConfigured() {
                 t.Fatal("DKIMWeakKeysOnly should not be configured")
-        }
-}
-
-func TestDKIMStateNeedsAction_CB7(t *testing.T) {
-        if !DKIMAbsent.NeedsAction() {
-                t.Fatal("DKIMAbsent should need action")
-        }
-        if DKIMSuccess.NeedsAction() {
-                t.Fatal("DKIMSuccess should not need action")
         }
 }
 

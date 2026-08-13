@@ -23,7 +23,7 @@ func TestClassifyDKIMState_Exhaustive(t *testing.T) {
 			dkimThirdPartyOnly: bits&(1<<5) != 0,
 		}
 		got := classifyDKIMState(ps)
-		if got < DKIMAbsent || got > DKIMNoMailDomain {
+		if got < DKIMInconclusive || got > DKIMNoMailDomain {
 			t.Fatalf("bits=%02d produced out-of-range state %d", bits, int(got))
 		}
 		counts[got]++

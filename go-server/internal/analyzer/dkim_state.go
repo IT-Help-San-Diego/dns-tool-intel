@@ -8,11 +8,16 @@ import "fmt"
 type DKIMState int
 
 const (
-	DKIMAbsent DKIMState = iota
+	// DKIMInconclusive is the zero value so an unassigned or zero-valued
+	// DKIMState defaults to the HONEST state ("could not determine") rather
+	// than DKIMAbsent — which the classifier can no longer produce and which
+	// would wrongly read as a positive "no DKIM" claim (and route to the
+	// now-removed NeedsAction).
+	DKIMInconclusive DKIMState = iota
+	DKIMAbsent
 	DKIMSuccess
 	DKIMProviderInferred
 	DKIMThirdPartyOnly
-	DKIMInconclusive
 	DKIMWeakKeysOnly
 	DKIMNoMailDomain
 )
@@ -52,10 +57,6 @@ func (s DKIMState) IsConfigured() bool {
 		return true
 	}
 	return false
-}
-
-func (s DKIMState) NeedsAction() bool {
-	return s == DKIMAbsent
 }
 
 func (s DKIMState) NeedsMonitoring() bool {
