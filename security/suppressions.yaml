@@ -14,13 +14,21 @@
 #   (2) NO entry may exist whose finding has disappeared — the code drifted;
 #       either you fixed it (remove the entry) or it moved (re-locate + re-verify).
 #
+# The match key is CONTENT, not line number. Each entry's `hash` is the sha256
+# (first 16 hex) of the flagged statement's source text, produced by
+# scripts/gosec_hash.py from gosec's JSON `code` field. An unrelated edit above
+# a finding moves its line but not its content, so the entry stays valid; a
+# fixed/changed finding changes its content and goes stale for re-review.
+# `line` is a HUMAN HINT only — it is not part of the match.
+#
 # Removing an entry because you FIXED the underlying finding is the healthy
 # end-state. A suppression should never outlive the code it was true about.
 #
 # Schema per entry:
 #   rule:          gosec rule id (G402, G203, G115, ...)
 #   file:          path relative to go-server/ (matches gosec's report)
-#   line:          start line the finding is reported at
+#   line:          start line of the finding (HINT ONLY — not the key)
+#   hash:          sha256 of the flagged statement, first 16 hex (THE KEY)
 #   reason:        WHY it is safe (the justification — not "false positive")
 #   assumption:    the precise data-flow fact that must hold for it to stay safe
 #   verified_at:   ISO date it was last re-verified
@@ -30,6 +38,7 @@ suppressions:
   - rule: G101
     file: internal/handlers/authpkg/auth.go
     line: 31
+    hash: ffe1fb81ec6d6840
     reason: "Google OAuth endpoint URL constant, not a credential"
     assumption: "the OAuth client secret is loaded from config/env; these are endpoint URLs only"
     verified_at: "2026-08-13"
