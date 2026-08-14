@@ -84,6 +84,8 @@ type protocolState struct {
 	dnssecOK            bool
 	dnssecBroken        bool
 	dnssecIndeterminate bool
+	dnssecUnconfirmed   bool
+	dnssecUnmeasured    bool
 	dnssecADValidated   bool
 	dnssecAlgoStrength  string
 	primaryProvider     string
@@ -327,12 +329,21 @@ func evaluateDNSSECState(dnssec map[string]any, ps *protocolState) {
 		ps.dnssecIndeterminate = true
 		return
 	}
-	status, _ := dnssec[mapKeyStatus].(string)
-	switch status {
-	case mapKeySuccess:
+	// chain_of_trust is the honest verdict: complete (validated), broken
+	// (validation failed), unconfirmed (AD absent, RFC 4033 §5 cannot
+	// attribute), unknown (couldn't measure the AD flag), none (unsigned),
+	// inherited (from parent). Only "broken" docks the score; unconfirmed
+	// and unknown stay out of the denominator (parity with DKIM inconclusive).
+	chain, _ := dnssec[mapKeyChainOfTrust].(string)
+	switch chain {
+	case "complete", "inherited":
 		ps.dnssecOK = true
-	case "error":
+	case "broken":
 		ps.dnssecBroken = true
+	case "unconfirmed":
+		ps.dnssecUnconfirmed = true
+	case statusUnknown:
+		ps.dnssecUnmeasured = true
 	}
 	// AD flag: did a validating resolver actually confirm the chain of trust?
 	// dnssecOK is true whenever DNSKEY+DS are present, even when the resolver did
@@ -654,6 +665,10 @@ func classifyDNSSEC(ps protocolState, acc *postureAccumulator) {
 	} else if ps.dnssecBroken {
 		acc.issues = append(acc.issues, "DNSSEC validation is failing — DNS responses cannot be trusted")
 		acc.recommendations = append(acc.recommendations, "Fix DNSSEC configuration or remove broken DS records")
+	} else if ps.dnssecUnconfirmed {
+		acc.monitoring = append(acc.monitoring, "DNSSEC is configured but the chain of trust is unconfirmed — the AD flag was absent and RFC 4033 §5 cannot distinguish why")
+	} else if ps.dnssecUnmeasured {
+		acc.monitoring = append(acc.monitoring, "DNSSEC could not be measured — the validating resolvers were unreachable (instrument failure, not a domain finding)")
 	} else if ps.dnssecIndeterminate {
 		acc.monitoring = append(acc.monitoring, "DNSSEC could not be verified — DNSKEY/DS lookup did not complete; re-run before concluding the zone is unsigned (RFC 4035)")
 	} else {

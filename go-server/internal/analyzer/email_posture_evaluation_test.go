@@ -130,7 +130,7 @@ func TestEvaluateDANEState_CB7(t *testing.T) {
 
 func TestEvaluateDNSSECState_CB7(t *testing.T) {
         ps := &protocolState{}
-        dnssec := map[string]any{"status": "success", "signed": true}
+        dnssec := map[string]any{"chain_of_trust": "complete", "signed": true}
         evaluateDNSSECState(dnssec, ps)
         if !ps.dnssecOK {
                 t.Fatal("expected dnssecOK=true")
