@@ -73,7 +73,7 @@ func TestPriorMeanInvalid(t *testing.T) {
 
 func TestCalibratedConfidenceFullAgreement(t *testing.T) {
 	ce := NewCalibrationEngine()
-	result := ce.CalibratedConfidence("SPF", 0.8, 3, 3)
+	result := ce.ReliabilityWeightedSeverity("SPF", 0.8, 3, 3)
 	if math.Abs(result-0.8) > 1e-9 {
 		t.Errorf("full agreement: expected 0.8, got %v", result)
 	}
@@ -81,7 +81,7 @@ func TestCalibratedConfidenceFullAgreement(t *testing.T) {
 
 func TestCalibratedConfidencePartialAgreement(t *testing.T) {
 	ce := NewCalibrationEngine()
-	result := ce.CalibratedConfidence("SPF", 0.8, 2, 4)
+	result := ce.ReliabilityWeightedSeverity("SPF", 0.8, 2, 4)
 	w := 0.5
 	priorMean := 0.95
 	expected := w*0.8 + (1-w)*priorMean
@@ -92,7 +92,7 @@ func TestCalibratedConfidencePartialAgreement(t *testing.T) {
 
 func TestCalibratedConfidenceNoAgreement(t *testing.T) {
 	ce := NewCalibrationEngine()
-	result := ce.CalibratedConfidence("SPF", 0.8, 0, 3)
+	result := ce.ReliabilityWeightedSeverity("SPF", 0.8, 0, 3)
 	priorMean := 0.95
 	if math.Abs(result-priorMean) > 1e-9 {
 		t.Errorf("no agreement: expected %v, got %v", priorMean, result)
@@ -101,7 +101,7 @@ func TestCalibratedConfidenceNoAgreement(t *testing.T) {
 
 func TestCalibratedConfidenceZeroResolvers(t *testing.T) {
 	ce := NewCalibrationEngine()
-	result := ce.CalibratedConfidence("SPF", 0.8, 0, 0)
+	result := ce.ReliabilityWeightedSeverity("SPF", 0.8, 0, 0)
 	priorMean := 0.95
 	if math.Abs(result-priorMean) > 1e-9 {
 		t.Errorf("zero resolvers: expected %v, got %v", priorMean, result)
@@ -110,11 +110,11 @@ func TestCalibratedConfidenceZeroResolvers(t *testing.T) {
 
 func TestCalibratedConfidenceClampsToZeroOne(t *testing.T) {
 	ce := NewCalibrationEngine()
-	result := ce.CalibratedConfidence("SPF", 1.5, 3, 3)
+	result := ce.ReliabilityWeightedSeverity("SPF", 1.5, 3, 3)
 	if result > 1.0 {
 		t.Errorf("expected clamped to 1.0, got %v", result)
 	}
-	result2 := ce.CalibratedConfidence("SPF", -0.5, 3, 3)
+	result2 := ce.ReliabilityWeightedSeverity("SPF", -0.5, 3, 3)
 	if result2 < 0.0 {
 		t.Errorf("expected clamped to 0.0, got %v", result2)
 	}

@@ -82,13 +82,13 @@ func (uc UnifiedConfidence) CurrencyDisplay() string {
 }
 
 type Input struct {
-        CalibratedConfidence map[string]float64
+        ReliabilityWeightedSeverity map[string]float64
         CurrencyScore        float64
         MaturityLevel        string
 }
 
 func ComputeUnifiedConfidence(input Input) UnifiedConfidence {
-        accuracyFactor := computeAccuracyFactor(input.CalibratedConfidence)
+        accuracyFactor := computeAccuracyFactor(input.ReliabilityWeightedSeverity)
 
         currencyFactor := input.CurrencyScore
         if currencyFactor < 0 {
@@ -123,7 +123,7 @@ func ComputeUnifiedConfidence(input Input) UnifiedConfidence {
                 WeakestLink:     weakest,
                 WeakestDetail:   weakestDetail,
                 Explanation:     explanation,
-                ProtocolCount:   len(input.CalibratedConfidence),
+                ProtocolCount:   len(input.ReliabilityWeightedSeverity),
         }
 }
 

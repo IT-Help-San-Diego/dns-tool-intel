@@ -88,11 +88,11 @@ func clamp01(v float64) float64 {
         return v
 }
 
-// calibratedConfidenceMap normalizes results["calibrated_confidence"] whether
+// reliabilityWeightedSeverityMap normalizes results["calibrated_confidence"] whether
 // it is the live map[string]float64 (scan time) or the JSON round-tripped
 // map[string]any (backfill). This dual-shape handling is deliberate: the same
 // data has two runtime types depending on the code path.
-func calibratedConfidenceMap(results map[string]any) map[string]float64 {
+func reliabilityWeightedSeverityMap(results map[string]any) map[string]float64 {
         switch m := results["calibrated_confidence"].(type) {
         case map[string]float64:
                 return m
@@ -112,7 +112,7 @@ func calibratedConfidenceMap(results map[string]any) map[string]float64 {
 // calibrated_confidence map. Protocols absent from the map (older scans,
 // engine changes) are skipped — never fabricated.
 func extractConfidenceRows(results map[string]any) []confidenceScoreRow {
-        calibrated := calibratedConfidenceMap(results)
+        calibrated := reliabilityWeightedSeverityMap(results)
         if len(calibrated) == 0 {
                 return nil
         }

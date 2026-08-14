@@ -207,7 +207,7 @@ func TestSnapshotICAEMetrics_Construction(t *testing.T) {
 
 func TestRestoreUnifiedConfidence_Roundtrip(t *testing.T) {
         input := unified.Input{
-                CalibratedConfidence: map[string]float64{
+                ReliabilityWeightedSeverity: map[string]float64{
                         "SPF": 1.0, "DKIM": 0.7, "DMARC": 1.0,
                         "DANE": 0.0, "DNSSEC": 1.0, "BIMI": 0.0,
                         "MTA_STS": 0.7, "TLS_RPT": 0.3, "CAA": 1.0,
@@ -698,7 +698,7 @@ func TestComputeCalibratedConfidence_AllProtocols(t *testing.T) {
         }
 
         cr := icuae.CurrencyReport{OverallScore: 0.95}
-        calibrated := h.computeCalibratedConfidence(results, cr)
+        calibrated := h.computeReliabilityWeightedSeverity(results, cr)
 
         if len(calibrated) != 9 {
                 t.Errorf("expected 9 protocols calibrated, got %d", len(calibrated))

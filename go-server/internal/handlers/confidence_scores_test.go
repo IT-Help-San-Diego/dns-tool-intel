@@ -63,7 +63,7 @@ func TestConfidenceScoresCalibratedMapLiveShape(t *testing.T) {
         results := map[string]any{
                 "calibrated_confidence": map[string]float64{"SPF": 0.9, "DMARC": 1.0},
         }
-        m := calibratedConfidenceMap(results)
+        m := reliabilityWeightedSeverityMap(results)
         if len(m) != 2 || m["SPF"] != 0.9 || m["DMARC"] != 1.0 {
                 t.Errorf("live shape: got %v", m)
         }
@@ -75,14 +75,14 @@ func TestConfidenceScoresCalibratedMapJSONShape(t *testing.T) {
         if err := json.Unmarshal(raw, &results); err != nil {
                 t.Fatal(err)
         }
-        m := calibratedConfidenceMap(results)
+        m := reliabilityWeightedSeverityMap(results)
         if len(m) != 2 || m["SPF"] != 0.9 || m["DKIM"] != 0.7 {
                 t.Errorf("JSON shape: got %v", m)
         }
 }
 
 func TestConfidenceScoresCalibratedMapMissing(t *testing.T) {
-        if m := calibratedConfidenceMap(map[string]any{}); m != nil {
+        if m := reliabilityWeightedSeverityMap(map[string]any{}); m != nil {
                 t.Errorf("missing map should return nil, got %v", m)
         }
 }

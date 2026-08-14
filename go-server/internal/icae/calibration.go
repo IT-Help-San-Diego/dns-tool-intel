@@ -264,13 +264,13 @@ func computePerProtocolCalibration(predictions []PredictionOutcome) map[string]P
 func interpretBrier(score float64) string {
         switch {
         case score < 0.01:
-                return "Excellent — near-perfect probabilistic accuracy"
+                return "Excellent — near-perfect agreement with the fixture corpus"
         case score < 0.05:
-                return "Good — strong calibration, minor deviations"
+                return "Good — strong reliability weighting, minor deviations"
         case score < 0.10:
-                return "Adequate — reasonable accuracy with room for improvement"
+                return "Adequate — reasonable weighting agreement, room for improvement"
         case score < 0.25:
-                return "Weak — systematic over- or under-confidence detected"
+                return "Weak — systematic over- or under-weighting detected"
         default:
                 return "Poor — worse than random baseline (0.25)"
         }
@@ -322,15 +322,15 @@ func ratingFromGap(gap float64) string {
 func interpretECE(ece float64) string {
         switch {
         case ece < 0.02:
-                return "Excellent — stated confidence closely matches observed accuracy"
+                return "Excellent — stated severity weight closely matches the fixture outcome"
         case ece < 0.05:
-                return "Good — minor calibration gap, operationally reliable"
+                return "Good — minor weighting deviation, operationally reliable"
         case ece < 0.10:
-                return "Adequate — noticeable gap between confidence and accuracy"
+                return "Adequate — noticeable gap between severity weight and fixture outcome"
         case ece < 0.20:
-                return "Weak — significant miscalibration, confidence scores unreliable"
+                return "Weak — significant mis-weighting, severity scores unreliable"
         default:
-                return "Poor — severe miscalibration, confidence scores misleading"
+                return "Poor — severe mis-weighting, severity scores misleading"
         }
 }
 
@@ -347,7 +347,7 @@ func RunFixtureCalibration(ce *CalibrationEngine) CalibrationResult {
                 }
 
                 protoKey := mapProtocolToCalibrationKey(tc.Protocol)
-                confidence := ce.CalibratedConfidence(protoKey, 1.0, 5, 5)
+                confidence := ce.ReliabilityWeightedSeverity(protoKey, 1.0, 5, 5)
 
                 predictions = append(predictions, PredictionOutcome{
                         Protocol:   tc.Protocol,
@@ -374,7 +374,7 @@ func RunFullCalibration(ce *CalibrationEngine) CalibrationResult {
                 }
 
                 protoKey := mapProtocolToCalibrationKey(tc.Protocol)
-                confidence := ce.CalibratedConfidence(protoKey, 1.0, 5, 5)
+                confidence := ce.ReliabilityWeightedSeverity(protoKey, 1.0, 5, 5)
 
                 predictions = append(predictions, PredictionOutcome{
                         Protocol:   tc.Protocol,
@@ -418,7 +418,7 @@ func RunDegradedCalibration(ce *CalibrationEngine) CalibrationResult {
                 protoKey := mapProtocolToCalibrationKey(tc.Protocol)
 
                 for _, scenario := range resolverScenarios {
-                        confidence := ce.CalibratedConfidence(protoKey, 1.0, scenario.agree, scenario.total)
+                        confidence := ce.ReliabilityWeightedSeverity(protoKey, 1.0, scenario.agree, scenario.total)
 
                         predictions = append(predictions, PredictionOutcome{
                                 Protocol:   tc.Protocol,

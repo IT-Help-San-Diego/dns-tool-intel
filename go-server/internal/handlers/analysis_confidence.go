@@ -35,7 +35,13 @@ func (h *AnalysisHandler) applyConfidenceEngines(results map[string]any) {
 		return
 	}
 
-	calibrated := h.computeCalibratedConfidence(results, cr)
+	calibrated := h.computeReliabilityWeightedSeverity(results, cr)
+	// `calibrated_confidence` is a FROZEN wire key (see EDE-012): it names the
+	// reliability-weighted severity map inside the persisted full_results JSON.
+	// The name is legacy — the value is a severity weight, not a calibrated
+	// probability — but renaming it would orphan ~17,700 stored rows behind a
+	// permanent compatibility shim, and no human reads raw JSON to form a
+	// belief about calibration. Freeze the key; rename only what humans read.
 	results["calibrated_confidence"] = calibrated
 
 	ewmaSnapshot := h.recordDimensionCharts(cr)
@@ -47,13 +53,13 @@ func (h *AnalysisHandler) applyConfidenceEngines(results map[string]any) {
 	)
 }
 
-func (h *AnalysisHandler) computeCalibratedConfidence(results map[string]any, cr icuae.CurrencyReport) map[string]float64 {
+func (h *AnalysisHandler) computeReliabilityWeightedSeverity(results map[string]any, cr icuae.CurrencyReport) map[string]float64 {
 	totalAgree, totalResolvers := aggregateResolverAgreement(results)
 
 	calibrated := make(map[string]float64, len(protocolResultKeys))
 	for protocol, resultKey := range protocolResultKeys {
 		severity := protocolVerdictSeverity(results, resultKey)
-		cc := h.Calibration.CalibratedConfidence(protocol, severity, totalAgree, totalResolvers)
+		cc := h.Calibration.ReliabilityWeightedSeverity(protocol, severity, totalAgree, totalResolvers)
 		calibrated[protocol] = cc
 	}
 	return calibrated

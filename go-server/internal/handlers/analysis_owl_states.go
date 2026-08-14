@@ -20,9 +20,9 @@
 //	                status "indeterminate", stored tri-state fields reading
 //	                "indeterminate" under a non-indeterminate status (the
 //	                lookup did not complete), and protocols WITHOUT a
-//	                confirmed outcome whose calibrated confidence falls
+//	                confirmed outcome whose reliability-weighted severity falls
 //	                below the moderate threshold (unified.ThresholdModerate
-//	                = 50.0, i.e. 0.50 on the 0-1 calibrated scale).
+//	                = 50.0, i.e. 0.50 on the 0-1 severity scale).
 //	                Confirmed failures/absences are excluded from the
 //	                confidence input: the raw scale is outcome-valenced, so
 //	                their low score restates the verdict — certainty, which
@@ -70,7 +70,7 @@ var owlProtocolOrder = []struct {
 const owlLowConfidenceThreshold = 0.50
 
 // owlSliceLen tolerates live []string values and JSON round-tripped []any —
-// the same dual-shape reality handled by calibratedConfidenceMap.
+// the same dual-shape reality handled by reliabilityWeightedSeverityMap.
 func owlSliceLen(v any) int {
 	switch s := v.(type) {
 	case []string:
@@ -210,7 +210,7 @@ func owlCriticalFixCount(results map[string]any) int {
 // passing or advisory status whose reliability-weighted severity was
 // dragged below moderate (e.g. by resolver disagreement).
 func owlLowConfidence(results map[string]any, confirmedOutcome map[string]bool) (low []string, calibratedTotal int) {
-	calibrated := calibratedConfidenceMap(results)
+	calibrated := reliabilityWeightedSeverityMap(results)
 	for _, p := range owlProtocolOrder {
 		if confirmedOutcome[p.ConfKey] {
 			continue

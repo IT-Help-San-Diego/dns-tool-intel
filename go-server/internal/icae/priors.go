@@ -59,7 +59,7 @@ func (ce *CalibrationEngine) PriorMean(category string) float64 {
         return d.Mean()
 }
 
-func (ce *CalibrationEngine) CalibratedConfidence(category string, rawConfidence float64, resolverAgreement, totalResolvers int) float64 {
+func (ce *CalibrationEngine) ReliabilityWeightedSeverity(category string, rawConfidence float64, resolverAgreement, totalResolvers int) float64 {
         if totalResolvers == 0 {
                 return ce.PriorMean(category)
         }

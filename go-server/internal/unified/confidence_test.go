@@ -11,7 +11,7 @@ func approxEqual(a, b, tolerance float64) bool {
 
 func TestComputeUnifiedConfidence_HighConfidence(t *testing.T) {
         input := Input{
-                CalibratedConfidence: map[string]float64{
+                ReliabilityWeightedSeverity: map[string]float64{
                         "spf": 1.0, "dkim": 1.0, "dmarc": 1.0,
                         "dane": 1.0, "dnssec": 1.0, "caa": 1.0,
                         "mta_sts": 1.0, "tls_rpt": 1.0, "bimi": 1.0,
@@ -36,7 +36,7 @@ func TestComputeUnifiedConfidence_HighConfidence(t *testing.T) {
 
 func TestComputeUnifiedConfidence_LowAccuracy(t *testing.T) {
         input := Input{
-                CalibratedConfidence: map[string]float64{
+                ReliabilityWeightedSeverity: map[string]float64{
                         "spf": 0.3, "dkim": 0.0, "dmarc": 0.3,
                         "dane": 0.0, "dnssec": 0.0, "caa": 0.0,
                         "mta_sts": 0.0, "tls_rpt": 0.0, "bimi": 0.0,
@@ -55,7 +55,7 @@ func TestComputeUnifiedConfidence_LowAccuracy(t *testing.T) {
 
 func TestComputeUnifiedConfidence_LowCurrency(t *testing.T) {
         input := Input{
-                CalibratedConfidence: map[string]float64{
+                ReliabilityWeightedSeverity: map[string]float64{
                         "spf": 1.0, "dkim": 1.0, "dmarc": 1.0,
                 },
                 CurrencyScore: 15.0,
@@ -72,7 +72,7 @@ func TestComputeUnifiedConfidence_LowCurrency(t *testing.T) {
 
 func TestComputeUnifiedConfidence_MaturityCeiling(t *testing.T) {
         input := Input{
-                CalibratedConfidence: map[string]float64{
+                ReliabilityWeightedSeverity: map[string]float64{
                         "spf": 1.0, "dkim": 1.0, "dmarc": 1.0,
                 },
                 CurrencyScore: 95.0,
@@ -92,7 +92,7 @@ func TestComputeUnifiedConfidence_MaturityCeiling(t *testing.T) {
 
 func TestComputeUnifiedConfidence_VerifiedCeiling(t *testing.T) {
         input := Input{
-                CalibratedConfidence: map[string]float64{"spf": 1.0, "dkim": 1.0},
+                ReliabilityWeightedSeverity: map[string]float64{"spf": 1.0, "dkim": 1.0},
                 CurrencyScore:        90.0,
                 MaturityLevel:        "verified",
         }
@@ -104,7 +104,7 @@ func TestComputeUnifiedConfidence_VerifiedCeiling(t *testing.T) {
 
 func TestComputeUnifiedConfidence_ConsistentCeiling(t *testing.T) {
         input := Input{
-                CalibratedConfidence: map[string]float64{"spf": 1.0, "dkim": 1.0},
+                ReliabilityWeightedSeverity: map[string]float64{"spf": 1.0, "dkim": 1.0},
                 CurrencyScore:        95.0,
                 MaturityLevel:        "consistent",
         }
@@ -116,7 +116,7 @@ func TestComputeUnifiedConfidence_ConsistentCeiling(t *testing.T) {
 
 func TestComputeUnifiedConfidence_EmptyCalibration(t *testing.T) {
         input := Input{
-                CalibratedConfidence: map[string]float64{},
+                ReliabilityWeightedSeverity: map[string]float64{},
                 CurrencyScore:        80.0,
                 MaturityLevel:        "gold",
         }
@@ -131,7 +131,7 @@ func TestComputeUnifiedConfidence_EmptyCalibration(t *testing.T) {
 
 func TestComputeUnifiedConfidence_ZeroCurrency(t *testing.T) {
         input := Input{
-                CalibratedConfidence: map[string]float64{"spf": 1.0},
+                ReliabilityWeightedSeverity: map[string]float64{"spf": 1.0},
                 CurrencyScore:        0,
                 MaturityLevel:        "gold_master",
         }
@@ -255,7 +255,7 @@ func TestWeakestLinkIdentification(t *testing.T) {
 
 func TestExplanationContent(t *testing.T) {
         high := ComputeUnifiedConfidence(Input{
-                CalibratedConfidence: map[string]float64{"spf": 1.0, "dkim": 1.0, "dmarc": 1.0},
+                ReliabilityWeightedSeverity: map[string]float64{"spf": 1.0, "dkim": 1.0, "dmarc": 1.0},
                 CurrencyScore:        90,
                 MaturityLevel:        "gold_master",
         })
@@ -264,7 +264,7 @@ func TestExplanationContent(t *testing.T) {
         }
 
         low := ComputeUnifiedConfidence(Input{
-                CalibratedConfidence: map[string]float64{"spf": 0.0},
+                ReliabilityWeightedSeverity: map[string]float64{"spf": 0.0},
                 CurrencyScore:        10,
                 MaturityLevel:        "development",
         })
@@ -275,7 +275,7 @@ func TestExplanationContent(t *testing.T) {
 
 func TestProtocolCount(t *testing.T) {
         input := Input{
-                CalibratedConfidence: map[string]float64{"spf": 1.0, "dkim": 0.7, "dmarc": 1.0},
+                ReliabilityWeightedSeverity: map[string]float64{"spf": 1.0, "dkim": 0.7, "dmarc": 1.0},
                 CurrencyScore:        80,
                 MaturityLevel:        "gold",
         }
@@ -287,7 +287,7 @@ func TestProtocolCount(t *testing.T) {
 
 func TestNegativeCurrencyClamp(t *testing.T) {
         input := Input{
-                CalibratedConfidence: map[string]float64{"spf": 1.0},
+                ReliabilityWeightedSeverity: map[string]float64{"spf": 1.0},
                 CurrencyScore:        -10,
                 MaturityLevel:        "gold",
         }
@@ -299,7 +299,7 @@ func TestNegativeCurrencyClamp(t *testing.T) {
 
 func TestOverflowCurrencyClamp(t *testing.T) {
         input := Input{
-                CalibratedConfidence: map[string]float64{"spf": 1.0},
+                ReliabilityWeightedSeverity: map[string]float64{"spf": 1.0},
                 CurrencyScore:        150,
                 MaturityLevel:        "gold",
         }
@@ -387,7 +387,7 @@ func TestBuildExplanation_LowDefault(t *testing.T) {
 
 func TestComputeUnifiedConfidence_ModerateLevel(t *testing.T) {
         input := Input{
-                CalibratedConfidence: map[string]float64{
+                ReliabilityWeightedSeverity: map[string]float64{
                         "spf": 0.7, "dkim": 0.8, "dmarc": 0.6,
                 },
                 CurrencyScore: 70.0,
