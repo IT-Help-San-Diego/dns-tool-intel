@@ -498,7 +498,7 @@ func TestFindConsensus_AllResolversSameEmptyString(t *testing.T) {
 		"R1": {""},
 		"R2": {""},
 	}
-	records, allSame, _ := findConsensus(input)
+	records, allSame, _, _ := findConsensus(input)
 	if !allSame {
 		t.Error("expected consensus for identical empty-string results")
 	}
@@ -757,7 +757,7 @@ func TestFindConsensus_LargeNumberOfResolvers(t *testing.T) {
 		name := "R" + strings.Repeat("x", i)
 		input[name] = []string{"1.2.3.4"}
 	}
-	records, allSame, discrepancies := findConsensus(input)
+	records, allSame, discrepancies, _ := findConsensus(input)
 	if !allSame {
 		t.Error("expected consensus when all agree")
 	}

@@ -10,7 +10,7 @@ func TestExportFindConsensus_Unanimous(t *testing.T) {
                 "1.1.1.1": {"1.2.3.4"},
                 "9.9.9.9": {"1.2.3.4"},
         }
-        records, allSame, discrepancies := ExportFindConsensus(results)
+        records, allSame, discrepancies, _ := ExportFindConsensus(results)
         if !allSame {
                 t.Error("expected allSame=true for unanimous results")
         }
@@ -28,7 +28,7 @@ func TestExportFindConsensus_WithDissenter(t *testing.T) {
                 "1.1.1.1": {"1.2.3.4"},
                 "9.9.9.9": {"5.6.7.8"},
         }
-        records, allSame, discrepancies := ExportFindConsensus(results)
+        records, allSame, discrepancies, _ := ExportFindConsensus(results)
         if allSame {
                 t.Error("expected allSame=false with dissenter")
         }
@@ -45,7 +45,7 @@ func TestExportFindConsensus_AllEmpty(t *testing.T) {
                 "8.8.8.8": {},
                 "1.1.1.1": {},
         }
-        records, allSame, discrepancies := ExportFindConsensus(results)
+        records, allSame, discrepancies, _ := ExportFindConsensus(results)
         if !allSame {
                 t.Error("expected allSame=true for all-empty results")
         }
@@ -58,7 +58,7 @@ func TestExportFindConsensus_AllEmpty(t *testing.T) {
 }
 
 func TestExportFindConsensus_NilInput(t *testing.T) {
-        records, allSame, discrepancies := ExportFindConsensus(nil)
+        records, allSame, discrepancies, _ := ExportFindConsensus(nil)
         if records != nil {
                 t.Errorf("expected nil records for nil input, got %v", records)
         }
@@ -74,7 +74,7 @@ func TestExportFindConsensus_SingleResolver(t *testing.T) {
         results := map[string][]string{
                 "8.8.8.8": {"1.2.3.4", "5.6.7.8"},
         }
-        records, allSame, _ := ExportFindConsensus(results)
+        records, allSame, _, _ := ExportFindConsensus(results)
         if !allSame {
                 t.Error("expected allSame=true for single resolver")
         }

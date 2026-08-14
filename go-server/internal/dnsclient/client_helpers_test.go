@@ -66,7 +66,7 @@ func TestFindConsensus(t *testing.T) {
 			"Google":     {"1.2.3.4"},
 			"Quad9":      {"1.2.3.4"},
 		}
-		records, allSame, discrepancies := findConsensus(input)
+		records, allSame, discrepancies, _ := findConsensus(input)
 		if !allSame {
 			t.Error("expected consensus")
 		}
@@ -84,7 +84,7 @@ func TestFindConsensus(t *testing.T) {
 			"Google":     {"5.6.7.8"},
 			"Quad9":      {"1.2.3.4"},
 		}
-		_, allSame, discrepancies := findConsensus(input)
+		_, allSame, discrepancies, _ := findConsensus(input)
 		if allSame {
 			t.Error("expected no consensus")
 		}
@@ -98,7 +98,7 @@ func TestFindConsensus(t *testing.T) {
 			"Cloudflare": {},
 			"Google":     {},
 		}
-		records, allSame, _ := findConsensus(input)
+		records, allSame, _, _ := findConsensus(input)
 		if !allSame {
 			t.Error("expected consensus for empty results")
 		}
@@ -111,7 +111,7 @@ func TestFindConsensus(t *testing.T) {
 		input := map[string][]string{
 			"Cloudflare": {"1.2.3.4", "5.6.7.8"},
 		}
-		records, allSame, _ := findConsensus(input)
+		records, allSame, _, _ := findConsensus(input)
 		if !allSame {
 			t.Error("expected consensus with single resolver")
 		}

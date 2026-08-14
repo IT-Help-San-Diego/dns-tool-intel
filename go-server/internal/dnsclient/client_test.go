@@ -97,7 +97,7 @@ func TestCacheZeroTTLAlwaysMisses(t *testing.T) {
 
 func TestFindConsensus_AllEmpty(t *testing.T) {
 	input := map[string][]string{}
-	records, allSame, discrepancies := findConsensus(input)
+	records, allSame, discrepancies, _ := findConsensus(input)
 	if !allSame {
 		t.Error("expected consensus for empty input")
 	}
@@ -115,7 +115,7 @@ func TestFindConsensus_MajorityWins(t *testing.T) {
 		"R2": {"1.2.3.4"},
 		"R3": {"5.6.7.8"},
 	}
-	records, allSame, discrepancies := findConsensus(input)
+	records, allSame, discrepancies, _ := findConsensus(input)
 	if allSame {
 		t.Error("expected no consensus")
 	}
@@ -132,12 +132,33 @@ func TestFindConsensus_MultipleRecords(t *testing.T) {
 		"R1": {"a", "b", "c"},
 		"R2": {"a", "b", "c"},
 	}
-	records, allSame, _ := findConsensus(input)
+	records, allSame, _, _ := findConsensus(input)
 	if !allSame {
 		t.Error("expected consensus")
 	}
 	if len(records) != 3 {
 		t.Errorf("expected 3 records, got %d", len(records))
+	}
+}
+
+func TestFindConsensus_TopVotes(t *testing.T) {
+	cases := []struct {
+		name string
+		in   map[string][]string
+		want int
+	}{
+		{"empty", map[string][]string{}, 0},
+		{"unanimous-4", map[string][]string{"R1": {"a"}, "R2": {"a"}, "R3": {"a"}, "R4": {"a"}}, 4},
+		{"split-4-1", map[string][]string{"R1": {"a"}, "R2": {"a"}, "R3": {"a"}, "R4": {"a"}, "R5": {"b"}}, 4},
+		{"split-3-2", map[string][]string{"R1": {"a"}, "R2": {"a"}, "R3": {"a"}, "R4": {"b"}, "R5": {"b"}}, 3},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			_, _, _, tv := findConsensus(c.in)
+			if tv != c.want {
+				t.Errorf("topVotes = %d, want %d", tv, c.want)
+			}
+		})
 	}
 }
 
@@ -432,7 +453,7 @@ func TestExportFindConsensus(t *testing.T) {
 		"R1": {"1.2.3.4"},
 		"R2": {"1.2.3.4"},
 	}
-	records, allSame, discrepancies := ExportFindConsensus(input)
+	records, allSame, discrepancies, _ := ExportFindConsensus(input)
 	if !allSame {
 		t.Error("expected consensus")
 	}
@@ -504,7 +525,7 @@ func TestFindConsensus_AllDifferent(t *testing.T) {
 		"R2": {"2.2.2.2"},
 		"R3": {"3.3.3.3"},
 	}
-	_, allSame, discrepancies := findConsensus(input)
+	_, allSame, discrepancies, _ := findConsensus(input)
 	if allSame {
 		t.Error("expected no consensus when all different")
 	}

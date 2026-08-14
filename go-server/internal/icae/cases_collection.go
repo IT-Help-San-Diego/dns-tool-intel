@@ -53,7 +53,7 @@ func consensusCases() []TestCase {
                                         testResolverOpenDNS:     {testIPDefault},
                                         testResolverCleanBrowse: {testIPDefault},
                                 }
-                                records, allSame, discrepancies := dnsclient.ExportFindConsensus(results)
+                                records, allSame, discrepancies, _ := dnsclient.ExportFindConsensus(results)
                                 actual := fmt.Sprintf("allSame=%t, %d discrepancies, records=%v", allSame, len(discrepancies), records)
                                 return actual, allSame && len(discrepancies) == 0 && len(records) == 1 && records[0] == testIPDefault
                         },
@@ -73,7 +73,7 @@ func consensusCases() []TestCase {
                                         testResolverOpenDNS:     {testIPDefault},
                                         testResolverCleanBrowse: {"5.6.7.8"},
                                 }
-                                records, allSame, discrepancies := dnsclient.ExportFindConsensus(results)
+                                records, allSame, discrepancies, _ := dnsclient.ExportFindConsensus(results)
                                 actual := fmt.Sprintf("allSame=%t, %d discrepancies, records=%v", allSame, len(discrepancies), records)
                                 return actual, !allSame && len(discrepancies) == 1 && len(records) == 1 && records[0] == testIPDefault
                         },
@@ -93,7 +93,7 @@ func consensusCases() []TestCase {
                                         testResolverOpenDNS:     {},
                                         testResolverCleanBrowse: {},
                                 }
-                                records, allSame, discrepancies := dnsclient.ExportFindConsensus(results)
+                                records, allSame, discrepancies, _ := dnsclient.ExportFindConsensus(results)
                                 actual := fmt.Sprintf("allSame=%t, records=%v, discrepancies=%d", allSame, records, len(discrepancies))
                                 return actual, allSame && records == nil && len(discrepancies) == 0
                         },
@@ -111,7 +111,7 @@ func consensusCases() []TestCase {
                                         testResolverCloudflare: {testSPFGoogleInclude, testSPFDenyAll},
                                         testResolverQuad9:      {testSPFGoogleInclude, testSPFDenyAll},
                                 }
-                                records, allSame, discrepancies := dnsclient.ExportFindConsensus(results)
+                                records, allSame, discrepancies, _ := dnsclient.ExportFindConsensus(results)
                                 actual := fmt.Sprintf("allSame=%t, %d records, %d discrepancies", allSame, len(records), len(discrepancies))
                                 return actual, allSame && len(records) == 2 && len(discrepancies) == 0
                         },
@@ -129,7 +129,7 @@ func consensusCases() []TestCase {
                                         testResolverCloudflare: {testIPDefault},
                                         testResolverQuad9:      {"5.6.7.8"},
                                 }
-                                records, allSame, discrepancies := dnsclient.ExportFindConsensus(results)
+                                records, allSame, discrepancies, _ := dnsclient.ExportFindConsensus(results)
                                 actual := fmt.Sprintf("allSame=%t, records=%v, discrepancies=%d", allSame, records, len(discrepancies))
                                 return actual, !allSame && len(records) == 1 && records[0] == testIPDefault && len(discrepancies) == 1
                         },

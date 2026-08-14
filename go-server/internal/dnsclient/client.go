@@ -75,6 +75,7 @@ type ConsensusResult struct {
         Records         []string            `json:"records"`
         Consensus       bool                `json:"consensus"`
         ResolverCount   int                 `json:"resolver_count"`
+        TopVotes        int                 `json:"top_votes"`
         Discrepancies   []string            `json:"discrepancies"`
         ResolverResults map[string][]string `json:"resolver_results"`
 }
@@ -736,11 +737,12 @@ func (c *Client) QueryWithConsensus(ctx context.Context, recordType, domain stri
                         Records:         dohResults,
                         Consensus:       true,
                         ResolverCount:   boolToInt(len(dohResults) > 0),
+                        TopVotes:        boolToInt(len(dohResults) > 0),
                         ResolverResults: map[string][]string{"DoH": dohResults},
                 }
         }
 
-        consensusRecords, allSame, discrepancies := findConsensus(resolverResults)
+        consensusRecords, allSame, discrepancies, topVotes := findConsensus(resolverResults)
         if !allSame {
                 slog.Warn("DNS discrepancy", mapKeyDomain, domain, "record_type", recordType, mapKeyDiscrepancies, discrepancies)
         }
@@ -749,12 +751,13 @@ func (c *Client) QueryWithConsensus(ctx context.Context, recordType, domain stri
                 Records:         consensusRecords,
                 Consensus:       allSame,
                 ResolverCount:   len(resolverResults),
+                TopVotes:        topVotes,
                 Discrepancies:   discrepancies,
                 ResolverResults: resolverResults,
         }
 }
 
-func findConsensus(resolverResults map[string][]string) (records []string, allSame bool, discrepancies []string) {
+func findConsensus(resolverResults map[string][]string) (records []string, allSame bool, discrepancies []string, topVotes int) {
         resultSets := make(map[string]int)
         for _, results := range resolverResults {
                 key := strings.Join(results, "|")
@@ -769,6 +772,7 @@ func findConsensus(resolverResults map[string][]string) (records []string, allSa
                         mostCommonCount = count
                 }
         }
+        topVotes = mostCommonCount
 
         if mostCommonKey != "" {
                 records = strings.Split(mostCommonKey, "|")
@@ -828,6 +832,7 @@ func (c *Client) ValidateResolverConsensus(ctx context.Context, domain string) m
                         perRecord[cr.recordType] = map[string]any{
                                 "consensus":         cr.consensus.Consensus,
                                 "resolver_count":    cr.consensus.ResolverCount,
+                                "top_votes":         cr.consensus.TopVotes,
                                 mapKeyDiscrepancies: cr.consensus.Discrepancies,
                         }
                         if !cr.consensus.Consensus {
