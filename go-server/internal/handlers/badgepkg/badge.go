@@ -181,6 +181,9 @@ func (h *BadgeHandler) Badge(c *gin.Context) {
         if gatewayDerived {
                 compactValue += " · gateway-derived"
         }
+        if unmeasured := ExtractUnmeasurableCount(results); unmeasured > 0 {
+                compactValue += fmt.Sprintf(" · %d unmeasured", unmeasured)
+        }
         if exposure.Status == "exposed" && exposure.FindingCount > 0 {
                 compactValue += fmt.Sprintf(" · %d secret%s exposed", exposure.FindingCount, PluralS(exposure.FindingCount))
                 riskHex = hexRed
@@ -380,6 +383,9 @@ func (h *BadgeHandler) BadgeShieldsIO(c *gin.Context) {
         if IsGatewayDerivedResult(results) {
                 // Provenance beside posture, not in its place (Science's ruling).
                 riskLabel += " · gateway-derived"
+        }
+        if unmeasured := ExtractUnmeasurableCount(results); unmeasured > 0 {
+                riskLabel += fmt.Sprintf(" · %d unmeasured", unmeasured)
         }
         shieldsColor := RiskColorToShields(riskColorRaw)
 

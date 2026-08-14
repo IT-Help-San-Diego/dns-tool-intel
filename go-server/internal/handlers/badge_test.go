@@ -513,3 +513,25 @@ func TestExtractPostureScore(t *testing.T) {
                 })
         }
 }
+
+func TestExtractUnmeasurableCount(t *testing.T) {
+        tests := []struct {
+                name    string
+                results map[string]any
+                want    int
+        }{
+                {"nil", nil, 0},
+                {"no posture", map[string]any{}, 0},
+                {"posture without unmeasurable", map[string]any{"posture": map[string]any{"score": float64(90)}}, 0},
+                {"unmeasurable as []string", map[string]any{"posture": map[string]any{"unmeasurable": []string{"DKIM", "DANE"}}}, 2},
+                {"unmeasurable as []any (JSON round-trip)", map[string]any{"posture": map[string]any{"unmeasurable": []any{"DKIM", "DANE", "BIMI"}}}, 3},
+        }
+        for _, tt := range tests {
+                t.Run(tt.name, func(t *testing.T) {
+                        got := badgepkg.ExtractUnmeasurableCount(tt.results)
+                        if got != tt.want {
+                                t.Errorf("badgepkg.ExtractUnmeasurableCount() = %d, want %d", got, tt.want)
+                        }
+                })
+        }
+}

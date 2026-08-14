@@ -183,6 +183,30 @@ func ExtractPostureScore(results map[string]any) int {
         return -1
 }
 
+// ExtractUnmeasurableCount reports how many controls the posture score could
+// not measure. The score's denominator excludes unmeasurable controls (an
+// unmeasurable protocol can neither inflate nor depress the score), so a high
+// score over a partial measurement must not read as a clean bill of health:
+// the badge surfaces the count so an embedded badge stays honest
+// (e.g. "Low Risk (90/100) · 3 unmeasured").
+func ExtractUnmeasurableCount(results map[string]any) int {
+        postureRaw, ok := results["posture"]
+        if !ok {
+                return 0
+        }
+        posture, ok := postureRaw.(map[string]any)
+        if !ok {
+                return 0
+        }
+        switch u := posture["unmeasurable"].(type) {
+        case []string:
+                return len(u)
+        case []any:
+                return len(u)
+        }
+        return 0
+}
+
 func ScoreColor(score int) string {
         if score >= 80 {
                 return hexGreen
