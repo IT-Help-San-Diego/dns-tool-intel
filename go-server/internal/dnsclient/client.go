@@ -851,7 +851,7 @@ func (c *Client) ValidateResolverConsensus(ctx context.Context, domain string) m
 func (c *Client) CheckDNSSECADFlag(ctx context.Context, domain string) ADFlagResult {
         result := ADFlagResult{ResolverAD: make(map[string]string)}
 
-        var validated, unsigned, bogus int
+        var secure, adAbsent, bogus int
 
         for _, r := range c.resolvers {
                 fqdn := dnsutil.Fqdn(domain)
@@ -868,7 +868,7 @@ func (c *Client) CheckDNSSECADFlag(ctx context.Context, domain string) ADFlagRes
                                 continue
                         }
                         slog.Debug("AD flag check failed", mapKeyResolver, r.IP, mapKeyError, err)
-                        result.ResolverAD[r.Name] = "error"
+                        result.ResolverAD[r.Name] = "unmeasured"
                         continue
                 }
 
@@ -879,9 +879,10 @@ func (c *Client) CheckDNSSECADFlag(ctx context.Context, domain string) ADFlagRes
 
                 // SERVFAIL from a validating resolver means DNSSEC validation
                 // FAILED (expired RRSIG, broken chain, unsupported algorithm) — a
-                // distinct "bogus" signal, not "unsigned" and not "not validated".
+                // distinct "bogus" signal, not "ad_absent" and not a failed check.
                 // The old code had no SERVFAIL branch, so bogus fell through to
-                // ADFlag=false and read identically to unsigned (RFC 4035 §5.3).
+                // ADFlag=false and read identically to an AD-absent response (RFC 4033 §5:
+                // bogus is signaled via RCODE=2 / Server Failure).
                 if resp.Rcode == dns.RcodeServerFailure {
                         result.ResolverAD[r.Name] = "bogus"
                         bogus++
@@ -890,7 +891,7 @@ func (c *Client) CheckDNSSECADFlag(ctx context.Context, domain string) ADFlagRes
 
                 if resp.Rcode != dns.RcodeSuccess {
                         slog.Debug("AD flag check non-success RCODE", mapKeyResolver, r.IP, "rcode", resp.Rcode)
-                        result.ResolverAD[r.Name] = "error"
+                        result.ResolverAD[r.Name] = "unmeasured"
                         continue
                 }
 
@@ -905,31 +906,42 @@ func (c *Client) CheckDNSSECADFlag(ctx context.Context, domain string) ADFlagRes
                 }
 
                 if resp.AuthenticatedData {
-                        result.ResolverAD[r.Name] = "validated"
-                        validated++
+                        result.ResolverAD[r.Name] = "secure"
+                        secure++
                 } else {
-                        result.ResolverAD[r.Name] = "unsigned"
-                        unsigned++
+                        result.ResolverAD[r.Name] = "ad_absent"
+                        adAbsent++
                 }
         }
 
+        // Aggregate classification. RFC 4033 §5 defines four validation states
+        // (Secure / Insecure / Bogus / Indeterminate); we surface the wire signal
+        // honestly and never overclaim where the RFC says the signal is ambiguous:
+        //   "secure"     — AD bit set (RFC: Secure).
+        //   "ad_absent"  — AD bit clear; RFC 4033 §5 notes the signaling mechanism
+        //                  cannot distinguish Insecure from Indeterminate, so we
+        //                  record the observation (AD absent) rather than naming a
+        //                  state we cannot prove.
+        //   "bogus"      — SERVFAIL (RFC 4033 §5: bogus is signaled via RCODE=2).
+        //   "split"      — OUR term: validating resolvers disagree.
+        //   "unmeasured" — OUR term: no resolver cast a usable vote.
         switch {
         case bogus > 0:
                 result.State = "bogus"
                 result.ADFlag = false
                 result.Validated = false
-        case validated+unsigned == 0:
-                result.State = "indeterminate"
+        case secure+adAbsent == 0:
+                result.State = "unmeasured"
                 result.ADFlag = false
                 result.Validated = false
                 errStr := "Could not verify AD flag"
                 result.Error = &errStr
-        case unsigned == 0 && validated > 0:
-                result.State = "validated"
+        case adAbsent == 0 && secure > 0:
+                result.State = "secure"
                 result.ADFlag = true
                 result.Validated = true
-        case validated == 0 && unsigned > 0:
-                result.State = "unsigned"
+        case secure == 0 && adAbsent > 0:
+                result.State = "ad_absent"
                 result.ADFlag = false
                 result.Validated = false
         default:
