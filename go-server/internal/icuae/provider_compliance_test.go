@@ -102,6 +102,28 @@ func TestAnalyzeSOACompliance_BadExpire(t *testing.T) {
 	}
 }
 
+func TestAnalyzeSOACompliance_MalformedTimers(t *testing.T) {
+	// Non-numeric SOA timers must not silently parse as zero and emit bogus
+	// "Expire is 0s"-style findings. The record is malformed, so the report
+	// should carry HasSOA (the SOA exists) but zero findings (nothing was
+	// measured). Regression guard for the unchecked fmt.Sscanf that preceded
+	// strict strconv.ParseUint parsing.
+	soa := "ns1.example.com. admin.example.com. 2026022501 notanumber notanumber notanumber notanumber"
+	report := AnalyzeSOACompliance(soa, "")
+
+	if !report.HasSOA {
+		t.Fatal("expected HasSOA=true for a present-but-malformed SOA")
+	}
+	if report.HasFindings() {
+		t.Errorf("expected no findings for malformed SOA timers, got %d: %+v",
+			len(report.Findings), report.Findings)
+	}
+	if report.Expire != 0 || report.Refresh != 0 || report.Retry != 0 || report.MinTTL != 0 {
+		t.Errorf("expected zero TTL fields on malformed parse, got expire=%d refresh=%d retry=%d minTTL=%d",
+			report.Expire, report.Refresh, report.Retry, report.MinTTL)
+	}
+}
+
 func TestAnnotateFindingForProvider_CloudflareProxied(t *testing.T) {
 	f := TTLFinding{
 		RecordType:  "A",
