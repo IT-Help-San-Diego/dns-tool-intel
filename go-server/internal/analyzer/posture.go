@@ -2029,6 +2029,7 @@ const (
 	scoreDenominator = 100
 	weightSPF        = 20
 	weightDMARC      = 30
+	weightDKIM       = 15
 	weightDNSSEC     = 10
 	weightDANE       = 5
 	weightMTASTS     = 5
@@ -2046,6 +2047,14 @@ func computeInternalScore(ps protocolState, ds DKIMState) int {
 	}
 	if ps.dmarcIndeterminate {
 		attainable -= weightDMARC
+	}
+	if ds == DKIMInconclusive {
+		// DKIM selectors are not enumerable (RFC 6376), so "no selector matched"
+		// is inconclusive, never absent. Remove DKIM's weight from the denominator
+		// so the 0 points computeDKIMScore contributes read as neutral, not as an
+		// absence penalty (mirrors classifyDKIMPosture, which files it under
+		// monitoring rather than absent).
+		attainable -= weightDKIM
 	}
 	// Aux/crypto protocols: a transient lookup failure (dnssec/dane/mta-sts/
 	// tls-rpt/caa/bimi) is neither present nor absent, so remove its weight from

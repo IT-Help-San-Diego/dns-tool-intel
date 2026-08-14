@@ -31,6 +31,32 @@ func TestComputeInternalScore_Capped(t *testing.T) {
 	}
 }
 
+func TestComputeInternalScore_DKIMInconclusiveIsNeutral(t *testing.T) {
+	// Every OTHER control perfect: SPF hard-fail (20) + DMARC reject (30) + all
+	// aux (35) = 85 points. The DKIM state then decides whether the 85 is scored
+	// against the full 100-point denominator or the 85-point DKIM-excluded one.
+	ps := protocolState{
+		spfOK: true, spfHardFail: true,
+		dmarcOK: true, dmarcPct: 100, dmarcPolicy: "reject",
+		dnssecOK: true, daneOK: true, mtaStsOK: true,
+		tlsrptOK: true, caaOK: true, bimiOK: true,
+	}
+
+	// DKIM inconclusive: 0 raw points, but DKIM's weight (15) is removed from the
+	// denominator, so 85/85 = 100 — indistinguishable from a fully-configured
+	// domain. "No selector matched" must never read as a missing control.
+	if got := computeInternalScore(ps, DKIMInconclusive); got != 100 {
+		t.Errorf("DKIM inconclusive should be neutral (score 100), got %d", got)
+	}
+
+	// DKIM absent: 0 raw points AND the weight stays in the denominator, so
+	// 85/100 = 85 — a genuine absence penalty. The distinction between these two
+	// cases is the entire point of the weightDKIM denominator fix.
+	if got := computeInternalScore(ps, DKIMAbsent); got != 85 {
+		t.Errorf("DKIM absent should be a penalty (score 85), got %d", got)
+	}
+}
+
 func TestComputeSPFScore_AllCases(t *testing.T) {
 	tests := []struct {
 		name string
