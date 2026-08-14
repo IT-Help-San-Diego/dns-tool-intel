@@ -16,6 +16,7 @@
 #  11. gocyclo ratchet — functions over 15 may not exceed baseline (critical)
 #  12. file-size cap — no non-test .go file >900 lines outside exception list (critical)
 #  13. scrutiny tag audit — every non-test .go file classified (critical)
+#  14. deadcode ratchet — unreachable functions may only shrink (critical)
 #
 # Ratchet baselines live in scripts/quality-baselines/ and may only shrink.
 # When you fix debt, tighten the baseline in the same ship so it can't regress.
@@ -47,7 +48,7 @@ mkdir -p \
   "${GOCACHE:-/home/runner/workspace/.go-build-cache}" \
   "${GOMODCACHE:-/home/runner/workspace/.go-mod-cache}" \
   "${GOTMPDIR:-/home/runner/workspace/.go-tmp}" 2>/dev/null || true
-echo "▸ [1/13] go vet ./go-server/..."
+echo "▸ [1/14] go vet ./go-server/..."
 if (cd go-server && go vet ./... 2>&1 >/dev/null); then
   echo "  ✓ go vet clean"
 else
@@ -57,7 +58,7 @@ fi
 
 # 2. R009 — CSS cohesion (replit.md: "Always before delivering")
 echo ""
-echo "▸ [2/13] R009 — CSS cohesion audit..."
+echo "▸ [2/14] R009 — CSS cohesion audit..."
 if node scripts/audit-css-cohesion.js 2>&1 | tail -3; then
   echo "  ✓ R009 passed"
 else
@@ -67,7 +68,7 @@ fi
 
 # 3. R010 — scientific color tokens
 echo ""
-echo "▸ [3/13] R010 — scientific color validation..."
+echo "▸ [3/14] R010 — scientific color validation..."
 if node scripts/validate-scientific-colors.js 2>&1 | tail -3; then
   echo "  ✓ R010 passed"
 else
@@ -77,7 +78,7 @@ fi
 
 # 4. R011 — feature inventory
 echo ""
-echo "▸ [4/13] R011 — feature inventory..."
+echo "▸ [4/14] R011 — feature inventory..."
 if node scripts/feature-inventory.js 2>&1 | tail -3; then
   echo "  ✓ R011 passed"
 else
@@ -88,7 +89,7 @@ fi
 # 5. Core analyzer/middleware/entitlements tests
 # Note: analyzer suite runs ~110s warm; 240s gives headroom for cold cache.
 echo ""
-echo "▸ [5/13] core analyzer/middleware/entitlements tests..."
+echo "▸ [5/14] core analyzer/middleware/entitlements tests..."
 if (cd go-server && go test ./internal/analyzer/ ./internal/middleware/ ./internal/entitlements/ -timeout 240s -count=1 2>&1 | tail -5); then
   echo "  ✓ core tests passed"
 else
@@ -98,7 +99,7 @@ fi
 
 # 6. RFC attack vector regression tests
 echo ""
-echo "▸ [6/13] RFC attack vector tests..."
+echo "▸ [6/14] RFC attack vector tests..."
 if (cd go-server && go test ./internal/analyzer/ -run "RFCAttack" -timeout 60s -count=1 2>&1 | tail -3); then
   echo "  ✓ RFC attack tests passed"
 else
@@ -108,7 +109,7 @@ fi
 
 # 7. csso minified CSS freshness (advisory — drift warning)
 echo ""
-echo "▸ [7/13] csso minified CSS freshness (advisory)..."
+echo "▸ [7/14] csso minified CSS freshness (advisory)..."
 if [ -f static/css/custom.min.css ] && [ -f static/css/custom.css ]; then
   if [ static/css/custom.css -nt static/css/custom.min.css ]; then
     echo "  ⚠ custom.css newer than custom.min.css — run: npx csso static/css/custom.min.css"
@@ -123,7 +124,7 @@ fi
 
 # 8. Lighthouse drive-by (advisory — quick smoke vs full audit)
 echo ""
-echo "▸ [8/13] Lighthouse drive-by (advisory)..."
+echo "▸ [8/14] Lighthouse drive-by (advisory)..."
 if curl -s -o /dev/null -w "%{http_code}" http://localhost:5000/healthz 2>/dev/null | grep -q "200"; then
   echo "  ✓ dev server reachable at localhost:5000"
   echo "    Full audit: npx lighthouse http://localhost:5000 --only-categories=performance,accessibility,best-practices,seo --quiet"
@@ -139,7 +140,7 @@ PROJECT_GO_FILES=$(find go-server -path "go-server/.go-*" -prune -o -type f -nam
 
 # 9. gofmt ratchet — new/edited files must be gofmt-clean; legacy files grandfathered.
 echo ""
-echo "▸ [9/13] gofmt ratchet (no NEW unformatted files)..."
+echo "▸ [9/14] gofmt ratchet (no NEW unformatted files)..."
 if [ -f "$BASE_DIR/gofmt-unformatted.txt" ]; then
   GOFMT_NEW=0
   while IFS= read -r f; do
@@ -162,7 +163,7 @@ fi
 # 10. staticcheck ratchet — pinned version; finding count may only shrink.
 # GOFLAGS=-buildvcs=false: VCS stamping trips the workspace git guard.
 echo ""
-echo "▸ [10/13] staticcheck ratchet (pinned 2025.1.1)..."
+echo "▸ [10/14] staticcheck ratchet (pinned 2025.1.1)..."
 if [ -f "$BASE_DIR/staticcheck.count" ]; then
   SC_BASE=$(cat "$BASE_DIR/staticcheck.count")
   SC_OUT=$(GOFLAGS=-buildvcs=false go run honnef.co/go/tools/cmd/staticcheck@2025.1.1 ./go-server/... 2>&1)
@@ -188,7 +189,7 @@ fi
 # ratchet fire on test-code churn, not real debt (measured on main: 55 with
 # tests vs 21 production — the "regression" was 100% _test.go functions).
 echo ""
-echo "▸ [11/13] gocyclo ratchet (complexity >15, production only)..."
+echo "▸ [11/14] gocyclo ratchet (complexity >15, production only)..."
 if [ -f "$BASE_DIR/gocyclo.count" ]; then
   GC_BASE=$(cat "$BASE_DIR/gocyclo.count")
   GC_OUT=$(go run github.com/fzipp/gocyclo/cmd/gocyclo@v0.6.0 -over 15 go-server/cmd go-server/internal 2>&1 || true)
@@ -216,7 +217,7 @@ fi
 # 12. File-size cap — no non-test .go file over 900 lines outside the exception list.
 # The exception list is the shrink-only inventory of legacy monoliths.
 echo ""
-echo "▸ [12/13] file-size cap (900 lines, non-test)..."
+echo "▸ [12/14] file-size cap (900 lines, non-test)..."
 if [ -f "$BASE_DIR/filesize-exceptions.txt" ]; then
   SIZE_FAIL=0
   while IFS= read -r f; do
@@ -240,11 +241,39 @@ fi
 
 # 13. Scrutiny tag audit — every non-test .go file must carry a dns-tool:scrutiny tag.
 echo ""
-echo "▸ [13/13] scrutiny tag audit..."
+echo "▸ [13/14] scrutiny tag audit..."
 if bash scripts/audit-scrutiny-tags.sh 2>&1 | tail -3; then
   echo "  ✓ all files classified"
 else
   echo "  ✗ scrutiny tag audit FAILED — tag the files listed above"
+  FAIL=1
+fi
+
+# 14. deadcode ratchet — unreachable functions may only shrink.
+# deadcode (x/tools) reports functions unreachable from main AND tests (-test).
+# staticcheck's U1000 skips EXPORTED identifiers (an external importer might call
+# them) — but in internal/ nothing outside the module can import, so an exported
+# identifier in internal/ with zero module callers is provably dead. That is the
+# "measurement taken, measurement discarded" class: computed, then narrowed or
+# dropped before any consumer reads it.
+echo ""
+echo "▸ [14/14] deadcode ratchet (unreachable functions)..."
+if [ -f "$BASE_DIR/deadcode.count" ]; then
+  DC_BASE=$(cat "$BASE_DIR/deadcode.count")
+  DC_OUT=$(cd go-server && GOFLAGS=-buildvcs=false go run golang.org/x/tools/cmd/deadcode@v0.49.0 -test ./... 2>&1 || true)
+  DC_CUR=$(printf '%s\n' "$DC_OUT" | grep -c "unreachable func" || true)
+  if [ "$DC_CUR" -le "$DC_BASE" ]; then
+    echo "  ✓ deadcode: $DC_CUR unreachable function(s) (baseline $DC_BASE)"
+    if [ "$DC_CUR" -lt "$DC_BASE" ]; then
+      echo "    ↓ debt paid — tighten baseline: echo $DC_CUR > $BASE_DIR/deadcode.count"
+    fi
+  else
+    echo "  ✗ deadcode REGRESSION: $DC_CUR unreachable function(s) vs baseline $DC_BASE. New findings:"
+    printf '%s\n' "$DC_OUT" | grep "unreachable func" | tail -15
+    FAIL=1
+  fi
+else
+  echo "  ✗ baseline missing: $BASE_DIR/deadcode.count"
   FAIL=1
 fi
 
