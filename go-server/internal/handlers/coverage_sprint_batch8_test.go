@@ -280,7 +280,7 @@ func TestComputeCalibratedConfidence_B8(t *testing.T) {
                 "dmarc_analysis": map[string]any{"status": "warning"},
         }
         cr := icuae.CurrencyReport{OverallScore: 0.7}
-        calibrated := h.computeCalibratedConfidence(results, cr)
+        calibrated := h.computeReliabilityWeightedSeverity(results, cr)
         if len(calibrated) == 0 {
                 t.Error("expected non-empty calibrated map")
         }

@@ -109,7 +109,7 @@ The broader hypothesis: the confidence scoring, drift detection, evidentiary acc
 **This hypothesis is testable.** Transfer criteria:
 1. The target domain must have a definable (even if imprecise) notion of "correct state"
 2. The domain must have observable signals that can be measured repeatedly
-3. The confidence calibration methodology must produce meaningful Brier scores in the new domain
+3. The reliability weighting methodology must produce meaningful Brier scores in the new domain
 4. The drift detection must distinguish true state changes from measurement noise
 
 **Disconfirmation conditions (with thresholds):**

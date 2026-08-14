@@ -66,7 +66,7 @@
                 <p class="text-muted small mb-0 mt-2 opacity-75">
                     {{icon "shield-alt" "me-1"}}This attestation seals the confidence posture at the moment of rendering.
                     The hash covers: UTC timestamp, all protocol pass counts, maturity levels, hash audit results,
-                    calibration scores, and app version &mdash; computed via SHA-3-256 (NIST FIPS 202) over a canonical
+                    reliability-weighted severity scores, and app version &mdash; computed via SHA-3-256 (NIST FIPS 202) over a canonical
                     pipe-delimited representation. The resulting digest is a time-bound, tamper-evident fingerprint
                     of the intelligence state.
                 </p>
@@ -283,9 +283,9 @@
         {{if .ICAEMetrics.Calibration}}
         <div class="card bg-dark border-secondary mb-4">
             <div class="card-body">
-                <h2 class="h5 fw-bold mb-3">{{icon "flask" "me-2 text-accent-cobalt"}}Calibration Validation</h2>
-                <p class="text-muted small mb-3">Empirical accuracy of the confidence scoring system, measured by running {{.ICAEMetrics.Calibration.TotalCases}} golden test cases across {{.ICAEMetrics.Calibration.ResolverScenarios}} resolver agreement scenarios ({{.ICAEMetrics.Calibration.TotalPredictions}} total predictions). This answers: &ldquo;when we state a confidence level, how often are we actually correct?&rdquo;</p>
-                <p class="text-muted small mb-3 conf-limitation"><strong>Limitation:</strong> All {{.ICAEMetrics.Calibration.TotalCases}} golden test cases currently pass (outcome=1.0). These metrics are validated in the success regime only &mdash; they confirm the system is well-calibrated when findings are correct, but do not yet validate behavior when outcomes diverge from confident predictions. The calibration function uses fixed rawConfidence=1.0 and varies only resolver agreement to test shrinkage behavior under degraded measurement quality.</p>
+                <h2 class="h5 fw-bold mb-3">{{icon "flask" "me-2 text-accent-cobalt"}}Reliability Weighting Validation</h2>
+                <p class="text-muted small mb-3">Empirical behavior of the reliability-weighting formula, measured by running {{.ICAEMetrics.Calibration.TotalCases}} golden test cases across {{.ICAEMetrics.Calibration.ResolverScenarios}} resolver agreement scenarios ({{.ICAEMetrics.Calibration.TotalPredictions}} total predictions). This answers: &ldquo;how does the severity weight track the resolver-agreement signal?&rdquo;</p>
+                <p class="text-muted small mb-3 conf-limitation"><strong>Limitation:</strong> All {{.ICAEMetrics.Calibration.TotalCases}} golden test cases currently pass (outcome=1.0). These metrics are validated in the success regime only &mdash; they confirm the formula is well-weighted when findings are correct, but do not yet validate behavior when outcomes diverge from correct predictions. The weighting function uses fixed rawConfidence=1.0 and varies only resolver agreement to test shrinkage behavior under degraded measurement quality.</p>
 
                 <div class="row g-3 mb-3">
                     <div class="col-md-6">
@@ -302,7 +302,7 @@
                     <div class="col-md-6">
                         <div class="p-3 rounded u-icae-cal-box">
                             <div class="d-flex align-items-center justify-content-between mb-2">
-                                <span class="text-muted small fw-semibold">Expected Calibration Error</span>
+                                <span class="text-muted small fw-semibold">Expected Severity-Weighting Error</span>
                                 <span class="badge bg-{{if eq .ICAEMetrics.Calibration.ECERating "excellent"}}success{{else if eq .ICAEMetrics.Calibration.ECERating "good"}}info{{else if eq .ICAEMetrics.Calibration.ECERating "adequate"}}warning{{else}}danger{{end}} text-uppercase u-badge-xs">{{.ICAEMetrics.Calibration.ECERating}}</span>
                             </div>
                             <div class="h3 fw-bold mb-1 text-accent-gold">{{.ICAEMetrics.Calibration.ECEDisplay}}</div>
@@ -315,7 +315,7 @@
                 {{if .ICAEMetrics.Calibration.PopulatedBins}}
                 <div class="mb-3">
                     <h3 class="h6 fw-bold mb-2">{{icon "chart-bar" "me-1 text-accent-gold"}}Reliability Diagram</h3>
-                    <p class="text-muted small mb-2">Each bin shows how well stated confidence matches observed accuracy. A perfectly calibrated system would have predicted = observed in every bin.</p>
+                    <p class="text-muted small mb-2">Each bin shows how well stated confidence matches observed accuracy. A perfectly weighted system would have predicted = observed in every bin.</p>
                     <div class="table-responsive">
                         <table class="table table-dark table-sm mb-0" aria-label="Reliability diagram bins">
                             <thead>
@@ -355,10 +355,10 @@
 
                 {{if .ICAEMetrics.Calibration.SortedProtocols}}
                 <div>
-                    <h3 class="h6 fw-bold mb-2">{{icon "crosshairs" "me-1 text-accent-cobalt"}}Per-Protocol Calibration</h3>
-                    <p class="text-muted small mb-2">Calibration gap by protocol &mdash; how far each protocol&rsquo;s stated confidence deviates from observed accuracy. Sorted from best to worst calibrated.</p>
+                    <h3 class="h6 fw-bold mb-2">{{icon "crosshairs" "me-1 text-accent-cobalt"}}Per-Protocol Reliability Weighting</h3>
+                    <p class="text-muted small mb-2">Weighting deviation by protocol &mdash; how far each protocol&rsquo;s stated confidence deviates from observed accuracy. Sorted from best to worst weighted.</p>
                     <div class="table-responsive">
-                        <table class="table table-dark table-sm mb-0" aria-label="Per-protocol calibration gaps">
+                        <table class="table table-dark table-sm mb-0" aria-label="Per-protocol weighting deviations">
                             <thead>
                                 <tr>
                                     <th scope="col">Protocol</th>
@@ -1129,13 +1129,13 @@
                 </div>
 
                 <div class="mb-4">
-                    <h3 class="h6 fw-bold mb-2">{{icon "flask" "me-1 text-accent-cobalt"}} Reliability-Weighted Shrinkage Calibration</h3>
-                    <p class="text-muted small mb-2">Each protocol carries an empirical prior &mdash; a Beta distribution encoding historical detection reliability. Measurement quality (resolver agreement) determines how much the raw observation is trusted versus the prior anchor &mdash; a Bayesian-inspired shrinkage estimator:</p>
-                    <div class="math-display" data-latex="C_{\text{calibrated}} = w \cdot C_{\text{raw}} + (1 - w) \cdot \frac{\alpha}{\alpha + \beta}">
-                        $$ C_{\text{calibrated}} = w \cdot C_{\text{raw}} + (1 - w) \cdot \frac{\alpha}{\alpha + \beta} $$
+                    <h3 class="h6 fw-bold mb-2">{{icon "flask" "me-1 text-accent-cobalt"}} Reliability-Weighted Shrinkage</h3>
+                    <p class="text-muted small mb-2">Each protocol carries an expert-assigned prior &mdash; a Beta distribution encoding expected detection reliability (volume-adjusted, not outcome-corrected). Measurement quality (resolver agreement) determines how much the raw observation is trusted versus the prior anchor &mdash; a Bayesian-inspired shrinkage estimator:</p>
+                    <div class="math-display" data-latex="C_{\text{weighted}} = w \cdot C_{\text{raw}} + (1 - w) \cdot \frac{\alpha}{\alpha + \beta}">
+                        $$ C_{\text{weighted}} = w \cdot C_{\text{raw}} + (1 - w) \cdot \frac{\alpha}{\alpha + \beta} $$
                     </div>
                     <p class="text-muted small mb-2">Where \(w = \frac{\text{agreeing resolvers}}{\text{total resolvers}}\) is measurement quality, and \(\frac{\alpha}{\alpha+\beta}\) is the prior mean from a \(\text{Beta}(\alpha, \beta)\) distribution for the protocol category. When resolver agreement is low, the prior mean anchors the estimate; as agreement increases, the raw observation dominates. This is a convex shrinkage estimator &mdash; structurally similar to, but distinct from, the true Beta-Bernoulli posterior mean \(E[\theta|D] = \frac{\alpha+s}{\alpha+\beta+n}\), where the weight on data is derived from observation count rather than set independently. Prior parameters evolve via conjugate updating: each passing ICAE test increments \(\alpha\), each failure increments \(\beta\).</p>
-                    <p class="text-muted small mb-0 opacity-75">{{icon "code" "me-1"}}<strong>Implementation:</strong> <code>icae/priors.go</code> &rarr; <code>CalibrationEngine.CalibratedConfidence()</code> &middot; Per-protocol Beta priors defined in <code>CalibrationEngine.priors</code> map</p>
+                    <p class="text-muted small mb-0 opacity-75">{{icon "code" "me-1"}}<strong>Implementation:</strong> <code>icae/priors.go</code> &rarr; <code>CalibrationEngine.ReliabilityWeightedSeverity()</code> &middot; Per-protocol Beta priors defined in <code>CalibrationEngine.priors</code> map</p>
                 </div>
 
                 <div class="mb-4">

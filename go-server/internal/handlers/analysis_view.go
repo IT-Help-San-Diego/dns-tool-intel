@@ -246,9 +246,9 @@ func (h *AnalysisHandler) enrichViewDataMetrics(ctx context.Context, data gin.H,
 	calibrated, cOk := results["calibrated_confidence"].(map[string]float64)
 	if cOk && calibrated != nil && maturityLevel != "" {
 		uc := unified.ComputeUnifiedConfidence(unified.Input{
-			CalibratedConfidence: calibrated,
-			CurrencyScore:        currencyScore,
-			MaturityLevel:        maturityLevel,
+			ReliabilityWeightedSeverity: calibrated,
+			CurrencyScore:               currencyScore,
+			MaturityLevel:               maturityLevel,
 		})
 		data["UnifiedConfidence"] = uc
 	}
@@ -374,9 +374,9 @@ func (h *AnalysisHandler) snapshotICAEMetrics(ctx context.Context, results map[s
 	maturityLevel, matOk := snapshot["overall_maturity"].(string)
 	if calOk && calibrated != nil && matOk && maturityLevel != "" {
 		uc := unified.ComputeUnifiedConfidence(unified.Input{
-			CalibratedConfidence: calibrated,
-			CurrencyScore:        currencyScore,
-			MaturityLevel:        maturityLevel,
+			ReliabilityWeightedSeverity: calibrated,
+			CurrencyScore:               currencyScore,
+			MaturityLevel:               maturityLevel,
 		})
 		snapshot["unified_confidence"] = map[string]any{
 			"level":            uc.Level,

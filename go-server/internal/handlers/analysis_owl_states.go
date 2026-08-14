@@ -20,9 +20,9 @@
 //	                status "indeterminate", stored tri-state fields reading
 //	                "indeterminate" under a non-indeterminate status (the
 //	                lookup did not complete), and protocols WITHOUT a
-//	                confirmed outcome whose calibrated confidence falls
+//	                confirmed outcome whose reliability-weighted severity falls
 //	                below the moderate threshold (unified.ThresholdModerate
-//	                = 50.0, i.e. 0.50 on the 0-1 calibrated scale).
+//	                = 50.0, i.e. 0.50 on the 0-1 severity scale).
 //	                Confirmed failures/absences are excluded from the
 //	                confidence input: the raw scale is outcome-valenced, so
 //	                their low score restates the verdict — certainty, which
@@ -70,7 +70,7 @@ var owlProtocolOrder = []struct {
 const owlLowConfidenceThreshold = 0.50
 
 // owlSliceLen tolerates live []string values and JSON round-tripped []any —
-// the same dual-shape reality handled by calibratedConfidenceMap.
+// the same dual-shape reality handled by reliabilityWeightedSeverityMap.
 func owlSliceLen(v any) int {
 	switch s := v.(type) {
 	case []string:
@@ -201,16 +201,16 @@ func owlCriticalFixCount(results map[string]any) int {
 	return n
 }
 
-// owlLowConfidence lists protocols whose calibrated confidence sits below
-// the moderate threshold, plus the total calibrated-protocol count.
+// owlLowConfidence lists protocols whose reliability-weighted severity sits
+// below the moderate threshold, plus the total weighted-protocol count.
 // Protocols whose stored status is a confirmed outcome are excluded: the
 // pipeline's raw scale is outcome-valenced (a corroborated failure scores
-// 0.3, a confirmed absence 0.0), so a low calibrated value there restates
+// 0.3, a confirmed absence 0.0), so a low weighted value there restates
 // the verdict — certainty, not doubt. What remains genuinely is doubt: a
-// passing or advisory status whose calibrated confidence was dragged below
-// moderate (e.g. by resolver disagreement).
+// passing or advisory status whose reliability-weighted severity was
+// dragged below moderate (e.g. by resolver disagreement).
 func owlLowConfidence(results map[string]any, confirmedOutcome map[string]bool) (low []string, calibratedTotal int) {
-	calibrated := calibratedConfidenceMap(results)
+	calibrated := reliabilityWeightedSeverityMap(results)
 	for _, p := range owlProtocolOrder {
 		if confirmedOutcome[p.ConfKey] {
 			continue
@@ -276,7 +276,7 @@ func owlCriticalState(critIssueCount int, errored []string, critFixCount int, sp
 func owlMetacognitiveState(indeterminate, stateIndeterminate, lowConf []string) map[string]any {
 	total := len(indeterminate) + len(stateIndeterminate) + len(lowConf)
 	if total == 0 {
-		return owlState(false, 0, "Not triggered — no indeterminate statuses or tri-states; calibrated confidence at or above the moderate threshold (0.50) for all calibrated protocols without a confirmed outcome.")
+		return owlState(false, 0, "Not triggered — no indeterminate statuses or tri-states; reliability-weighted severity at or above the moderate threshold (0.50) for all weighted protocols without a confirmed outcome.")
 	}
 	var parts []string
 	if len(indeterminate) > 0 {
@@ -286,7 +286,7 @@ func owlMetacognitiveState(indeterminate, stateIndeterminate, lowConf []string) 
 		parts = append(parts, "recorded tri-state is indeterminate — the lookup did not complete, so the finding could not be verified: "+strings.Join(stateIndeterminate, ", "))
 	}
 	if len(lowConf) > 0 {
-		parts = append(parts, "calibrated confidence below the moderate threshold (0.50): "+strings.Join(lowConf, ", "))
+		parts = append(parts, "reliability-weighted severity below the moderate threshold (0.50): "+strings.Join(lowConf, ", "))
 	}
 	return owlState(true, total, "Uncertainty acknowledged — "+strings.Join(parts, "; ")+".")
 }
