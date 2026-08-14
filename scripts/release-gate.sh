@@ -140,6 +140,9 @@ pass "Founder's Manifesto PDF regenerated"
 
 info "Gate 7d: Communication Standards PDF regeneration"
 bash scripts/generate-comm-standards-pdf.sh "$VERSION"
+
+info "Gate 7e: Version-string consistency (all manifested files)"
+bash scripts/assert-version-strings.sh
 pass "Communication Standards PDF regenerated"
 
 info "Gate 8: Go tests"
