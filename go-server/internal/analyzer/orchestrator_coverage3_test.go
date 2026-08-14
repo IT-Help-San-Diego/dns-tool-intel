@@ -323,8 +323,8 @@ func TestBuildGatewayPosture_Fields_C3(t *testing.T) {
         if posture["risk"] != "attribution_limited" {
                 t.Error("expected risk=attribution_limited")
         }
-        if posture["grade"] != "N/A" {
-                t.Error("expected grade=N/A")
+        if posture["grade"] != "Indeterminate" {
+                t.Error("expected grade=Indeterminate")
         }
         if posture["attribution_note"] == nil {
                 t.Error("expected attribution_note")

@@ -1269,11 +1269,20 @@ func buildAnalysisProvenance(inputKind InputKind, scope AnalysisScope, web3 Web3
 }
 
 func buildGatewayPosture(results map[string]any) map[string]any {
+	// Gateway-derived analysis reflects the gateway operator's DNS, not the
+	// domain owner's, so posture is suppressed — never scored. The posture
+	// slot therefore carries the honest tri-state "Indeterminate" (measured,
+	// no conclusion for *this* owner) rather than a provenance string, and no
+	// numeric score: a stored 0 would render on the badge as "0/100", which
+	// reads as the worst possible posture when it is in fact unscored.
+	// "gateway-derived" provenance stays in `reason` (drives the report's
+	// attribution card and IsGatewayDerivedResult's adjacent flag), never in
+	// the posture label.
 	return map[string]any{
 		"risk":             "attribution_limited",
-		"risk_label":       "Gateway Derived",
-		"score":            0,
-		"grade":            "N/A",
+		"label":            "Indeterminate",
+		"grade":            "Indeterminate",
+		"state":            "Indeterminate",
 		"reason":           "gateway_derived",
 		"issues":           []string{},
 		"recommendations":  []string{},
