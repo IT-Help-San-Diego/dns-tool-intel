@@ -321,7 +321,7 @@
                     <span class="standard-badge standard-badge-first">FIRST</span>
                     <span class="standard-badge standard-badge-cisa">CISA</span>
                 </div>
-                <p class="text-muted small mb-3">Colors specified by <a href="https://www.first.org/tlp/" target="_blank" rel="noopener" class="text-info">FIRST (Forum of Incident Response and Security Teams)</a>. Adopted by <a href="https://www.cisa.gov/news-events/news/traffic-light-protocol-tlp-definitions-and-usage" target="_blank" rel="noopener" class="text-info">CISA</a> on November 1, 2022. DNS Tool defaults to <strong class="u-color-amber">TLP:AMBER</strong> for all reports — security posture data may reveal actionable vulnerabilities.</p>
+                <p class="text-muted small mb-3">Colors specified by <a href="https://www.first.org/tlp/" target="_blank" rel="noopener" class="text-info">FIRST (Forum of Incident Response and Security Teams)</a>. Adopted by <a href="https://www.cisa.gov/news-events/news/traffic-light-protocol-tlp-definitions-and-usage" target="_blank" rel="noopener" class="text-info">CISA</a> on November 1, 2022.</p>
 
                 <div class="row g-3 mb-3">
                     {{range $i, $c := .TLPColors}}
@@ -408,7 +408,7 @@
                             <li><strong>Terminology:</strong> Use NIST/CISA vocabulary — "control", "finding", "observation", "recommendation", "risk level" — not academic terms like "hypothesis" or "methodology".</li>
                             <li><strong>Report titles:</strong> Intelligence-community format: "DNS Intelligence Report" / "DNS Intelligence Brief" (not "Analysis" or "Study").</li>
                             <li><strong>Visual identity:</strong> The NIST standard governs content structure and citation format, not visual design. Dark theme, hacker-culture fonts, and brand palette remain unchanged.</li>
-                            <li><strong>Classification:</strong> FIRST TLP v2.0 remains the information sharing framework. Default: TLP:AMBER.</li>
+                            <li><strong>Classification:</strong> FIRST TLP v2.0 remains the information sharing framework.</li>
                         </ol>
                     </div>
                 </div>
@@ -502,7 +502,6 @@
                             <li><strong>Surface tints use 15% opacity</strong> of their parent color to maintain readability while providing visual grouping.</li>
                             <li><strong>WCAG AA minimum contrast</strong> is maintained across all text/background combinations. Executive print reports use minimum 11pt body text.</li>
                             <li><strong>No ad-hoc colors.</strong> All new colors must be documented here with their token name before use in production.</li>
-                            <li><strong>TLP:AMBER is the default report classification</strong> per CISA Cyber Hygiene practice — security posture data may reveal actionable vulnerabilities.</li>
                         </ol>
                     </div>
                 </div>

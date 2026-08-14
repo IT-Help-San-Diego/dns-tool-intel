@@ -126,7 +126,7 @@
             .badge, .alert, .table, .table th, .table td,
             .print-report-header, .print-domain-banner, .print-report-footer,
             .print-header-accent, .print-footer-accent,
-            .print-tlp-badge, .code-block {
+            .code-block {
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
@@ -231,33 +231,6 @@
                 font-weight: 700; color: #374151; text-transform: uppercase;
                 font-size: 8.5pt; letter-spacing: 0.05em;
             }
-
-            .print-tlp-badge {
-                display: inline-block; margin-top: 6pt; padding: 3pt 12pt;
-                font-size: 9pt; font-weight: 800; letter-spacing: 0.1em;
-                color: #000000; background-color: #ffc000 !important; border-radius: 2pt;
-            }
-            .print-tlp-badge.tlp-clear {
-                color: #374151; background-color: #ffffff !important; border: 1pt solid #6b7280;
-            }
-            .print-tlp-badge.tlp-green {
-                color: #ffffff; background-color: #33a532 !important;
-            }
-            .print-tlp-badge.tlp-amber {
-                color: #000000; background-color: #ffc000 !important;
-            }
-
-            .print-tlp-note { font-size: 8pt; color: #6b7280; margin-top: 3pt; letter-spacing: 0.03em; }
-
-            .tlp-badge-amber { background-color: #ffc000 !important; color: #000 !important; }
-            .tlp-badge-green { background-color: #33a532 !important; color: #fff !important; }
-            .tlp-badge-clear { background-color: #fff !important; color: #374151 !important; border: 1px solid #6b7280; }
-            .btn-tlp-amber { color: #ffc000 !important; border-color: #ffc000 !important; }
-            .btn-tlp-amber:hover, .btn-tlp-amber:focus { background-color: rgba(255,192,0,0.15) !important; }
-            .btn-tlp-green { color: #33a532 !important; border-color: #33a532 !important; }
-            .btn-tlp-green:hover, .btn-tlp-green:focus { background-color: rgba(51,165,50,0.15) !important; }
-            .btn-tlp-clear { color: #adb5bd !important; border-color: #6c757d !important; }
-            .btn-tlp-clear:hover, .btn-tlp-clear:focus { background-color: rgba(108,117,125,0.15) !important; }
 
             .print-domain-banner {
                 background-color: #1e3a5f !important;
@@ -583,8 +556,6 @@
                         {{if .ToolVersion}}<br><span class="print-meta-label">Version</span> v{{.ToolVersion}}{{end}}
                         {{if .IntegrityHash}}<br><span class="print-meta-label">Integrity</span> <span class="u-print-hash">{{.IntegrityHash}}</span>{{end}}
                     </div>
-                    <div class="print-tlp-badge" id="printTlpBadge">TLP:AMBER</div>
-                    <div class="print-tlp-note" id="printTlpNote">Limited disclosure — recipients may share within their organization only</div>
                 </div>
             </div>
             <div class="print-domain-banner">
@@ -644,21 +615,6 @@
                     {{end}}
                 </div>
                 <div class="d-flex gap-2 flex-wrap">
-                    <div class="dropdown">
-                        <button class="btn btn-sm dropdown-toggle btn-tlp-amber" id="tlpSelectorBtn" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Traffic Light Protocol — controls report distribution scope">
-                            {{icon "shield-alt" "me-1"}}<span id="tlpSelectorLabel">TLP:AMBER</span>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-dark">
-                            <li><h6 class="dropdown-header">Intelligence Dissemination</h6></li>
-                            <li><a class="dropdown-item tlp-option" href="#" data-tlp="red" data-class="tlp-red" data-btn-class="btn-tlp-red"><span class="badge tlp-badge-red me-2">RED</span> Recipient only</a></li>
-                            <li><a class="dropdown-item tlp-option" href="#" data-tlp="amber-strict" data-class="tlp-amber-strict" data-btn-class="btn-tlp-amber-strict"><span class="badge tlp-badge-amber-strict me-2">AMBER+STRICT</span> Organisation only</a></li>
-                            <li><a class="dropdown-item tlp-option" href="#" data-tlp="amber" data-class="tlp-amber" data-btn-class="btn-tlp-amber"><span class="badge tlp-badge-amber me-2">AMBER</span> Organisation and its clients</a></li>
-                            <li><a class="dropdown-item tlp-option" href="#" data-tlp="green" data-class="tlp-green" data-btn-class="btn-tlp-green"><span class="badge tlp-badge-green me-2">GREEN</span> Share within community</a></li>
-                            <li><a class="dropdown-item tlp-option" href="#" data-tlp="clear" data-class="tlp-clear" data-btn-class="btn-tlp-clear"><span class="badge tlp-badge-clear me-2">CLEAR</span> Unlimited distribution</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><span class="dropdown-item-text small text-muted pe-3">TLP (Traffic Light Protocol) governs dissemination of this intelligence product. Default: AMBER per FIRST/CISA standards for security posture reports. Full hierarchy: RED (recipient only) → AMBER+STRICT (organisation only) → AMBER (organisation and clients) → GREEN (community) → CLEAR (public). Per FIRST TLP v2.0.</span></li>
-                        </ul>
-                    </div>
                     <div class="btn-group">
                         <a href="/analysis/{{.AnalysisID}}/view/{{if .IsTLD}}Z{{else}}E{{end}}" class="btn btn-outline-info" title="{{if .IsTLD}}View Zone Health Report{{else}}View Engineer's DNS Intelligence Report{{end}}">
                             {{icon "file-lines" "me-1"}}{{if .IsTLD}}Zone Health{{else}}Engineer{{end}}
@@ -1784,9 +1740,6 @@
                     <span>San Diego, CA</span>
                 </div>
             </div>
-            <div class="print-footer-disclaimer" id="printFooterTlp">
-                <strong id="footerTlpLabel">TLP:AMBER</strong> &mdash; This brief contains security posture information that may reveal actionable vulnerabilities. Recipients may share within their organization and with clients/customers who need the information to protect themselves, but not via publicly accessible channels. Analysis methodology, posture scoring, and remediation guidance &copy; DNS Tool. All conclusions independently verifiable &mdash; see Engineer's DNS Intelligence Report for verification commands.
-            </div>
             <div class="print-footer-provenance">
                 Methodology: dnstool.it-help.tech/methodology &middot; DOI: 10.5281/zenodo.19468134 &middot; ORCID: 0009-0000-5237-9065
             </div>
@@ -1801,19 +1754,6 @@
         const execPrintBtn = document.getElementById('execPrintBtn');
         if (execPrintBtn) execPrintBtn.addEventListener('click', function() { globalThis.print(); });
 
-        const tlpConfig = {
-            red: { label: 'TLP:RED', note: 'Eyes only \u2014 not for disclosure, restricted to direct recipients', cls: 'tlp-red',
-                footer: '<strong>TLP:RED</strong> \u2014 This report is for individual recipients only. No further disclosure is permitted. Recipients may not share this information with any other parties (FIRST TLP v2.0).' },
-            'amber-strict': { label: 'TLP:AMBER+STRICT', note: 'Restricted \u2014 organisation only, no further sharing outside the organisation', cls: 'tlp-amber-strict',
-                footer: '<strong>TLP:AMBER+STRICT</strong> \u2014 This report is restricted to the recipient\u2019s organisation only. No sharing with clients, customers, or external parties is permitted without explicit authorization from the originator (FIRST TLP v2.0 \u00a75).' },
-            amber: { label: 'TLP:AMBER', note: 'Limited disclosure \u2014 organisation and its clients/customers', cls: 'tlp-amber',
-                footer: '<strong>TLP:AMBER</strong> \u2014 This report contains security posture information that may reveal actionable vulnerabilities. Recipients may share within their organization and with clients/customers who need the information to protect themselves, but not via publicly accessible channels.' },
-            green: { label: 'TLP:GREEN', note: 'Community sharing \u2014 recipients may share within their community', cls: 'tlp-green',
-                footer: '<strong>TLP:GREEN</strong> \u2014 Recipients may share this report within their community (peers, partner organizations) but not via publicly accessible channels. Contains DNS security posture analysis that may inform remediation priorities.' },
-            clear: { label: 'TLP:CLEAR', note: 'Unlimited distribution \u2014 no restrictions on sharing', cls: 'tlp-clear',
-                footer: '<strong>TLP:CLEAR</strong> \u2014 No restrictions on distribution. DNS records are public data queried via open-standard protocols.' }
-        };
-        const copyrightSuffix = ' Analysis methodology, posture scoring, and remediation guidance \u00a9 DNS Tool. All conclusions independently verifiable \u2014 see Engineer\u2019s DNS Intelligence Report for verification commands.';
         const hashLink = document.querySelector('a[href="#report-integrity"]');
         if (hashLink) {
             hashLink.addEventListener('click', function(e) {
@@ -1825,27 +1765,6 @@
                 }
             });
         }
-
-        document.querySelectorAll('.tlp-option').forEach(function(item) {
-            item.addEventListener('click', function(e) {
-                e.preventDefault();
-                const tlp = this.dataset.tlp;
-                const cfg = tlpConfig[tlp];
-                if (!cfg) return;
-                const badge = document.getElementById('printTlpBadge');
-                const note = document.getElementById('printTlpNote');
-                const selectorLabel = document.getElementById('tlpSelectorLabel');
-                const selectorBtn = document.getElementById('tlpSelectorBtn');
-                const footerTlp = document.getElementById('printFooterTlp');
-                if (badge) { badge.textContent = cfg.label; badge.className = 'print-tlp-badge ' + cfg.cls; }
-                if (note) note.textContent = cfg.note;
-                if (selectorLabel) selectorLabel.textContent = cfg.label;
-                if (selectorBtn) { selectorBtn.className = 'btn btn-sm dropdown-toggle ' + this.dataset.btnClass; }
-                if (footerTlp) footerTlp.innerHTML = cfg.footer + copyrightSuffix;
-                const dd = bootstrap.Dropdown.getInstance(selectorBtn);
-                if (dd) dd.hide();
-            });
-        });
     });
     (function() {
         const params = new URLSearchParams(globalThis.location.search);
