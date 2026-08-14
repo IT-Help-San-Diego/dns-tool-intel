@@ -516,7 +516,7 @@ func TestClassifyRegistryGrade_IndeterminateNotUnsigned(t *testing.T) {
         if strings.Contains(msg, "not DNSSEC-signed") {
                 t.Fatalf("registry grade fabricates absence for inconclusive DNSSEC: %q", msg)
         }
-        if !strings.Contains(msg, "could not be verified") {
+        if !strings.Contains(msg, "could not be confirmed") {
                 t.Fatalf("registry grade should report inconclusive; got %q", msg)
         }
 }

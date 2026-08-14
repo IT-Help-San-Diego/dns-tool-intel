@@ -324,6 +324,25 @@ func TestEvaluateDNSSECState(t *testing.T) {
 	}
 }
 
+func TestComputeInternalScore_DNSSECExcludedFromDenominator(t *testing.T) {
+	// SPF hard fail = 20 raw points. DNSSEC unconfirmed/unmeasured contributes 0
+	// and must be excluded from the denominator (weightDNSSEC removed); DNSSEC
+	// absent contributes 0 but stays in the denominator. So unconfirmed and
+	// unmeasured must score HIGHER than absent — that's the absence penalty the
+	// exclusion exists to remove. Before the exclusion was wired, all three tied
+	// at 20, hiding the bug behind a green bucket-label test.
+	absent := computeInternalScore(protocolState{spfHardFail: true}, DKIMAbsent)
+	unconfirmed := computeInternalScore(protocolState{spfHardFail: true, dnssecUnconfirmed: true}, DKIMAbsent)
+	unmeasured := computeInternalScore(protocolState{spfHardFail: true, dnssecUnmeasured: true}, DKIMAbsent)
+
+	if unconfirmed <= absent {
+		t.Errorf("unconfirmed DNSSEC should be excluded from denominator: unconfirmed=%d absent=%d", unconfirmed, absent)
+	}
+	if unmeasured <= absent {
+		t.Errorf("unmeasured DNSSEC should be excluded from denominator: unmeasured=%d absent=%d", unmeasured, absent)
+	}
+}
+
 func TestClassifySPF(t *testing.T) {
 	acc := &postureAccumulator{issues: []string{}, recommendations: []string{}, configured: []string{}, absent: []string{}, monitoring: []string{}}
 	classifySPF(protocolState{spfMissing: true}, acc)
