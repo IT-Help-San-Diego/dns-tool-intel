@@ -177,6 +177,32 @@ jobs:
           GOGC: '50'
           GOMEMLIMIT: '6000MiB'
 
+      - name: Compile-check all build-tagged tests (sub-packages)
+        # Closes the "silent test rot" gap: the handler sub-packages
+        # (adminpkg, agentpkg, authpkg, badgepkg, contentpkg) carry their own
+        # //go:build coverage/bigtests/dbtest test files, but run-handler-tests-full.sh
+        # only targets the top-level handlers/ package, and the non-handler step
+        # above compiles sub-packages WITHOUT tags. A tagged test file that
+        # references a wrong-package symbol therefore fails to compile and CI
+        # never notices. Concrete instance: commit 7a15574e7 swept
+        # TestExecer_NilFields into agentpkg pointing at the parent
+        # AnalysisHandler type — silently broken behind //go:build coverage.
+        # This compile-only pass (runs zero tests, needs no DB) makes every
+        # tagged test file in a sub-package at least COMPILE. Sub-packages are
+        # small and safe to compile together (unlike the top-level handlers
+        # corpus, which is split per-tag for compiler-memory reasons).
+        run: |
+          HANDLER_SUB_PKGS=$(go list ./go-server/internal/handlers/... | grep -v '/internal/handlers$' || true)
+          if [ -z "$HANDLER_SUB_PKGS" ]; then
+            echo "::error::No handler sub-packages found — go list returned empty after filter."
+            exit 1
+          fi
+          go test -run '^$' -tags "coverage bigtests scientific dbtest" $HANDLER_SUB_PKGS
+        env:
+          CGO_ENABLED: '0'
+          GOGC: '50'
+          GOMEMLIMIT: '6000MiB'
+
       - name: Verify binary
         run: |
           ls -lh dns-tool-server

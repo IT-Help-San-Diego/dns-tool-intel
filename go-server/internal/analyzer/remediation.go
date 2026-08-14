@@ -517,16 +517,16 @@ func appendDKIMFixes(fixes []fix, ps protocolState, ds DKIMState, results map[st
         if ds == DKIMWeakKeysOnly {
                 fixes = append(fixes, weakKeysFix(domain))
         }
-        if ds == DKIMAbsent || ds == DKIMInconclusive {
+        if ds == DKIMInconclusive {
                 selector := dkimSelectorForProvider(ps.primaryProvider)
                 fixes = append(fixes, fix{
-                        Title:         "Configure DKIM Signing",
-                        Description:   "No DKIM records were discovered for common selectors. Configure DKIM signing with your mail provider to authenticate outbound messages.",
+                        Title:         "Provide Your DKIM Selector",
+                        Description:   fmt.Sprintf("No DKIM record was found at any of the %d common selector names this tool probes. DKIM selectors are arbitrary labels with no enumerating DNS record (RFC 6376), so this is not evidence that DKIM is absent. Find your selector — the s= value in the DKIM-Signature header of any email from this domain (RFC 6376 §3.5), the record at <selector>._domainkey.<domain>, or your mail provider's DKIM setup console — and provide it for a definitive check.", len(defaultDKIMSelectors)),
                         DNSHost:       selector + "._domainkey." + domain,
                         DNSType:       "TXT (or CNAME)",
                         DNSValue:      "v=DKIM1; k=rsa; p=<public_key>",
                         DNSPurpose:    "DKIM lets receivers verify that messages were authorized by the domain owner and not altered in transit.",
-                        DNSHostHelp:   "(DKIM selector record — your provider supplies the exact value)",
+                        DNSHostHelp:   "(your selector — the label your mail provider publishes under _domainkey)",
                         RFC:           remDKIMSign,
                         RFCURL:        remDKIMSignURL,
                         SeverityLevel: sevHigh,

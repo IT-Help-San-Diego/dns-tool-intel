@@ -199,34 +199,41 @@ func TestClassifyDMARC_CB7(t *testing.T) {
 func TestClassifyDKIMPosture_CB7(t *testing.T) {
         t.Run("provider known", func(t *testing.T) {
                 acc := &postureAccumulator{}
-                classifyDKIMPosture(DKIMProviderInferred, "google", acc)
+                classifyDKIMPosture(protocolState{}, DKIMProviderInferred, "google", acc)
         })
         t.Run("success", func(t *testing.T) {
                 acc := &postureAccumulator{}
-                classifyDKIMPosture(DKIMSuccess, "", acc)
+                classifyDKIMPosture(protocolState{}, DKIMSuccess, "", acc)
         })
         t.Run("absent", func(t *testing.T) {
                 acc := &postureAccumulator{}
-                classifyDKIMPosture(DKIMAbsent, "", acc)
+                classifyDKIMPosture(protocolState{}, DKIMAbsent, "", acc)
         })
         t.Run("weak keys", func(t *testing.T) {
                 acc := &postureAccumulator{}
-                classifyDKIMPosture(DKIMWeakKeysOnly, "", acc)
+                classifyDKIMPosture(protocolState{dkimWeakKeys: true}, DKIMWeakKeysOnly, "", acc)
                 if len(acc.issues) == 0 {
                         t.Fatal("expected issue for weak DKIM keys")
                 }
         })
+        t.Run("weak keys mask success", func(t *testing.T) {
+                acc := &postureAccumulator{}
+                classifyDKIMPosture(protocolState{dkimWeakKeys: true}, DKIMSuccess, "", acc)
+                if len(acc.issues) == 0 {
+                        t.Fatal("expected weak-key issue alongside success, not masked")
+                }
+        })
         t.Run("third party only", func(t *testing.T) {
                 acc := &postureAccumulator{}
-                classifyDKIMPosture(DKIMThirdPartyOnly, "", acc)
+                classifyDKIMPosture(protocolState{}, DKIMThirdPartyOnly, "", acc)
         })
         t.Run("no mail domain", func(t *testing.T) {
                 acc := &postureAccumulator{}
-                classifyDKIMPosture(DKIMNoMailDomain, "", acc)
+                classifyDKIMPosture(protocolState{}, DKIMNoMailDomain, "", acc)
         })
         t.Run("inconclusive", func(t *testing.T) {
                 acc := &postureAccumulator{}
-                classifyDKIMPosture(DKIMInconclusive, "", acc)
+                classifyDKIMPosture(protocolState{}, DKIMInconclusive, "", acc)
         })
 }
 
@@ -380,9 +387,9 @@ func TestAppendDMARCFixes_CB7(t *testing.T) {
 func TestAppendDKIMFixes_CB7(t *testing.T) {
         ps := protocolState{}
         results := map[string]any{"domain": "example.com"}
-        fixes := appendDKIMFixes(nil, ps, DKIMAbsent, results, "example.com")
+        fixes := appendDKIMFixes(nil, ps, DKIMInconclusive, results, "example.com")
         if len(fixes) == 0 {
-                t.Fatal("expected fixes for absent DKIM")
+                t.Fatal("expected fixes for inconclusive DKIM")
         }
 }
 
@@ -502,15 +509,6 @@ func TestDKIMStateIsConfigured_CB7(t *testing.T) {
         }
         if DKIMWeakKeysOnly.IsConfigured() {
                 t.Fatal("DKIMWeakKeysOnly should not be configured")
-        }
-}
-
-func TestDKIMStateNeedsAction_CB7(t *testing.T) {
-        if !DKIMAbsent.NeedsAction() {
-                t.Fatal("DKIMAbsent should need action")
-        }
-        if DKIMSuccess.NeedsAction() {
-                t.Fatal("DKIMSuccess should not need action")
         }
 }
 

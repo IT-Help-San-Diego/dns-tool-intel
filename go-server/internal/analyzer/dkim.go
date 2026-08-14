@@ -1357,11 +1357,26 @@ func (a *Analyzer) AnalyzeDKIM(ctx context.Context, domain string, mxRecords, cu
 		}
 	}
 
+	// DKIM provenance: the actual number of selectors probed, and whether any
+	// were user-supplied. This changes the evidentiary weight of the result —
+	// "inconclusive against N defaults" and "verified via a user-supplied
+	// selector" are different claims (mint contract §5).
+	selectorSource := "defaults_only"
+	if len(customSelectors) > 0 {
+		if AllSelectorsKnown(customSelectors) {
+			selectorSource = "mixed"
+		} else {
+			selectorSource = "user_supplied"
+		}
+	}
+
 	return map[string]any{
 		"status":               status,
 		"message":              message,
 		mapKeyDkimState:        dkimState,
 		"selectors":            selectorMap,
+		"probe_scope":          len(selectors),
+		"selector_source":      selectorSource,
 		"key_issues":           keyIssues,
 		"key_strengths":        uniqueStrings(keyStrengths),
 		"primary_provider":     res.Primary,

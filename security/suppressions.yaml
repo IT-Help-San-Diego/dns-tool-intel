@@ -1,0 +1,62 @@
+# Suppression ledger — NOT a dismissal list.
+#
+# A "false positive" is a time-bound claim about the current data-flow, not a
+# fact about the world. Code moves: a field gets re-routed, a server-controlled
+# string becomes user-controlled, and a dismissal that was true when written
+# silently flips false. Every entry here must therefore KEEP EARNING ITSELF.
+#
+# An entry means: "this finding is real, I verified it is safe as of the date
+# below, and here is the precise fact that must hold for it to stay safe."
+#
+# scripts/check-suppressions.sh re-scans with gosec and enforces three invariants:
+#   (1) NO finding may exist without an entry here — fix it, or suppress it
+#       WITH a reason, assumption, and date.
+#   (2) NO entry may exist whose finding has disappeared — the code drifted;
+#       either you fixed it (remove the entry) or it moved (re-locate + re-verify).
+#   (3) NO entry whose safety depends on a GUARD may survive that guard changing
+#       or vanishing (scripts/guard_check.py) — a suppression whose validator
+#       was deleted must go stale, not silently keep suppressing.
+#
+# The match key is CONTENT, not line number. Each entry's `hash` is the sha256
+# (first 16 hex) of the flagged statement's source text, produced by
+# scripts/gosec_hash.py from gosec's JSON `code` field. An unrelated edit above
+# a finding moves its line but not its content, so the entry stays valid; a
+# fixed/changed finding changes its content and goes stale for re-review.
+# `line` is a HUMAN HINT only — it is not part of the match.
+# `file` is REPO-ROOT-RELATIVE (so the key is identical across machines).
+#
+# The `guard` field is what makes the `assumption` ENFORCED instead of
+# documentary. When a suppression's safety depends on a specific validator
+# (e.g. validDomainRe gating an exec), record it as `guard: file|symbol|hash`
+# where hash = sha256 of that validator's DECLARATION THROUGH ITS CLOSING BRACE
+# (the whole body, not just the first line — gutting a function to `return
+# true` must change the hash). If the guard is deleted or its content changes,
+# the entry goes stale. `guard` is REQUIRED for rule classes whose safety claim
+# is "input is validated upstream" (G204 exec, G304 path traversal, G402 TLS) —
+# an entry without one is fail-open and the gate reports it. A suppression whose
+# assumption is about the statement alone (e.g. G101 "this is a URL constant,
+# not a credential") has no upstream validator and may omit `guard`.
+#
+# Removing an entry because you FIXED the underlying finding is the healthy
+# end-state. A suppression should never outlive the code it was true about.
+#
+# Schema per entry:
+#   rule:          gosec rule id (G402, G203, G115, ...)
+#   file:          path relative to REPO ROOT (matches gosec's report)
+#   line:          start line of the finding (HINT ONLY — not the key)
+#   hash:          sha256 of the flagged statement, first 16 hex (THE KEY)
+#   guard:         "file|symbol|hash" of the validator the entry depends on (REQUIRED for G204/G304/G402)
+#   reason:        WHY it is safe (the justification — not "false positive")
+#   assumption:    the precise data-flow fact that must hold for it to stay safe
+#   verified_at:   ISO date it was last re-verified
+#   invalidated_by: what change would make it unsafe again (the re-check trigger)
+#
+suppressions:
+  - rule: G101
+    file: go-server/internal/handlers/authpkg/auth.go
+    line: 31
+    hash: ffe1fb81ec6d6840
+    reason: "Google OAuth endpoint URL constant, not a credential"
+    assumption: "the OAuth client secret is loaded from config/env; these are endpoint URLs only"
+    verified_at: "2026-08-13"
+    invalidated_by: "hardcoding an actual secret/token near the OAuth URL constants"

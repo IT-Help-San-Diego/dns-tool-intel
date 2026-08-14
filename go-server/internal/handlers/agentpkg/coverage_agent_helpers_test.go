@@ -575,13 +575,6 @@ func TestBuildAgentHTML_WithBimiAndCAA(t *testing.T) {
         }
 }
 
-func TestExecer_NilFields(t *testing.T) {
-        h := &AnalysisHandler{}
-        if h.execer() != nil {
-                t.Error("expected nil from execer with no DB and no statsExec")
-        }
-}
-
 func TestEsc(t *testing.T) {
         tests := []struct {
                 in, want string

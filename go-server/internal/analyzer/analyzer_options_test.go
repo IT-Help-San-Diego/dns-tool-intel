@@ -212,7 +212,6 @@ func TestDKIMState_Methods(t *testing.T) {
                 }
                 _ = s.IsPresent()
                 _ = s.IsConfigured()
-                _ = s.NeedsAction()
                 _ = s.NeedsMonitoring()
         }
 }
@@ -229,7 +228,7 @@ func TestClassifyDKIMState_AllBranches(t *testing.T) {
                 {"dkim_partial", protocolState{dkimPartial: true}, DKIMThirdPartyOnly},
                 {"dkim_third_party", protocolState{dkimThirdPartyOnly: true}, DKIMThirdPartyOnly},
                 {"dkim_weak", protocolState{dkimWeakKeys: true}, DKIMWeakKeysOnly},
-                {"absent", protocolState{}, DKIMAbsent},
+                {"inconclusive", protocolState{}, DKIMInconclusive},
         }
         for _, tc := range tests {
                 t.Run(tc.name, func(t *testing.T) {

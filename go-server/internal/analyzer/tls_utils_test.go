@@ -1591,9 +1591,9 @@ func TestAppendDKIMFixes_B3(t *testing.T) {
                 t.Errorf("weak keys: %v", fixes)
         }
 
-        fixes2 := appendDKIMFixes(nil, protocolState{}, DKIMAbsent, map[string]any{}, "example.com")
-        if len(fixes2) != 1 || fixes2[0].Title != "Configure DKIM Signing" {
-                t.Errorf("absent: %v", fixes2)
+        fixes2 := appendDKIMFixes(nil, protocolState{}, DKIMInconclusive, map[string]any{}, "example.com")
+        if len(fixes2) != 1 || fixes2[0].Title != "Provide Your DKIM Selector" {
+                t.Errorf("inconclusive: %v", fixes2)
         }
 
         fixes3 := appendDKIMFixes(nil, protocolState{}, DKIMThirdPartyOnly, map[string]any{}, "example.com")
