@@ -33,7 +33,7 @@ type ResolverConfig struct {
 var DefaultResolvers = []ResolverConfig{
         {Name: "Cloudflare", IP: resolverCloudflare, DoH: "https://cloudflare-dns.com/dns-query"},
         {Name: "Google", IP: resolverGoogle, DoH: "https://dns.google/resolve"},
-        {Name: "Quad9", IP: "9.9.9.9"},
+        {Name: "Quad9", IP: "9.9.9.10"},
         {Name: "OpenDNS", IP: "208.67.222.222"},
         {Name: "DNS4EU", IP: "86.54.11.100", DoH: "https://unfiltered.joindns4.eu/dns-query"},
 }
@@ -86,10 +86,12 @@ type RecordWithTTL struct {
 }
 
 type ADFlagResult struct {
-        ADFlag       bool    `json:"ad_flag"`
-        Validated    bool    `json:"validated"`
-        ResolverUsed *string `json:"resolver_used"`
-        Error        *string `json:"error"`
+        ADFlag       bool              `json:"ad_flag"`
+        Validated    bool              `json:"validated"`
+        ResolverUsed *string           `json:"resolver_used"`
+        Error        *string           `json:"error"`
+        State        string            `json:"state"`
+        ResolverAD   map[string]string `json:"resolver_ad"`
 }
 
 type Client struct {
@@ -847,10 +849,11 @@ func (c *Client) ValidateResolverConsensus(ctx context.Context, domain string) m
 }
 
 func (c *Client) CheckDNSSECADFlag(ctx context.Context, domain string) ADFlagResult {
-        result := ADFlagResult{}
-        validatingResolvers := []string{resolverGoogle, resolverCloudflare}
+        result := ADFlagResult{ResolverAD: make(map[string]string)}
 
-        for _, resolverIP := range validatingResolvers {
+        var secure, adAbsent, bogus int
+
+        for _, r := range c.resolvers {
                 fqdn := dnsutil.Fqdn(domain)
                 msg := dns.NewMsg(fqdn, dns.TypeA)
                 msg.RecursionDesired = true
@@ -858,47 +861,95 @@ func (c *Client) CheckDNSSECADFlag(ctx context.Context, domain string) ADFlagRes
 
                 dnsClient := newDNSClient(3 * time.Second)
 
-                r, _, err := dnsClient.Exchange(ctx, msg, protoUDP, net.JoinHostPort(resolverIP, dnsPort))
+                resp, _, err := dnsClient.Exchange(ctx, msg, protoUDP, net.JoinHostPort(r.IP, dnsPort))
                 if err != nil {
-                        if isNXDomain(r) {
-                                errStr := "Domain not found"
-                                result.Error = &errStr
-                                return result
+                        if isNXDomain(resp) {
+                                result.ResolverAD[r.Name] = "nxdomain"
+                                continue
                         }
-                        slog.Debug("AD flag check failed", mapKeyResolver, resolverIP, mapKeyError, err)
+                        slog.Debug("AD flag check failed", mapKeyResolver, r.IP, mapKeyError, err)
+                        result.ResolverAD[r.Name] = "unmeasured"
                         continue
                 }
 
-                if r.Rcode == dns.RcodeNameError {
-                        errStr := "Domain not found"
-                        result.Error = &errStr
-                        return result
+                if resp.Rcode == dns.RcodeNameError {
+                        result.ResolverAD[r.Name] = "nxdomain"
+                        continue
                 }
 
-                if len(r.Answer) == 0 {
+                // SERVFAIL from a validating resolver means DNSSEC validation
+                // FAILED (expired RRSIG, broken chain, unsupported algorithm) — a
+                // distinct "bogus" signal, not "ad_absent" and not a failed check.
+                // The old code had no SERVFAIL branch, so bogus fell through to
+                // ADFlag=false and read identically to an AD-absent response (RFC 4033 §5:
+                // bogus is signaled via RCODE=2 / Server Failure).
+                if resp.Rcode == dns.RcodeServerFailure {
+                        result.ResolverAD[r.Name] = "bogus"
+                        bogus++
+                        continue
+                }
+
+                if resp.Rcode != dns.RcodeSuccess {
+                        slog.Debug("AD flag check non-success RCODE", mapKeyResolver, r.IP, "rcode", resp.Rcode)
+                        result.ResolverAD[r.Name] = "unmeasured"
+                        continue
+                }
+
+                if len(resp.Answer) == 0 {
                         msg2 := dns.NewMsg(fqdn, dns.TypeSOA)
                         msg2.RecursionDesired = true
                         msg2.UDPSize, msg2.Security = 4096, true
-                        r2, _, err2 := dnsClient.Exchange(ctx, msg2, protoUDP, net.JoinHostPort(resolverIP, dnsPort))
+                        r2, _, err2 := dnsClient.Exchange(ctx, msg2, protoUDP, net.JoinHostPort(r.IP, dnsPort))
                         if err2 == nil {
-                                r = r2
+                                resp = r2
                         }
                 }
 
-                if r.AuthenticatedData {
-                        result.ADFlag = true
-                        result.Validated = true
-                        result.ResolverUsed = &resolverIP
-                        return result
+                if resp.AuthenticatedData {
+                        result.ResolverAD[r.Name] = "secure"
+                        secure++
+                } else {
+                        result.ResolverAD[r.Name] = "ad_absent"
+                        adAbsent++
                 }
-                result.ADFlag = false
-                result.Validated = false
-                result.ResolverUsed = &resolverIP
-                return result
         }
 
-        errStr := "Could not verify AD flag"
-        result.Error = &errStr
+        // Aggregate classification. RFC 4033 §5 defines four validation states
+        // (Secure / Insecure / Bogus / Indeterminate); we surface the wire signal
+        // honestly and never overclaim where the RFC says the signal is ambiguous:
+        //   "secure"     — AD bit set (RFC: Secure).
+        //   "ad_absent"  — AD bit clear; RFC 4033 §5 notes the signaling mechanism
+        //                  cannot distinguish Insecure from Indeterminate, so we
+        //                  record the observation (AD absent) rather than naming a
+        //                  state we cannot prove.
+        //   "bogus"      — SERVFAIL (RFC 4033 §5: bogus is signaled via RCODE=2).
+        //   "split"      — OUR term: validating resolvers disagree.
+        //   "unmeasured" — OUR term: no resolver cast a usable vote.
+        switch {
+        case bogus > 0:
+                result.State = "bogus"
+                result.ADFlag = false
+                result.Validated = false
+        case secure+adAbsent == 0:
+                result.State = "unmeasured"
+                result.ADFlag = false
+                result.Validated = false
+                errStr := "Could not verify AD flag"
+                result.Error = &errStr
+        case adAbsent == 0 && secure > 0:
+                result.State = "secure"
+                result.ADFlag = true
+                result.Validated = true
+        case secure == 0 && adAbsent > 0:
+                result.State = "ad_absent"
+                result.ADFlag = false
+                result.Validated = false
+        default:
+                result.State = "split"
+                result.ADFlag = false
+                result.Validated = false
+        }
+
         return result
 }
 

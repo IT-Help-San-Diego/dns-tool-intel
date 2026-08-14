@@ -15,6 +15,8 @@ import (
 const (
         mapKeyAdFlag               = "ad_flag"
         mapKeyAdResolver           = "ad_resolver"
+        mapKeyAdConsensus          = "ad_consensus"
+        mapKeyResolverAD           = "resolver_ad"
         mapKeyAlgorithm            = "algorithm"
         mapKeyAlgorithmName        = "algorithm_name"
         mapKeyAlgorithmObservation = "algorithm_observation"
@@ -70,7 +72,8 @@ func parseAlgorithm(dsRecords []string) (*int, *string) {
 type dnssecParams struct {
         hasDNSKEY     bool
         hasDS         bool
-        adFlag        bool
+        adState       string
+        resolverAD    map[string]string
         dnskeyRecords []string
         dsRecords     []string
         algorithm     *int
@@ -95,13 +98,30 @@ func algorithmObservation(algo *int) map[string]any {
 func buildDNSSECResult(p dnssecParams) map[string]any {
         if p.hasDNSKEY && p.hasDS {
                 var message string
-                if p.adFlag {
-                        message = fmt.Sprintf("DNSSEC fully configured and validated — AD (Authenticated Data) flag set by resolver %s confirming cryptographic chain of trust from root to zone (RFC 4035 §3.2.3)", derefStr(p.adResolver))
-                } else {
-                        message = "DNSSEC configured (DNSKEY + DS records present) but AD flag not set — resolver did not confirm chain of trust validation (RFC 4035 §3.2.3). This may indicate a broken chain or a non-validating resolver path."
+                status := "success"
+                chain := "complete"
+                switch p.adState {
+                case "secure":
+                        message = "DNSSEC fully configured and validated — AD (Authenticated Data) flag set by validating resolvers confirming cryptographic chain of trust from root to zone (RFC 4035 §3.2.3)"
+                case "bogus":
+                        message = "DNSSEC configured (DNSKEY + DS records present) but validation failed — the chain of trust is broken (RFC 4033 §5: bogus is signaled via SERVFAIL / RCODE=2)."
+                        status = "warning"
+                        chain = "broken"
+                case "split":
+                        message = "DNSSEC configured (DNSKEY + DS records present) but validating resolvers disagree on the chain — not uniformly confirmed."
+                        status = "warning"
+                        chain = "unconfirmed"
+                case "unmeasured":
+                        message = "DNSSEC configured (DNSKEY + DS records present) but the AD flag could not be measured — all validating resolvers were unreachable."
+                        status = statusUnknown
+                        chain = statusUnknown
+                default: // ad_absent
+                        message = "DNSSEC configured (DNSKEY + DS records present) but the chain of trust is unconfirmed — the AD flag was absent, and RFC 4033 §5 notes the signaling mechanism cannot distinguish Insecure from Indeterminate."
+                        status = "warning"
+                        chain = "unconfirmed"
                 }
                 return map[string]any{
-                        mapKeyStatus:               "success",
+                        mapKeyStatus:               status,
                         mapKeyMessage:              message,
                         mapKeyHasDnskey:            true,
                         mapKeyHasDs:                true,
@@ -110,8 +130,10 @@ func buildDNSSECResult(p dnssecParams) map[string]any {
                         mapKeyAlgorithm:            derefInt(p.algorithm),
                         mapKeyAlgorithmName:        derefStr(p.algorithmName),
                         mapKeyAlgorithmObservation: algorithmObservation(p.algorithm),
-                        mapKeyChainOfTrust:         "complete",
-                        mapKeyAdFlag:               p.adFlag,
+                        mapKeyChainOfTrust:         chain,
+                        mapKeyAdFlag:               p.adState == "secure",
+                        mapKeyAdConsensus:          p.adState,
+                        mapKeyResolverAD:           p.resolverAD,
                         mapKeyAdResolver:           derefStr(p.adResolver),
                         mapKeyDnssecState:          dnssecStatePresent,
                 }
@@ -130,6 +152,8 @@ func buildDNSSECResult(p dnssecParams) map[string]any {
                         mapKeyAlgorithmObservation: nil,
                         mapKeyChainOfTrust:         "broken",
                         mapKeyAdFlag:               false,
+                        mapKeyAdConsensus:          p.adState,
+                        mapKeyResolverAD:           p.resolverAD,
                         mapKeyAdResolver:           derefStr(p.adResolver),
                         // Signed zone with no DS at the parent = island of security / broken
                         // chain, NOT "present". AnalyzeDNSSEC only reaches this branch after an
@@ -151,6 +175,8 @@ func buildDNSSECResult(p dnssecParams) map[string]any {
                 mapKeyAlgorithmObservation: nil,
                 mapKeyChainOfTrust:         "none",
                 mapKeyAdFlag:               false,
+                mapKeyAdConsensus:          p.adState,
+                mapKeyResolverAD:           p.resolverAD,
                 mapKeyAdResolver:           nil,
                 mapKeyDnssecState:          dnssecStateAbsentConf,
         }
@@ -314,6 +340,8 @@ func (a *Analyzer) AnalyzeDNSSEC(ctx context.Context, domain string) map[string]
 
         adResult := a.DNS.CheckDNSSECADFlag(ctx, domain)
         adFlag := adResult.ADFlag
+        adState := adResult.State
+        resolverAD := adResult.ResolverAD
         adResolver := adResult.ResolverUsed
 
         algorithm, algorithmName := parseAlgorithm(dsRecords)
@@ -362,7 +390,8 @@ func (a *Analyzer) AnalyzeDNSSEC(ctx context.Context, domain string) map[string]
                 return buildDNSSECResult(dnssecParams{
                         hasDNSKEY:     hasDNSKEY,
                         hasDS:         hasDS,
-                        adFlag:        adFlag,
+                        adState:       adState,
+                        resolverAD:    resolverAD,
                         dnskeyRecords: dnskeyRecords,
                         dsRecords:     dsRecords,
                         algorithm:     algorithm,

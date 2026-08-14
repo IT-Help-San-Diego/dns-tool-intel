@@ -300,21 +300,46 @@ func TestEvaluateDNSSECState(t *testing.T) {
 	}
 
 	ps = &protocolState{}
-	evaluateDNSSECState(map[string]any{"status": "success"}, ps)
+	evaluateDNSSECState(map[string]any{"chain_of_trust": "complete"}, ps)
 	if !ps.dnssecOK {
 		t.Error("success should set dnssecOK")
 	}
 
 	ps = &protocolState{}
-	evaluateDNSSECState(map[string]any{"status": "bogus"}, ps)
-	if ps.dnssecOK || ps.dnssecBroken {
-		t.Error("bogus status should not set OK or broken (caught by isMissingRecord for error)")
+	evaluateDNSSECState(map[string]any{"chain_of_trust": "broken"}, ps)
+	if !ps.dnssecBroken {
+		t.Error("broken chain should set dnssecBroken")
 	}
 
 	ps = &protocolState{}
-	evaluateDNSSECState(map[string]any{"status": "success", "algorithm_observation": map[string]any{"strength": "strong"}}, ps)
+	evaluateDNSSECState(map[string]any{"chain_of_trust": "unconfirmed"}, ps)
+	if !ps.dnssecUnconfirmed || ps.dnssecOK || ps.dnssecBroken {
+		t.Error("unconfirmed chain should set dnssecUnconfirmed, not OK or broken")
+	}
+
+	ps = &protocolState{}
+	evaluateDNSSECState(map[string]any{"chain_of_trust": "complete", "algorithm_observation": map[string]any{"strength": "strong"}}, ps)
 	if ps.dnssecAlgoStrength != "strong" {
 		t.Errorf("algo strength = %q, want strong", ps.dnssecAlgoStrength)
+	}
+}
+
+func TestComputeInternalScore_DNSSECExcludedFromDenominator(t *testing.T) {
+	// SPF hard fail = 20 raw points. DNSSEC unconfirmed/unmeasured contributes 0
+	// and must be excluded from the denominator (weightDNSSEC removed); DNSSEC
+	// absent contributes 0 but stays in the denominator. So unconfirmed and
+	// unmeasured must score HIGHER than absent — that's the absence penalty the
+	// exclusion exists to remove. Before the exclusion was wired, all three tied
+	// at 20, hiding the bug behind a green bucket-label test.
+	absent := computeInternalScore(protocolState{spfHardFail: true}, DKIMAbsent)
+	unconfirmed := computeInternalScore(protocolState{spfHardFail: true, dnssecUnconfirmed: true}, DKIMAbsent)
+	unmeasured := computeInternalScore(protocolState{spfHardFail: true, dnssecUnmeasured: true}, DKIMAbsent)
+
+	if unconfirmed <= absent {
+		t.Errorf("unconfirmed DNSSEC should be excluded from denominator: unconfirmed=%d absent=%d", unconfirmed, absent)
+	}
+	if unmeasured <= absent {
+		t.Errorf("unmeasured DNSSEC should be excluded from denominator: unmeasured=%d absent=%d", unmeasured, absent)
 	}
 }
 
@@ -969,7 +994,7 @@ func TestEvaluateProtocolStates(t *testing.T) {
 		"tlsrpt_analysis":  map[string]any{"status": "success"},
 		"bimi_analysis":    map[string]any{"status": "success"},
 		"caa_analysis":     map[string]any{"status": "success"},
-		"dnssec_analysis":  map[string]any{"status": "success"},
+		"dnssec_analysis":  map[string]any{"chain_of_trust": "complete"},
 		"dane_analysis":    map[string]any{"has_dane": true},
 	}
 	ps := evaluateProtocolStates(results)

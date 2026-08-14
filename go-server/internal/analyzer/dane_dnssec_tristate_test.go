@@ -271,8 +271,8 @@ func TestAnalyzeDNSSEC_FalseAbsentDS_ConfirmedPresentAtParent(t *testing.T) {
         if got := result[mapKeyDnssecState]; got != dnssecStatePresent {
                 t.Fatalf("dnssec_state = %v, want %s (DS confirmed present at parent — must not read as broken)", got, dnssecStatePresent)
         }
-        if got := result[mapKeyChainOfTrust]; got != "complete" {
-                t.Fatalf("chain_of_trust = %v, want complete", got)
+        if got := result[mapKeyChainOfTrust]; got != "unconfirmed" {
+                t.Fatalf("chain_of_trust = %v, want unconfirmed", got)
         }
         if got, _ := result[mapKeyHasDs].(bool); !got {
                 t.Fatalf("has_ds = %v, want true (DS adopted from authoritative parent answer)", result[mapKeyHasDs])
@@ -516,7 +516,7 @@ func TestClassifyRegistryGrade_IndeterminateNotUnsigned(t *testing.T) {
         if strings.Contains(msg, "not DNSSEC-signed") {
                 t.Fatalf("registry grade fabricates absence for inconclusive DNSSEC: %q", msg)
         }
-        if !strings.Contains(msg, "could not be verified") {
+        if !strings.Contains(msg, "could not be confirmed") {
                 t.Fatalf("registry grade should report inconclusive; got %q", msg)
         }
 }
