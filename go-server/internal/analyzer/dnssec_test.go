@@ -417,6 +417,57 @@ func TestCollectDSRecords_NilInput(t *testing.T) {
 	}
 }
 
+func TestBuildDNSSECResult_AdConsensus(t *testing.T) {
+	resolver := "8.8.8.8"
+	algo := 8
+	algoName := "RSA/SHA-256"
+	rad := map[string]string{"Cloudflare": "secure", "Google": "ad_absent"}
+
+	t.Run("split emits ad_consensus and resolver_ad", func(t *testing.T) {
+		r := buildDNSSECResult(dnssecParams{
+			hasDNSKEY:     true,
+			hasDS:         true,
+			adState:       "split",
+			resolverAD:    rad,
+			dnskeyRecords: []string{"key1"},
+			dsRecords:     []string{"ds1"},
+			algorithm:     &algo,
+			algorithmName: &algoName,
+			adResolver:    &resolver,
+		})
+		if got := r[mapKeyAdConsensus]; got != "split" {
+			t.Errorf("ad_consensus = %v, want split", got)
+		}
+		if got := r[mapKeyChainOfTrust]; got != "unconfirmed" {
+			t.Errorf("chain_of_trust = %v, want unconfirmed", got)
+		}
+		gotRad, ok := r[mapKeyResolverAD].(map[string]string)
+		if !ok || len(gotRad) != 2 {
+			t.Errorf("resolver_ad not emitted: %v", r[mapKeyResolverAD])
+		}
+	})
+
+	t.Run("unmeasured maps to statusUnknown not unconfirmed", func(t *testing.T) {
+		r := buildDNSSECResult(dnssecParams{
+			hasDNSKEY:     true,
+			hasDS:         true,
+			adState:       "unmeasured",
+			resolverAD:    map[string]string{},
+			dnskeyRecords: []string{"key1"},
+			dsRecords:     []string{"ds1"},
+			algorithm:     &algo,
+			algorithmName: &algoName,
+			adResolver:    &resolver,
+		})
+		if got := r[mapKeyStatus]; got != statusUnknown {
+			t.Errorf("status = %v, want %v", got, statusUnknown)
+		}
+		if got := r[mapKeyChainOfTrust]; got != statusUnknown {
+			t.Errorf("chain_of_trust = %v, want %v", got, statusUnknown)
+		}
+	})
+}
+
 func TestBuildDNSSECResult_MessageContent(t *testing.T) {
 	resolver := "1.1.1.1"
 	algo := 13
