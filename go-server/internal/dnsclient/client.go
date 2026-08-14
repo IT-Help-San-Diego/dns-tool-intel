@@ -1214,6 +1214,12 @@ func (c *Client) ProbeExists(ctx context.Context, domain string) (exists bool, c
         fqdn := dnsutil.Fqdn(domain)
         msg := dns.NewMsg(fqdn, dns.TypeA)
         msg.RecursionDesired = true
+        // checkingDisabled (CD) so a broken-DNSSEC zone's A record is still visible:
+        // a validating resolver returns SERVFAIL/0-answers for such a zone, which the
+        // old code read as "domain does not exist" and dropped the whole scan. CD=1
+        // asks "what does the zone publish" so existence is judged on the record, not
+        // the validator's refusal to vouch for it (RFC 4035 §3.2.2).
+        msg.CheckingDisabled = true
 
         dnsClient := newDNSClient(3 * time.Second)
 
