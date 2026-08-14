@@ -99,6 +99,7 @@ type postureAccumulator struct {
 	configured      []string
 	absent          []string
 	providerLimited []string
+	unmeasurable    []string
 }
 
 type gradeInput struct {
@@ -609,6 +610,7 @@ func classifyDKIMPosture(ps protocolState, ds DKIMState, primaryProvider string,
 		// unverifiable control there reported a guess as a measurement. The
 		// monitoring note carries it instead: visible, flagged as needing
 		// attention, counted as neither configured nor absent.
+		acc.unmeasurable = append(acc.unmeasurable, "DKIM")
 		acc.monitoring = append(acc.monitoring, fmt.Sprintf(
 			"DKIM status is inconclusive — no record was found at any of the %d common selector names this tool probes. DKIM selectors are arbitrary labels with no enumerating DNS record (RFC 6376), so this is not evidence that DKIM is absent. To resolve it, find the selector: the s= value in the DKIM-Signature header of any email from this domain (RFC 6376 §3.5), the record at <selector>._domainkey.<domain>, or your mail provider's DKIM setup console — then enter it and we'll verify.",
 			len(defaultDKIMSelectors),
@@ -692,6 +694,7 @@ func simpleProtocolIndeterminate(result map[string]any, stateKey string) bool {
 // reported as a confirmed missing control.
 func classifyPresenceTri(ok, indeterminate bool, name string, acc *postureAccumulator) {
 	if indeterminate {
+		acc.unmeasurable = append(acc.unmeasurable, name)
 		acc.monitoring = append(acc.monitoring, name+" could not be verified — the DNS lookup did not complete; re-run before concluding it is absent")
 		return
 	}
@@ -952,6 +955,7 @@ func (a *Analyzer) CalculatePosture(results map[string]any) map[string]any {
 		configured:      []string{},
 		absent:          []string{},
 		providerLimited: []string{},
+		unmeasurable:    []string{},
 	}
 
 	if !isTLD {
@@ -1038,6 +1042,7 @@ func (a *Analyzer) CalculatePosture(results map[string]any) map[string]any {
 		"configured":                 acc.configured,
 		"absent":                     acc.absent,
 		"provider_limited":           acc.providerLimited,
+		"unmeasurable":               acc.unmeasurable,
 		"dkim_inconclusive":          ds == DKIMInconclusive,
 		"deliberate_monitoring":      deliberate,
 		"deliberate_monitoring_note": deliberateNote,
