@@ -578,7 +578,7 @@ ICuAE results are displayed on the `/confidence#icuae` page and in the homepage 
 
 ## Why This Level of Rigor Exists
 
-DNS Tool's engineering depth — statistical confidence calibration, drift detection, SHA-3-512 integrity hashing, ICD 203 confidence taxonomy — is sometimes characterized as "over-engineered" or "gold-plating" by automated review systems comparing against simpler DNS checkers. This section explains why the depth is necessary, not excessive.
+DNS Tool's engineering depth — statistical reliability weighting, drift detection, SHA-3-512 integrity hashing, ICD 203 confidence taxonomy — is sometimes characterized as "over-engineered" or "gold-plating" by automated review systems comparing against simpler DNS checkers. This section explains why the depth is necessary, not excessive.
 
 ### The Problem With Simple DNS Checkers
 The question "does the record exist?" is dangerous to stop at:
