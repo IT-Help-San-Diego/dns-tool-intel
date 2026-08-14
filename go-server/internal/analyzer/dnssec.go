@@ -95,13 +95,17 @@ func algorithmObservation(algo *int) map[string]any {
 func buildDNSSECResult(p dnssecParams) map[string]any {
         if p.hasDNSKEY && p.hasDS {
                 var message string
+                status := "success"
+                chain := "complete"
                 if p.adFlag {
-                        message = fmt.Sprintf("DNSSEC fully configured and validated — AD (Authenticated Data) flag set by resolver %s confirming cryptographic chain of trust from root to zone (RFC 4035 §3.2.3)", derefStr(p.adResolver))
+                        message = "DNSSEC fully configured and validated — AD (Authenticated Data) flag set by validating resolvers confirming cryptographic chain of trust from root to zone (RFC 4035 §3.2.3)"
                 } else {
-                        message = "DNSSEC configured (DNSKEY + DS records present) but AD flag not set — resolver did not confirm chain of trust validation (RFC 4035 §3.2.3). This may indicate a broken chain or a non-validating resolver path."
+                        message = "DNSSEC configured (DNSKEY + DS records present) but validation did not succeed — the chain of trust is broken (RFC 4035 §3.2.3)."
+                        status = "warning"
+                        chain = "broken"
                 }
                 return map[string]any{
-                        mapKeyStatus:               "success",
+                        mapKeyStatus:               status,
                         mapKeyMessage:              message,
                         mapKeyHasDnskey:            true,
                         mapKeyHasDs:                true,
@@ -110,7 +114,7 @@ func buildDNSSECResult(p dnssecParams) map[string]any {
                         mapKeyAlgorithm:            derefInt(p.algorithm),
                         mapKeyAlgorithmName:        derefStr(p.algorithmName),
                         mapKeyAlgorithmObservation: algorithmObservation(p.algorithm),
-                        mapKeyChainOfTrust:         "complete",
+                        mapKeyChainOfTrust:         chain,
                         mapKeyAdFlag:               p.adFlag,
                         mapKeyAdResolver:           derefStr(p.adResolver),
                         mapKeyDnssecState:          dnssecStatePresent,

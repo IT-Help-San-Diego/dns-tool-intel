@@ -263,8 +263,11 @@ func TestBuildDNSSECResult(t *testing.T) {
 			algorithmName: &algoName,
 			adResolver:    &resolver,
 		})
-		if r[mapKeyStatus] != "success" {
-			t.Errorf("status = %v, want success", r[mapKeyStatus])
+		if r[mapKeyStatus] != "warning" {
+			t.Errorf("status = %v, want warning", r[mapKeyStatus])
+		}
+		if r[mapKeyChainOfTrust] != "broken" {
+			t.Errorf("chain_of_trust = %v, want broken", r[mapKeyChainOfTrust])
 		}
 		if r[mapKeyAdFlag] != false {
 			t.Errorf("ad_flag = %v, want false", r[mapKeyAdFlag])
@@ -409,8 +412,8 @@ func TestBuildDNSSECResult_MessageContent(t *testing.T) {
 			adResolver:    &resolver,
 		})
 		msg := r[mapKeyMessage].(string)
-		if !strings.Contains(msg, "1.1.1.1") {
-			t.Errorf("message should mention resolver, got: %s", msg)
+		if !strings.Contains(msg, "validating resolvers") {
+			t.Errorf("message should mention validating resolvers, got: %s", msg)
 		}
 		if !strings.Contains(msg, "AD") {
 			t.Errorf("message should mention AD flag, got: %s", msg)
@@ -429,8 +432,8 @@ func TestBuildDNSSECResult_MessageContent(t *testing.T) {
 			adResolver:    &resolver,
 		})
 		msg := r[mapKeyMessage].(string)
-		if !strings.Contains(msg, "AD flag not set") {
-			t.Errorf("message should mention AD flag not set, got: %s", msg)
+		if !strings.Contains(msg, "chain of trust is broken") {
+			t.Errorf("message should mention broken chain, got: %s", msg)
 		}
 	})
 

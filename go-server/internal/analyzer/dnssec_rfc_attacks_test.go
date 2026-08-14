@@ -22,8 +22,8 @@ func TestDNSSECRFCAttack_MissingDSRecord(t *testing.T) {
 			false, false, "warning", "none",
 		},
 		{
-			"both DNSKEY and DS present — complete chain",
-			true, true, "success", "complete",
+			"both DNSKEY and DS present without validation — broken chain",
+			true, true, "warning", "broken",
 		},
 	}
 
@@ -200,8 +200,12 @@ func TestDNSSECRFCAttack_ADFlagHandling(t *testing.T) {
 				algorithmName: &algoName,
 				adResolver:    &resolver,
 			})
-			if r[mapKeyStatus] != "success" {
-				t.Errorf("status = %v, want success", r[mapKeyStatus])
+			wantStatus := "success"
+			if !tt.adFlag {
+				wantStatus = "warning"
+			}
+			if r[mapKeyStatus] != wantStatus {
+				t.Errorf("status = %v, want %v", r[mapKeyStatus], wantStatus)
 			}
 			if r[mapKeyAdFlag] != tt.wantADFlag {
 				t.Errorf("ad_flag = %v, want %v", r[mapKeyAdFlag], tt.wantADFlag)
@@ -550,8 +554,11 @@ func TestDNSSECRFCAttack_FullDeploymentWithoutADFlag(t *testing.T) {
 		adResolver:    &resolver,
 	})
 
-	if r[mapKeyStatus] != "success" {
-		t.Errorf("status = %v, want success", r[mapKeyStatus])
+	if r[mapKeyStatus] != "warning" {
+		t.Errorf("status = %v, want warning", r[mapKeyStatus])
+	}
+	if r[mapKeyChainOfTrust] != "broken" {
+		t.Errorf("chain_of_trust = %v, want broken", r[mapKeyChainOfTrust])
 	}
 	if r[mapKeyAdFlag] != false {
 		t.Error("ad_flag should be false")
