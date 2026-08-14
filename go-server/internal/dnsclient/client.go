@@ -543,7 +543,20 @@ func (c *Client) QueryDNSWithTTL(ctx context.Context, recordType, domain string)
                 return result
         }
 
-        return c.parallelUDPQueryWithTTL(ctx, domain, recordType)
+        result = c.parallelUDPQueryWithTTL(ctx, domain, recordType)
+        if len(result.Records) > 0 {
+                return result
+        }
+
+        // Broken-DNSSEC fallback (CD): a validating resolver SERVFAILs a bogus zone, so
+        // the normal query returns zero records and would read as "record absent" for a
+        // zone that merely has a broken chain. Re-query with checking-disabled to see the
+        // PUBLISHED records; the bogus signal itself stays in the DNSSEC AD consensus
+        // (which remains validation-enabled). Policy in the client, not a per-call-site fix.
+        if cd := c.dohQueryWithTTL(ctx, domain, recordType, true); len(cd.Records) > 0 {
+                return cd
+        }
+        return RecordWithTTL{}
 }
 
 func (c *Client) parallelUDPQueryWithTTL(ctx context.Context, domain, recordType string) RecordWithTTL {
