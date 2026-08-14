@@ -3902,6 +3902,7 @@
                                         <th scope="col">TCP</th>
                                         <th scope="col">AA</th>
                                         <th scope="col">SOA Serial</th>
+                                        <th scope="col">Anycast Node</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -3924,6 +3925,17 @@
                                         <td>{{if mapGetBool "tcp_reachable" $entry}}{{icon "check" "text-success"}}{{else}}{{icon "times" "text-danger"}}{{end}}</td>
                                         <td>{{if mapGetBool "aa_flag" $entry}}{{icon "check" "text-success"}}{{else if mapGetBool "is_lame" $entry}}<span class="badge bg-danger">Lame</span>{{else}}{{icon "times" "text-warning"}}{{end}}</td>
                                         <td>{{if mapGetBool "soa_serial_ok" $entry}}{{mapGetInt "soa_serial" $entry}}{{else}}<span class="text-muted">N/A</span>{{end}}</td>
+                                        <td class="small">
+                                            {{$nsid := mapGetStr "nsid_decoded" $entry}}
+                                            {{$rtt := mapGetInt "rtt_ms" $entry}}
+                                            {{if $nsid}}
+                                                <code>{{$nsid}}</code>{{if gt $rtt 0}}<span class="text-muted ms-1">· {{$rtt}}ms</span>{{end}}
+                                            {{else if gt $rtt 0}}
+                                                <span class="text-muted">{{$rtt}}ms</span>
+                                            {{else}}
+                                                <span class="text-muted">N/A</span>
+                                            {{end}}
+                                        </td>
                                     </tr>
                                     {{end}}
                                 </tbody>

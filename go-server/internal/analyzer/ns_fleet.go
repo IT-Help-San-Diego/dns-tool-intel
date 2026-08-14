@@ -5,6 +5,7 @@ package analyzer
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 	"net"
 	"strings"
@@ -13,6 +14,8 @@ import (
 
 	"codeberg.org/miekg/dns"
 	"codeberg.org/miekg/dns/dnsutil"
+
+	"dnstool/go-server/internal/dnsclient"
 )
 
 const (
@@ -33,6 +36,8 @@ type NSFleetEntry struct {
 	IsLame      bool     `json:"is_lame"`
 	SOASerial   uint32   `json:"soa_serial"`
 	SOASerialOK bool     `json:"soa_serial_ok"`
+	NSID        string   `json:"nsid"`
+	RTTMs       int64    `json:"rtt_ms"`
 }
 
 type NSFleetResult struct {
@@ -151,6 +156,11 @@ func (a *Analyzer) probeNameserver(ctx context.Context, domain, hostname string)
 		entry.UDPReach, entry.TCPReach, entry.AAFlag, entry.SOASerial = probeNSReachability(ctx, domain, targetIP)
 		entry.IsLame = !entry.AAFlag && entry.UDPReach
 		entry.SOASerialOK = entry.SOASerial > 0
+		// RFC 5001 NSID: identify which anycast node answered from this vantage.
+		// Only *dnsclient.Client carries QueryNSID; mocks/other queriers no-op.
+		if dc, ok := a.DNS.(*dnsclient.Client); ok {
+			entry.NSID, entry.RTTMs, _ = dc.QueryNSID(ctx, net.JoinHostPort(targetIP, "53"))
+		}
 	}
 
 	return entry
@@ -391,6 +401,26 @@ func collectFleetIssues(entries []NSFleetEntry, diversity FleetDiversity, serial
 	return issues
 }
 
+// nsidToASCII decodes a hex-encoded RFC 5001 NSID into its printable ASCII form
+// when the server's identity is human-readable (e.g. "lax10", "a.r.uslax-2d").
+// Non-printable or malformed NSIDs are returned as the raw hex so no identity is
+// fabricated from unreadable bytes.
+func nsidToASCII(hexNSID string) string {
+	if hexNSID == "" {
+		return ""
+	}
+	b, err := hex.DecodeString(hexNSID)
+	if err != nil || len(b) == 0 {
+		return hexNSID
+	}
+	for _, c := range b {
+		if c < 0x20 || c > 0x7e {
+			return hexNSID
+		}
+	}
+	return string(b)
+}
+
 func nsFleetToMap(result NSFleetResult) map[string]any {
 	nsEntries := make([]map[string]any, len(result.Nameservers))
 	for i, e := range result.Nameservers {
@@ -407,6 +437,9 @@ func nsFleetToMap(result NSFleetResult) map[string]any {
 			"is_lame":       e.IsLame,
 			"soa_serial":    e.SOASerial,
 			"soa_serial_ok": e.SOASerialOK,
+			"nsid":          e.NSID,
+			"nsid_decoded":  nsidToASCII(e.NSID),
+			"rtt_ms":        e.RTTMs,
 		}
 	}
 
