@@ -252,8 +252,6 @@
                         {{if .ToolVersion}}<br><span class="print-meta-label">Version</span> v{{.ToolVersion}}{{end}}
                         {{if .IntegrityHash}}<br><span class="print-meta-label">Integrity</span> <span class="u-print-hash">{{.IntegrityHash}}</span>{{end}}
                     </div>
-                    <div class="print-tlp-badge" id="printTlpBadge">TLP:AMBER</div>
-                    <div class="print-tlp-note" id="printTlpNote">Limited disclosure — recipients may share within their organization only</div>
                 </div>
             </div>
             <div class="print-domain-banner">
@@ -339,21 +337,6 @@
                     <a href="/replay/{{.AnalysisID}}" class="btn btn-report-action" title="Replay this scan's recorded timeline on the pipeline topology">
                         {{icon "play" "me-1"}}Replay
                     </a>
-                </div>
-                <div class="dropdown me-2">
-                    <button class="btn dropdown-toggle btn-tlp-amber" id="tlpSelectorBtn" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Traffic Light Protocol — controls report distribution scope">
-                        {{icon "shield-alt" "me-1"}}<span id="tlpSelectorLabel">TLP:AMBER</span>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-dark">
-                        <li><h6 class="dropdown-header">Intelligence Dissemination</h6></li>
-                        <li><a class="dropdown-item tlp-option" href="#" data-tlp="red" data-class="tlp-red" data-btn-class="btn-tlp-red"><span class="badge tlp-badge-red me-2">RED</span> Recipient only</a></li>
-                        <li><a class="dropdown-item tlp-option" href="#" data-tlp="amber-strict" data-class="tlp-amber-strict" data-btn-class="btn-tlp-amber-strict"><span class="badge tlp-badge-amber-strict me-2">AMBER+STRICT</span> Organisation only</a></li>
-                        <li><a class="dropdown-item tlp-option" href="#" data-tlp="amber" data-class="tlp-amber" data-btn-class="btn-tlp-amber"><span class="badge tlp-badge-amber me-2">AMBER</span> Organisation and its clients</a></li>
-                        <li><a class="dropdown-item tlp-option" href="#" data-tlp="green" data-class="tlp-green" data-btn-class="btn-tlp-green"><span class="badge tlp-badge-green me-2">GREEN</span> Share within community</a></li>
-                        <li><a class="dropdown-item tlp-option" href="#" data-tlp="clear" data-class="tlp-clear" data-btn-class="btn-tlp-clear"><span class="badge tlp-badge-clear me-2">CLEAR</span> Unlimited distribution</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><span class="dropdown-item-text small text-muted pe-3" data-bs-toggle="tooltip" title="FIRST TLP v2.0 standard">TLP (Traffic Light Protocol) governs dissemination of this intelligence product. Default: AMBER per FIRST/CISA standards for security posture reports. Full hierarchy: RED (recipient only) → AMBER+STRICT (organisation only) → AMBER (organisation and clients) → GREEN (community) → CLEAR (public). Per FIRST TLP v2.0.</span></li>
-                    </ul>
                 </div>
                 <a href="/analysis/{{.AnalysisID}}/view/{{if .IsPublicSuffix}}CZ{{else}}C{{end}}" class="btn btn-outline-danger me-2 u-badge-recon-btn no-print" title="Switch to Recon Mode — red team perspective">
                     {{icon "crosshairs" "me-1"}}<span class="d-none d-lg-inline">Recon Mode</span><span class="visually-hidden d-lg-none">Recon Mode</span>
@@ -6387,9 +6370,6 @@
                     <span>San Diego, CA</span>
                 </div>
             </div>
-            <div class="print-footer-disclaimer" id="printFooterTlp">
-                <strong id="footerTlpLabel">TLP:AMBER</strong> — This report contains security posture information that may reveal actionable vulnerabilities. Recipients may share within their organization and with clients/customers who need the information to protect themselves, but not via publicly accessible channels. DNS records are public data queried via open-standard protocols; analysis methodology, posture scoring, and remediation guidance &copy; DNS Tool. All conclusions independently verifiable — see Verification Commands appendix.
-            </div>
             <div class="print-footer-provenance">
                 Methodology: dnstool.it-help.tech/methodology &middot; DOI: 10.5281/zenodo.19468134 &middot; ORCID: 0009-0000-5237-9065
             </div>
@@ -6857,29 +6837,6 @@
             }
         }
 
-        function setupTlpSelector(tlpConfig, copyrightSuffix) {
-            for (const item of document.querySelectorAll('.tlp-option')) {
-                item.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const tlp = this.dataset.tlp;
-                    const cfg = tlpConfig[tlp];
-                    if (!cfg) return;
-                    const badge = document.getElementById('printTlpBadge');
-                    const note = document.getElementById('printTlpNote');
-                    const selectorLabel = document.getElementById('tlpSelectorLabel');
-                    const selectorBtn = document.getElementById('tlpSelectorBtn');
-                    const footerTlp = document.getElementById('printFooterTlp');
-                    if (badge) { badge.textContent = cfg.label; badge.className = 'print-tlp-badge ' + cfg.cls; }
-                    if (note) note.textContent = cfg.note;
-                    if (selectorLabel) selectorLabel.textContent = cfg.label;
-                    if (selectorBtn) { selectorBtn.className = 'btn dropdown-toggle ' + this.dataset.btnClass; }
-                    if (footerTlp) footerTlp.innerHTML = cfg.footer + copyrightSuffix;
-                    const dd = bootstrap.Dropdown.getInstance(selectorBtn);
-                    if (dd) dd.hide();
-                });
-            }
-        }
-
         function setupReanalyzeButton() {
             const reanalyzeBtn = document.getElementById('reanalyzeBtn');
             if (!reanalyzeBtn) return;
@@ -6925,20 +6882,6 @@
                 'DNSSEC': '#section-dnssec'
             };
             setupProtocolLinks(protocolSectionMap);
-
-            const tlpConfig = {
-                red: { label: 'TLP:RED', note: 'Eyes only \u2014 not for disclosure, restricted to direct recipients', cls: 'tlp-red',
-                    footer: '<strong>TLP:RED</strong> \u2014 This report is for individual recipients only. No further disclosure is permitted. Recipients may not share this information with any other parties (FIRST TLP v2.0).' },
-                'amber-strict': { label: 'TLP:AMBER+STRICT', note: 'Restricted \u2014 organisation only, no further sharing outside the organisation', cls: 'tlp-amber-strict',
-                    footer: '<strong>TLP:AMBER+STRICT</strong> \u2014 This report is restricted to the recipient\u2019s organisation only. No sharing with clients, customers, or external parties is permitted without explicit authorization from the originator (FIRST TLP v2.0 \u00a75).' },
-                amber: { label: 'TLP:AMBER', note: 'Limited disclosure \u2014 organisation and its clients/customers', cls: 'tlp-amber',
-                    footer: '<strong>TLP:AMBER</strong> \u2014 This report contains security posture information that may reveal actionable vulnerabilities. Recipients may share within their organization and with clients/customers who need the information to protect themselves, but not via publicly accessible channels.' },
-                green: { label: 'TLP:GREEN', note: 'Community sharing \u2014 recipients may share within their community', cls: 'tlp-green',
-                    footer: '<strong>TLP:GREEN</strong> \u2014 Recipients may share this report within their community (peers, partner organizations) but not via publicly accessible channels. Contains DNS security posture analysis that may inform remediation priorities.' },
-                clear: { label: 'TLP:CLEAR', note: 'Unlimited distribution \u2014 no restrictions on sharing', cls: 'tlp-clear',
-                    footer: '<strong>TLP:CLEAR</strong> \u2014 No restrictions on distribution. DNS records are public data queried via open-standard protocols.' }
-            };
-            setupTlpSelector(tlpConfig, ' DNS records are public data queried via open-standard protocols; analysis methodology, posture scoring, and remediation guidance \u00a9 DNS Tool. All conclusions independently verifiable \u2014 see Verification Commands appendix.');
 
             for (const img of document.querySelectorAll('.bimi-logo-img')) {
                 img.addEventListener('error', function() {
