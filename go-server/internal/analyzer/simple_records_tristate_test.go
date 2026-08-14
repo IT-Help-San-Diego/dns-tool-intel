@@ -201,6 +201,9 @@ func TestClassifyPresenceTri_IndeterminateRoutesToMonitoring(t *testing.T) {
                 if len(acc.monitoring) != 1 {
                         t.Fatalf("monitoring = %v, want one could-not-verify entry", acc.monitoring)
                 }
+                if len(acc.unmeasurable) != 1 || acc.unmeasurable[0] != "CAA" {
+                        t.Fatalf("unmeasurable = %v, want [CAA] (surfaced loudly as excluded from the score)", acc.unmeasurable)
+                }
         })
 
         t.Run("authoritative absence still goes to absent", func(t *testing.T) {
