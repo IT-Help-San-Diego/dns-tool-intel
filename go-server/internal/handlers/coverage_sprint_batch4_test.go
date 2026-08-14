@@ -188,9 +188,9 @@ func TestBuildHashHistory_NilHash_B4(t *testing.T) {
 }
 
 func TestLogEphemeralReason_AllBranches(t *testing.T) {
-        logEphemeralReason("example.com", true, true)
-        logEphemeralReason("example.com", false, false)
-        logEphemeralReason("example.com", false, true)
+        logEphemeralReason("example.com", true, "active")
+        logEphemeralReason("example.com", false, "undelegated")
+        logEphemeralReason("example.com", false, "active")
 }
 
 func TestRedactDignityAmendments_B4(t *testing.T) {

@@ -418,7 +418,7 @@ func (a *Analyzer) assembleResults(ctx context.Context, domain string, resultsMa
 func buildCoreResults(domain, domainStatus string, domainStatusMessage *string, basic, auth map[string]any, resolverTTL, authTTL, authQueryStatus any, resultsMap map[string]any, spfAnalysis map[string]any) map[string]any {
 	return map[string]any{
 		mapKeyDomain:             domain,
-		"domain_exists":          true,
+		"domain_exists":          domainStatus == "active",
 		"domain_status":          domainStatus,
 		"domain_status_message":  derefStr(domainStatusMessage),
 		"section_status":         buildSectionStatus(resultsMap),

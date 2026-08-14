@@ -107,9 +107,9 @@ func TestRenderAnimatedFramesRGBA_Covert_NoRSVG_B7(t *testing.T) {
 }
 
 func TestLogEphemeralReason_B7(t *testing.T) {
-        logEphemeralReason("example.com", true, true)
-        logEphemeralReason("example.com", false, false)
-        logEphemeralReason("example.com", false, true)
+        logEphemeralReason("example.com", true, "active")
+        logEphemeralReason("example.com", false, "undelegated")
+        logEphemeralReason("example.com", false, "active")
 }
 
 func TestRecordAnalyticsCollector_NoCollector_B7(t *testing.T) {

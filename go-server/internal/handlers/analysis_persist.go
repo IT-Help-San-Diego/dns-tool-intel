@@ -38,8 +38,9 @@ type persistParams struct {
 
 func (h *AnalysisHandler) persistOrLogEphemeral(ctx context.Context, p persistParams) (int32, string) {
 	isSuccess, _ := extractAnalysisError(p.results) //nolint:errcheck // error message not needed here
-	if persist, _ := shouldPersistResult(p.ephemeral, p.devNull, p.domainExists, isSuccess); !persist {
-		logEphemeralReason(p.asciiDomain, p.devNull, p.domainExists)
+	domainStatus, _ := p.results["domain_status"].(string)
+	if persist, _ := shouldPersistResult(p.ephemeral, p.devNull, domainStatus, isSuccess); !persist {
+		logEphemeralReason(p.asciiDomain, p.devNull, domainStatus)
 		return 0, time.Now().UTC().Format(strUtc)
 	}
 	if h.store() == nil {
@@ -60,24 +61,28 @@ func (h *AnalysisHandler) persistOrLogEphemeral(ctx context.Context, p persistPa
 	})
 }
 
-func logEphemeralReason(asciiDomain string, devNull, domainExists bool) {
+func logEphemeralReason(asciiDomain string, devNull bool, domainStatus string) {
 	if devNull {
 		slog.Info("/dev/null scan — full analysis, zero persistence", mapKeyDomain, asciiDomain)
-	} else if !domainExists {
-		slog.Info("Non-existent/undelegated domain — not persisted", mapKeyDomain, asciiDomain)
+	} else if domainStatus == "undelegated" {
+		slog.Info("Undelegated domain — not persisted", mapKeyDomain, asciiDomain)
 	} else {
 		slog.Info("Ephemeral analysis (custom DKIM selectors, unauthenticated) — not persisted", mapKeyDomain, asciiDomain)
 	}
 }
 
-func shouldPersistResult(ephemeral, devNull, domainExists, analysisSuccess bool) (persist bool, reason string) {
+func shouldPersistResult(ephemeral, devNull bool, domainStatus string, analysisSuccess bool) (persist bool, reason string) {
 	if devNull {
 		return false, "devnull"
 	}
 	if ephemeral {
 		return false, "ephemeral"
 	}
-	if !domainExists && analysisSuccess {
+	// Drop only a positively-confirmed absence. "undelegated" is an authoritative
+	// NXDOMAIN — the domain is genuinely non-existent. "indeterminate" (all
+	// nameservers unreachable / SERVFAIL) is a finding — a domain whose DNS is
+	// down is not an absence — and is kept.
+	if domainStatus == "undelegated" && analysisSuccess {
 		return false, "nonexistent_domain"
 	}
 	return true, ""

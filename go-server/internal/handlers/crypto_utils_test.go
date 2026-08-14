@@ -336,9 +336,9 @@ func TestDerefString_CB8(t *testing.T) {
 }
 
 func TestLogEphemeralReason_CB8(t *testing.T) {
-        logEphemeralReason("example.com", true, false)
-        logEphemeralReason("example.com", false, true)
-        logEphemeralReason("example.com", false, false)
+        logEphemeralReason("example.com", true, "undelegated")
+        logEphemeralReason("example.com", false, "active")
+        logEphemeralReason("example.com", false, "undelegated")
 }
 
 func TestRenderErrorPage_CB8(t *testing.T) {

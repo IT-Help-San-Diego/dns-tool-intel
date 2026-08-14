@@ -101,42 +101,42 @@ func TestComputeDriftSeverity_CriticalFirst(t *testing.T) {
 }
 
 func TestShouldPersistResult_NormalCase(t *testing.T) {
-        persist, reason := shouldPersistResult(false, false, true, true)
+        persist, reason := shouldPersistResult(false, false, "active", true)
         if !persist || reason != "" {
                 t.Fatalf("expected persist=true, reason='', got persist=%v, reason=%s", persist, reason)
         }
 }
 
 func TestShouldPersistResult_DevNull(t *testing.T) {
-        persist, reason := shouldPersistResult(false, true, true, true)
+        persist, reason := shouldPersistResult(false, true, "active", true)
         if persist || reason != "devnull" {
                 t.Fatalf("expected persist=false, reason=devnull, got persist=%v, reason=%s", persist, reason)
         }
 }
 
 func TestShouldPersistResult_Ephemeral(t *testing.T) {
-        persist, reason := shouldPersistResult(true, false, true, true)
+        persist, reason := shouldPersistResult(true, false, "active", true)
         if persist || reason != "ephemeral" {
                 t.Fatalf("expected persist=false, reason=ephemeral, got persist=%v, reason=%s", persist, reason)
         }
 }
 
 func TestShouldPersistResult_NonexistentDomain(t *testing.T) {
-        persist, reason := shouldPersistResult(false, false, false, true)
+        persist, reason := shouldPersistResult(false, false, "undelegated", true)
         if persist || reason != "nonexistent_domain" {
                 t.Fatalf("expected persist=false, reason=nonexistent_domain, got persist=%v, reason=%s", persist, reason)
         }
 }
 
 func TestShouldPersistResult_NonexistentButFailed(t *testing.T) {
-        persist, reason := shouldPersistResult(false, false, false, false)
+        persist, reason := shouldPersistResult(false, false, "undelegated", false)
         if !persist || reason != "" {
                 t.Fatalf("failed analysis on nonexistent domain should still persist, got persist=%v, reason=%s", persist, reason)
         }
 }
 
 func TestShouldPersistResult_DevNullTakesPrecedence(t *testing.T) {
-        persist, reason := shouldPersistResult(true, true, true, true)
+        persist, reason := shouldPersistResult(true, true, "active", true)
         if persist || reason != "devnull" {
                 t.Fatalf("devnull should take precedence over ephemeral, got persist=%v, reason=%s", persist, reason)
         }
@@ -398,9 +398,9 @@ func TestExtractDomainInput_Empty(t *testing.T) {
 }
 
 func TestLogEphemeralReason_AllPaths(t *testing.T) {
-        logEphemeralReason("example.com", true, true)
-        logEphemeralReason("example.com", false, false)
-        logEphemeralReason("example.com", false, true)
+        logEphemeralReason("example.com", true, "active")
+        logEphemeralReason("example.com", false, "undelegated")
+        logEphemeralReason("example.com", false, "active")
 }
 
 func TestShouldArchiveToWayback_ExhaustiveMatrix(t *testing.T) {
@@ -439,25 +439,26 @@ func TestShouldPersistResult_ExhaustiveMatrix(t *testing.T) {
                 name    string
                 eph     bool
                 devnull bool
-                exists  bool
+                status  string
                 success bool
                 persist bool
                 reason  string
         }{
-                {"normal_persist", false, false, true, true, true, ""},
-                {"normal_persist_failed", false, false, true, false, true, ""},
-                {"devnull", false, true, true, true, false, "devnull"},
-                {"devnull_overrides_ephemeral", true, true, true, true, false, "devnull"},
-                {"ephemeral", true, false, true, true, false, "ephemeral"},
-                {"nonexistent_success", false, false, false, true, false, "nonexistent_domain"},
-                {"nonexistent_failed", false, false, false, false, true, ""},
+                {"normal_persist", false, false, "active", true, true, ""},
+                {"normal_persist_failed", false, false, "active", false, true, ""},
+                {"devnull", false, true, "active", true, false, "devnull"},
+                {"devnull_overrides_ephemeral", true, true, "active", true, false, "devnull"},
+                {"ephemeral", true, false, "active", true, false, "ephemeral"},
+                {"nonexistent_success", false, false, "undelegated", true, false, "nonexistent_domain"},
+                {"nonexistent_failed", false, false, "undelegated", false, true, ""},
+                {"indeterminate_persists", false, false, "indeterminate", true, true, ""},
         }
         for _, tt := range tests {
                 t.Run(tt.name, func(t *testing.T) {
-                        persist, reason := shouldPersistResult(tt.eph, tt.devnull, tt.exists, tt.success)
+                        persist, reason := shouldPersistResult(tt.eph, tt.devnull, tt.status, tt.success)
                         if persist != tt.persist || reason != tt.reason {
                                 t.Fatalf("shouldPersistResult(%v,%v,%v,%v) = (%v,%s), want (%v,%s)",
-                                        tt.eph, tt.devnull, tt.exists, tt.success, persist, reason, tt.persist, tt.reason)
+                                        tt.eph, tt.devnull, tt.status, tt.success, persist, reason, tt.persist, tt.reason)
                         }
                 })
         }

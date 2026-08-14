@@ -278,15 +278,15 @@ func TestSprint_derefString_Nil(t *testing.T) {
 }
 
 func TestSprint_logEphemeralReason_DevNull(t *testing.T) {
-	logEphemeralReason("example.com", true, true)
+	logEphemeralReason("example.com", true, "active")
 }
 
 func TestSprint_logEphemeralReason_DomainNotExists(t *testing.T) {
-	logEphemeralReason("nonexistent.example", false, false)
+	logEphemeralReason("nonexistent.example", false, "undelegated")
 }
 
 func TestSprint_logEphemeralReason_Default(t *testing.T) {
-	logEphemeralReason("custom.example", false, true)
+	logEphemeralReason("custom.example", false, "active")
 }
 
 func TestSprint_extractAuthInfo_NotAuthenticated(t *testing.T) {
