@@ -680,14 +680,17 @@ func TestBuildGatewayPosture_S007(t *testing.T) {
         if posture["risk"] != "attribution_limited" {
                 t.Errorf("risk = %q, want attribution_limited", posture["risk"])
         }
-        if posture["risk_label"] != "Gateway Derived" {
-                t.Errorf("risk_label = %q", posture["risk_label"])
+        if posture["label"] != "Indeterminate" {
+                t.Errorf("label = %q, want Indeterminate", posture["label"])
         }
-        if posture["score"] != 0 {
-                t.Errorf("score = %v, want 0", posture["score"])
+        if _, ok := posture["risk_label"]; ok {
+                t.Error("risk_label must be absent — provenance must not occupy the posture slot")
         }
-        if posture["grade"] != "N/A" {
-                t.Errorf("grade = %q", posture["grade"])
+        if _, ok := posture["score"]; ok {
+                t.Error("score must be absent — a suppressed posture must not read as 0/100")
+        }
+        if posture["grade"] != "Indeterminate" {
+                t.Errorf("grade = %q, want Indeterminate", posture["grade"])
         }
         if posture["reason"] != "gateway_derived" {
                 t.Errorf("reason = %q", posture["reason"])
