@@ -22,8 +22,8 @@ func TestDNSSECRFCAttack_MissingDSRecord(t *testing.T) {
 			false, false, "warning", "none",
 		},
 		{
-			"both DNSKEY and DS present without validation — broken chain",
-			true, true, "warning", "broken",
+			"both DNSKEY and DS present without validation — unconfirmed chain",
+			true, true, "warning", "unconfirmed",
 		},
 	}
 
@@ -62,7 +62,7 @@ func TestDNSSECRFCAttack_IncompleteDeployment(t *testing.T) {
 		r := buildDNSSECResult(dnssecParams{
 			hasDNSKEY:     true,
 			hasDS:         false,
-			adFlag:        false,
+			adState:        "ad_absent",
 			dnskeyRecords: []string{"257 3 13 PUBLICKEY"},
 			dsRecords:     []string{},
 			adResolver:    &resolver,
@@ -90,7 +90,7 @@ func TestDNSSECRFCAttack_IncompleteDeployment(t *testing.T) {
 		r := buildDNSSECResult(dnssecParams{
 			hasDNSKEY:     false,
 			hasDS:         true,
-			adFlag:        false,
+			adState:        "ad_absent",
 			dsRecords:     []string{"12345 8 2 AABB"},
 			algorithm:     &algo,
 			algorithmName: &algoName,
@@ -181,11 +181,11 @@ func TestDNSSECRFCAttack_ADFlagHandling(t *testing.T) {
 
 	tests := []struct {
 		name       string
-		adFlag     bool
+		adState    string
 		wantADFlag bool
 	}{
-		{"AD flag present — resolver validated chain of trust", true, true},
-		{"AD flag absent — resolver did not validate", false, false},
+		{"AD flag present — resolver validated chain of trust", "secure", true},
+		{"AD flag absent — resolver did not validate", "ad_absent", false},
 	}
 
 	for _, tt := range tests {
@@ -193,7 +193,7 @@ func TestDNSSECRFCAttack_ADFlagHandling(t *testing.T) {
 			r := buildDNSSECResult(dnssecParams{
 				hasDNSKEY:     true,
 				hasDS:         true,
-				adFlag:        tt.adFlag,
+				adState:       tt.adState,
 				dnskeyRecords: []string{"257 3 13 KEY"},
 				dsRecords:     []string{"12345 13 2 AABB"},
 				algorithm:     &algo,
@@ -201,7 +201,7 @@ func TestDNSSECRFCAttack_ADFlagHandling(t *testing.T) {
 				adResolver:    &resolver,
 			})
 			wantStatus := "success"
-			if !tt.adFlag {
+			if tt.adState != "secure" {
 				wantStatus = "warning"
 			}
 			if r[mapKeyStatus] != wantStatus {
@@ -211,7 +211,7 @@ func TestDNSSECRFCAttack_ADFlagHandling(t *testing.T) {
 				t.Errorf("ad_flag = %v, want %v", r[mapKeyAdFlag], tt.wantADFlag)
 			}
 			msg := r[mapKeyMessage].(string)
-			if tt.adFlag && len(msg) == 0 {
+			if tt.adState == "secure" && len(msg) == 0 {
 				t.Error("message should not be empty when AD flag is set")
 			}
 		})
@@ -360,7 +360,7 @@ func TestDNSSECRFCAttack_BuildResultAlgorithmObservation(t *testing.T) {
 			r := buildDNSSECResult(dnssecParams{
 				hasDNSKEY:     true,
 				hasDS:         true,
-				adFlag:        true,
+				adState:        "secure",
 				dnskeyRecords: []string{"key"},
 				dsRecords:     []string{fmt.Sprintf("12345 %d 2 AABB", tt.algo)},
 				algorithm:     &tt.algo,
@@ -506,7 +506,7 @@ func TestDNSSECRFCAttack_FullDeploymentWithADFlag(t *testing.T) {
 	r := buildDNSSECResult(dnssecParams{
 		hasDNSKEY:     true,
 		hasDS:         true,
-		adFlag:        true,
+		adState:        "secure",
 		dnskeyRecords: []string{"257 3 13 PUBLICKEY"},
 		dsRecords:     []string{"12345 13 2 AABBCCDD"},
 		algorithm:     &algo,
@@ -546,7 +546,7 @@ func TestDNSSECRFCAttack_FullDeploymentWithoutADFlag(t *testing.T) {
 	r := buildDNSSECResult(dnssecParams{
 		hasDNSKEY:     true,
 		hasDS:         true,
-		adFlag:        false,
+		adState:        "ad_absent",
 		dnskeyRecords: []string{"257 3 8 PUBLICKEY"},
 		dsRecords:     []string{"12345 8 2 AABBCCDD"},
 		algorithm:     &algo,
@@ -557,8 +557,8 @@ func TestDNSSECRFCAttack_FullDeploymentWithoutADFlag(t *testing.T) {
 	if r[mapKeyStatus] != "warning" {
 		t.Errorf("status = %v, want warning", r[mapKeyStatus])
 	}
-	if r[mapKeyChainOfTrust] != "broken" {
-		t.Errorf("chain_of_trust = %v, want broken", r[mapKeyChainOfTrust])
+	if r[mapKeyChainOfTrust] != "unconfirmed" {
+		t.Errorf("chain_of_trust = %v, want unconfirmed", r[mapKeyChainOfTrust])
 	}
 	if r[mapKeyAdFlag] != false {
 		t.Error("ad_flag should be false")

@@ -70,7 +70,7 @@ func parseAlgorithm(dsRecords []string) (*int, *string) {
 type dnssecParams struct {
         hasDNSKEY     bool
         hasDS         bool
-        adFlag        bool
+        adState       string
         dnskeyRecords []string
         dsRecords     []string
         algorithm     *int
@@ -97,12 +97,17 @@ func buildDNSSECResult(p dnssecParams) map[string]any {
                 var message string
                 status := "success"
                 chain := "complete"
-                if p.adFlag {
+                switch p.adState {
+                case "secure":
                         message = "DNSSEC fully configured and validated — AD (Authenticated Data) flag set by validating resolvers confirming cryptographic chain of trust from root to zone (RFC 4035 §3.2.3)"
-                } else {
-                        message = "DNSSEC configured (DNSKEY + DS records present) but validation did not succeed — the chain of trust is broken (RFC 4035 §3.2.3)."
+                case "bogus":
+                        message = "DNSSEC configured (DNSKEY + DS records present) but validation failed — the chain of trust is broken (RFC 4033 §5: bogus is signaled via SERVFAIL / RCODE=2)."
                         status = "warning"
                         chain = "broken"
+                default:
+                        message = "DNSSEC configured (DNSKEY + DS records present) but the chain of trust is unconfirmed — the AD flag was absent, and RFC 4033 §5 notes the signaling mechanism cannot distinguish Insecure from Indeterminate."
+                        status = "warning"
+                        chain = "unconfirmed"
                 }
                 return map[string]any{
                         mapKeyStatus:               status,
@@ -115,7 +120,7 @@ func buildDNSSECResult(p dnssecParams) map[string]any {
                         mapKeyAlgorithmName:        derefStr(p.algorithmName),
                         mapKeyAlgorithmObservation: algorithmObservation(p.algorithm),
                         mapKeyChainOfTrust:         chain,
-                        mapKeyAdFlag:               p.adFlag,
+                        mapKeyAdFlag:               p.adState == "secure",
                         mapKeyAdResolver:           derefStr(p.adResolver),
                         mapKeyDnssecState:          dnssecStatePresent,
                 }
@@ -318,6 +323,7 @@ func (a *Analyzer) AnalyzeDNSSEC(ctx context.Context, domain string) map[string]
 
         adResult := a.DNS.CheckDNSSECADFlag(ctx, domain)
         adFlag := adResult.ADFlag
+        adState := adResult.State
         adResolver := adResult.ResolverUsed
 
         algorithm, algorithmName := parseAlgorithm(dsRecords)
@@ -366,7 +372,7 @@ func (a *Analyzer) AnalyzeDNSSEC(ctx context.Context, domain string) map[string]
                 return buildDNSSECResult(dnssecParams{
                         hasDNSKEY:     hasDNSKEY,
                         hasDS:         hasDS,
-                        adFlag:        adFlag,
+                        adState:       adState,
                         dnskeyRecords: dnskeyRecords,
                         dsRecords:     dsRecords,
                         algorithm:     algorithm,

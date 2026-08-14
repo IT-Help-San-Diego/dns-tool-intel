@@ -271,8 +271,8 @@ func TestAnalyzeDNSSEC_FalseAbsentDS_ConfirmedPresentAtParent(t *testing.T) {
         if got := result[mapKeyDnssecState]; got != dnssecStatePresent {
                 t.Fatalf("dnssec_state = %v, want %s (DS confirmed present at parent — must not read as broken)", got, dnssecStatePresent)
         }
-        if got := result[mapKeyChainOfTrust]; got != "broken" {
-                t.Fatalf("chain_of_trust = %v, want broken", got)
+        if got := result[mapKeyChainOfTrust]; got != "unconfirmed" {
+                t.Fatalf("chain_of_trust = %v, want unconfirmed", got)
         }
         if got, _ := result[mapKeyHasDs].(bool); !got {
                 t.Fatalf("has_ds = %v, want true (DS adopted from authoritative parent answer)", result[mapKeyHasDs])

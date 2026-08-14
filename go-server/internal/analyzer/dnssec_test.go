@@ -228,7 +228,7 @@ func TestBuildDNSSECResult(t *testing.T) {
 		r := buildDNSSECResult(dnssecParams{
 			hasDNSKEY:     true,
 			hasDS:         true,
-			adFlag:        true,
+			adState:        "secure",
 			dnskeyRecords: []string{"key1"},
 			dsRecords:     []string{"ds1"},
 			algorithm:     &algo8,
@@ -256,7 +256,29 @@ func TestBuildDNSSECResult(t *testing.T) {
 		r := buildDNSSECResult(dnssecParams{
 			hasDNSKEY:     true,
 			hasDS:         true,
-			adFlag:        false,
+			adState:        "ad_absent",
+			dnskeyRecords: []string{"key1"},
+			dsRecords:     []string{"ds1"},
+			algorithm:     &algo8,
+			algorithmName: &algoName,
+			adResolver:    &resolver,
+		})
+		if r[mapKeyStatus] != "warning" {
+			t.Errorf("status = %v, want warning", r[mapKeyStatus])
+		}
+		if r[mapKeyChainOfTrust] != "unconfirmed" {
+			t.Errorf("chain_of_trust = %v, want unconfirmed", r[mapKeyChainOfTrust])
+		}
+		if r[mapKeyAdFlag] != false {
+			t.Errorf("ad_flag = %v, want false", r[mapKeyAdFlag])
+		}
+	})
+
+	t.Run("bogus DNSSEC — validation failed", func(t *testing.T) {
+		r := buildDNSSECResult(dnssecParams{
+			hasDNSKEY:     true,
+			hasDS:         true,
+			adState:        "bogus",
 			dnskeyRecords: []string{"key1"},
 			dsRecords:     []string{"ds1"},
 			algorithm:     &algo8,
@@ -404,7 +426,7 @@ func TestBuildDNSSECResult_MessageContent(t *testing.T) {
 		r := buildDNSSECResult(dnssecParams{
 			hasDNSKEY:     true,
 			hasDS:         true,
-			adFlag:        true,
+			adState:        "secure",
 			dnskeyRecords: []string{"key1"},
 			dsRecords:     []string{"ds1"},
 			algorithm:     &algo,
@@ -424,7 +446,7 @@ func TestBuildDNSSECResult_MessageContent(t *testing.T) {
 		r := buildDNSSECResult(dnssecParams{
 			hasDNSKEY:     true,
 			hasDS:         true,
-			adFlag:        false,
+			adState:        "ad_absent",
 			dnskeyRecords: []string{"key1"},
 			dsRecords:     []string{"ds1"},
 			algorithm:     &algo,
@@ -432,8 +454,8 @@ func TestBuildDNSSECResult_MessageContent(t *testing.T) {
 			adResolver:    &resolver,
 		})
 		msg := r[mapKeyMessage].(string)
-		if !strings.Contains(msg, "chain of trust is broken") {
-			t.Errorf("message should mention broken chain, got: %s", msg)
+		if !strings.Contains(msg, "chain of trust is unconfirmed") {
+			t.Errorf("message should mention unconfirmed chain, got: %s", msg)
 		}
 	})
 
@@ -491,7 +513,7 @@ func TestBuildDNSSECResult_AlgorithmObservationIncluded(t *testing.T) {
 	r := buildDNSSECResult(dnssecParams{
 		hasDNSKEY:     true,
 		hasDS:         true,
-		adFlag:        true,
+		adState:        "secure",
 		dnskeyRecords: []string{"key1"},
 		dsRecords:     []string{"ds1"},
 		algorithm:     &algo,
@@ -517,7 +539,7 @@ func TestBuildDNSSECResult_NoDNSKEYWithDS(t *testing.T) {
 	r := buildDNSSECResult(dnssecParams{
 		hasDNSKEY:     false,
 		hasDS:         true,
-		adFlag:        false,
+		adState:        "ad_absent",
 		dnskeyRecords: nil,
 		dsRecords:     []string{"12345 8 2 AABB"},
 		algorithm:     &algo,
@@ -535,7 +557,7 @@ func TestBuildDNSSECResult_NilAlgorithm(t *testing.T) {
 	r := buildDNSSECResult(dnssecParams{
 		hasDNSKEY:     true,
 		hasDS:         true,
-		adFlag:        true,
+		adState:        "secure",
 		dnskeyRecords: []string{"key1"},
 		dsRecords:     []string{"ds1"},
 		algorithm:     nil,
