@@ -699,7 +699,6 @@ func registerFeatureRoutes(d routeDeps, analysis *handlers.AnalysisHandler, prox
 	d.Router.GET("/agent/guide-view", agentHandler.GuideView)
 	d.Router.GET("/agent/report", agentHandler.ReportView)
 	d.Router.GET("/agent/opensearch.xml", agentHandler.OpenSearchXML)
-	d.Router.GET("/agent/plugin", agentHandler.PluginPage)
 
 	zoneHandler := handlers.NewZoneHandler(d.DB, d.Cfg)
 	d.Router.GET("/zone", middleware.RequireFeature(entitlements.FeatureZoneUpload), zoneHandler.UploadForm)
