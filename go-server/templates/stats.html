@@ -228,6 +228,7 @@
         .stats-kpi.kpi-unique::before { background: linear-gradient(90deg, transparent, #79c0ff, transparent); }
         .stats-kpi.kpi-visitors::before { background: linear-gradient(90deg, transparent, #f0883e, transparent); }
         .stats-kpi.kpi-rate::before { background: linear-gradient(90deg, transparent, #d2a8ff, transparent); }
+        .stats-kpi.kpi-dnssec::before { background: linear-gradient(90deg, transparent, #e3b341, transparent); }
         .stats-kpi-icon {
             width: 2.75rem;
             height: 2.75rem;
@@ -244,6 +245,7 @@
         .kpi-unique .stats-kpi-icon { background: rgba(121,192,255,0.1); color: #79c0ff; border: 1px solid rgba(121,192,255,0.2); }
         .kpi-visitors .stats-kpi-icon { background: rgba(240,136,62,0.1); color: #f0883e; border: 1px solid rgba(240,136,62,0.2); }
         .kpi-rate .stats-kpi-icon { background: rgba(210,168,255,0.1); color: #d2a8ff; border: 1px solid rgba(210,168,255,0.2); }
+        .kpi-dnssec .stats-kpi-icon { background: rgba(227,179,65,0.1); color: #e3b341; border: 1px solid rgba(227,179,65,0.2); }
         .stats-kpi-value {
             font-family: 'SFMono-Regular', 'Consolas', 'Liberation Mono', monospace;
             font-size: 1.85rem;
@@ -553,6 +555,18 @@
                     <div class="stats-kpi-icon">{{icon "check-circle"}}</div>
                     <div class="stats-kpi-value">{{.RemediatedDomains}}</div>
                     <div class="stats-kpi-label">Domains Remediated</div>
+                </div>
+                <div class="stats-kpi kpi-dnssec">
+                    <div class="stats-kpi-icon">{{icon "shield-halved"}}</div>
+                    <div class="stats-kpi-value">{{.DNSSECUnmeasured}}</div>
+                    <div class="stats-kpi-label">
+                        DNSSEC Unmeasured
+                        <span class="badge bg-warning text-dark text-uppercase ms-1"
+                              style="font-size: 0.55rem; letter-spacing: 0.05em;"
+                              title="Instrument-health signal: scans where DNSSEC could not be measured (DNSKEY/DS lookup failed, or no validating resolver cast a usable AD-flag vote). A climbing count means our resolver probes are failing, not the domains under test.">
+                            Instrument
+                        </span>
+                    </div>
                 </div>
             </div>
 

@@ -252,6 +252,15 @@ func (h *StatsHandler) Stats(c *gin.Context) {
                 slog.Warn("Stats: failed to count remediated domains", mapKeyError, err)
         }
 
+        // Corpus-level instrument-health counter: how many scans could not
+        // MEASURE DNSSEC (DNSKEY/DS lookup failed, or no validator cast a
+        // usable AD-flag vote). A climbing count is OUR resolver probes
+        // failing, not a domain finding — see CountDNSSECUnmeasured.
+        dnssecUnmeasured, err := h.DB.Queries.CountDNSSECUnmeasured(ctx)
+        if err != nil {
+                slog.Warn("Stats: failed to count DNSSEC-unmeasured scans", mapKeyError, err)
+        }
+
         // True unique visitors via HyperLogLog++ union across every persisted
         // daily sketch. SUM(unique_visitors) is mathematically wrong (it
         // double-counts every returning visitor because the per-day pseudoID
@@ -284,6 +293,7 @@ func (h *StatsHandler) Stats(c *gin.Context) {
         data["PopularDomainsInvestigate"] = popItemsInvestigate
         data["RecentStats"] = statItems
         data["RemediatedDomains"] = remediatedDomains
+        data["DNSSECUnmeasured"] = dnssecUnmeasured
         data["IntegrityData"] = integrityData
         c.HTML(http.StatusOK, "stats.html", data)
 }
