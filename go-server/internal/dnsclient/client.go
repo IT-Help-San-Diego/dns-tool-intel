@@ -530,6 +530,16 @@ func (c *Client) QueryDNSWithStatus(ctx context.Context, recordType, domain stri
                 c.cacheSet(cacheKey, dohResults)
                 return dohResults, LookupResolved
         }
+        // A validating resolver SERVFAILs a broken-DNSSEC zone and hides its
+        // published records, so the CD=0 DoH pass above comes back empty for a
+        // domain that genuinely has records. Retry with checking disabled
+        // (CD=1) as positive confirmation only: if the zone publishes records,
+        // resolve; if still empty, keep the error. Absence is never asserted
+        // from a CD query (RFC 4035 §3.2.2 / RFC 6840 §5.9).
+        if cdResults := c.dohQueryWithTTL(ctx, domain, recordType, true); len(cdResults.Records) > 0 {
+                c.cacheSet(cacheKey, cdResults.Records)
+                return cdResults.Records, LookupResolved
+        }
         return nil, LookupError
 }
 
