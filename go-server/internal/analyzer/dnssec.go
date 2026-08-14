@@ -333,9 +333,9 @@ func buildInheritedDNSSECResult(parentZone string, adResolver *string, parentAlg
 }
 
 func (a *Analyzer) AnalyzeDNSSEC(ctx context.Context, domain string) map[string]any {
-        dnskeyRec, dnskeyStatus := a.DNS.QueryDNSWithTTLStatus(ctx, "DNSKEY", domain)
+        dnskeyRec, dnskeyStatus := a.DNS.QueryDNSWithTTLStatus(ctx, "DNSKEY", domain, true)
         hasDNSKEY, dnskeyRecords := collectDNSKEYRecords(dnskeyRec.Records)
-        dsRec, dsStatus := a.DNS.QueryDNSWithTTLStatus(ctx, "DS", domain)
+        dsRec, dsStatus := a.DNS.QueryDNSWithTTLStatus(ctx, "DS", domain, true)
         hasDS, dsRecords := collectDSRecords(dsRec.Records)
 
         adResult := a.DNS.CheckDNSSECADFlag(ctx, domain)

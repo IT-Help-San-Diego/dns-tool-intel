@@ -173,7 +173,7 @@ func (m *MockDNSClient) AddTTLStatusResponse(recordType, domain string, r dnscli
         m.ttlStatusResponses[mockKey(recordType, domain)] = ttlStatusEntry{rec: r, status: status}
 }
 
-func (m *MockDNSClient) QueryDNSWithTTLStatus(_ context.Context, recordType, domain string) (dnsclient.RecordWithTTL, dnsclient.LookupStatus) {
+func (m *MockDNSClient) QueryDNSWithTTLStatus(_ context.Context, recordType, domain string, _ bool) (dnsclient.RecordWithTTL, dnsclient.LookupStatus) {
         m.mu.Lock()
         defer m.mu.Unlock()
         key := mockKey(recordType, domain)

@@ -28,7 +28,7 @@ func (m *mockDNSForNmap) QueryDNS(_ context.Context, recordType, domain string) 
 func (m *mockDNSForNmap) QueryDNSWithTTL(context.Context, string, string) dnsclient.RecordWithTTL {
         return dnsclient.RecordWithTTL{}
 }
-func (m *mockDNSForNmap) QueryDNSWithTTLStatus(context.Context, string, string) (dnsclient.RecordWithTTL, dnsclient.LookupStatus) {
+func (m *mockDNSForNmap) QueryDNSWithTTLStatus(context.Context, string, string, bool) (dnsclient.RecordWithTTL, dnsclient.LookupStatus) {
         return dnsclient.RecordWithTTL{}, dnsclient.LookupAbsent
 }
 func (m *mockDNSForNmap) QueryWithConsensus(context.Context, string, string) dnsclient.ConsensusResult {

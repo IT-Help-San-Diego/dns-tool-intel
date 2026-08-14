@@ -133,6 +133,33 @@ func TestAnalyzeDNSSEC_TriState_Present(t *testing.T) {
         }
 }
 
+// TestAnalyzeDNSSEC_BogusChainBroken locks the reachability fix (2026-08-14):
+// a genuinely bogus zone publishes DNSKEY + DS but validating resolvers SERVFAIL,
+// so it must read chain_of_trust=broken — NOT indeterminate. Before the CD
+// (checking-disabled) fix the DNSKEY lookup itself SERVFAILed through the validating
+// resolver (hasDNSKEY=false) and the zone was mis-reported as indeterminate, which
+// made "broken" unreachable on any real bogus domain.
+func TestAnalyzeDNSSEC_BogusChainBroken(t *testing.T) {
+        mockDNS := NewMockDNSClient()
+        mockDNS.AddTTLStatusResponse("DNSKEY", triStateDomain,
+                dnsclient.RecordWithTTL{Records: []string{"257 3 13 mIIBI..."}, Authenticated: true},
+                dnsclient.LookupResolved)
+        mockDNS.AddTTLStatusResponse("DS", triStateDomain,
+                dnsclient.RecordWithTTL{Records: []string{"12345 13 2 abc123"}},
+                dnsclient.LookupResolved)
+        mockDNS.AddADFlagResult(triStateDomain, dnsclient.ADFlagResult{State: "bogus"})
+        a := &Analyzer{DNS: mockDNS}
+
+        result := a.AnalyzeDNSSEC(context.Background(), triStateDomain)
+
+        if got := result[mapKeyChainOfTrust]; got != "broken" {
+                t.Fatalf("chain_of_trust = %v, want broken (a bogus zone must not read as indeterminate)", got)
+        }
+        if got := result[mapKeyStatus]; got != "warning" {
+                t.Fatalf("status = %v, want warning", got)
+        }
+}
+
 func TestAnalyzeDNSSEC_TriState_AbsentConfirmed(t *testing.T) {
         mockDNS := NewMockDNSClient()
         mockDNS.AddTTLStatusResponse("DNSKEY", triStateDomain,
