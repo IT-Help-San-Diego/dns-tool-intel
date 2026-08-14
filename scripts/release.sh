@@ -24,6 +24,11 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+# Hermes/agent shells export PYTHONPATH pointing at their own venv (Python 3.11),
+# which shadows this repo's .venv (Python 3.14) and breaks weasyprint's PIL import
+# during PDF regeneration. Unset it so the repo's own toolchain is used.
+unset PYTHONPATH
+
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -49,6 +54,16 @@ fi
 
 if [[ ! "$VER" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
   fail "Version must be X.Y.Z format (got: $VER)"
+fi
+
+# Refuse to release from main/master: git-push.sh treats "already on main" as
+# branch-only (PUSH_MAIN=0), so the release commit would land on an orphaned
+# snapshot/ branch and the tag would go on main's OLD tip (files at the previous
+# version). The correct flow is a release branch off origin/main, which git-push.sh
+# ships to main via a squash PR before we tag.
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+if [ "$CURRENT_BRANCH" = "main" ] || [ "$CURRENT_BRANCH" = "master" ]; then
+  fail "Refusing to release from '$CURRENT_BRANCH'. Run from a release branch: git switch -c release/${TAG} origin/main"
 fi
 
 TOKEN="${GH_SYNC_TOKEN:-${ORG_PAT:-${GITHUB_MASTER_PAT:-}}}"
