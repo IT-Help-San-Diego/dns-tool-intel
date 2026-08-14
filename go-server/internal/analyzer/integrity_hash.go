@@ -8,6 +8,7 @@ import (
         "encoding/json"
         "fmt"
         "sort"
+        "strconv"
         "strings"
 
         "golang.org/x/crypto/sha3"
@@ -54,10 +55,7 @@ func canonicalizeValue(v any) string {
         case string:
                 return val
         case bool:
-                if val {
-                        return "true"
-                }
-                return "false"
+                return strconv.FormatBool(val)
         case float64:
                 return fmt.Sprintf("%g", val)
         case int:
