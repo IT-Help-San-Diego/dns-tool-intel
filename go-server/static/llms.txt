@@ -108,7 +108,7 @@ Every attribution includes a confidence label:
 
 ### Confidence Engines
 DNS Tool applies ICD 203 (Intelligence Community) confidence methodology to its own output:
-- **ICAE (Intelligence Confidence Audit Engine)**: 129 deterministic test cases across 9 protocols measuring analysis correctness. Five-tier maturity model (Development → Gold Master). Empirically calibrated: 129 test cases × 5 resolver agreement scenarios = 645 predictions validated with Brier Score 0.0018 (excellent) and Expected Calibration Error 0.031 (good) using a reliability-weighted shrinkage estimator. See `/confidence`.
+- **ICAE (Intelligence Confidence Audit Engine)**: 129 deterministic test cases across 9 protocols measuring analysis correctness. Five-tier maturity model (Development → Gold Master). Fixture-validated: 129 test cases × 5 resolver agreement scenarios = 645 predictions. Brier Score 0.0018 and Expected Calibration Error 0.031 measure the shrinkage formula's agreement with a single-outcome-class corpus (all fixtures pass), not calibration against diverging outcomes. See `/confidence`.
 - **ICuAE (Intelligence Currency Audit Engine)**: 29 test cases measuring data timeliness across five dimensions (TTL Compliance, Completeness, Source Credibility, Currentness, TTL Relevance). Grading: Excellent/Good/Adequate/Degraded/Stale. Phase 1 tuning advisory live. See `/confidence#icuae`.
 
 ## Who It's For
@@ -175,7 +175,7 @@ DNS Tool is a deterministic protocol validation engine implemented in Go — not
 
 ### Analytical Methods
 - **Statistical Drift Detection**: Per-dimension currency score tracking that detects statistically significant drift vs. normal process variation. Reference: NIST/SEMATECH Engineering Statistics Handbook.
-- **Reliability Weighting**: Per-protocol priors encode historical detection reliability. Measurement quality (resolver agreement ratio) weights observations against priors. Framework aligned with ICD 203 confidence methodology.
+- **Reliability Weighting**: Per-protocol priors encode expected detection reliability (expert-assigned, volume-adjusted — not outcome-corrected). Measurement quality (resolver agreement ratio) weights observations against priors. Framework aligned with ICD 203 confidence methodology.
 - **Resolver Consensus**: Multi-resolver quorum tracking agreement across Cloudflare, Google, Quad9, OpenDNS, and DNS4EU. Disagreement classified as measurement noise, not misconfiguration.
 - **Cryptographic Integrity**: SHA-3-512 (FIPS 202) for analysis result sealing and posture drift fingerprinting.
 - **Third-Party Evidence Archival**: Internet Archive Wayback Machine integration for independently verifiable, tamper-evident analysis snapshots. Three-layer evidence chain: integrity hash + posture hash + Wayback archive.

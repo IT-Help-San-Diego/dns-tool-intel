@@ -1130,7 +1130,7 @@
 
                 <div class="mb-4">
                     <h3 class="h6 fw-bold mb-2">{{icon "flask" "me-1 text-accent-cobalt"}} Reliability-Weighted Shrinkage</h3>
-                    <p class="text-muted small mb-2">Each protocol carries an empirical prior &mdash; a Beta distribution encoding historical detection reliability. Measurement quality (resolver agreement) determines how much the raw observation is trusted versus the prior anchor &mdash; a Bayesian-inspired shrinkage estimator:</p>
+                    <p class="text-muted small mb-2">Each protocol carries an expert-assigned prior &mdash; a Beta distribution encoding expected detection reliability (volume-adjusted, not outcome-corrected). Measurement quality (resolver agreement) determines how much the raw observation is trusted versus the prior anchor &mdash; a Bayesian-inspired shrinkage estimator:</p>
                     <div class="math-display" data-latex="C_{\text{weighted}} = w \cdot C_{\text{raw}} + (1 - w) \cdot \frac{\alpha}{\alpha + \beta}">
                         $$ C_{\text{weighted}} = w \cdot C_{\text{raw}} + (1 - w) \cdot \frac{\alpha}{\alpha + \beta} $$
                     </div>

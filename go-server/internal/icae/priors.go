@@ -23,6 +23,11 @@ type CalibrationEngine struct {
 }
 
 func NewCalibrationEngine() *CalibrationEngine {
+        // The α/β values below are EXPERT-ASSIGNED priors (hand-authored), not
+        // measurements. ApplyEvidence (scan volume) and UpdatePrior (correctness,
+        // if ever wired) adjust them from these starting values. Until a ground-
+        // truth feedback path exists, the priors are expert-assigned + volume-
+        // adjusted, never outcome-corrected.
         return &CalibrationEngine{
                 priors: map[string]CategoryPrior{
                         "SPF":     {Alpha: 95, Beta: 5, Description: "very reliable detection"},
@@ -84,9 +89,13 @@ const DefaultEvidenceCap = 250
 // consecutive-pass counts (a protocol cannot claim maturity it has demonstrated
 // on only one layer), clamps that to [0, cap], and adds it to the Beta-Binomial
 // Alpha (success) parameter. The Beta (failure) parameter is never touched, so
-// the path can only ever reflect a *clean* track record — it cannot launder
-// failures away. Consecutive-pass counters reset on regression, so a freshly
-// regressed protocol contributes little evidence and stays conservative.
+// this is a ONE-WAY RATCHET: clean passes raise the prior mean, while failures
+// (which reset the consecutive-pass counter to zero) merely stop the rise — they
+// never lower it. That is not "conservative"; a prior that can only inflate
+// grows overconfident over time. The conjugate-update counterpart that WOULD
+// decrement on failure is UpdatePrior, which has no production caller.
+// Consecutive-pass counters reset on regression, so a freshly regressed protocol
+// contributes little evidence.
 //
 // effective_prior = (alpha + cappedPasses) / (alpha + beta + cappedPasses)
 //
@@ -122,6 +131,11 @@ func (ce *CalibrationEngine) ApplyEvidence(metrics *ReportMetrics, cap int) {
         }
 }
 
+// UpdatePrior is the conjugate (Beta-Binomial) correctness update: α++ on a
+// correct verdict, β++ on an incorrect one. It is currently UNWIRED — no
+// production path feeds it a wasCorrect signal, so the priors are never
+// corrected by outcomes. Until a ground-truth feedback path exists, the priors
+// are expert-assigned and volume-adjusted only, never outcome-corrected.
 func (ce *CalibrationEngine) UpdatePrior(category string, wasCorrect bool) {
         ce.mu.Lock()
         defer ce.mu.Unlock()

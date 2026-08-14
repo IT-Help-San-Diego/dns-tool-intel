@@ -176,13 +176,13 @@ DNS Tool applies a confidence scoring model inspired by intelligence community a
 - **Verified**: Correctness demonstrated with 10+ consecutive passes over 7+ days
 - **Development**: Insufficient test history to establish confidence — the initial tier for all new protocols
 
-### 4.2 Confidence Calibration
+### 4.2 Reliability Weighting
 
-Confidence calibration uses a reliability-weighted shrinkage estimator. For each protocol:
+Reliability weighting uses a reliability-weighted shrinkage estimator. For each protocol:
 
-1. **Protocol-specific priors**: Empirically determined base rates encoding historical detection reliability per protocol
+1. **Protocol-specific priors**: Expert-assigned base rates encoding expected detection reliability per protocol (volume-adjusted, not outcome-corrected)
 2. **Resolver agreement ratio**: The fraction of queried resolvers that return consistent results, used as measurement quality weight
-3. **Shrinkage toward prior**: When resolver agreement is low, the calibrated score is pulled toward the prior mean; when agreement is high, the observation dominates
+3. **Shrinkage toward prior**: When resolver agreement is low, the weighted score is pulled toward the prior mean; when agreement is high, the observation dominates
 
 This produces a severity-weighted score per protocol, distinct from the raw detection score. The formula is a reliability-weighted shrinkage estimator — verdict severity (pass/warning/fail/indeterminate encoded on a 0–1 scale) shaded by resolver agreement and protocol-specific priors. It is not a probability and not a true Bayesian posterior (see EDE-006 for the correction history on this distinction).
 
