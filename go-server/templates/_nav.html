@@ -48,11 +48,6 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link{{if eq .ActivePage "agent_plugin"}} active{{end}}" href="/agent/plugin" title="DEVONagent Pro Plugin — intelligence-grade DNS search inside DEVONagent">
-                        <picture><source srcset="{{staticVersionURL "images/devonagent-pro-logo.webp" .AppVersion}}" type="image/webp"><img src="{{staticVersionURL "images/devonagent-pro-logo.png" .AppVersion}}" alt="" width="14" height="14" class="me-1 align-text-bottom" loading="lazy" decoding="async"></picture>DEVONagent
-                    </a>
-                </li>
-                <li class="nav-item">
                     <a class="nav-link{{if eq .ActivePage "ttl-tuner"}} active{{end}}" href="/ttl-tuner" title="TTL Tuner — optimize DNS TTL values for speed and reliability">
                         {{icon "sliders-h" "me-1"}}TTL Tuner{{if index .BetaPages "ttl-tuner"}} <span class="u-beta-tag ms-1">Beta</span>{{end}}
                     </a>

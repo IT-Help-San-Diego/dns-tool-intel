@@ -958,8 +958,3 @@ func unmarshalResults(fullResults []byte, caller string) map[string]any {
         }
         return results
 }
-
-func (h *AgentHandler) PluginPage(c *gin.Context) {
-        data := h.TemplateData(c, h.Config, "agent_plugin")
-        c.HTML(http.StatusOK, "agent_plugin.html", data)
-}
