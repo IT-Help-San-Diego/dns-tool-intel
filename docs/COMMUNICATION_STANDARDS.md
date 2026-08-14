@@ -2,7 +2,7 @@
 
 **DNS Tool — Clarity and Vision Quality Gate**
 
-Version 26.46.15 · Effective 2026-03-18
+Version 26.51.0 · Effective 2026-03-18
 
 *This document defines the measurable standards that all user-facing copy and interface elements must pass before publication. These standards are enforceable: a page that fails any MUST-level requirement is not ready for production.*
 
@@ -117,7 +117,7 @@ Before any page is published or significantly modified, review against this chec
 
 ## 4. CSS Reference Values
 
-These are the enforced values as of v26.46.15:
+These are the enforced values as of v26.51.0:
 
 | Property | Value | Contrast Ratio | Standard |
 |----------|-------|----------------|----------|
