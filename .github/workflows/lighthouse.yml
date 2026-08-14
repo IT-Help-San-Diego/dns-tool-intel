@@ -1,0 +1,99 @@
+name: Lighthouse (desktop preset)
+
+# Regression gate for web quality. Runs Lighthouse against the REAL served page
+# (Go server + Postgres, not a static mock) using the DESKTOP preset — no mobile
+# network/CPU throttling — so the score reflects what a real desktop browser at the
+# website measures. Fails the build if any category drops below the regression floor.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# Least-privilege: only reads the repo and reports scores; never writes back.
+permissions:
+  contents: read
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        # Mirrors the digest in ci.yml + cross-browser-tests.yml so every lane tests
+        # against identical Postgres bytes. See ci.yml for the full rationale.
+        image: mirror.gcr.io/library/postgres:16-alpine@sha256:4e6e670bb069649261c9c18031f0aded7bb249a5b6664ddec29c013a89310d50
+        env:
+          POSTGRES_USER: dnstool
+          POSTGRES_PASSWORD: dnstool
+          POSTGRES_DB: dnstool
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
+        with:
+          node-version: 20
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: '1.25.12'
+
+      - name: Install Node dependencies
+        run: npm install
+
+      - name: Build Go server
+        run: |
+          chmod +x build.sh
+          ./build.sh
+
+      - name: Start server and wait for ready
+        run: |
+          ./dns-tool-server &
+          SERVER_PID=$!
+          for i in $(seq 1 60); do
+            if curl -s http://localhost:5000/ > /dev/null 2>&1; then
+              echo "Server ready after ${i}s"
+              exit 0
+            fi
+            if ! kill -0 $SERVER_PID 2>/dev/null; then
+              echo "Server process died"
+              exit 1
+            fi
+            sleep 1
+          done
+          echo "Server failed to start within 60s"
+          exit 1
+        env:
+          PORT: "5000"
+          DATABASE_URL: "postgres://dnstool:dnstool@localhost:5432/dnstool?sslmode=disable"
+          SESSION_SECRET: "ci-test-session-secret-not-for-production"
+
+      - name: Run Lighthouse (desktop preset)
+        run: |
+          npx lighthouse http://localhost:5000/ \
+            --preset=desktop \
+            --output=json \
+            --output-path=./lighthouse-report.json \
+            --chrome-flags="--headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage" \
+            --only-categories=performance,accessibility,best-practices,seo \
+            --quiet
+
+      - name: Assert regression floor
+        run: node tests/lighthouse/assert-scores.mjs ./lighthouse-report.json
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: ${{ !cancelled() }}
+        with:
+          name: lighthouse-report
+          path: lighthouse-report.json
+          retention-days: 14
