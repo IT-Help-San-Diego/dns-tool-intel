@@ -117,7 +117,7 @@ Before any page is published or significantly modified, review against this chec
 
 ## 4. CSS Reference Values
 
-These are the enforced values as of v26.37.35:
+These are the enforced values as of v26.46.15:
 
 | Property | Value | Contrast Ratio | Standard |
 |----------|-------|----------------|----------|

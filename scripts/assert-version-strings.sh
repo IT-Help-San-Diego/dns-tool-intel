@@ -150,6 +150,9 @@ RECORD_TYPE_EXEMPT=(
   "go-server/internal/handlers/agentpkg/agent_test.go|test fixture pinning a historical response shape"
   "go-server/internal/handlers/corpus_pdf_integrity_test.go|test comments recording incident history"
   "scripts/verify-zenodo-release.sh|comments narrating past release incidents"
+  "docs/architecture/SYSTEM_ARCHITECTURE.md|generated architecture doc; version records the generation point"
+  "docs/dns-tool-reference-note.md|reference note; carries its own publication version"
+  "docs/subdomain-pipeline.md|pipeline design doc; carries its own iteration version"
 )
 
 is_record_exempt() {
