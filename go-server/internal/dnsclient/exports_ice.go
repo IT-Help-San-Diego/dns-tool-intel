@@ -3,6 +3,6 @@
 // dns-tool:scrutiny science
 package dnsclient
 
-func ExportFindConsensus(resolverResults map[string][]string) (records []string, allSame bool, discrepancies []string) {
+func ExportFindConsensus(resolverResults map[string][]string) (records []string, allSame bool, discrepancies []string, topVotes int) {
 	return findConsensus(resolverResults)
 }

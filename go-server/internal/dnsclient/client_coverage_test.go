@@ -116,7 +116,7 @@ func TestFindConsensus_SingleResolver(t *testing.T) {
 	input := map[string][]string{
 		"Only": {"1.2.3.4", "5.6.7.8"},
 	}
-	records, allSame, discrepancies := findConsensus(input)
+	records, allSame, discrepancies, _ := findConsensus(input)
 	if !allSame {
 		t.Error("single resolver should have consensus")
 	}
@@ -134,7 +134,7 @@ func TestFindConsensus_EmptyRecords(t *testing.T) {
 		"R2": {},
 		"R3": {},
 	}
-	records, allSame, _ := findConsensus(input)
+	records, allSame, _, _ := findConsensus(input)
 	if !allSame {
 		t.Error("expected consensus for all empty")
 	}
@@ -148,7 +148,7 @@ func TestFindConsensus_MixedEmptyAndNonEmpty(t *testing.T) {
 		"R1": {"1.2.3.4"},
 		"R2": {},
 	}
-	_, allSame, discrepancies := findConsensus(input)
+	_, allSame, discrepancies, _ := findConsensus(input)
 	if allSame {
 		t.Error("expected no consensus when results differ")
 	}
@@ -576,7 +576,7 @@ func TestFindConsensus_TwoResolversDifferent(t *testing.T) {
 		"R1": {"a.example.com."},
 		"R2": {"b.example.com."},
 	}
-	_, allSame, discrepancies := findConsensus(input)
+	_, allSame, discrepancies, _ := findConsensus(input)
 	if allSame {
 		t.Error("expected no consensus")
 	}
@@ -591,7 +591,7 @@ func TestFindConsensus_ThreeWayTie(t *testing.T) {
 		"R2": {"b"},
 		"R3": {"c"},
 	}
-	_, allSame, discrepancies := findConsensus(input)
+	_, allSame, discrepancies, _ := findConsensus(input)
 	if allSame {
 		t.Error("expected no consensus in 3-way tie")
 	}
