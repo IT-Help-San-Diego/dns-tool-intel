@@ -291,7 +291,7 @@ func TestDohQueryWithTTL_ReadBodyError(t *testing.T) {
 	defer ts.Close()
 
 	c := New(WithHTTPClient(ts.Client()))
-	result := c.dohQueryWithTTL(context.Background(), "example.com", "A")
+	result := c.dohQueryWithTTL(context.Background(), "example.com", "A", false)
 	_ = result
 }
 
@@ -465,7 +465,7 @@ func TestDohQueryWithTTL_SuccessfulResponse(t *testing.T) {
 	defer ts.Close()
 
 	c := New(WithHTTPClient(ts.Client()))
-	result := c.dohQueryWithTTL(context.Background(), "example.com", "A")
+	result := c.dohQueryWithTTL(context.Background(), "example.com", "A", false)
 	_ = result.Records
 	_ = result.TTL
 }
@@ -590,7 +590,7 @@ func TestDohQueryWithTTL_ContextDeadlineExceeded(t *testing.T) {
 	defer cancel()
 	time.Sleep(1 * time.Millisecond)
 
-	result := c.dohQueryWithTTL(ctx, "example.com", "A")
+	result := c.dohQueryWithTTL(ctx, "example.com", "A", false)
 	if len(result.Records) != 0 {
 		t.Log("expected empty for deadline exceeded")
 	}
@@ -745,7 +745,7 @@ func TestDohQueryWithTTL_NXDOMAIN(t *testing.T) {
 	defer ts.Close()
 
 	c := New(WithHTTPClient(ts.Client()))
-	result := c.dohQueryWithTTL(context.Background(), "nonexistent.example.com", "A")
+	result := c.dohQueryWithTTL(context.Background(), "nonexistent.example.com", "A", false)
 	if len(result.Records) != 0 {
 		t.Error("expected empty for NXDOMAIN")
 	}

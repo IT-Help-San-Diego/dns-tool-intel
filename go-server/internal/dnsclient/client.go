@@ -538,7 +538,7 @@ func (c *Client) QueryDNSWithTTL(ctx context.Context, recordType, domain string)
                 return RecordWithTTL{}
         }
 
-        result := c.dohQueryWithTTL(ctx, domain, recordType)
+        result := c.dohQueryWithTTL(ctx, domain, recordType, false)
         if len(result.Records) > 0 {
                 return result
         }
@@ -574,7 +574,7 @@ func (c *Client) parallelUDPQueryWithTTL(ctx context.Context, domain, recordType
 // RecordWithTTL (TTL + Authenticated) so DANE/DNSSEC can both render the TTL and
 // tell "record absent" apart from "lookup failed". DoH is used as positive
 // confirmation only, never to assert absence.
-func (c *Client) QueryDNSWithTTLStatus(ctx context.Context, recordType, domain string) (RecordWithTTL, LookupStatus) {
+func (c *Client) QueryDNSWithTTLStatus(ctx context.Context, recordType, domain string, checkingDisabled bool) (RecordWithTTL, LookupStatus) {
         if domain == "" || recordType == "" {
                 return RecordWithTTL{}, LookupError
         }
@@ -589,7 +589,7 @@ func (c *Client) QueryDNSWithTTLStatus(ctx context.Context, recordType, domain s
 
         for _, resolver := range c.resolvers {
                 go func(ip string) {
-                        rec, errStr := c.udpQueryWithTTLStatus(qctx, domain, recordType, ip)
+                        rec, errStr := c.udpQueryWithTTLStatus(qctx, domain, recordType, ip, checkingDisabled)
                         ch <- res{rec: rec, errStr: errStr}
                 }(resolver.IP)
         }
@@ -621,7 +621,7 @@ func (c *Client) QueryDNSWithTTLStatus(ctx context.Context, recordType, domain s
 
         // Every UDP resolver failed transiently. Use DoH ONLY as positive
         // confirmation: records => resolved. Absence is never asserted here.
-        if doh := c.dohQueryWithTTL(ctx, domain, recordType); len(doh.Records) > 0 {
+        if doh := c.dohQueryWithTTL(ctx, domain, recordType, checkingDisabled); len(doh.Records) > 0 {
                 return doh, LookupResolved
         }
         return RecordWithTTL{}, LookupError
@@ -1114,7 +1114,7 @@ func (c *Client) QueryWithTTLFromResolver(ctx context.Context, recordType, domai
 }
 
 func (c *Client) dohQuery(ctx context.Context, domain, recordType string) []string {
-        result := c.dohQueryWithTTL(ctx, domain, recordType)
+        result := c.dohQueryWithTTL(ctx, domain, recordType, false)
         return result.Records
 }
 
@@ -1128,7 +1128,7 @@ type dohResponse struct {
         } `json:"Answer"`
 }
 
-func (c *Client) dohQueryWithTTL(ctx context.Context, domain, recordType string) RecordWithTTL {
+func (c *Client) dohQueryWithTTL(ctx context.Context, domain, recordType string, checkingDisabled bool) RecordWithTTL {
         req, err := http.NewRequestWithContext(ctx, "GET", dohGoogleURL, nil)
         if err != nil {
                 return RecordWithTTL{}
@@ -1138,6 +1138,13 @@ func (c *Client) dohQueryWithTTL(ctx context.Context, domain, recordType string)
         q.Set("name", domain)
         q.Set("type", strings.ToUpper(recordType))
         q.Set("do", "1")
+        if checkingDisabled {
+                // RFC 4035 §3.2.2 / RFC 6840 §5.9: set the CD (checking disabled) bit so
+                // the resolver returns the zone's PUBLISHED records without validating them.
+                // The DNSSEC key lookups want what the zone publishes (to report "broken"),
+                // not a validator's refusal to hand over data it won't vouch for.
+                q.Set("cd", "1")
+        }
         req.URL.RawQuery = q.Encode()
         req.Header.Set("Accept", "application/dns-json")
         req.Header.Set("User-Agent", UserAgent)
@@ -1249,7 +1256,7 @@ func (c *Client) udpQuery(ctx context.Context, domain, recordType, resolverIP st
 }
 
 func (c *Client) udpQueryWithTTL(ctx context.Context, domain, recordType, resolverIP string) RecordWithTTL {
-        r, _ := c.udpQueryWithTTLStatus(ctx, domain, recordType, resolverIP)
+        r, _ := c.udpQueryWithTTLStatus(ctx, domain, recordType, resolverIP, false)
         return r
 }
 
@@ -1258,7 +1265,7 @@ func (c *Client) udpQueryWithTTL(ctx context.Context, domain, recordType, resolv
 // errStr ("" on NOERROR, "NXDOMAIN" for NXDOMAIN, the RCODE name or error string
 // otherwise) so callers can fold the result through classifyResolverResult and
 // distinguish an authoritative absence from a transient failure.
-func (c *Client) udpQueryWithTTLStatus(ctx context.Context, domain, recordType, resolverIP string) (RecordWithTTL, string) {
+func (c *Client) udpQueryWithTTLStatus(ctx context.Context, domain, recordType, resolverIP string, checkingDisabled bool) (RecordWithTTL, string) {
         qtype, err := dnsTypeFromString(recordType)
         if err != nil {
                 return RecordWithTTL{}, err.Error()
@@ -1268,6 +1275,10 @@ func (c *Client) udpQueryWithTTLStatus(ctx context.Context, domain, recordType, 
         msg := dns.NewMsg(fqdn, qtype)
         msg.RecursionDesired = true
         msg.UDPSize, msg.Security = 4096, true
+        // checkingDisabled maps to the CD (checking disabled) bit — when set, the
+        // resolver returns the zone's published records WITHOUT validating them, so a
+        // broken chain's DNSKEY/DS are visible instead of SERVFAILing away (RFC 4035 §3.2.2).
+        msg.CheckingDisabled = checkingDisabled
 
         dnsClient := newDNSClient(c.timeout)
 

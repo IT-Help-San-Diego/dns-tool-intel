@@ -319,7 +319,7 @@ func TestDohQueryWithTTL_CancelledCtx(t *testing.T) {
 	c := New()
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
-	result := c.dohQueryWithTTL(ctx, "example.com", "A")
+	result := c.dohQueryWithTTL(ctx, "example.com", "A", false)
 	if len(result.Records) != 0 {
 		t.Log("cancelled ctx returned records unexpectedly")
 	}
@@ -528,7 +528,7 @@ func TestDohQueryWithTTL_BadJSON(t *testing.T) {
 	defer ts.Close()
 
 	c := New(WithHTTPClient(ts.Client()))
-	result := c.dohQueryWithTTL(context.Background(), "example.com", "A")
+	result := c.dohQueryWithTTL(context.Background(), "example.com", "A", false)
 	_ = result
 }
 
@@ -539,7 +539,7 @@ func TestDohQueryWithTTL_ServerError(t *testing.T) {
 	defer ts.Close()
 
 	c := New(WithHTTPClient(ts.Client()))
-	result := c.dohQueryWithTTL(context.Background(), "example.com", "A")
+	result := c.dohQueryWithTTL(context.Background(), "example.com", "A", false)
 	_ = result
 }
 

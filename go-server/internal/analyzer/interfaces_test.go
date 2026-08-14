@@ -23,7 +23,7 @@ func (q *testDNSQuerier) QueryDNS(_ context.Context, recordType, domain string) 
 func (q *testDNSQuerier) QueryDNSWithTTL(context.Context, string, string) dnsclient.RecordWithTTL {
         return dnsclient.RecordWithTTL{}
 }
-func (q *testDNSQuerier) QueryDNSWithTTLStatus(context.Context, string, string) (dnsclient.RecordWithTTL, dnsclient.LookupStatus) {
+func (q *testDNSQuerier) QueryDNSWithTTLStatus(context.Context, string, string, bool) (dnsclient.RecordWithTTL, dnsclient.LookupStatus) {
         return dnsclient.RecordWithTTL{}, dnsclient.LookupAbsent
 }
 func (q *testDNSQuerier) QueryWithConsensus(context.Context, string, string) dnsclient.ConsensusResult {

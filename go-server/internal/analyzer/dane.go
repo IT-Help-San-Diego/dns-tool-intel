@@ -112,7 +112,7 @@ func (a *Analyzer) checkMXTLSA(ctx context.Context, mxHost string) (string, []ma
         tlsaName := fmt.Sprintf("_25._tcp.%s", mxHost)
         var found []map[string]any
 
-        result, status := a.DNS.QueryDNSWithTTLStatus(ctx, "TLSA", tlsaName)
+        result, status := a.DNS.QueryDNSWithTTLStatus(ctx, "TLSA", tlsaName, false)
         switch status {
         case dnsclient.LookupResolved:
                 for _, entry := range result.Records {

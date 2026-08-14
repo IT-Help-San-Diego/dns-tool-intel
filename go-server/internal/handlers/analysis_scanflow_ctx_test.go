@@ -93,7 +93,7 @@ func (s *blockingDNSStub) QueryDNSWithTTL(ctx context.Context, recordType, domai
 	return dnsclient.RecordWithTTL{Records: s.QueryDNS(ctx, recordType, domain), TTL: &ttl}
 }
 
-func (s *blockingDNSStub) QueryDNSWithTTLStatus(ctx context.Context, recordType, domain string) (dnsclient.RecordWithTTL, dnsclient.LookupStatus) {
+func (s *blockingDNSStub) QueryDNSWithTTLStatus(ctx context.Context, recordType, domain string, _ bool) (dnsclient.RecordWithTTL, dnsclient.LookupStatus) {
 	return s.QueryDNSWithTTL(ctx, recordType, domain), dnsclient.LookupResolved
 }
 
