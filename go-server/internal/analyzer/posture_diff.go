@@ -52,7 +52,9 @@ func ComputePostureDiff(prev, curr map[string]any) []PostureDiffField {
         daneIndet := postureFieldEquals(prev, mapKeyDaneAnalysis, "dane_state", dnssecStateIndeterminate) ||
                 postureFieldEquals(curr, mapKeyDaneAnalysis, "dane_state", dnssecStateIndeterminate)
         dnssecIndet := postureFieldEquals(prev, "dnssec_analysis", mapKeyDnssecState, dnssecStateIndeterminate) ||
-                postureFieldEquals(curr, "dnssec_analysis", mapKeyDnssecState, dnssecStateIndeterminate)
+                postureFieldEquals(curr, "dnssec_analysis", mapKeyDnssecState, dnssecStateIndeterminate) ||
+                postureFieldEquals(prev, "dnssec_analysis", mapKeyDnssecState, dnssecStateUnmeasured) ||
+                postureFieldEquals(curr, "dnssec_analysis", mapKeyDnssecState, dnssecStateUnmeasured)
         spfIndet := postureFieldEquals(prev, "spf_analysis", mapKeySpfState, spfStateIndeterminate) ||
                 postureFieldEquals(curr, "spf_analysis", mapKeySpfState, spfStateIndeterminate)
         dmarcIndet := postureFieldEquals(prev, mapKeyDmarcAnalysis, mapKeyDmarcState, dmarcStateIndeterminate) ||
@@ -103,6 +105,7 @@ func ComputePostureDiff(prev, curr map[string]any) []PostureDiffField {
                 "MTA-STS Mode":   mtaStsIndet,
                 "TLS-RPT Status": tlsRptIndet,
                 "BIMI Status":    bimiIndet,
+                "Mail Posture":   spfIndet || dmarcIndet,
         }
 
         for _, f := range fields {
