@@ -105,7 +105,7 @@ func ComputePostureDiff(prev, curr map[string]any) []PostureDiffField {
                 "MTA-STS Mode":   mtaStsIndet,
                 "TLS-RPT Status": tlsRptIndet,
                 "BIMI Status":    bimiIndet,
-                "Mail Posture":   spfIndet || dmarcIndet,
+                "Mail Posture":   spfIndet || dmarcIndet || dkimIndet,
         }
 
         for _, f := range fields {
