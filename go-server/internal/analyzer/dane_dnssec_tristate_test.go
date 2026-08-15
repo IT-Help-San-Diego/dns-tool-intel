@@ -287,7 +287,13 @@ func TestAnalyzeDNSSEC_InheritedSubdomainSecureAD(t *testing.T) {
                 dnsclient.RecordWithTTL{}, dnsclient.LookupAbsent)
         mockDNS.AddTTLStatusResponse("DS", subdomain,
                 dnsclient.RecordWithTTL{}, dnsclient.LookupAbsent)
-        mockDNS.AddADFlagResult(subdomain, dnsclient.ADFlagResult{State: "secure", ADFlag: true})
+        mockDNS.AddADFlagResult(subdomain, dnsclient.ADFlagResult{
+                State:  "secure",
+                ADFlag: true,
+                ResolverAD: map[string]string{
+                        "Cloudflare": "secure", "Google": "secure", "Quad9": "secure", "OpenDNS": "secure", "DNS4EU": "secure",
+                },
+        })
         // The parent zone carries NS records, so findParentZone resolves it and the
         // subdomain is treated as inherited, not apex.
         mockDNS.AddResponse("NS", "tristate-example.test", []string{"ns1.tristate-example.test."})
@@ -303,6 +309,33 @@ func TestAnalyzeDNSSEC_InheritedSubdomainSecureAD(t *testing.T) {
         }
         if got := result[mapKeyDnssecState]; got != dnssecStatePresent {
                 t.Fatalf("dnssec_state = %v, want %s (inherited signing is present, not indeterminate)", got, dnssecStatePresent)
+        }
+}
+
+// TestAnalyzeDNSSEC_InheritedSubdomainSplitAD pins the secure-majority ruling
+// (Claude Science, 2026-08-15): a signed subdomain with ONE non-AD resolver
+// (adState "split" — 4 secure + 1 ad_absent) must still read inherited, not
+// indeterminate. Unanimity was the live-falsified bug (row 18396).
+func TestAnalyzeDNSSEC_InheritedSubdomainSplitAD(t *testing.T) {
+        const subdomain = "www.tristate-example.test"
+        mockDNS := NewMockDNSClient()
+        mockDNS.AddTTLStatusResponse("DNSKEY", subdomain,
+                dnsclient.RecordWithTTL{}, dnsclient.LookupAbsent)
+        mockDNS.AddTTLStatusResponse("DS", subdomain,
+                dnsclient.RecordWithTTL{}, dnsclient.LookupAbsent)
+        mockDNS.AddADFlagResult(subdomain, dnsclient.ADFlagResult{
+                State: "split",
+                ResolverAD: map[string]string{
+                        "Cloudflare": "secure", "Google": "secure", "Quad9": "secure", "OpenDNS": "secure", "DNS4EU": "ad_absent",
+                },
+        })
+        mockDNS.AddResponse("NS", "tristate-example.test", []string{"ns1.tristate-example.test."})
+        a := &Analyzer{DNS: mockDNS}
+
+        result := a.AnalyzeDNSSEC(context.Background(), subdomain)
+
+        if got := result[mapKeyChainOfTrust]; got != "inherited" {
+                t.Fatalf("chain_of_trust = %v, want inherited (secure-majority subdomain must inherit, not require unanimity)", got)
         }
 }
 
