@@ -105,3 +105,22 @@ func TestExtractRDAPLifecycle_ExpiredTakedown(t *testing.T) {
                 t.Fatalf("last_changed_date = %v", out["last_changed_date"])
         }
 }
+
+// TestExtractRDAPLifecycle_Reregistration verifies a domain that lapsed and
+// was re-registered: both the original registration and the reregistration
+// dates appear as separate fields so the gap is discoverable.
+func TestExtractRDAPLifecycle_Reregistration(t *testing.T) {
+        data := map[string]any{
+                "events": []any{
+                        map[string]any{"eventAction": "registration", "eventDate": "2018-12-01T00:00:00Z"},
+                        map[string]any{"eventAction": "reregistration", "eventDate": "2025-11-01T00:00:00Z"},
+                },
+        }
+        out := extractRDAPLifecycle(data)
+        if out["registration_date"] != "2018-12-01T00:00:00Z" {
+                t.Fatalf("registration_date = %v, want original", out["registration_date"])
+        }
+        if out["reregistration_date"] != "2025-11-01T00:00:00Z" {
+                t.Fatalf("reregistration_date = %v, want reregistration", out["reregistration_date"])
+        }
+}

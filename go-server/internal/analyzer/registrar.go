@@ -250,6 +250,12 @@ func extractRDAPLifecycle(data map[string]any) map[string]any {
                 switch ev.action {
                 case "registration":
                         out["registration_date"] = ev.date
+                // A re-registered domain has two origin events: the original
+                // registration and a later reregistration. Keep both — a gap
+                // between them is a real signal (the domain lapsed and was
+                // re-registered). Never overwrite registration_date.
+                case "reregistration":
+                        out["reregistration_date"] = ev.date
                 case "expiration":
                         out["expiration_date"] = ev.date
                 case "last changed":
