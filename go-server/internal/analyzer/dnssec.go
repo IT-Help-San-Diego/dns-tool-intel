@@ -28,6 +28,7 @@ const (
         mapKeyHasDs                = "has_ds"
         mapKeyDnssecState          = "dnssec_state"
         mapKeyUnmeasuredReason     = "unmeasured_reason"
+        mapKeyIndeterminateReason  = "indeterminate_reason"
         mapKeyDisplayLabel         = "display_label"
         mapKeyDisplaySeverity      = "display_severity"
 
@@ -270,7 +271,13 @@ func buildDNSSECResult(p dnssecParams) map[string]any {
 // flag. Per RFC 4035, the absence of signing material can only be asserted from
 // an authoritative answer — never from a failed lookup — so this is explicitly
 // NOT a finding of "unsigned".
-func buildIndeterminateDNSSECResult(adResolver *string) map[string]any {
+//
+// It persists the AD aggregate (ad_consensus) and per-resolver votes
+// (resolver_ad) plus an indeterminate_reason naming which gate fired, so a
+// stored indeterminate row is diagnosable after the fact (the deadline path
+// solved the same problem with unmeasured_reason; the indeterminate path needs
+// it too — row 18396 carried no evidence of which gate fired).
+func buildIndeterminateDNSSECResult(adResolver *string, reason, adState string, resolverAD map[string]string) map[string]any {
         label, severity := dnssecDisplayLabel(dnssecStateIndeterminate, statusUnknown)
         return map[string]any{
                 mapKeyStatus:               statusUnknown,
@@ -284,8 +291,11 @@ func buildIndeterminateDNSSECResult(adResolver *string) map[string]any {
                 mapKeyAlgorithmObservation: nil,
                 mapKeyChainOfTrust:         statusUnknown,
                 mapKeyAdFlag:               false,
+                mapKeyAdConsensus:          adState,
+                mapKeyResolverAD:           resolverAD,
                 mapKeyAdResolver:           derefStr(adResolver),
                 mapKeyDnssecState:          dnssecStateIndeterminate,
+                mapKeyIndeterminateReason:  reason,
                 mapKeyDisplayLabel:         label,
                 mapKeyDisplaySeverity:      severity,
         }
@@ -506,7 +516,13 @@ func (a *Analyzer) AnalyzeDNSSEC(ctx context.Context, domain string) map[string]
                 dnskeyStatus == dnsclient.LookupConflict || dsStatus == dnsclient.LookupConflict
         definitivePositive := (hasDNSKEY && hasDS) || adFlag
         if lookupErrored && !definitivePositive {
-                return buildIndeterminateDNSSECResult(adResolver)
+                reason := "lookup_errored"
+                if dnskeyStatus == dnsclient.LookupError || dnskeyStatus == dnsclient.LookupConflict {
+                        reason = "dnskey_lookup_error"
+                } else if dsStatus == dnsclient.LookupError || dsStatus == dnsclient.LookupConflict {
+                        reason = "ds_lookup_error"
+                }
+                return buildIndeterminateDNSSECResult(adResolver, reason, adState, resolverAD)
         }
 
         // Consistency guard: a resolver reporting "secure" (validated chain),
@@ -530,7 +546,7 @@ func (a *Analyzer) AnalyzeDNSSEC(ctx context.Context, domain string) map[string]
                 inheritedZone = findParentZone(a.DNS, ctx, domain)
         }
         if (!hasDNSKEY || !hasDS) && (adState == "secure" || adState == "bogus" || adState == "split") && inheritedZone == "" {
-                return buildIndeterminateDNSSECResult(adResolver)
+                return buildIndeterminateDNSSECResult(adResolver, "consistency_guard", adState, resolverAD)
         }
 
         // hasDNSKEY && !hasDS from the recursive/consensus path is the classic
@@ -549,7 +565,7 @@ func (a *Analyzer) AnalyzeDNSSEC(ctx context.Context, domain string) map[string]
                         dsRecords = confirm.records
                         algorithm, algorithmName = parseAlgorithm(confirm.records)
                 case parentDSIndeterminate:
-                        return buildIndeterminateDNSSECResult(adResolver)
+                        return buildIndeterminateDNSSECResult(adResolver, "parent_ds_unconfirmable", adState, resolverAD)
                 case parentDSConfirmedAbsent:
                         // Real DNSKEY-without-DS, authoritatively confirmed at the parent. Fall
                         // through to buildDNSSECResult, which now labels dnssec_state=partial.
