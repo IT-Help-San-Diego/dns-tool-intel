@@ -23,6 +23,18 @@ func TestDNSSECDisplayLabel(t *testing.T) {
 		{dnssecStatePartial, "broken", "Partially Signed", "warning"},
 		{dnssecStateIndeterminate, "unknown", "Could Not Verify", "secondary"},
 		{dnssecStateUnmeasured, "unknown", "Not Measured", "secondary"},
+		// Legacy rows (persisted before dnssec_state existed, 2026-06-17):
+		// the measured chain decides — a Feb-Apr row with chain=complete is a
+		// measured, validated, SIGNED zone and must never backfill "Unsigned".
+		{"", "complete", "Signed", "success"},
+		{"", "broken", "Broken", "danger"},
+		{"", "inherited", "Inherited", "success"},
+		{"", "none", "Unsigned", "warning"},
+		// Nothing measured at all, or vocabulary we don't recognize: honest
+		// could-not-tell, never a fabricated "Unsigned".
+		{"", "", "Could Not Verify", "secondary"},
+		{"", "unknown", "Could Not Verify", "secondary"},
+		{"future_state", "complete", "Could Not Verify", "secondary"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.state+"/"+tc.chain, func(t *testing.T) {
@@ -67,4 +79,19 @@ func TestRebucketDNSSECDisplayLabel(t *testing.T) {
 
 	// Absent dnssec_analysis is a no-op.
 	RebucketDNSSECDisplayLabel(map[string]any{})
+
+	// Pre-tri-state row (no dnssec_state at all, chain measured complete —
+	// the Feb-Apr slice): must backfill Signed, not Unsigned. Live regression
+	// caught on /analysis/1000 (chain=complete rendered "Unsigned").
+	legacy := map[string]any{
+		"dnssec_analysis": map[string]any{
+			"chain_of_trust": "complete",
+			"status":         "success",
+		},
+	}
+	RebucketDNSSECDisplayLabel(legacy)
+	ld := legacy["dnssec_analysis"].(map[string]any)
+	if ld["display_label"] != "Signed" || ld["display_severity"] != "success" {
+		t.Errorf("legacy backfill = (%v,%v), want (Signed,success)", ld["display_label"], ld["display_severity"])
+	}
 }

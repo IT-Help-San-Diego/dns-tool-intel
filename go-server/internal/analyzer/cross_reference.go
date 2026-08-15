@@ -420,13 +420,7 @@ func computeSummary(result *CrossRefResult) {
                 }
         }
 
-        verdict := "corroborated"
-        if mismatched > 0 || partial > 0 {
-                verdict = "discrepancy_detected"
-        }
-        if unavailable == total && total > 0 {
-                verdict = "verification_unavailable"
-        }
+        verdict := crossRefVerdict(mismatched, partial, unavailable, total)
 
         result.Summary = CrossRefSummary{
                 TotalChecks: total,
@@ -507,10 +501,9 @@ func RebucketCrossRefSummary(crossRef map[string]any) {
                                 continue
                         }
                         total++
-                        match, _ := comp["match"].(string)
-                        ours := anyToStringSlice(comp["our_records"])
-                        theirs := anyToStringSlice(comp["their_records"])
-                        switch match {
+                        bucket, legacy := rebucketOneComparison(comp)
+                        rebucketedLegacy = rebucketedLegacy || legacy
+                        switch bucket {
                         case "absent":
                                 absent++
                         case "unavailable":
@@ -520,32 +513,12 @@ func RebucketCrossRefSummary(crossRef map[string]any) {
                         case "mismatch":
                                 mismatched++
                         case "match":
-                                if len(ours) == 0 && len(theirs) == 0 {
-                                        // Rewrite the ROW label, not just the
-                                        // counter, so the per-row table agrees
-                                        // with the summary ("absent", not
-                                        // "match"). A new-shape row never has
-                                        // "match" with both-empty (that case is
-                                        // emitted as "absent" at scan time), so
-                                        // hitting this branch marks the row as
-                                        // pre-split.
-                                        comp["match"] = "absent"
-                                        absent++
-                                        rebucketedLegacy = true
-                                } else {
-                                        matched++
-                                }
+                                matched++
                         }
                 }
         }
 
-        verdict := "corroborated"
-        if mismatched > 0 || partial > 0 {
-                verdict = "discrepancy_detected"
-        }
-        if unavailable == total && total > 0 {
-                verdict = "verification_unavailable"
-        }
+        verdict := crossRefVerdict(mismatched, partial, unavailable, total)
 
         crossRef["summary"] = map[string]any{
                 "total_checks": total,
@@ -559,4 +532,37 @@ func RebucketCrossRefSummary(crossRef map[string]any) {
         if rebucketedLegacy {
                 crossRef["rebucketed_legacy"] = true
         }
+}
+
+// crossRefVerdict is the single source for the top-line verdict, shared by the
+// scan-time computeSummary and the view-time rebucket so the rule cannot drift
+// between them: any disagreement (soft partial or hard mismatch) is a
+// discrepancy, and a total absence of usable checks is unavailable.
+func crossRefVerdict(mismatched, partial, unavailable, total int) string {
+        if unavailable == total && total > 0 {
+                return "verification_unavailable"
+        }
+        if mismatched > 0 || partial > 0 {
+                return "discrepancy_detected"
+        }
+        return "corroborated"
+}
+
+// rebucketOneComparison classifies a single persisted comparison row and, for
+// the pre-split shape only, rewrites the ROW label so the per-row table agrees
+// with the summary: a new-shape row never has "match" with both sides empty
+// (that case is emitted as "absent" at scan time), so hitting that branch marks
+// the row as legacy and relabels it "absent" in place.
+func rebucketOneComparison(comp map[string]any) (bucket string, legacy bool) {
+        match, _ := comp["match"].(string)
+        if match != "match" {
+                return match, false
+        }
+        ours := anyToStringSlice(comp["our_records"])
+        theirs := anyToStringSlice(comp["their_records"])
+        if len(ours) == 0 && len(theirs) == 0 {
+                comp["match"] = "absent"
+                return "absent", true
+        }
+        return "match", false
 }
