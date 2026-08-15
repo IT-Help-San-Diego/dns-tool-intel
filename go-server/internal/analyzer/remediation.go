@@ -687,7 +687,7 @@ func appendDANEFixes(fixes []fix, ps protocolState, results map[string]any, doma
                         Section:       sectionDANE,
                 })
         }
-        if !ps.daneOK && ps.dnssecOK && !ps.isNoMailDomain && providerSupportsDANE(ps.primaryProvider) {
+        if !ps.daneOK && !ps.daneIndeterminate && ps.dnssecOK && !ps.isNoMailDomain && providerSupportsDANE(ps.primaryProvider) {
                 mxHost := extractFirstMXHost(results)
                 tlsaHost := "_25._tcp." + mxHost
                 fixes = append(fixes, fix{

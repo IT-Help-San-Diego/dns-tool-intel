@@ -491,6 +491,20 @@ func TestAppendDANEFixes_DNSSECIndeterminate(t *testing.T) {
 	}
 }
 
+func TestAppendDANEFixes_DANEIndeterminate(t *testing.T) {
+	// DANE lookup could not complete (daneIndeterminate) but DNSSEC is healthy:
+	// must NOT emit "Add DANE/TLSA Records" — a transient TLSA probe failure is
+	// not evidence DANE is absent (RFC 7672), and the domain may already publish
+	// TLSA records. Only a measured absence may emit the corrective instruction.
+	ps := protocolState{dnssecOK: true, daneIndeterminate: true}
+	fixes := appendDANEFixes(nil, ps, nil, "example.com")
+	for _, f := range fixes {
+		if f.Title == "Add DANE/TLSA Records" {
+			t.Error("DANE indeterminate + DNSSEC OK emitted 'Add DANE/TLSA Records'")
+		}
+	}
+}
+
 func TestAppendDNSSECFixes_DeprecatedAlgo(t *testing.T) {
 	ps := protocolState{dnssecOK: true, dnssecAlgoStrength: "deprecated"}
 	fixes := appendDNSSECFixes(nil, ps)
