@@ -344,7 +344,7 @@
                 <a href="/snapshot/{{.AsciiDomain}}" class="btn btn-report-action me-2" title="Download Observed Records Snapshot">
                     {{icon "file-lines" "me-1"}}Snapshot
                 </a>
-                <a href="/analyze?domain={{.AsciiDomain}}" id="reanalyzeBtn" class="btn btn-report-action btn-report-action--accent" data-domain="{{.AsciiDomain}}"
+                <a href="/topology?domain={{.AsciiDomain | urlquery}}" id="reanalyzeBtn" class="btn btn-report-action btn-report-action--accent" data-domain="{{.AsciiDomain}}"
                     {{if gt .WaitSeconds 0}}data-wait-seconds="{{.WaitSeconds}}" data-wait-reason="{{.WaitReason}}"{{end}}>
                     {{icon "sync-alt" "me-2"}}Re-analyze
                 </a>
@@ -6592,22 +6592,6 @@
         }
     }
 
-    function handleFetchedPage(html, respUrl) {
-        document.open();
-        document.write(html);
-        document.close();
-        globalThis.scrollTo(0, 0);
-        const modeMeta = document.querySelector('meta[name="x-report-mode"]');
-        const idEl = document.querySelector('[data-analysis-id]');
-        const mode = modeMeta ? modeMeta.content : '';
-        const aid = idEl ? idEl.dataset.analysisId : '';
-        if (aid && mode) {
-            globalThis.history.replaceState(null, '', '/analysis/' + aid + '/view/' + mode);
-        } else if (respUrl && respUrl !== globalThis.location.href) {
-            globalThis.history.replaceState(null, '', respUrl);
-        }
-    }
-
     function recordTypeColor(rt) {
         if (rt === 'MX') return 'success';
         if (rt === 'NS') return 'info';
@@ -6759,59 +6743,11 @@
         tbody.appendChild(collapseRow);
     }
 
-    function handleReanalyzeResponse(resp) {
-        return resp.text().then(function(html) { handleFetchedPage(html, resp.url); });
-    }
-
     function submitReanalyzeFetch(btn) {
         const domain = btn.dataset.domain;
-        const overlay = document.getElementById('loadingOverlay');
-
-        btn.innerHTML = '{{icon "spinner" "icon-spin me-2"}}Analyzing...';
-        btn.classList.add('disabled');
-        document.body.classList.add('loading');
-
-        if (overlay) {
-            var domainEl = overlay.querySelector('.scan-overlay-domain');
-            if (domainEl) domainEl.textContent = domain;
-            if (typeof isBareTopLevelDomain === 'function' && isBareTopLevelDomain(domain)) {
-                if (typeof swapToTLDScanPhases === 'function') swapToTLDScanPhases(overlay);
-            }
-            if (typeof showOverlay === 'function') {
-                showOverlay(overlay);
-            } else {
-                overlay.classList.add('is-active');
-            }
-            if (typeof startStatusCycle === 'function') {
-                startStatusCycle(overlay);
-            }
-        }
-
-        var csrf = (document.querySelector('meta[name="csrf-token"]') || {}).content || '';
-        var body = new URLSearchParams({domain: domain, csrf_token: csrf});
-        fetch('/analyze', {
-            method: 'POST',
-            body: body,
-            headers: {'X-Requested-With': 'fetch', 'Accept': 'application/json', 'Content-Type': 'application/x-www-form-urlencoded'},
-            redirect: 'follow'
-        }).then(function(resp) {
-            if (!resp.ok) throw new Error('HTTP ' + resp.status);
-            return resp.json();
-        }).then(function(data) {
-            if (data.token && typeof startProgressPolling === 'function') {
-                startProgressPolling(data.token, overlay, btn);
-            }
-        }).catch(function() {
-            var url = '/analyze?domain=' + encodeURIComponent(domain) + '&refresh=' + Date.now();
-            fetch(url, {
-                headers: { 'X-Requested-With': 'fetch' },
-                redirect: 'follow'
-            }).then(function(resp) {
-                return handleReanalyzeResponse(resp);
-            }).catch(function() {
-                globalThis.location.href = url;
-            });
-        });
+        // Re-analyze navigates to the live pipeline topology view, which
+        // re-scans the domain (auto-runs for verified human clients).
+        globalThis.location.href = '/topology?domain=' + encodeURIComponent(domain);
     }
 
     (function() {
