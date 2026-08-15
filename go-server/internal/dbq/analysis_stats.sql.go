@@ -15,7 +15,6 @@ const countDNSSECUnmeasured = `-- name: CountDNSSECUnmeasured :one
 SELECT COUNT(*)::bigint AS count
 FROM domain_analyses
 WHERE full_results -> 'dnssec_analysis' ->> 'chain_of_trust' = 'unknown'
-   OR full_results -> 'dnssec_analysis' ->> 'dnssec_state' = 'indeterminate'
 `
 
 // "Unmeasured" = we could not measure DNSSEC (our validating resolvers were

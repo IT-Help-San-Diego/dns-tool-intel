@@ -1,0 +1,37 @@
+-- +goose Up
+-- 022_dnssec_unmeasured_expression_index.sql
+-- Adds an expression index on (full_results -> 'dnssec_analysis' ->> 'chain_of_trust')
+-- so CountDNSSECUnmeasured stops parsing every row's full_results JSON per /stats
+-- page view.
+--
+-- Measured on production (RDS, 2026-08-15): /stats took ~24.8s (24.8s / 24.2s /
+-- 23.9s across three runs, flat — no cold-start component, nothing cached). The
+-- cause is CountDNSSECUnmeasured at go-server/db/queries/analysis_stats.sql:55 —
+-- its predicate
+--   full_results -> 'dnssec_analysis' ->> 'chain_of_trust' = 'unknown'
+--   OR full_results -> 'dnssec_analysis' ->> 'dnssec_state' = 'indeterminate'
+-- is an unindexed nested-JSON extraction across the full_results json column.
+-- Measured on production: 23,777ms for the counter alone (the whole /stats gap),
+-- vs 8.6ms for CountRemediatedDomains and 1.9ms for the already-indexed Plugin
+-- bucket (021). The 021 index IS working; this counter opened a second unindexed
+-- path.
+--
+-- The two OR branches are EXACTLY equivalent: buildIndeterminateDNSSECResult sets
+-- BOTH chain_of_trust='unknown' AND dnssec_state='indeterminate', and a production
+-- census found 0 rows where dnssec_state='indeterminate' has chain_of_trust <>
+-- 'unknown' (both predicates return 5). So the query is simplified to the single
+-- superset predicate chain_of_trust = 'unknown', which one index covers. An OR
+-- across two different JSON paths would need a BitmapOr of two indexes and only
+-- fires if the planner deems both selective — one index cannot cover the OR.
+--
+-- PLAIN CREATE INDEX, never CONCURRENTLY: migrate.go wraps every migration in a
+-- transaction, and CREATE INDEX CONCURRENTLY is rejected inside a transaction
+-- (Postgres ERROR: CREATE INDEX CONCURRENTLY cannot run inside a transaction
+-- block) — see 021 lines 22-25. At ~18k rows the index build is milliseconds, so
+-- the write lock is a non-issue.
+--
+-- Durable follow-up (separate migration, by design): the full_results JSON ->
+-- JSONB conversion (the scale-audit top item) removes this entire class.
+
+CREATE INDEX IF NOT EXISTS ix_da_dnssec_chain_of_trust
+    ON domain_analyses ((full_results -> 'dnssec_analysis' ->> 'chain_of_trust'));
