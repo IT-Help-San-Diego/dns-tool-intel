@@ -175,6 +175,31 @@ func TestAnalyzeDNSSEC_TriState_AbsentConfirmed(t *testing.T) {
         }
 }
 
+// TestAnalyzeDNSSEC_SecureADButEmptyDNSKEY locks the scan-time consistency
+// guard (2026-08-15): when the DNSKEY/DS consensus fold returns LookupAbsent
+// but the AD check reports "secure", the empty DNSKEY is a false-negative — a
+// resolver cannot validate a chain it never saw (RFC 4035 §3.2.3). The row must
+// read indeterminate, never absent_confirmed, so a signed domain can never be
+// stored as "not configured" beside ad_consensus: secure (the nsa.gov defect).
+func TestAnalyzeDNSSEC_SecureADButEmptyDNSKEY(t *testing.T) {
+        mockDNS := NewMockDNSClient()
+        mockDNS.AddTTLStatusResponse("DNSKEY", triStateDomain,
+                dnsclient.RecordWithTTL{}, dnsclient.LookupAbsent)
+        mockDNS.AddTTLStatusResponse("DS", triStateDomain,
+                dnsclient.RecordWithTTL{}, dnsclient.LookupAbsent)
+        mockDNS.AddADFlagResult(triStateDomain, dnsclient.ADFlagResult{State: "secure", ADFlag: true})
+        a := &Analyzer{DNS: mockDNS}
+
+        result := a.AnalyzeDNSSEC(context.Background(), triStateDomain)
+
+        if got := result[mapKeyDnssecState]; got != dnssecStateIndeterminate {
+                t.Fatalf("dnssec_state = %v, want %s (secure AD beside empty DNSKEY is a false-negative, never a confirmed absence)", got, dnssecStateIndeterminate)
+        }
+        if got := result[mapKeyStatus]; got != statusUnknown {
+                t.Fatalf("status = %v, want %s", got, statusUnknown)
+        }
+}
+
 func TestAnalyzeDNSSEC_TriState_Indeterminate(t *testing.T) {
         mockDNS := NewMockDNSClient()
         mockDNS.AddTTLStatusResponse("DNSKEY", triStateDomain,
