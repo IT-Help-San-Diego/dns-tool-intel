@@ -56,10 +56,8 @@ WHERE diff_summary @> '[{"Severity": "success"}]'::jsonb;
 -- "Unmeasured" = we could not measure DNSSEC (our validating resolvers were
 -- unreachable, or the DNSKEY/DS lookup failed). This is an instrument-health
 -- signal: if it climbs, OUR probes are failing, not the domains. Reaches into
--- the full_results JSON payload (the unindexed-payload class from the scale
--- audit) — it belongs on /stats, not the analysis path, and speeds up for free
--- once full_results converts JSON -> JSONB.
+-- the full_results JSON payload, so it is indexed (migration 022) and cached
+-- (5-minute window) in the handler — see cachedDNSSECUnmeasured in stats.go.
 SELECT COUNT(*)::bigint AS count
 FROM domain_analyses
-WHERE full_results -> 'dnssec_analysis' ->> 'chain_of_trust' = 'unknown'
-   OR full_results -> 'dnssec_analysis' ->> 'dnssec_state' = 'indeterminate';
+WHERE full_results -> 'dnssec_analysis' ->> 'chain_of_trust' = 'unknown';

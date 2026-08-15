@@ -4,6 +4,7 @@
 package handlers
 
 import (
+        "context"
         "encoding/hex"
         "encoding/json"
         "log/slog"
@@ -83,6 +84,42 @@ var (
         integrityCacheMu   sync.RWMutex
         integrityCacheTime time.Time
 )
+
+var (
+        dnssecUnmeasuredCache     int64
+        dnssecUnmeasuredCacheMu   sync.RWMutex
+        dnssecUnmeasuredCacheTime time.Time
+)
+
+// cachedDNSSECUnmeasured returns the DNSSEC-unmeasured instrument-health count
+// cached for 5 minutes. It is a corpus-level signal over ~18k rows that does not
+// need per-request freshness, and the underlying query reaches into the
+// full_results JSON payload (indexed by migration 022). Caching removes the
+// per-request exposure so /stats is fast even if the index plan disappoints.
+func (h *StatsHandler) cachedDNSSECUnmeasured(ctx context.Context) int64 {
+        dnssecUnmeasuredCacheMu.RLock()
+        if !dnssecUnmeasuredCacheTime.IsZero() && time.Since(dnssecUnmeasuredCacheTime) < 5*time.Minute {
+                v := dnssecUnmeasuredCache
+                dnssecUnmeasuredCacheMu.RUnlock()
+                return v
+        }
+        dnssecUnmeasuredCacheMu.RUnlock()
+
+        dnssecUnmeasuredCacheMu.Lock()
+        defer dnssecUnmeasuredCacheMu.Unlock()
+        if !dnssecUnmeasuredCacheTime.IsZero() && time.Since(dnssecUnmeasuredCacheTime) < 5*time.Minute {
+                return dnssecUnmeasuredCache
+        }
+
+        count, err := h.DB.Queries.CountDNSSECUnmeasured(ctx)
+        if err != nil {
+                slog.Warn("Stats: failed to count DNSSEC-unmeasured scans", mapKeyError, err)
+                return dnssecUnmeasuredCache // stale value on error, never fabricate 0
+        }
+        dnssecUnmeasuredCache = count
+        dnssecUnmeasuredCacheTime = time.Now()
+        return count
+}
 
 func loadIntegrityData() IntegrityData {
         integrityCacheMu.RLock()
@@ -256,10 +293,7 @@ func (h *StatsHandler) Stats(c *gin.Context) {
         // MEASURE DNSSEC (DNSKEY/DS lookup failed, or no validator cast a
         // usable AD-flag vote). A climbing count is OUR resolver probes
         // failing, not a domain finding — see CountDNSSECUnmeasured.
-        dnssecUnmeasured, err := h.DB.Queries.CountDNSSECUnmeasured(ctx)
-        if err != nil {
-                slog.Warn("Stats: failed to count DNSSEC-unmeasured scans", mapKeyError, err)
-        }
+        dnssecUnmeasured := h.cachedDNSSECUnmeasured(ctx)
 
         // True unique visitors via HyperLogLog++ union across every persisted
         // daily sketch. SUM(unique_visitors) is mathematically wrong (it
