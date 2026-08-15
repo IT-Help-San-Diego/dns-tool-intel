@@ -244,3 +244,46 @@ func TestCrossRefToMap(t *testing.T) {
 		t.Errorf("domain = %v, want example.com", m["domain"])
 	}
 }
+
+func TestRebucketCrossRefSummary(t *testing.T) {
+	// An old-shape persisted row (pre-#370): the summary has no "absent"/"partial"
+	// keys and its "matched" conflates present-and-equal with both-empty. The
+	// rebucket must recompute the five-way split from the persisted comparisons.
+	crossRef := map[string]any{
+		"comparisons": map[string]any{
+			"google": []any{
+				map[string]any{"match": "match", "our_records": []string{"1.2.3.4"}, "their_records": []string{"1.2.3.4"}},
+				map[string]any{"match": "match", "our_records": []string{}, "their_records": []string{}},
+				map[string]any{"match": "partial", "our_records": []string{"1.2.3.4", "5.6.7.8"}, "their_records": []string{"1.2.3.4", "9.10.11.12"}},
+			},
+			"cloudflare": []any{
+				map[string]any{"match": "match", "our_records": []string{"1.2.3.4"}, "their_records": []string{"1.2.3.4"}},
+				map[string]any{"match": "match", "our_records": []string{}, "their_records": []string{}},
+				map[string]any{"match": "unavailable", "our_records": []string{}, "their_records": []string{}},
+			},
+		},
+		"summary": map[string]any{"total_checks": 6, "matched": 6, "mismatched": 0, "unavailable": 1, "verdict": "corroborated"},
+	}
+
+	RebucketCrossRefSummary(crossRef)
+
+	sum := crossRef["summary"].(map[string]any)
+	if sum["matched"].(int) != 2 {
+		t.Errorf("matched = %v, want 2 (present only)", sum["matched"])
+	}
+	if sum["absent"].(int) != 2 {
+		t.Errorf("absent = %v, want 2", sum["absent"])
+	}
+	if sum["partial"].(int) != 1 {
+		t.Errorf("partial = %v, want 1", sum["partial"])
+	}
+	if sum["mismatched"].(int) != 0 {
+		t.Errorf("mismatched = %v, want 0", sum["mismatched"])
+	}
+	if sum["unavailable"].(int) != 1 {
+		t.Errorf("unavailable = %v, want 1", sum["unavailable"])
+	}
+	if sum["verdict"].(string) != "discrepancy_detected" {
+		t.Errorf("verdict = %q, want discrepancy_detected (partial > 0)", sum["verdict"])
+	}
+}
