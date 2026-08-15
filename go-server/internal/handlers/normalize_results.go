@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+
+	"dnstool/go-server/internal/analyzer"
 )
 
 const (
@@ -85,6 +87,11 @@ func NormalizeResults(fullResults json.RawMessage) map[string]interface{} {
 		}
 		normalizeVerdicts(results, posture)
 	}
+
+	// Backfill the DNSSEC display_label/severity for rows written before those
+	// fields existed, so old reports render the same honest verdict as a fresh
+	// scan (single source of truth, never re-derived per-template).
+	analyzer.RebucketDNSSECDisplayLabel(results)
 
 	return results
 }
