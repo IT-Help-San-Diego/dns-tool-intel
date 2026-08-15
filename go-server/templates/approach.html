@@ -737,6 +737,17 @@
                     </div>
 
                     <div class="approach-section">
+                        <h2>{{icon "balance-scale" "me-2"}}Honest Uncertainty: Measured, Couldn&rsquo;t-Tell, Never-Measured</h2>
+                        <p class="mb-2">Rigor isn&rsquo;t only about what we find &mdash; it&rsquo;s about being honest when we <em>can&rsquo;t</em> find it. Most tools collapse three different outcomes into one &ldquo;not configured.&rdquo; We keep them apart:</p>
+                        <ul class="mb-2">
+                            <li><strong>Measured</strong> &mdash; a definitive answer: DNSSEC is <em>complete</em> or <em>broken</em>, SPF is aligned or it isn&rsquo;t. We report it as it is.</li>
+                            <li><strong>Couldn&rsquo;t tell</strong> &mdash; we measured, but the result was genuinely ambiguous: a resolver refused to answer, or a chain resolved neither way. We report <em>indeterminate</em>, never a fabricated &ldquo;configured&rdquo; or &ldquo;missing.&rdquo;</li>
+                            <li><strong>Never measured</strong> &mdash; the scan budget expired before we reached the check. We report <em>unmeasured</em>, a distinct instrument-health state, rather than pretending we looked.</li>
+                        </ul>
+                        <p class="mb-0">And the score respects the distinction: states we couldn&rsquo;t measure &mdash; <em>unconfirmed</em>, <em>indeterminate</em>, <em>unmeasured</em> &mdash; are <strong>excluded from the denominator</strong>. A domain is penalized only for what we actually measured and found broken, never for what we failed to observe. The confidence number tells you how certain we are; these states tell you whether we got to measure at all.</p>
+                    </div>
+
+                    <div class="approach-section">
                         <h2>{{icon "network-wired" "me-2"}}Why DNS?</h2>
                         <p>If you want to understand how the connected internet works &mdash; how email is secured, how domains are authenticated, how trust is established between systems &mdash; DNS is where you start. If you don't understand DNS, you don't have a chance to understand the internet. And if you don't understand the internet, you can't understand cyber security. DNS, it's the foundation of both.</p>
                         <p>But DNS is not a static database. It's a distributed, <a href="https://dl.acm.org/doi/10.1145/1466443.1466448" target="_blank" rel="noopener" title="Werner Vogels, 'Eventually Consistent,' ACM Queue, 2008">eventually consistent</a>, human-operated system. Records propagate across thousands of resolvers with different caching behaviors. Configurations are set by people &mdash; TLD engineers, hosting providers, federal agencies issuing directives &mdash; and every one of those humans can introduce errors that standard tools miss because they only take a single snapshot of a single moment from a single vantage point.</p>
