@@ -8,6 +8,7 @@ import (
         "fmt"
         "strconv"
         "strings"
+        "time"
 
         "dnstool/go-server/internal/dnsclient"
 )
@@ -40,6 +41,11 @@ const (
         // state is only ever set AFTER an authoritative parent confirmation, so it can
         // never be a fabricated "DS missing" verdict derived from a consensus miss.
         dnssecStatePartial = "partial"
+        // dnssecStateUnmeasured = the parent scan deadline expired before DNSSEC
+        // could be measured. Distinct from "indeterminate" ("we measured and the
+        // protocol cannot say"): this is "we never got to measure" and belongs on
+        // the unmeasured counter, never merged into honest-uncertainty.
+        dnssecStateUnmeasured = "unmeasured"
 )
 
 var algorithmNames = map[int]string{
@@ -205,6 +211,29 @@ func buildIndeterminateDNSSECResult(adResolver *string) map[string]any {
         }
 }
 
+// buildUnmeasuredDNSSECResult renders the honest "never measured" verdict when
+// the parent scan deadline expired before DNSSEC could be measured. This is a
+// DIFFERENT claim from "indeterminate" (which means "we measured and the
+// protocol cannot say"): here we never got to measure at all, so it belongs on
+// the unmeasured counter and must never merge into honest-uncertainty.
+func buildUnmeasuredDNSSECResult() map[string]any {
+        return map[string]any{
+                mapKeyStatus:               statusUnknown,
+                mapKeyMessage:              "DNSSEC measurement deferred — the scan deadline expired before DNSSEC could be measured. This is not a claim about the domain's DNSSEC state; re-run the scan to measure it.",
+                mapKeyHasDnskey:            false,
+                mapKeyHasDs:                false,
+                mapKeyDnskeyRecords:        []string{},
+                mapKeyDsRecords:            []string{},
+                mapKeyAlgorithm:            nil,
+                mapKeyAlgorithmName:        nil,
+                mapKeyAlgorithmObservation: nil,
+                mapKeyChainOfTrust:         statusUnknown,
+                mapKeyAdFlag:               false,
+                mapKeyAdResolver:           nil,
+                mapKeyDnssecState:          dnssecStateUnmeasured,
+        }
+}
+
 func collectDNSKEYRecords(results []string) (bool, []string) {
         if len(results) == 0 {
                 return false, nil
@@ -333,6 +362,16 @@ func buildInheritedDNSSECResult(parentZone string, adResolver *string, parentAlg
 }
 
 func (a *Analyzer) AnalyzeDNSSEC(ctx context.Context, domain string) map[string]any {
+        // Deferred guard: if the parent scan deadline is already exhausted, the
+        // DNSKEY/DS/AD lookups below would fail with transient errors and fold to a
+        // false "indeterminate" ("we measured and couldn't tell"). Report "unmeasured"
+        // instead — we never got to measure — so honest-uncertainty isn't polluted by
+        // deadline starvation (mirrors the CT subdomain task's
+        // parent_deadline_exhausted guard).
+        if deadline, ok := ctx.Deadline(); ok && time.Until(deadline) <= 0 {
+                return buildUnmeasuredDNSSECResult()
+        }
+
         dnskeyRec, dnskeyStatus := a.DNS.QueryDNSWithTTLStatus(ctx, "DNSKEY", domain, true)
         hasDNSKEY, dnskeyRecords := collectDNSKEYRecords(dnskeyRec.Records)
         dsRec, dsStatus := a.DNS.QueryDNSWithTTLStatus(ctx, "DS", domain, true)
@@ -343,6 +382,14 @@ func (a *Analyzer) AnalyzeDNSSEC(ctx context.Context, domain string) map[string]
         adState := adResult.State
         resolverAD := adResult.ResolverAD
         adResolver := adResult.ResolverUsed
+
+        // If the parent deadline expired DURING the lookups, the transient
+        // failures are deadline-induced, not resolver failures — report
+        // "unmeasured" rather than "indeterminate" (a measurement interrupted
+        // by deadline starvation is not a "couldn't tell" verdict).
+        if ctx.Err() == context.DeadlineExceeded {
+                return buildUnmeasuredDNSSECResult()
+        }
 
         algorithm, algorithmName := parseAlgorithm(dsRecords)
 
