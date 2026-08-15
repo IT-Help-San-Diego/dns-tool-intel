@@ -854,22 +854,9 @@
                         </div>
                     </div>
 
-                    {{range .IntegrityData.Events}}
-                    <div class="mb-2 p-3 u-ede-entry {{if eq .Status "closed"}}u-ede-entry--closed{{else}}u-ede-entry--open{{end}}">
-                        <div class="d-flex justify-content-between align-items-start mb-1">
-                            <div>
-                                <span class="u-fs-07em u-fw-600 u-color-muted-dim u-ls-wide">{{.ID}}</span>
-                                <span class="ms-2 u-ede-cat-badge">{{.Category}}</span>
-                                <span class="ms-1 u-ede-sev-badge {{if eq .Severity "significant"}}u-ede-sev-badge--significant{{else}}u-ede-sev-badge--default{{end}}">{{.Severity}}</span>
-                            </div>
-                            <span class="u-fs-07em u-color-muted-dim">{{.Date}}</span>
-                        </div>
-                        <div class="u-fs-085em u-fw-600 u-color-body mb-1">{{.Title}}</div>
-                        <div class="u-fs-075em u-color-muted-dim mb-1"><strong class="u-color-gold-dim">Confidence Impact:</strong> {{.ConfidenceImpact}}</div>
-                        <div class="u-fs-075em u-color-muted-dim mb-1"><strong class="u-color-success">Resolution:</strong> {{.Resolution}}</div>
-                        <div class="u-fs-07em u-color-muted-xdim fst-italic">{{icon "flask" "me-1 u-fs-06em"}}{{.BayesianNote}}</div>
+                    <div class="text-center mt-3 mb-2">
+                        <a href="/ede" class="text-info text-decoration-none">{{icon "flask" "me-1"}}View the full EDE register &mdash; every correction and its confidence recalibration</a>
                     </div>
-                    {{end}}
 
                     <p class="text-muted mt-3 mb-0 u-fs-075em">{{icon "lock" "me-1"}}EDEs are maintained as a permanent, append-only record &mdash; entries are never deleted or silently revised. All analysis outputs are SHA-3-512 hashed at export, providing tamper-evident snapshots of the scoring state at each point in time. Protocols affected by an EDE undergo recalibration through the <a href="/confidence" class="text-info text-decoration-none">ICIE/ICAE pipeline</a> before updated scores are published.</p>
                 </div>
