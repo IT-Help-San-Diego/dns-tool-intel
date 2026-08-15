@@ -308,5 +308,20 @@ func indeterminateAuxControls(fr map[string]any) map[string]bool {
         if indet("mta_sts_analysis", "mta_sts_state") || indet("tlsrpt_analysis", "tlsrpt_state") {
                 out["MAIL_POLICY_SIGNALING"] = true
         }
+        // DNSSEC (Zero Fabrication): an ambiguous or failed measurement is never
+        // absence. dnssec_state indeterminate/unmeasured means the zone's signing
+        // status could not be determined; chain_of_trust unconfirmed/unknown means
+        // the AD flag/chain could not be verified even when DNSKEY+DS are present.
+        // All three DNSSEC controls then route to could-not-verify, never a real
+        // "deploy/maintain DNSSEC" fix — the scan-18393 false-verdict class.
+        dnssecState := getString(getMap(fr, "dnssec_analysis"), "dnssec_state")
+        chainOfTrust := getString(getMap(fr, "dnssec_analysis"), "chain_of_trust")
+        dnssecIndet := dnssecState == "indeterminate" || dnssecState == "unmeasured" ||
+                chainOfTrust == "unconfirmed" || chainOfTrust == "unknown"
+        if dnssecIndet {
+                out["DNSSEC_AUTHENTICATED"] = true
+                out["DNSSEC_CHAIN_TRUSTED"] = true
+                out["DNSSEC_KEY_ROLLOVER"] = true
+        }
         return out
 }

@@ -286,9 +286,11 @@ func TestClassifyFromResultsBrokenDNSSECStaysRealFix(t *testing.T) {
 }
 
 func TestClassifyFromResultsIndeterminateDNSSECNotForgiven(t *testing.T) {
-        // A transient/indeterminate DNSSEC lookup is NOT authoritative absence, so the
-        // deliberate-enterprise pass must not apply — we never assert a deliberate
-        // posture from a failed measurement.
+        // A transient/indeterminate DNSSEC lookup is NOT authoritative absence, so
+        // neither the deliberate-enterprise pass NOR a real "deploy DNSSEC" fix may
+        // apply — a failed measurement is could-not-verify, never absence (Zero
+        // Fabrication). The scan-18393 class: a transient SERVFAIL must not inflate
+        // the "N issues to fix" count.
         fr := map[string]any{
                 "icsae_evaluation": map[string]any{
                         "high_failures": []interface{}{"DNSSEC_AUTHENTICATED"},
@@ -301,8 +303,50 @@ func TestClassifyFromResultsIndeterminateDNSSECNotForgiven(t *testing.T) {
         if !ok {
                 t.Fatal("ClassifyFromResults ok=false, want true")
         }
-        if fc.RealFixCount != 1 || containsString(fc.ByDesign, "DNSSEC_AUTHENTICATED") {
-                t.Errorf("indeterminate DNSSEC must not be forgiven: count=%d byDesign=%v", fc.RealFixCount, fc.ByDesign)
+        if fc.RealFixCount != 0 {
+                t.Errorf("indeterminate DNSSEC must not be a real fix: count=%d", fc.RealFixCount)
+        }
+        if containsString(fc.ByDesign, "DNSSEC_AUTHENTICATED") {
+                t.Errorf("indeterminate DNSSEC must not be forgiven: byDesign=%v", fc.ByDesign)
+        }
+        if !containsString(fc.CouldntVerify, "DNSSEC_AUTHENTICATED") {
+                t.Errorf("indeterminate DNSSEC must be could-not-verify: couldntVerify=%v", fc.CouldntVerify)
+        }
+}
+
+func TestClassifyFromResultsDNSSECHonestStatesCouldNotVerify(t *testing.T) {
+        // Every honest DNSSEC state (could-not-determine / could-not-verify) routes
+        // the DNSSEC controls to could-not-verify, never a real fix and never a
+        // deliberate-enterprise pass. Absence is authoritative ONLY from
+        // dnssec_state=absent_confirmed.
+        cases := []struct {
+                name string
+                sec  map[string]any
+        }{
+                {"unmeasured", map[string]any{"dnssec_state": "unmeasured"}},
+                {"chain unconfirmed", map[string]any{"dnssec_state": "present", "chain_of_trust": "unconfirmed"}},
+                {"chain unknown", map[string]any{"dnssec_state": "present", "chain_of_trust": "unknown"}},
+        }
+        for _, tc := range cases {
+                t.Run(tc.name, func(t *testing.T) {
+                        fr := map[string]any{
+                                "icsae_evaluation": map[string]any{
+                                        "high_failures": []interface{}{"DNSSEC_AUTHENTICATED"},
+                                        "passed":        []interface{}{},
+                                },
+                                "dnssec_analysis": tc.sec,
+                        }
+                        fc, ok := ClassifyFromResults(fr)
+                        if !ok {
+                                t.Fatal("ok=false, want true")
+                        }
+                        if fc.RealFixCount != 0 {
+                                t.Errorf("RealFixCount=%d, want 0 (honest state must not be a real fix)", fc.RealFixCount)
+                        }
+                        if !containsString(fc.CouldntVerify, "DNSSEC_AUTHENTICATED") {
+                                t.Errorf("DNSSEC_AUTHENTICATED must be could-not-verify, got %v", fc.CouldntVerify)
+                        }
+                })
         }
 }
 
