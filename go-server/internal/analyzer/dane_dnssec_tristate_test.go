@@ -679,6 +679,53 @@ func TestComputePostureDiff_SuppressesIndeterminateFlapping(t *testing.T) {
         }
 }
 
+// TestComputePostureDiff_SuppressesDNSSECUnmeasured extends the tri-state drift
+// suppression to dnssec_state=unmeasured (deadline starvation). A deadline-
+// starved scan is an incomplete probe, not a DNSSEC removal — it must not
+// fabricate a DNSSEC-status drift event.
+func TestComputePostureDiff_SuppressesDNSSECUnmeasured(t *testing.T) {
+        present := map[string]any{
+                "dnssec_analysis": map[string]any{
+                        mapKeyStatus:      "success",
+                        mapKeyDnssecState: dnssecStatePresent,
+                },
+        }
+        unmeasured := map[string]any{
+                "dnssec_analysis": map[string]any{
+                        mapKeyStatus:      statusUnknown,
+                        mapKeyDnssecState: dnssecStateUnmeasured,
+                },
+        }
+
+        if diffs := ComputePostureDiff(present, unmeasured); len(diffs) != 0 {
+                t.Fatalf("present→unmeasured produced %d drift fields, want 0: %+v", len(diffs), diffs)
+        }
+        if diffs := ComputePostureDiff(unmeasured, present); len(diffs) != 0 {
+                t.Fatalf("unmeasured→present produced %d drift fields, want 0: %+v", len(diffs), diffs)
+        }
+}
+
+// TestComputePostureDiff_SuppressesMailPostureWhenIndeterminate pins that the
+// DERIVED Mail Posture (which reads "Could Not Verify" when SPF or DMARC is
+// indeterminate) is suppressed on the same tri-state basis — an indeterminate
+// SPF/DMARC lookup is not evidence that mail posture changed.
+func TestComputePostureDiff_SuppressesMailPostureWhenIndeterminate(t *testing.T) {
+        present := map[string]any{
+                "spf_analysis":      map[string]any{mapKeySpfState: "present"},
+                mapKeyDmarcAnalysis: map[string]any{mapKeyDmarcState: "present"},
+                "mail_posture":      map[string]any{"label": "Strongly Protected"},
+        }
+        indeterminate := map[string]any{
+                "spf_analysis":      map[string]any{mapKeySpfState: spfStateIndeterminate},
+                mapKeyDmarcAnalysis: map[string]any{mapKeyDmarcState: "present"},
+                "mail_posture":      map[string]any{"label": "Could Not Verify"},
+        }
+
+        if diffs := ComputePostureDiff(present, indeterminate); len(diffs) != 0 {
+                t.Fatalf("SPF-indeterminate produced %d drift fields, want 0 (Mail Posture + SPF Status suppressed): %+v", len(diffs), diffs)
+        }
+}
+
 // TestComputePostureDiff_RealTransitionStillDrifts confirms the suppression is
 // scoped: an authoritatively-confirmed present → absent transition (no
 // indeterminate on either side) must still surface as drift.
