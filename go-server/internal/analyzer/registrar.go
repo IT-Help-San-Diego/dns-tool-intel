@@ -210,8 +210,12 @@ func (a *Analyzer) tryRDAPLookup(ctx context.Context, domain string) map[string]
         }
         registrant := extractRegistrantFromRDAP(rdapResult)
         regStr := formatRegistrarWithRegistrant(registrar, registrant)
-        slog.Info("RDAP lookup succeeded", mapKeyDomain, domain, mapKeyRegistrar, regStr)
-        return map[string]any{mapKeyStatus: statusSuccess, mapKeySource: "RDAP", mapKeyRegistrar: regStr, mapKeyConfidence: ConfidenceObservedMap(MethodRDAP)}
+        result := map[string]any{mapKeyStatus: statusSuccess, mapKeySource: "RDAP", mapKeyRegistrar: regStr, mapKeyConfidence: ConfidenceObservedMap(MethodRDAP)}
+        for k, v := range extractRDAPLifecycle(rdapResult) {
+                result[k] = v
+        }
+        slog.Info("RDAP lookup succeeded", mapKeyDomain, domain, mapKeyRegistrar, regStr, "lifecycle_state", result["lifecycle_state"])
+        return result
 }
 
 func formatRegistrarWithRegistrant(registrar, registrant string) string {
@@ -219,6 +223,108 @@ func formatRegistrarWithRegistrant(registrar, registrant string) string {
                 return registrar + fmt.Sprintf(" (Registrant: %s)", registrant)
         }
         return registrar
+}
+
+// rdapLifecycleEvent is a parsed RDAP event (RFC 9083 §4.5): an action and its
+// ISO-8601 timestamp.
+type rdapLifecycleEvent struct {
+        action string
+        date   string
+}
+
+// extractRDAPLifecycle parses the RDAP status[], events[], and secureDNS fields
+// into a registry-lifecycle description. It is deliberately kept SEPARATE from
+// the DNS-derived existence state (domain_exists / domain_status): the RDAP
+// status is an unforgeable registry fact (RFC 9083), while the DNS state is a
+// forgeable, now-only probe. Same split as ad_consensus vs chain_of_trust.
+func extractRDAPLifecycle(data map[string]any) map[string]any {
+        out := map[string]any{}
+
+        statuses := extractRDAPLifecycleStatuses(data)
+        if len(statuses) > 0 {
+                out["lifecycle_statuses"] = statuses
+                out["lifecycle_state"] = classifyRDAPLifecycle(statuses)
+        }
+
+        for _, ev := range extractRDAPLifecycleEvents(data) {
+                switch ev.action {
+                case "registration":
+                        out["registration_date"] = ev.date
+                case "expiration":
+                        out["expiration_date"] = ev.date
+                case "last changed":
+                        out["last_changed_date"] = ev.date
+                case "last update of rdap database":
+                        out["rdap_update_date"] = ev.date
+                }
+        }
+
+        if sd, ok := data["secureDNS"].(map[string]any); ok {
+                if ds, ok := sd["delegationSigned"].(bool); ok {
+                        out["delegation_signed"] = ds
+                }
+        }
+
+        return out
+}
+
+// classifyRDAPLifecycle maps RFC 9083 status strings (space-separated lowercase)
+// to a single lifecycle state, most-terminal-first: the expiry ladder (pending
+// delete > redemption > auto renew) outranks a registry hold, which outranks
+// plain active. Transfer/update/delete-prohibited locks are not lifecycle
+// states and fall through to "active".
+func classifyRDAPLifecycle(statuses []string) string {
+        set := make(map[string]bool, len(statuses))
+        for _, s := range statuses {
+                set[strings.ToLower(s)] = true
+        }
+        switch {
+        case set["pending delete"]:
+                return "pending_delete"
+        case set["redemption period"]:
+                return "redemption"
+        case set["auto renew period"]:
+                return "auto_renew"
+        case set["client hold"] || set["server hold"]:
+                return "hold"
+        default:
+                return "active"
+        }
+}
+
+func extractRDAPLifecycleStatuses(data map[string]any) []string {
+        raw, ok := data["status"].([]any)
+        if !ok {
+                return nil
+        }
+        var out []string
+        for _, v := range raw {
+                if s, ok := v.(string); ok && s != "" {
+                        out = append(out, s)
+                }
+        }
+        return out
+}
+
+func extractRDAPLifecycleEvents(data map[string]any) []rdapLifecycleEvent {
+        raw, ok := data["events"].([]any)
+        if !ok {
+                return nil
+        }
+        var out []rdapLifecycleEvent
+        for _, e := range raw {
+                ev, ok := e.(map[string]any)
+                if !ok {
+                        continue
+                }
+                action, _ := ev["eventAction"].(string)
+                if action == "" {
+                        continue
+                }
+                date, _ := ev["eventDate"].(string)
+                out = append(out, rdapLifecycleEvent{action: strings.ToLower(action), date: date})
+        }
+        return out
 }
 
 func (a *Analyzer) tryParentZoneLookup(ctx context.Context, domain string) map[string]any {
