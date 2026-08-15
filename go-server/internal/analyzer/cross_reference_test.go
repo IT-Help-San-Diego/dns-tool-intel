@@ -77,23 +77,24 @@ func TestSetsOverlap(t *testing.T) {
 
 func TestCompareRecordSets(t *testing.T) {
 	tests := []struct {
-		name       string
-		ours       []string
-		theirs     []string
-		rtype      string
-		provStatus string
-		expect     string
+		name        string
+		ours        []string
+		theirs      []string
+		rtype       string
+		theirFailed bool
+		expect      string
 	}{
-		{"both empty match", []string{}, []string{}, "A", "ok", "match"},
-		{"identical records", []string{"1.2.3.4"}, []string{"1.2.3.4"}, "A", "ok", "match"},
-		{"case insensitive match", []string{"NS1.EXAMPLE.COM"}, []string{"ns1.example.com"}, "NS", "ok", "match"},
-		{"partial overlap", []string{"1.2.3.4", "5.6.7.8"}, []string{"1.2.3.4", "9.10.11.12"}, "A", "ok", "partial"},
-		{"no overlap mismatch", []string{"1.2.3.4"}, []string{"5.6.7.8"}, "A", "ok", "mismatch"},
-		{"provider unavailable", []string{"1.2.3.4"}, []string{}, "A", "error", "unavailable"},
+		{"both empty absent", []string{}, []string{}, "A", false, "absent"},
+		{"identical records", []string{"1.2.3.4"}, []string{"1.2.3.4"}, "A", false, "match"},
+		{"case insensitive match", []string{"NS1.EXAMPLE.COM"}, []string{"ns1.example.com"}, "NS", false, "match"},
+		{"partial overlap", []string{"1.2.3.4", "5.6.7.8"}, []string{"1.2.3.4", "9.10.11.12"}, "A", false, "partial"},
+		{"no overlap mismatch", []string{"1.2.3.4"}, []string{"5.6.7.8"}, "A", false, "mismatch"},
+		{"one empty one present mismatch", []string{"1.2.3.4"}, []string{}, "A", false, "mismatch"},
+		{"failed lookup unavailable", []string{"1.2.3.4"}, []string{}, "A", true, "unavailable"},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			got := compareRecordSets(tc.ours, tc.theirs, tc.rtype, tc.provStatus)
+			got := compareRecordSets(tc.ours, tc.theirs, tc.rtype, tc.theirFailed)
 			if got != tc.expect {
 				t.Errorf("compareRecordSets() = %q, want %q", got, tc.expect)
 			}
@@ -130,22 +131,30 @@ func TestComputeSummary(t *testing.T) {
 				{Match: "match"},
 				{Match: "match"},
 				{Match: "mismatch"},
+				{Match: "absent"},
 			},
 			"cloudflare": {
 				{Match: "match"},
 				{Match: "partial"},
 				{Match: "unavailable"},
+				{Match: "absent"},
 			},
 		},
 	}
 
 	computeSummary(result)
 
-	if result.Summary.TotalChecks != 6 {
-		t.Errorf("TotalChecks = %d, want 6", result.Summary.TotalChecks)
+	if result.Summary.TotalChecks != 8 {
+		t.Errorf("TotalChecks = %d, want 8", result.Summary.TotalChecks)
 	}
-	if result.Summary.Matched != 4 {
-		t.Errorf("Matched = %d, want 4", result.Summary.Matched)
+	if result.Summary.Matched != 3 {
+		t.Errorf("Matched = %d, want 3 (partial must NOT count as matched)", result.Summary.Matched)
+	}
+	if result.Summary.Absent != 2 {
+		t.Errorf("Absent = %d, want 2", result.Summary.Absent)
+	}
+	if result.Summary.Partial != 1 {
+		t.Errorf("Partial = %d, want 1", result.Summary.Partial)
 	}
 	if result.Summary.Mismatched != 1 {
 		t.Errorf("Mismatched = %d, want 1", result.Summary.Mismatched)
