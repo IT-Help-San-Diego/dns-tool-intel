@@ -228,7 +228,7 @@ func TestBuildDNSSECResult(t *testing.T) {
 		r := buildDNSSECResult(dnssecParams{
 			hasDNSKEY:     true,
 			hasDS:         true,
-			adState:        "secure",
+			adState:       "secure",
 			dnskeyRecords: []string{"key1"},
 			dsRecords:     []string{"ds1"},
 			algorithm:     &algo8,
@@ -256,7 +256,7 @@ func TestBuildDNSSECResult(t *testing.T) {
 		r := buildDNSSECResult(dnssecParams{
 			hasDNSKEY:     true,
 			hasDS:         true,
-			adState:        "ad_absent",
+			adState:       "ad_absent",
 			dnskeyRecords: []string{"key1"},
 			dsRecords:     []string{"ds1"},
 			algorithm:     &algo8,
@@ -278,7 +278,7 @@ func TestBuildDNSSECResult(t *testing.T) {
 		r := buildDNSSECResult(dnssecParams{
 			hasDNSKEY:     true,
 			hasDS:         true,
-			adState:        "bogus",
+			adState:       "bogus",
 			dnskeyRecords: []string{"key1"},
 			dsRecords:     []string{"ds1"},
 			algorithm:     &algo8,
@@ -477,7 +477,7 @@ func TestBuildDNSSECResult_MessageContent(t *testing.T) {
 		r := buildDNSSECResult(dnssecParams{
 			hasDNSKEY:     true,
 			hasDS:         true,
-			adState:        "secure",
+			adState:       "secure",
 			dnskeyRecords: []string{"key1"},
 			dsRecords:     []string{"ds1"},
 			algorithm:     &algo,
@@ -497,7 +497,7 @@ func TestBuildDNSSECResult_MessageContent(t *testing.T) {
 		r := buildDNSSECResult(dnssecParams{
 			hasDNSKEY:     true,
 			hasDS:         true,
-			adState:        "ad_absent",
+			adState:       "ad_absent",
 			dnskeyRecords: []string{"key1"},
 			dsRecords:     []string{"ds1"},
 			algorithm:     &algo,
@@ -564,7 +564,7 @@ func TestBuildDNSSECResult_AlgorithmObservationIncluded(t *testing.T) {
 	r := buildDNSSECResult(dnssecParams{
 		hasDNSKEY:     true,
 		hasDS:         true,
-		adState:        "secure",
+		adState:       "secure",
 		dnskeyRecords: []string{"key1"},
 		dsRecords:     []string{"ds1"},
 		algorithm:     &algo,
@@ -590,7 +590,7 @@ func TestBuildDNSSECResult_NoDNSKEYWithDS(t *testing.T) {
 	r := buildDNSSECResult(dnssecParams{
 		hasDNSKEY:     false,
 		hasDS:         true,
-		adState:        "ad_absent",
+		adState:       "ad_absent",
 		dnskeyRecords: nil,
 		dsRecords:     []string{"12345 8 2 AABB"},
 		algorithm:     &algo,
@@ -608,7 +608,7 @@ func TestBuildDNSSECResult_NilAlgorithm(t *testing.T) {
 	r := buildDNSSECResult(dnssecParams{
 		hasDNSKEY:     true,
 		hasDS:         true,
-		adState:        "secure",
+		adState:       "secure",
 		dnskeyRecords: []string{"key1"},
 		dsRecords:     []string{"ds1"},
 		algorithm:     nil,
