@@ -73,6 +73,7 @@
         .xref-badge-match { background: rgba(34,197,94,0.15); color: #22c55e; }
         .xref-badge-partial { background: rgba(245,158,11,0.15); color: #f59e0b; }
         .xref-badge-mismatch { background: rgba(239,68,68,0.15); color: #ef4444; }
+        .xref-badge-absent { background: rgba(148,163,184,0.15); color: #94a3b8; }
         .xref-badge-unavailable { background: rgba(107,114,128,0.15); color: #6b7280; }
         .xref-summary-card {
             border: 1px solid rgba(255,255,255,0.08);
@@ -193,6 +194,12 @@
         </div>
         {{end}}
 
+        {{if index $crossRef "rebucketed_legacy"}}
+        <div class="text-muted mb-3" style="font-size:0.82rem;">
+            <strong>Note:</strong> this scan predates the absent/failed distinction. Records shown as "Absent" may include a provider lookup that failed rather than a confirmed absence &mdash; the two were indistinguishable when this scan was recorded. A fresh scan reports them separately.
+        </div>
+        {{end}}
+
         {{if $providers}}
         <div class="xref-section">
             <h2>{{icon "server" "me-2"}}Providers Queried</h2>
@@ -261,7 +268,7 @@
                         </td>
                         <td>
                             {{$match := .match}}
-                            <span class="xref-badge {{if eq $match "match"}}xref-badge-match{{else if eq $match "partial"}}xref-badge-partial{{else if eq $match "mismatch"}}xref-badge-mismatch{{else}}xref-badge-unavailable{{end}}">{{$match}}</span>
+                            <span class="xref-badge {{if eq $match "match"}}xref-badge-match{{else if eq $match "absent"}}xref-badge-absent{{else if eq $match "partial"}}xref-badge-partial{{else if eq $match "mismatch"}}xref-badge-mismatch{{else}}xref-badge-unavailable{{end}}">{{$match}}</span>
                         </td>
                     </tr>
                     {{end}}
