@@ -60,6 +60,7 @@
         .xref-partial { color: #f59e0b; }
         .xref-mismatch { color: #ef4444; }
         .xref-unavailable { color: #6b7280; }
+        .xref-absent { color: #94a3b8; }
         .xref-badge {
             display: inline-block;
             padding: 0.15rem 0.5rem;
@@ -164,19 +165,27 @@
         {{if $summary}}
         <div class="xref-summary-card">
             <div class="row text-center">
-                <div class="col-3 xref-summary-stat">
+                <div class="col-4 col-md-2 xref-summary-stat">
                     <div class="num">{{index $summary "total_checks"}}</div>
                     <div class="label">Total Checks</div>
                 </div>
-                <div class="col-3 xref-summary-stat">
+                <div class="col-4 col-md-2 xref-summary-stat">
                     <div class="num xref-match">{{index $summary "matched"}}</div>
-                    <div class="label">Matched</div>
+                    <div class="label">Present</div>
                 </div>
-                <div class="col-3 xref-summary-stat">
+                <div class="col-4 col-md-2 xref-summary-stat">
+                    <div class="num xref-absent">{{index $summary "absent"}}</div>
+                    <div class="label">Absent</div>
+                </div>
+                <div class="col-4 col-md-2 xref-summary-stat">
+                    <div class="num xref-partial">{{index $summary "partial"}}</div>
+                    <div class="label">Partial</div>
+                </div>
+                <div class="col-4 col-md-2 xref-summary-stat">
                     <div class="num xref-mismatch">{{index $summary "mismatched"}}</div>
                     <div class="label">Mismatched</div>
                 </div>
-                <div class="col-3 xref-summary-stat">
+                <div class="col-4 col-md-2 xref-summary-stat">
                     <div class="num xref-unavailable">{{index $summary "unavailable"}}</div>
                     <div class="label">Unavailable</div>
                 </div>
@@ -244,6 +253,8 @@
                             {{$theirs := .their_records}}
                             {{if $theirs}}
                             <ul>{{range $theirs}}<li>{{.}}</li>{{end}}</ul>
+                            {{else if eq .match "unavailable"}}
+                            <span class="xref-empty-cell">Lookup failed</span>
                             {{else}}
                             <span class="xref-empty-cell">No records</span>
                             {{end}}
@@ -299,7 +310,7 @@
         </div>
         <div class="xref-methodology mb-4">
             <p>At scan time, DNS Tool resolves the target domain's core records (A, AAAA, MX, NS, TXT, CNAME) using five independent public DNS resolvers &mdash; <a href="https://developers.cloudflare.com/1.1.1.1/" target="_blank" rel="noopener" class="text-info">Cloudflare</a>, <a href="https://dns.google/" target="_blank" rel="noopener" class="text-info">Google Public DNS</a>, <a href="https://www.quad9.net/" target="_blank" rel="noopener" class="text-info">Quad9</a>, <a href="https://www.opendns.com/" target="_blank" rel="noopener" class="text-info">OpenDNS</a>, and <a href="https://www.dns4.eu/" target="_blank" rel="noopener" class="text-info">DNS4EU</a>. As a separate verification step, it then queries <a href="https://dns.google/" target="_blank" rel="noopener" class="text-info">Google Public DNS</a> (via DNS-over-HTTPS) and <a href="https://developers.cloudflare.com/1.1.1.1/" target="_blank" rel="noopener" class="text-info">Cloudflare DNS</a> (via DNS-over-HTTPS) to cross-reference those results for the same record types.</p>
-            <p>Records are normalized (trailing dots removed, case-folded, sorted) and compared set-to-set. A <span class="xref-match">match</span> means identical record sets. <span class="xref-partial">Partial</span> means overlapping but not identical (common during DNS propagation). A <span class="xref-mismatch">mismatch</span> means no overlap &mdash; which may indicate a configuration error, propagation delay, or split-horizon DNS.</p>
+            <p>Records are normalized (trailing dots removed, case-folded, sorted) and compared set-to-set. A <span class="xref-match">match</span> means identical, non-empty record sets &mdash; corroboration that the record exists. <span class="xref-absent">Absent</span> means both sides queried successfully and found no records &mdash; corroboration of absence, reported separately from a present match. <span class="xref-partial">Partial</span> means overlapping but not identical (common during DNS propagation) &mdash; a discrepancy, not corroboration. A <span class="xref-mismatch">mismatch</span> means no overlap &mdash; which may indicate a configuration error, propagation delay, or split-horizon DNS. A failed provider lookup is reported as unavailable, never as an absence.</p>
             <p>This cross-referencing is not a guarantee of correctness &mdash; it is corroboration. Multiple independent sources observing the same records increases confidence in the data. This is standard practice in intelligence analysis (per <a href="https://www.dni.gov/files/documents/ICD/ICD%20203%20Analytic%20Standards.pdf" target="_blank" rel="noopener" class="text-info">ICD 203</a>) and scientific methodology.</p>
             <p class="text-muted" style="font-size:0.82rem;">Cross-reference schema version: {{if $crossRef}}{{index $crossRef "schema_version"}}{{else}}n/a{{end}} &middot; Generated: {{if $crossRef}}{{index $crossRef "generated_at"}}{{else}}n/a{{end}}</p>
         </div>

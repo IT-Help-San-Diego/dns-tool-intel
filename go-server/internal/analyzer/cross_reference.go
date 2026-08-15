@@ -39,6 +39,7 @@ type CrossRefProvider struct {
         Status    string            `json:"status"`
         LatencyMs int               `json:"latency_ms"`
         Records   map[string][]string `json:"records"`
+        Failed    map[string]bool   `json:"failed,omitempty"`
         QueryURLs map[string]string `json:"query_urls"`
 }
 
@@ -63,6 +64,8 @@ type CrossRefResult struct {
 type CrossRefSummary struct {
         TotalChecks    int    `json:"total_checks"`
         Matched        int    `json:"matched"`
+        Absent         int    `json:"absent"`
+        Partial        int    `json:"partial"`
         Mismatched     int    `json:"mismatched"`
         Unavailable    int    `json:"unavailable"`
         Verdict        string `json:"verdict"`
@@ -145,6 +148,7 @@ func (a *Analyzer) CrossReferenceRecords(ctx context.Context, domain string, bas
                                 Name:      name,
                                 Endpoint:  endpoint,
                                 Records:   make(map[string][]string),
+                                Failed:    make(map[string]bool),
                                 QueryURLs: make(map[string]string),
                         }
 
@@ -158,6 +162,7 @@ func (a *Analyzer) CrossReferenceRecords(ctx context.Context, domain string, bas
                                         slog.Warn("CrossRef DoH query failed", "provider", name, "type", rt, "domain", domain, "error", err)
                                         allOK = false
                                         provider.Records[rt] = []string{}
+                                        provider.Failed[rt] = true
                                         continue
                                 }
                                 sort.Strings(records)
@@ -293,7 +298,7 @@ func buildComparisons(result *CrossRefResult, basicRecords map[string]any) {
 
                         theirRecords := prov.Records[rt]
 
-                        match := compareRecordSets(ourRecords, theirRecords, rt, prov.Status)
+                        match := compareRecordSets(ourRecords, theirRecords, rt, prov.Failed[rt])
 
                         comparisons = append(comparisons, CrossRefComparison{
                                 RecordType:   rt,
@@ -306,8 +311,12 @@ func buildComparisons(result *CrossRefResult, basicRecords map[string]any) {
         }
 }
 
-func compareRecordSets(ours, theirs []string, rtype, provStatus string) string {
-        if provStatus != "ok" && provStatus != "partial" {
+func compareRecordSets(ours, theirs []string, rtype string, theirFailed bool) string {
+        // A failed provider lookup is not a measurement of absence — it is
+        // "could not verify" (unavailable), never corroboration of an absent
+        // record. Absence is corroborated only when BOTH sides queried
+        // successfully and found nothing.
+        if theirFailed {
                 return "unavailable"
         }
 
@@ -315,7 +324,7 @@ func compareRecordSets(ours, theirs []string, rtype, provStatus string) string {
         theirsNorm := normalizeSet(theirs, rtype)
 
         if len(oursNorm) == 0 && len(theirsNorm) == 0 {
-                return "match"
+                return "absent"
         }
 
         if setsEqual(oursNorm, theirsNorm) {
@@ -324,13 +333,6 @@ func compareRecordSets(ours, theirs []string, rtype, provStatus string) string {
 
         if setsOverlap(oursNorm, theirsNorm) {
                 return "partial"
-        }
-
-        if len(oursNorm) == 0 || len(theirsNorm) == 0 {
-                if len(oursNorm) == 0 && len(theirsNorm) == 0 {
-                        return "match"
-                }
-                return "mismatch"
         }
 
         return "mismatch"
@@ -395,6 +397,8 @@ func anyToStringSlice(v any) []string {
 func computeSummary(result *CrossRefResult) {
         total := 0
         matched := 0
+        absent := 0
+        partial := 0
         mismatched := 0
         unavailable := 0
 
@@ -405,7 +409,9 @@ func computeSummary(result *CrossRefResult) {
                         case "match":
                                 matched++
                         case "partial":
-                                matched++
+                                partial++
+                        case "absent":
+                                absent++
                         case "mismatch":
                                 mismatched++
                         case "unavailable":
@@ -415,7 +421,7 @@ func computeSummary(result *CrossRefResult) {
         }
 
         verdict := "corroborated"
-        if mismatched > 0 {
+        if mismatched > 0 || partial > 0 {
                 verdict = "discrepancy_detected"
         }
         if unavailable == total && total > 0 {
@@ -425,6 +431,8 @@ func computeSummary(result *CrossRefResult) {
         result.Summary = CrossRefSummary{
                 TotalChecks: total,
                 Matched:     matched,
+                Absent:      absent,
+                Partial:     partial,
                 Mismatched:  mismatched,
                 Unavailable: unavailable,
                 Verdict:     verdict,
