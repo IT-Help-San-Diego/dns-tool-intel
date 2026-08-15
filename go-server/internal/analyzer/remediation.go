@@ -640,7 +640,8 @@ func appendDNSSECFixes(fixes []fix, ps protocolState) []fix {
                         Section:       sectionDNSSEC,
                 })
         }
-        if !ps.dnssecOK && !ps.dnssecBroken {
+        if !ps.dnssecOK && !ps.dnssecBroken &&
+                !ps.dnssecIndeterminate && !ps.dnssecUnmeasured && !ps.dnssecUnconfirmed {
                 fixes = append(fixes, fix{
                         Title:         "Enable DNSSEC",
                         Description:   "DNSSEC is not enabled for this domain. DNSSEC provides cryptographic authentication of DNS responses, preventing cache poisoning and DNS spoofing attacks.",
@@ -674,7 +675,8 @@ func appendDNSSECFixes(fixes []fix, ps protocolState) []fix {
 }
 
 func appendDANEFixes(fixes []fix, ps protocolState, results map[string]any, domain string) []fix {
-        if ps.daneOK && !ps.dnssecOK {
+        if ps.daneOK && !ps.dnssecOK &&
+                !ps.dnssecIndeterminate && !ps.dnssecUnmeasured && !ps.dnssecUnconfirmed {
                 fixes = append(fixes, fix{
                         Title:         "DANE Requires DNSSEC",
                         Description:   "DANE/TLSA records are present but DNSSEC is not enabled. DANE cannot function without DNSSEC validation.",
