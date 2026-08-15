@@ -517,7 +517,19 @@ func (a *Analyzer) AnalyzeDNSSEC(ctx context.Context, domain string) map[string]
         // to assert "absent_confirmed" (empty DNSKEY) or "partial"/"broken" (empty
         // DS) when the AD signal proves the chain, so a row can never store a
         // contradiction beside "ad_consensus: secure/bogus/split".
-        if (!hasDNSKEY || !hasDS) && (adState == "secure" || adState == "bogus" || adState == "split") {
+        //
+        // EXCEPTION — inherited signing: a SUBDOMAIN of a signed zone legitimately
+        // has no DNSKEY/DS of its own (signing lives at the parent apex), so
+        // "secure AD + empty DNSKEY/DS" is the inherited case, not a false-absent
+        // contradiction. The guard applies to the zone apex only; a secure subdomain
+        // falls through to buildInheritedDNSSECResult below. (A bogus/split AD on a
+        // subdomain is the broken-parent case, which is not inherited-valid signing,
+        // so the guard still applies there.)
+        inheritedZone := ""
+        if (!hasDNSKEY || !hasDS) && adState == "secure" {
+                inheritedZone = findParentZone(a.DNS, ctx, domain)
+        }
+        if (!hasDNSKEY || !hasDS) && (adState == "secure" || adState == "bogus" || adState == "split") && inheritedZone == "" {
                 return buildIndeterminateDNSSECResult(adResolver)
         }
 
@@ -558,8 +570,13 @@ func (a *Analyzer) AnalyzeDNSSEC(ctx context.Context, domain string) map[string]
                 })
         }
 
-        parentZone := findParentZone(a.DNS, ctx, domain)
-        parentAlgo, parentAlgoName := parseAlgorithm(parentDSRecords(a, ctx, parentZone))
+        // Inherited signing: a subdomain of a signed zone. inheritedZone was
+        // resolved by the guard above (secure AD + empty own DNSKEY/DS); resolve
+        // it now only for the defensive direct-call path.
+        if inheritedZone == "" {
+                inheritedZone = findParentZone(a.DNS, ctx, domain)
+        }
+        parentAlgo, parentAlgoName := parseAlgorithm(parentDSRecords(a, ctx, inheritedZone))
 
-        return buildInheritedDNSSECResult(parentZone, adResolver, parentAlgo, parentAlgoName)
+        return buildInheritedDNSSECResult(inheritedZone, adResolver, parentAlgo, parentAlgoName)
 }

@@ -272,6 +272,40 @@ func TestAnalyzeDNSSEC_SecureADButEmptyDNSKEY(t *testing.T) {
         }
 }
 
+// TestAnalyzeDNSSEC_InheritedSubdomainSecureAD locks the inherited-signing
+// reachability fix (2026-08-15): a SUBDOMAIN of a signed zone legitimately has
+// no DNSKEY/DS of its own (signing lives at the parent apex), so secure AD
+// beside an empty own-DNSKEY/DS is the inherited case — NOT a false-absent
+// contradiction. The consistency guard must not fire for a subdomain; the row
+// must read chain_of_trust=inherited, never indeterminate. (dnstool.it-help.tech
+// is the live case: signed via it-help.tech, rendered "Could Not Verify" before
+// this fix.)
+func TestAnalyzeDNSSEC_InheritedSubdomainSecureAD(t *testing.T) {
+        const subdomain = "www.tristate-example.test"
+        mockDNS := NewMockDNSClient()
+        mockDNS.AddTTLStatusResponse("DNSKEY", subdomain,
+                dnsclient.RecordWithTTL{}, dnsclient.LookupAbsent)
+        mockDNS.AddTTLStatusResponse("DS", subdomain,
+                dnsclient.RecordWithTTL{}, dnsclient.LookupAbsent)
+        mockDNS.AddADFlagResult(subdomain, dnsclient.ADFlagResult{State: "secure", ADFlag: true})
+        // The parent zone carries NS records, so findParentZone resolves it and the
+        // subdomain is treated as inherited, not apex.
+        mockDNS.AddResponse("NS", "tristate-example.test", []string{"ns1.tristate-example.test."})
+        a := &Analyzer{DNS: mockDNS}
+
+        result := a.AnalyzeDNSSEC(context.Background(), subdomain)
+
+        if got := result[mapKeyChainOfTrust]; got != "inherited" {
+                t.Fatalf("chain_of_trust = %v, want inherited (a signed subdomain must not read as indeterminate)", got)
+        }
+        if got := result[mapKeyStatus]; got != "success" {
+                t.Fatalf("status = %v, want success", got)
+        }
+        if got := result[mapKeyDnssecState]; got != dnssecStatePresent {
+                t.Fatalf("dnssec_state = %v, want %s (inherited signing is present, not indeterminate)", got, dnssecStatePresent)
+        }
+}
+
 func TestAnalyzeDNSSEC_TriState_Indeterminate(t *testing.T) {
         mockDNS := NewMockDNSClient()
         mockDNS.AddTTLStatusResponse("DNSKEY", triStateDomain,
