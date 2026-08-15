@@ -413,11 +413,12 @@ func (a *Analyzer) AnalyzeDNSSEC(ctx context.Context, domain string) map[string]
         // Consistency guard: a resolver reporting "secure" (validated chain),
         // "bogus" (broken chain), or "split" (disagreeing validators) necessarily
         // saw and evaluated the DNSKEY/DS records — it cannot validate a chain it
-        // never saw. An empty DNSKEY lookup beside such a state is a false-negative
-        // from our own consensus fold, never a real absence. Refuse to assert
-        // "absent_confirmed" when the AD signal proves presence, so a row can never
-        // store "absent_confirmed" beside "ad_consensus: secure/bogus/split".
-        if !hasDNSKEY && (adState == "secure" || adState == "bogus" || adState == "split") {
+        // never saw. An empty DNSKEY OR DS lookup beside such a state is a
+        // false-negative from our own consensus fold, never a real absence. Refuse
+        // to assert "absent_confirmed" (empty DNSKEY) or "partial"/"broken" (empty
+        // DS) when the AD signal proves the chain, so a row can never store a
+        // contradiction beside "ad_consensus: secure/bogus/split".
+        if (!hasDNSKEY || !hasDS) && (adState == "secure" || adState == "bogus" || adState == "split") {
                 return buildIndeterminateDNSSECResult(adResolver)
         }
 

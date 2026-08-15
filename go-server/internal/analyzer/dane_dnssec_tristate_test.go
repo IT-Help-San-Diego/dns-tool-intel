@@ -46,6 +46,29 @@ func TestAnalyzeDNSSEC_ExpiredDeadlineReportsUnmeasured(t *testing.T) {
         }
 }
 
+// TestAnalyzeDNSSEC_SecureADButEmptyDS pins the consistency guard for the DS
+// half: a validating resolver reporting "secure" necessarily saw a complete
+// DNSKEY+DS chain, so hasDNSKEY=true with hasDS=false beside ad=secure is a
+// false-negative from our own consensus fold — never a real "DS missing at
+// registrar". Must report indeterminate, never partial/broken (broken counts
+// against the score, so this would otherwise penalize an intact chain).
+func TestAnalyzeDNSSEC_SecureADButEmptyDS(t *testing.T) {
+        mockDNS := NewMockDNSClient()
+        mockDNS.AddTTLStatusResponse("DNSKEY", triStateDomain,
+                dnsclient.RecordWithTTL{Records: []string{"256 3 13 deadbeef"}, Authenticated: true},
+                dnsclient.LookupResolved)
+        mockDNS.AddTTLStatusResponse("DS", triStateDomain,
+                dnsclient.RecordWithTTL{}, dnsclient.LookupAbsent)
+        mockDNS.AddADFlagResult(triStateDomain, dnsclient.ADFlagResult{State: "secure", ADFlag: true})
+        a := &Analyzer{DNS: mockDNS}
+
+        result := a.AnalyzeDNSSEC(context.Background(), triStateDomain)
+
+        if got := result[mapKeyDnssecState]; got != dnssecStateIndeterminate {
+                t.Fatalf("dnssec_state = %v, want %s (secure AD beside empty DS is a false-negative, never partial/broken)", got, dnssecStateIndeterminate)
+        }
+}
+
 func TestAnalyzeDANE_TriState_Present(t *testing.T) {
         mockDNS := NewMockDNSClient()
         mockDNS.AddTTLStatusResponse("TLSA", triStateTLSAName,
