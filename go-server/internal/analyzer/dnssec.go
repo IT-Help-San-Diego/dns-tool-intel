@@ -85,6 +85,26 @@ func dnssecDisplayLabel(state, chain string) (label, severity string) {
         return "Unsigned", "warning"
 }
 
+// RebucketDNSSECDisplayLabel backfills display_label + display_severity on a
+// persisted dnssec_analysis map written before those fields existed, so old
+// rows render the same honest label as a fresh scan (single source of truth —
+// never re-derived per-template). Idempotent: a map that already carries the
+// fields is left untouched.
+func RebucketDNSSECDisplayLabel(results map[string]any) {
+        dnssec, _ := results["dnssec_analysis"].(map[string]any)
+        if dnssec == nil {
+                return
+        }
+        if _, ok := dnssec[mapKeyDisplayLabel]; ok {
+                return
+        }
+        state, _ := dnssec[mapKeyDnssecState].(string)
+        chain, _ := dnssec[mapKeyChainOfTrust].(string)
+        label, severity := dnssecDisplayLabel(state, chain)
+        dnssec[mapKeyDisplayLabel] = label
+        dnssec[mapKeyDisplaySeverity] = severity
+}
+
 var algorithmNames = map[int]string{
         1: "RSAMD5", 3: "DSA", 5: "RSA/SHA-1", 6: "DSA-NSEC3-SHA1",
         7: "RSASHA1-NSEC3-SHA1", 8: "RSA/SHA-256", 10: "RSA/SHA-512",

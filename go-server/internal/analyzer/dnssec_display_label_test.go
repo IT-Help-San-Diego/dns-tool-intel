@@ -33,3 +33,38 @@ func TestDNSSECDisplayLabel(t *testing.T) {
 		})
 	}
 }
+
+// TestRebucketDNSSECDisplayLabel pins the view-time backfill so a row written
+// before display_label existed renders the same honest label as a fresh scan,
+// and is idempotent (a present field is left untouched).
+func TestRebucketDNSSECDisplayLabel(t *testing.T) {
+	// Old-shape row: dnssec_state present + chain broken (bogus), no display_label.
+	results := map[string]any{
+		"dnssec_analysis": map[string]any{
+			"dnssec_state":   dnssecStatePresent,
+			"chain_of_trust": "broken",
+		},
+	}
+	RebucketDNSSECDisplayLabel(results)
+	dnssec := results["dnssec_analysis"].(map[string]any)
+	if dnssec["display_label"] != "Broken" || dnssec["display_severity"] != "danger" {
+		t.Errorf("backfill = (%v,%v), want (Broken,danger)", dnssec["display_label"], dnssec["display_severity"])
+	}
+
+	// Idempotent: a present field is not overwritten.
+	results2 := map[string]any{
+		"dnssec_analysis": map[string]any{
+			"dnssec_state":     dnssecStatePresent,
+			"chain_of_trust":   "complete",
+			"display_label":    "Signed",
+			"display_severity": "success",
+		},
+	}
+	RebucketDNSSECDisplayLabel(results2)
+	if results2["dnssec_analysis"].(map[string]any)["display_label"] != "Signed" {
+		t.Error("idempotence broken: present display_label was overwritten")
+	}
+
+	// Absent dnssec_analysis is a no-op.
+	RebucketDNSSECDisplayLabel(map[string]any{})
+}
