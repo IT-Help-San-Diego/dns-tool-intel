@@ -53,11 +53,19 @@ FROM drift_events
 WHERE diff_summary @> '[{"Severity": "success"}]'::jsonb;
 
 -- name: CountDNSSECUnmeasured :one
--- "Unmeasured" = we could not measure DNSSEC (our validating resolvers were
--- unreachable, or the DNSKEY/DS lookup failed). This is an instrument-health
--- signal: if it climbs, OUR probes are failing, not the domains. Reaches into
--- the full_results JSON payload, so it is indexed (migration 022) and cached
+-- "Unmeasured" = the scan deadline expired before DNSSEC could be measured.
+-- This is an instrument-health signal: if it climbs, OUR scans are timing out,
+-- not the domains. Distinct from CountDNSSECIndeterminate ("we measured and
+-- the protocol couldn't attribute"). Indexed (migration 023) and cached
 -- (5-minute window) in the handler — see cachedDNSSECUnmeasured in stats.go.
 SELECT COUNT(*)::bigint AS count
 FROM domain_analyses
-WHERE full_results -> 'dnssec_analysis' ->> 'chain_of_trust' = 'unknown';
+WHERE full_results -> 'dnssec_analysis' ->> 'dnssec_state' = 'unmeasured';
+
+-- name: CountDNSSECIndeterminate :one
+-- "Indeterminate" = we measured and the protocol couldn't attribute (a corpus
+-- property, expected and stable) — distinct from CountDNSSECUnmeasured ("our
+-- scan ran out of time"). Indexed (migration 023).
+SELECT COUNT(*)::bigint AS count
+FROM domain_analyses
+WHERE full_results -> 'dnssec_analysis' ->> 'dnssec_state' = 'indeterminate';
