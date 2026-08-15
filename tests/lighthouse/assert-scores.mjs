@@ -22,15 +22,18 @@ try {
 
 const categories = report.categories ?? {};
 
-// Regression floors (0..1). Calibrated 2026-08-13 against PageSpeed Insights
-// (pagespeed.web.dev, Google's hosted Lighthouse 13.4.1): DESKTOP = 99/100/100/100,
-// MOBILE = 97/100/100/100. Floors sit below the real baseline with margin for the
-// CI container's hardware variance (chiefly Total Blocking Time, which is
-// machine-sensitive). a11y/best-practices/SEO are code-deterministic (100) so they
-// are floored tighter. Tighten upward as the site improves — never raise to match a
-// regression.
+// Regression floors (0..1). The OTHER categories are code-deterministic — they
+// sit at 100 on both web.dev and CI, so any drop below 100 is a real code
+// regression and is floored tight (95). Performance is the machine-sensitive one:
+// web.dev desktop measures 98, but the CI container (ubuntu-latest, same
+// --preset=desktop) measures ~89 because TBT/LCP scale with CPU speed and the
+// GitHub runner is slower than Google's PageSpeed servers. The performance floor
+// is therefore CONTAINER-relative — set at 85 (a few points below the observed
+// ~89) so container variance doesn't fail unrelated PRs, while still catching a
+// real regression (a 15-point drop to ~74 fails). Recalibrated 2026-08-15 after
+// three consecutive 89/90 false failures.
 const floors = {
-  performance: 0.9,
+  performance: 0.85,
   accessibility: 0.95,
   "best-practices": 0.95,
   seo: 0.9,
