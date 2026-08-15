@@ -32,12 +32,17 @@ const categories = report.categories ?? {};
 // ~89) so container variance doesn't fail unrelated PRs, while still catching a
 // real regression (a 15-point drop to ~74 fails). Recalibrated 2026-08-15 after
 // three consecutive 89/90 false failures.
-const floors = {
-  performance: 0.85,
-  accessibility: 0.95,
-  "best-practices": 0.95,
-  seo: 0.9,
-};
+const local = process.argv.includes("--local");
+
+// Two floor sets. CI floors are CONTAINER-relative: the GitHub runner's CPU is
+// ~11pts slower than web.dev's, so the CI floor (performance 85) absorbs that
+// hardware gap and only fails on a real code regression. LOCAL floors run on a
+// fast developer machine and should match web.dev (~100 desktop) — tighter, so a
+// real regression is caught on the developer's box before it ever reaches CI.
+// Run locally with: node tests/lighthouse/assert-scores.mjs report.json --local
+const floors = local
+  ? { performance: 0.97, accessibility: 1.0, "best-practices": 1.0, seo: 1.0 }
+  : { performance: 0.85, accessibility: 0.95, "best-practices": 0.95, seo: 0.9 };
 
 let failed = false;
 for (const [key, floor] of Object.entries(floors)) {
