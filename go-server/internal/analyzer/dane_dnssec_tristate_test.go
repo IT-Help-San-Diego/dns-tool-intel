@@ -976,3 +976,79 @@ func TestComputePostureDiff_AuxRealTransitionStillDrifts(t *testing.T) {
                 t.Fatal("confirmed present->absent on aux protocols must still drift (suppression must not be over-broad)")
         }
 }
+
+// TestAnalyzeDNSSEC_BogusNoSecure_MeasuredNegative pins the 2026-08-15 ruling:
+// unanimous CD-confirmed bogus with zero secure votes is a measured negative —
+// the strongest evidence of breakage available — and must render as broken,
+// not indeterminate.
+func TestAnalyzeDNSSEC_BogusNoSecure_MeasuredNegative(t *testing.T) {
+        domain := "dns-evil-flicker.com"
+        mock := NewMockDNSClient()
+        mock.AddTTLStatusResponse("DNSKEY", domain, dnsclient.RecordWithTTL{}, dnsclient.LookupError)
+        mock.AddTTLStatusResponse("DS", domain, dnsclient.RecordWithTTL{}, dnsclient.LookupError)
+        mock.AddADFlagResult(domain, dnsclient.ADFlagResult{
+                State:  "bogus",
+                ADFlag: false,
+                ResolverAD: map[string]string{
+                        "Cloudflare": "bogus", "Google": "bogus", "Quad9": "bogus",
+                        "OpenDNS": "bogus", "DNS4EU": "bogus",
+                },
+        })
+
+        a := &Analyzer{DNS: mock}
+        result := a.AnalyzeDNSSEC(context.Background(), domain)
+
+        chain, _ := result[mapKeyChainOfTrust].(string)
+        if chain != "broken" {
+                t.Errorf("expected chain_of_trust=broken, got %q", chain)
+        }
+        state, _ := result[mapKeyDnssecState].(string)
+        if state != "present" {
+                t.Errorf("expected dnssec_state=present, got %q", state)
+        }
+        reason, _ := result[mapKeyIndeterminateReason].(string)
+        if reason != "measured_bogus" {
+                t.Errorf("expected indeterminate_reason=measured_bogus, got %q", reason)
+        }
+        label, _ := result[mapKeyDisplayLabel].(string)
+        if label != "Broken" {
+                t.Errorf("expected display_label=Broken, got %q", label)
+        }
+}
+
+// TestAnalyzeDNSSEC_BogusNoSecure_SalvageDNSKEY verifies the salvage path:
+// a fresh CD=1 DNSKEY query is attempted so the broken row carries its key
+// material rather than reading "broken" beside an empty record table.
+func TestAnalyzeDNSSEC_BogusNoSecure_SalvageDNSKEY(t *testing.T) {
+        domain := "dns-evil-flicker.com"
+        mock := NewMockDNSClient()
+        // First DNSKEY lookup errors (validating path).
+        mock.AddTTLStatusResponse("DNSKEY", domain, dnsclient.RecordWithTTL{}, dnsclient.LookupError)
+        mock.AddTTLStatusResponse("DS", domain, dnsclient.RecordWithTTL{}, dnsclient.LookupError)
+        // Salvage query succeeds (CD=1).
+        mock.AddTTLStatusResponse("DNSKEY", domain, dnsclient.RecordWithTTL{
+                Records: []string{
+                        "dns-evil-flicker.com.\t300\tIN\tDNSKEY\t256 3 13 6Vi5uVS+3Xwv5Lo9Ppcz7f+qIgWBI/iatOi3zhXs63NHyuuKN5uRLwE3hSxokxKayXJtX8CV+xpKFKawqhLk0w==",
+                        "dns-evil-flicker.com.\t300\tIN\tDNSKEY\t257 3 13 Yl9q/HDVKhp7dyJ2SaVZ73WTP8mT1iubDLrEmWSs1SvHfmGhkS+BMT2OlTuipFiS9MkOXS77OfwtUtRwFu4LCg==",
+                },
+        }, dnsclient.LookupResolved)
+        mock.AddADFlagResult(domain, dnsclient.ADFlagResult{
+                State:  "bogus",
+                ADFlag: false,
+                ResolverAD: map[string]string{
+                        "Cloudflare": "bogus", "Google": "bogus", "Quad9": "bogus",
+                        "OpenDNS": "bogus", "DNS4EU": "bogus",
+                },
+        })
+
+        a := &Analyzer{DNS: mock}
+        result := a.AnalyzeDNSSEC(context.Background(), domain)
+
+        hasDNSKEY, _ := result[mapKeyHasDnskey].(bool)
+        if !hasDNSKEY {
+                t.Error("salvage query should populate has_dnskey=true")
+        }
+        if chain, _ := result[mapKeyChainOfTrust].(string); chain != "broken" {
+                t.Errorf("expected chain=broken, got %q", chain)
+        }
+}

@@ -49,8 +49,8 @@ func ComputePostureDiff(prev, curr map[string]any) []PostureDiffField {
         // 44× on transient DANE failures). The verdict text already says
         // "could not verify"; drift must stay silent rather than fabricate a
         // removal/restoration pair.
-        daneIndet := postureFieldEquals(prev, mapKeyDaneAnalysis, "dane_state", dnssecStateIndeterminate) ||
-                postureFieldEquals(curr, mapKeyDaneAnalysis, "dane_state", dnssecStateIndeterminate)
+        daneIndet := postureFieldEquals(prev, mapKeyDaneAnalysis, "dane_state", daneStateIndeterminate) ||
+                postureFieldEquals(curr, mapKeyDaneAnalysis, "dane_state", daneStateIndeterminate)
         dnssecIndet := postureFieldEquals(prev, "dnssec_analysis", mapKeyDnssecState, dnssecStateIndeterminate) ||
                 postureFieldEquals(curr, "dnssec_analysis", mapKeyDnssecState, dnssecStateIndeterminate) ||
                 postureFieldEquals(prev, "dnssec_analysis", mapKeyDnssecState, dnssecStateUnmeasured) ||
