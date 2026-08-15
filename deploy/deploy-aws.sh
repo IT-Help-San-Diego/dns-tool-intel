@@ -77,6 +77,11 @@ ssh "$DEPLOY_HOST" "set -u
   rsync -a --delete --exclude=/logs '${STAGE_PATH}/' '${DEPLOY_PATH}/'
   rc=\$?
   chmod +x '${DEPLOY_PATH}/dns-tool-server' 2>/dev/null || true
+  # Re-read the unit + its EnvironmentFile before start: the rsync rewrites the
+  # tree under the unit's WorkingDirectory, so systemd otherwise flags the unit
+  # as "changed on disk" on EVERY deploy — a warning that trains us to ignore
+  # the deploy output where real failures actually show up.
+  sudo systemctl daemon-reload
   sudo systemctl start dnstool
   exit \$rc
 "
