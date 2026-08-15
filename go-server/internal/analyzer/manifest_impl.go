@@ -184,8 +184,9 @@ var FeatureParityManifest = []ManifestEntry{
 			"IANA RDAP bootstrap",
 			"RDAP HTTP query",
 			"Response caching (24h TTL per RFC 9224)",
+			"Registry lifecycle status + event parsing (RFC 9083)",
 		},
-		RFC: "RFC 9224",
+		RFC: "RFC 9083, RFC 9224",
 	},
 	{
 		Feature:     "Certificate Transparency Subdomain Discovery",
