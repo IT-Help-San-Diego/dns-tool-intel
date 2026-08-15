@@ -886,6 +886,19 @@ func TestBuildMissingSteps(t *testing.T) {
 	}
 }
 
+func TestBuildMissingSteps_DKIMInconclusive(t *testing.T) {
+	// Regression (same class as the it-help.tech DNSSEC false verdict): DKIM
+	// inconclusive means "no probed selector matched — could not determine",
+	// never "absent". The missing-steps table must not turn it into a corrective
+	// "Configure DKIM signing" instruction.
+	steps := buildMissingSteps(mailFlags{dkimIndet: true})
+	for _, s := range steps {
+		if s["control"] == "DKIM Signing" {
+			t.Error("DKIM inconclusive emitted 'Configure DKIM signing' missing step")
+		}
+	}
+}
+
 func TestClassifyMailPosture(t *testing.T) {
 	mc := classifyMailPosture(mailFlags{hasNullMX: true, spfDenyAll: true, dmarcReject: true}, 3, "example.com", protocolState{})
 	if mc.classification != "no_mail_verified" {

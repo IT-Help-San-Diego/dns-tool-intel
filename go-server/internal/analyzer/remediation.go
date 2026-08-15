@@ -149,6 +149,7 @@ type mailFlags struct {
         dmarcPolicy string
         spfIndet    bool
         dmarcIndet  bool
+        dkimIndet   bool
 }
 
 type dnsRecord struct {
@@ -928,6 +929,13 @@ func extractMailFlags(results map[string]any, ps protocolState) mailFlags {
                 }
         }
 
+        // DKIM has the same honest-state shape: classifyDKIMState returns
+        // DKIMInconclusive (its zero value) when no probed selector matched —
+        // "could not determine", never "absent". Suppress the "Configure DKIM
+        // signing" missing-step on that state so the remediation plan never
+        // reproduces the false-absence finding the DKIM verdict already declined.
+        mf.dkimIndet = classifyDKIMState(ps) == DKIMInconclusive
+
         basic, _ := results["basic_records"].(map[string]any)
         if basic != nil {
                 if mx, ok := basic["MX"].([]string); ok && len(mx) > 0 {
@@ -987,7 +995,7 @@ func buildMissingSteps(mf mailFlags) []map[string]any {
         defs := []missingStepDef{
                 {missing: !mf.hasSPF && !mf.spfIndet, control: "SPF Record", rfc: remSPF, rfcURL: remSPFURL, action: "Publish an SPF record", risk: "No sender authorization"},
                 {missing: !mf.hasDMARC && !mf.dmarcIndet, control: "DMARC Policy", rfc: remDMARC7489, rfcURL: remDMARC7489URL, action: "Publish a DMARC record", risk: "No spoofing protection policy"},
-                {missing: !mf.hasDKIM, control: "DKIM Signing", rfc: remDKIMSign, rfcURL: remDKIMSignURL, action: "Configure DKIM signing", risk: "Messages cannot be cryptographically verified"},
+                {missing: !mf.hasDKIM && !mf.dkimIndet, control: "DKIM Signing", rfc: remDKIMSign, rfcURL: remDKIMSignURL, action: "Configure DKIM signing", risk: "Messages cannot be cryptographically verified"},
         }
         for _, d := range defs {
                 if d.missing {
