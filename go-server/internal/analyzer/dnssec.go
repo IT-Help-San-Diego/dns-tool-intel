@@ -68,7 +68,15 @@ func dnssecDisplayLabel(state, chain string) (label, severity string) {
                 return "Could Not Verify", "secondary"
         case dnssecStateUnmeasured:
                 return "Not Measured", "secondary"
-        case dnssecStatePresent:
+        case dnssecStatePresent, "":
+                // "" = legacy rows: dnssec_state was introduced 2026-06-17
+                // (#122), so rows persisted before it carry only chain_of_trust.
+                // The chain WAS measured — derive the label from it, never
+                // default to "Unsigned" (a Feb-Apr row with chain=complete is a
+                // measured, validated, SIGNED zone; the old status-based
+                // template rendered it correctly and the backfill must not do
+                // worse). present+none cannot occur (absence is emitted as
+                // dnssec_state=absent_confirmed), so sharing the switch is safe.
                 switch chain {
                 case "complete":
                         return "Signed", "success"
@@ -76,13 +84,16 @@ func dnssecDisplayLabel(state, chain string) (label, severity string) {
                         return "Broken", "danger"
                 case "unconfirmed":
                         return "Unconfirmed", "warning"
-                case "unknown":
-                        return "Could Not Verify", "secondary"
                 case "inherited":
                         return "Inherited", "success"
+                case "none":
+                        return "Unsigned", "warning"
                 }
         }
-        return "Unsigned", "warning"
+        // Unknown state or chain is a could-not-tell, never a measured absence —
+        // "Unsigned" here would be a fabricated claim (the same defect class as
+        // defaulting unrecognized RDAP statuses to "active").
+        return "Could Not Verify", "secondary"
 }
 
 // RebucketDNSSECDisplayLabel backfills display_label + display_severity on a
