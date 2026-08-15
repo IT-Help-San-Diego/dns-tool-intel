@@ -16,7 +16,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 SRC = ROOT / "templates" / "results.html"
 DST = ROOT / "templates" / "results_v2.html"
-SOURCE_LINE_COUNT = 7109
+SOURCE_LINE_COUNT = 7045
 
 lines = SRC.read_text().split("\n")
 assert len(lines) >= SOURCE_LINE_COUNT, (

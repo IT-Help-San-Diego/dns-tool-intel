@@ -221,56 +221,8 @@
         </div>
     </output>
 
-    <output id="dossierAnalyzeOverlay" class="loading-overlay" aria-live="polite" aria-busy="true" aria-label="Running domain assessment">
-        <div class="loading-content">
-            {{template "scan_overlay_content" .}}
-        </div>
-    </output>
-
     {{template "scripts" .}}
     <script nonce="{{.CspNonce}}">
-    function handleDossierPage(html, respUrl) {
-        document.open();
-        document.write(html);
-        document.close();
-        globalThis.scrollTo(0, 0);
-        const mm=document.querySelector('meta[name="x-report-mode"]');
-        const ie=document.querySelector('[data-analysis-id]');
-        const rm=mm?mm.content:'';
-        const ra=ie?ie.dataset.analysisId:'';
-        if(ra&&rm){globalThis.history.replaceState(null,'','/analysis/'+ra+'/view/'+rm);}
-        else if (respUrl && respUrl !== globalThis.location.href) {
-            globalThis.history.replaceState(null, '', respUrl);
-        }
-    }
-
-    function handleDossierFetchResponse(resp, overlay) {
-        if (resp.redirected) {
-            globalThis.location.href = resp.url;
-            return;
-        }
-        return resp.text().then(function(html) { handleDossierPage(html, resp.url); });
-    }
-
-    function submitDossierReanalyze(href, overlay) {
-        const domain = href.split('domain=')[1] || '';
-        const formData = new FormData();
-        formData.append('domain', decodeURIComponent(domain));
-        const csrf = document.querySelector('meta[name="csrf-token"]');
-        if(csrf) formData.append('_csrf', csrf.content);
-        fetch('/analyze', {
-            method: 'POST',
-            body: formData,
-            headers: { 'X-Requested-With': 'fetch' },
-            redirect: 'follow'
-        }).then(function(resp) {
-            handleDossierFetchResponse(resp, overlay);
-        }).catch(function() {
-            if(overlay) overlay.classList.remove('active');
-            alert('Network error — please check your connection and try again.');
-        });
-    }
-
     for(const btn of document.querySelectorAll('.dossier-view-btn')){
         btn.addEventListener('click', function(e){
             const overlay = document.getElementById('dossierViewOverlay');
@@ -278,22 +230,6 @@
         });
     }
 
-    for(const btn of document.querySelectorAll('.dossier-reanalyze-btn')){
-        btn.addEventListener('click', function(e){
-            e.preventDefault();
-            const domain = btn.href.split('domain=')[1] || '';
-            const overlay = document.getElementById('dossierAnalyzeOverlay');
-            if(overlay) {
-                const domainEl = overlay.querySelector('.scan-overlay-domain');
-                if(domainEl) domainEl.textContent = decodeURIComponent(domain);
-                overlay.classList.add('active');
-                if(typeof showOverlay==='function'){showOverlay(overlay);}
-                if(typeof startStatusCycle==='function'){startStatusCycle(overlay);}
-            }
-
-            submitDossierReanalyze(btn.href, overlay);
-        });
-    }
     </script>
 </body>
 </html>
