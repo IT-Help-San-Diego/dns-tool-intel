@@ -306,6 +306,32 @@ func TestAnalyzeDNSSEC_InheritedSubdomainSecureAD(t *testing.T) {
         }
 }
 
+// TestAnalyzeDNSSEC_ApexFailedDNSKEYSecureAD pins the interaction between the
+// lookupErrored gate and the consistency guard (the case flagged for review):
+// an APEX whose DNSKEY lookup FAILED (transient) but whose AD is secure.
+// definitivePositive is true via adFlag, so the lookupErrored gate does NOT
+// return; the consistency guard then fires (apex, not subdomain) → indeterminate.
+// The two gates are complementary, never conflicting — both agree on
+// "could not verify", never a fabricated absence.
+func TestAnalyzeDNSSEC_ApexFailedDNSKEYSecureAD(t *testing.T) {
+        mockDNS := NewMockDNSClient()
+        mockDNS.AddTTLStatusResponse("DNSKEY", triStateDomain,
+                dnsclient.RecordWithTTL{}, dnsclient.LookupError)
+        mockDNS.AddTTLStatusResponse("DS", triStateDomain,
+                dnsclient.RecordWithTTL{}, dnsclient.LookupAbsent)
+        mockDNS.AddADFlagResult(triStateDomain, dnsclient.ADFlagResult{State: "secure", ADFlag: true})
+        a := &Analyzer{DNS: mockDNS}
+
+        result := a.AnalyzeDNSSEC(context.Background(), triStateDomain)
+
+        if got := result[mapKeyDnssecState]; got != dnssecStateIndeterminate {
+                t.Fatalf("dnssec_state = %v, want %s (apex + failed DNSKEY + secure AD must read could-not-verify)", got, dnssecStateIndeterminate)
+        }
+        if got := result[mapKeyStatus]; got != statusUnknown {
+                t.Fatalf("status = %v, want %s", got, statusUnknown)
+        }
+}
+
 func TestAnalyzeDNSSEC_TriState_Indeterminate(t *testing.T) {
         mockDNS := NewMockDNSClient()
         mockDNS.AddTTLStatusResponse("DNSKEY", triStateDomain,
