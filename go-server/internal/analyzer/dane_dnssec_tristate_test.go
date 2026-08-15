@@ -726,6 +726,40 @@ func TestComputePostureDiff_SuppressesMailPostureWhenIndeterminate(t *testing.T)
         }
 }
 
+// TestComputePostureDiff_SuppressesMailPostureWhenDKIMInconclusive pins the
+// one-token close from the 2026-08-15 relay: the DERIVED Mail Posture is
+// suppressed when DKIM is indeterminate (has_dkim=false with an inconclusive
+// census), even when SPF and DMARC are confirmed present — a DKIM flap makes
+// the derived Mail Posture verdict structurally unreliable.
+func TestComputePostureDiff_SuppressesMailPostureWhenDKIMInconclusive(t *testing.T) {
+        present := map[string]any{
+                mapKeyDkimAnalysis: map[string]any{
+                        mapKeyDkimState: triStatePresent,
+                        "has_dkim":      true,
+                        "dkim_selectors": []any{
+                                map[string]any{"selector": "google", "status": "present"},
+                        },
+                },
+                "spf_analysis": map[string]any{mapKeySpfState: "present"},
+                mapKeyDmarcAnalysis: map[string]any{mapKeyDmarcState: "present"},
+                "mail_posture": map[string]any{"label": "Strongly Protected"},
+        }
+        indeterminate := map[string]any{
+                mapKeyDkimAnalysis: map[string]any{
+                        mapKeyDkimState: triStateIndeterminate,
+                        "has_dkim":      false,
+                        "dkim_selectors": []any{},
+                },
+                "spf_analysis":      map[string]any{mapKeySpfState: "present"},
+                mapKeyDmarcAnalysis: map[string]any{mapKeyDmarcState: "present"},
+                "mail_posture":      map[string]any{"label": "Could Not Verify"},
+        }
+
+        if diffs := ComputePostureDiff(present, indeterminate); len(diffs) != 0 {
+                t.Fatalf("DKIM-indeterminate produced %d drift fields, want 0 (Mail Posture + DKIM Status suppressed): %+v", len(diffs), diffs)
+        }
+}
+
 // TestComputePostureDiff_RealTransitionStillDrifts confirms the suppression is
 // scoped: an authoritatively-confirmed present → absent transition (no
 // indeterminate on either side) must still surface as drift.
