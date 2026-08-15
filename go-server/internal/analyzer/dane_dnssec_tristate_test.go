@@ -7,6 +7,7 @@ import (
         "context"
         "strings"
         "testing"
+        "time"
 
         "dnstool/go-server/internal/dnsclient"
 )
@@ -24,6 +25,26 @@ const (
 )
 
 func newTriStateMX() []string { return []string{"10 " + triStateMX + "."} }
+
+// TestAnalyzeDNSSEC_ExpiredDeadlineReportsUnmeasured pins the deferred guard:
+// an expired parent scan deadline must report "unmeasured" ("we never got to
+// measure") rather than "indeterminate" ("we measured and couldn't tell").
+// These are different claims and must not merge — this is the regression guard
+// for the deadline-starvation bug (a DNSSEC verdict must never be fabricated
+// from a cancelled context).
+func TestAnalyzeDNSSEC_ExpiredDeadlineReportsUnmeasured(t *testing.T) {
+        a := &Analyzer{DNS: NewMockDNSClient()}
+
+        ctx, cancel := context.WithTimeout(context.Background(), time.Nanosecond)
+        defer cancel()
+        time.Sleep(time.Millisecond) // ensure the deadline has expired
+
+        result := a.AnalyzeDNSSEC(ctx, triStateDomain)
+
+        if got := result[mapKeyDnssecState]; got != dnssecStateUnmeasured {
+                t.Fatalf("dnssec_state = %v, want %s (an expired parent deadline must report unmeasured, never indeterminate)", got, dnssecStateUnmeasured)
+        }
+}
 
 func TestAnalyzeDANE_TriState_Present(t *testing.T) {
         mockDNS := NewMockDNSClient()

@@ -1186,9 +1186,9 @@
                         <span class="exec-finding-label">DNSSEC</span>
                         <span class="exec-finding-value">
                             {{$dnssecState := mapGetStr "dnssec_state" $dnssec}}
-                            {{if eq $dnssecState "indeterminate"}}
-                            <span class="badge bg-secondary">Could Not Verify</span>
-                            <span class="text-muted ms-2 small">DNSKEY/DS lookups did not complete — inconclusive, not a finding of absence</span>
+                            {{if or (eq $dnssecState "indeterminate") (eq $dnssecState "unmeasured")}}
+                            <span class="badge bg-secondary">{{if eq $dnssecState "unmeasured"}}Not Measured{{else}}Could Not Verify{{end}}</span>
+                            <span class="text-muted ms-2 small">{{if eq $dnssecState "unmeasured"}}DNSSEC measurement deferred — the scan deadline expired before DNSSEC could be measured{{else}}DNSKEY/DS lookups did not complete — inconclusive, not a finding of absence{{end}}</span>
                             {{else if eq $dnssecStatus "success"}}
                             <span class="badge bg-success">Signed &amp; Validated</span>
                             {{if mapGetStr "chain_summary" $dnssec}}

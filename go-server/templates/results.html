@@ -4795,8 +4795,8 @@
                                     {{icon "key" "me-2"}}DNSSEC
                                     <a href="https://www.rfc-editor.org/rfc/rfc4033.html#section-2:~:text=DNSSEC%20provides%20origin%20authentication%20and%20integrity%20protection" target="_blank" rel="noopener" class="ms-2 text-muted rfc-link" data-bs-toggle="tooltip" data-bs-html="true" title="<strong>DNS Security Extensions</strong><br>Cryptographic signatures designed to authenticate DNS responses and detect tampering. §2 covers DNSSEC concepts.">{{icon "info-circle"}}<span class="rfc-label">RFC 4033 §2</span></a>
                                     {{if .ICAEMetrics}}{{with index .ICAEMetrics.ByKey "dnssec"}}<a href="/confidence" class="badge icae-maturity-badge-deep icae-maturity-deep-{{.EffectiveLevel}} icae-results-badge ms-1 no-print" data-bs-toggle="tooltip" title="ICAE: {{.EffectiveDisplay}}">{{.EffectiveDisplay}}</a>{{end}}{{end}}
-                                    {{if eq $dnssecState "indeterminate"}}
-                                    <span class="badge bg-secondary ms-2" data-bs-toggle="tooltip" title="DNSKEY/DS lookups did not complete — this is not a finding of absence (RFC 4035)">Could Not Verify</span>
+                                    {{if or (eq $dnssecState "indeterminate") (eq $dnssecState "unmeasured")}}
+                                    <span class="badge bg-secondary ms-2" data-bs-toggle="tooltip" title="DNSSEC could not be verified or was not measured — this is not a finding of absence (RFC 4035)">{{if eq $dnssecState "unmeasured"}}Not Measured{{else}}Could Not Verify{{end}}</span>
                                     {{else}}
                                     <span class="badge bg-{{if eq $dnssecStatus "success"}}success{{else}}warning{{end}} ms-2">
                                         {{if and (eq $dnssecStatus "success") (eq $chainOfTrust "inherited")}}Inherited{{else if eq $dnssecStatus "success"}}Signed{{else}}Unsigned{{end}}
