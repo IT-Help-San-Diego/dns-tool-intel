@@ -498,6 +498,7 @@ func RebucketCrossRefSummary(crossRef map[string]any) {
         }
 
         total, matched, absent, partial, mismatched, unavailable := 0, 0, 0, 0, 0, 0
+        rebucketedLegacy := false
         for _, provVal := range comparisonsRaw {
                 comps, _ := provVal.([]any)
                 for _, compVal := range comps {
@@ -520,7 +521,17 @@ func RebucketCrossRefSummary(crossRef map[string]any) {
                                 mismatched++
                         case "match":
                                 if len(ours) == 0 && len(theirs) == 0 {
+                                        // Rewrite the ROW label, not just the
+                                        // counter, so the per-row table agrees
+                                        // with the summary ("absent", not
+                                        // "match"). A new-shape row never has
+                                        // "match" with both-empty (that case is
+                                        // emitted as "absent" at scan time), so
+                                        // hitting this branch marks the row as
+                                        // pre-split.
+                                        comp["match"] = "absent"
                                         absent++
+                                        rebucketedLegacy = true
                                 } else {
                                         matched++
                                 }
@@ -544,5 +555,8 @@ func RebucketCrossRefSummary(crossRef map[string]any) {
                 "mismatched":   mismatched,
                 "unavailable":  unavailable,
                 "verdict":      verdict,
+        }
+        if rebucketedLegacy {
+                crossRef["rebucketed_legacy"] = true
         }
 }

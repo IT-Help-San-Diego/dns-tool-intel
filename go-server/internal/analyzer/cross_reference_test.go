@@ -286,4 +286,18 @@ func TestRebucketCrossRefSummary(t *testing.T) {
 	if sum["verdict"].(string) != "discrepancy_detected" {
 		t.Errorf("verdict = %q, want discrepancy_detected (partial > 0)", sum["verdict"])
 	}
+
+	// The per-row labels must be rewritten too, so the table agrees with the
+	// summary, and the row must be flagged legacy (pre-split).
+	if crossRef["rebucketed_legacy"] != true {
+		t.Error("rebucketed_legacy flag not set on an old-shape row")
+	}
+	comparisons := crossRef["comparisons"].(map[string]any)
+	google := comparisons["google"].([]any)
+	if google[1].(map[string]any)["match"] != "absent" {
+		t.Errorf("old both-empty 'match' row not relabeled 'absent': %v", google[1].(map[string]any)["match"])
+	}
+	if google[0].(map[string]any)["match"] != "match" {
+		t.Errorf("present 'match' row must stay 'match': %v", google[0].(map[string]any)["match"])
+	}
 }
