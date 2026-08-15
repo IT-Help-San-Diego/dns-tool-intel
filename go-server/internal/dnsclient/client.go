@@ -905,15 +905,20 @@ func (c *Client) CheckDNSSECADFlag(ctx context.Context, domain string) ADFlagRes
                         continue
                 }
 
-                // SERVFAIL from a validating resolver means DNSSEC validation
-                // FAILED (expired RRSIG, broken chain, unsupported algorithm) — a
-                // distinct "bogus" signal, not "ad_absent" and not a failed check.
-                // The old code had no SERVFAIL branch, so bogus fell through to
-                // ADFlag=false and read identically to an AD-absent response (RFC 4033 §5:
-                // bogus is signaled via RCODE=2 / Server Failure).
+                // SERVFAIL is ambiguous: RFC 4033 §5 signals "bogus" via RCODE=2,
+                // but SERVFAIL is ALSO plain transport failure, resolver overload,
+                // or upstream trouble — it is not, by itself, a measurement of
+                // validation failure. Cross-check with CD=1: if the resolver
+                // answers with checking disabled, the SERVFAIL was genuine
+                // validation rejection (a bogus vote). If CD=1 also fails, the
+                // failure is transport and this resolver casts no vote at all.
                 if resp.Rcode == dns.RcodeServerFailure {
-                        result.ResolverAD[r.Name] = "bogus"
-                        bogus++
+                        if c.cdConfirmedBogus(ctx, net.JoinHostPort(r.IP, dnsPort), fqdn) {
+                                result.ResolverAD[r.Name] = "bogus"
+                                bogus++
+                        } else {
+                                result.ResolverAD[r.Name] = "unmeasured"
+                        }
                         continue
                 }
 
@@ -942,43 +947,75 @@ func (c *Client) CheckDNSSECADFlag(ctx context.Context, domain string) ADFlagRes
                 }
         }
 
-        // Aggregate classification. RFC 4033 §5 defines four validation states
-        // (Secure / Insecure / Bogus / Indeterminate); we surface the wire signal
-        // honestly and never overclaim where the RFC says the signal is ambiguous:
-        //   "secure"     — AD bit set (RFC: Secure).
-        //   "ad_absent"  — AD bit clear; RFC 4033 §5 notes the signaling mechanism
-        //                  cannot distinguish Insecure from Indeterminate, so we
-        //                  record the observation (AD absent) rather than naming a
-        //                  state we cannot prove.
-        //   "bogus"      — SERVFAIL (RFC 4033 §5: bogus is signaled via RCODE=2).
-        //   "split"      — OUR term: validating resolvers disagree.
-        //   "unmeasured" — OUR term: no resolver cast a usable vote.
-        switch {
-        case bogus > 0:
-                result.State = "bogus"
-                result.ADFlag = false
-                result.Validated = false
-        case secure+adAbsent == 0:
-                result.State = "unmeasured"
-                result.ADFlag = false
-                result.Validated = false
+        state, adFlag, validated := foldADVotes(secure, adAbsent, bogus)
+        result.State = state
+        result.ADFlag = adFlag
+        result.Validated = validated
+        if state == "unmeasured" {
                 errStr := "Could not verify AD flag"
                 result.Error = &errStr
-        case adAbsent == 0 && secure > 0:
-                result.State = "secure"
-                result.ADFlag = true
-                result.Validated = true
-        case secure == 0 && adAbsent > 0:
-                result.State = "ad_absent"
-                result.ADFlag = false
-                result.Validated = false
-        default:
-                result.State = "split"
-                result.ADFlag = false
-                result.Validated = false
         }
 
         return result
+}
+
+// foldADVotes classifies the resolver votes into an aggregate validation state.
+// It is a pure function so the fold can be unit-tested without a network.
+//
+// RFC 4033 §5 defines four validation states (Secure / Insecure / Bogus /
+// Indeterminate); we surface the wire signal honestly and never overclaim where
+// the RFC says the signal is ambiguous:
+//   "secure"     — AD bit set (RFC: Secure).
+//   "ad_absent"  — AD bit clear; RFC 4033 §5 notes the signaling mechanism
+//                  cannot distinguish Insecure from Indeterminate, so we record
+//                  the observation (AD absent) rather than naming a state we
+//                  cannot prove.
+//   "bogus"      — a CD=1-confirmed SERVFAIL (genuine validation rejection).
+//   "split"      — OUR term: validating resolvers disagree.
+//   "unmeasured" — OUR term: no resolver cast a usable vote.
+//
+// A single bogus vote never outvotes secure votes: a transient SERVFAIL
+// (transport) already casts no vote, and a CD-confirmed bogus alongside a
+// secure vote is genuine disagreement (split), not rejection.
+func foldADVotes(secure, adAbsent, bogus int) (state string, adFlag, validated bool) {
+        switch {
+        case bogus > 0 && secure == 0 && adAbsent == 0:
+                // Every usable vote is a CD-confirmed validation rejection.
+                return "bogus", false, false
+        case bogus > 0 && (secure > 0 || adAbsent > 0):
+                // A CD-confirmed bogus vote disagrees with a secure or ad-absent
+                // vote — genuine resolver disagreement, not a unanimous rejection.
+                return "split", false, false
+        case secure+adAbsent == 0:
+                return "unmeasured", false, false
+        case adAbsent == 0 && secure > 0:
+                return "secure", true, true
+        case secure == 0 && adAbsent > 0:
+                return "ad_absent", false, false
+        default:
+                return "split", false, false
+        }
+}
+
+// cdConfirmedBogus re-queries the resolver with the CD (checking disabled) bit
+// set. If the resolver then answers NOERROR, the original SERVFAIL was DNSSEC
+// validation rejection — the resolver holds the zone's data but refused to vouch
+// for it under validation, a genuine bogus vote. If CD=1 also fails, the SERVFAIL
+// was transport/upstream trouble and the resolver casts no vote. (RFC 4035 §3.2.2:
+// with CD=1 the resolver returns records WITHOUT validating, so a broken chain's
+// data is visible instead of SERVFAILing away.)
+func (c *Client) cdConfirmedBogus(ctx context.Context, resolverAddr, fqdn string) bool {
+        msg := dns.NewMsg(fqdn, dns.TypeA)
+        msg.RecursionDesired = true
+        msg.UDPSize, msg.Security = 4096, true
+        msg.CheckingDisabled = true
+
+        dnsClient := newDNSClient(3 * time.Second)
+        resp, _, err := dnsClient.Exchange(ctx, msg, protoUDP, resolverAddr)
+        if err != nil || resp == nil {
+                return false
+        }
+        return resp.Rcode == dns.RcodeSuccess
 }
 
 func (c *Client) ExchangeContext(ctx context.Context, msg *dns.Msg) (*dns.Msg, error) {
