@@ -52,6 +52,26 @@ func (a *Analyzer) LookupASN(ctx context.Context, results map[string]any) map[st
 	for _, info := range asnSet {
 		uniqueASNs = append(uniqueASNs, info)
 	}
+	// CDN-proxied detection: when all observed addresses resolve to a single
+	// ASN and that ASN is a known CDN, DNS-based origin rotation (fast flux)
+	// is structurally unobservable — the operator can rotate origins every
+	// 30 seconds and the A records will never move. Report "not observable",
+	// never "stable". Same discipline as DKIM inconclusive and DNSSEC
+	// unmeasured: the tool must not conflate "measured nothing" with
+	// "couldn't measure."
+	if len(uniqueASNs) == 1 {
+		for _, info := range uniqueASNs {
+			asn, _ := info[mapKeyASN].(string)
+			if _, isCDN := wellKnownASNames[asn]; isCDN {
+				name := wellKnownASNames[asn]
+				result["cdn_proxied"] = true
+				result["cdn_asn"] = fmt.Sprintf("AS%s %s", asn, name)
+				result["flux_observable"] = false
+				result["flux_observable_reason"] = fmt.Sprintf("CDN-proxied: all observed addresses share a single CDN ASN (AS%s %s); origin rotation is structurally unobservable via DNS", asn, name)
+				break
+			}
+		}
+	}
 	result["unique_asns"] = uniqueASNs
 
 	if len(ipv4Results) == 0 && len(ipv6Results) == 0 {
