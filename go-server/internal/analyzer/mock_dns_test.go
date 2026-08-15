@@ -31,6 +31,7 @@ type MockDNSClient struct {
         specificAuthResp   map[string]specificAuthEntry
         ttlStatusResponses map[string]ttlStatusEntry
         statusResponses    map[string]statusEntry
+        blockOnQuery       bool
 }
 
 type ttlStatusEntry struct {
@@ -173,8 +174,23 @@ func (m *MockDNSClient) AddTTLStatusResponse(recordType, domain string, r dnscli
         m.ttlStatusResponses[mockKey(recordType, domain)] = ttlStatusEntry{rec: r, status: status}
 }
 
-func (m *MockDNSClient) QueryDNSWithTTLStatus(_ context.Context, recordType, domain string, _ bool) (dnsclient.RecordWithTTL, dnsclient.LookupStatus) {
+// SetBlockOnQuery makes QueryDNSWithTTLStatus block until its context is
+// cancelled (simulating a slow resolver), so a test can exercise the
+// post-lookup deadline guard — the branch that fires in production — rather
+// than only the entry guard.
+func (m *MockDNSClient) SetBlockOnQuery(b bool) {
         m.mu.Lock()
+        defer m.mu.Unlock()
+        m.blockOnQuery = b
+}
+
+func (m *MockDNSClient) QueryDNSWithTTLStatus(ctx context.Context, recordType, domain string, _ bool) (dnsclient.RecordWithTTL, dnsclient.LookupStatus) {
+        m.mu.Lock()
+        if m.blockOnQuery {
+                m.mu.Unlock()
+                <-ctx.Done() // simulate a slow resolver: block until the scan deadline expires
+                return dnsclient.RecordWithTTL{}, dnsclient.LookupError
+        }
         defer m.mu.Unlock()
         key := mockKey(recordType, domain)
         if e, ok := m.ttlStatusResponses[key]; ok {

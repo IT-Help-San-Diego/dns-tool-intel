@@ -26,13 +26,14 @@ const (
 
 func newTriStateMX() []string { return []string{"10 " + triStateMX + "."} }
 
-// TestAnalyzeDNSSEC_ExpiredDeadlineReportsUnmeasured pins the deferred guard:
-// an expired parent scan deadline must report "unmeasured" ("we never got to
-// measure") rather than "indeterminate" ("we measured and couldn't tell").
-// These are different claims and must not merge — this is the regression guard
-// for the deadline-starvation bug (a DNSSEC verdict must never be fabricated
-// from a cancelled context).
-func TestAnalyzeDNSSEC_ExpiredDeadlineReportsUnmeasured(t *testing.T) {
+// TestAnalyzeDNSSEC_EntryDeadlineReportsUnmeasured pins the ENTRY guard: a
+// deadline already expired when AnalyzeDNSSEC is called must report
+// "unmeasured" ("we never got to measure") rather than "indeterminate" ("we
+// measured and couldn't tell"). In production this branch is near-unreachable
+// (DNSSEC is dispatched at scan start inside a fresh 60s budget) — it exists to
+// keep "never fabricate a verdict from a cancelled context" true at the
+// boundary, and the unit test reaches it directly with a pre-expired context.
+func TestAnalyzeDNSSEC_EntryDeadlineReportsUnmeasured(t *testing.T) {
         a := &Analyzer{DNS: NewMockDNSClient()}
 
         ctx, cancel := context.WithTimeout(context.Background(), time.Nanosecond)
@@ -43,6 +44,33 @@ func TestAnalyzeDNSSEC_ExpiredDeadlineReportsUnmeasured(t *testing.T) {
 
         if got := result[mapKeyDnssecState]; got != dnssecStateUnmeasured {
                 t.Fatalf("dnssec_state = %v, want %s (an expired parent deadline must report unmeasured, never indeterminate)", got, dnssecStateUnmeasured)
+        }
+        if got := result[mapKeyUnmeasuredReason]; got != "entry_deadline" {
+                t.Fatalf("unmeasured_reason = %v, want entry_deadline (a pre-expired context must fire the entry guard)", got)
+        }
+}
+
+// TestAnalyzeDNSSEC_PostLookupDeadlineReportsUnmeasured pins the guard that
+// actually fires in production: the deadline expiring DURING the lookups. A
+// blocking mock resolver makes the DNSKEY lookup wait out a short timeout, so
+// ctx.Err() == DeadlineExceeded is observed after the lookups return. It also
+// asserts WHICH guard fired (unmeasured_reason) — both guards return the same
+// state, so without the reason a test could pass on the wrong branch.
+func TestAnalyzeDNSSEC_PostLookupDeadlineReportsUnmeasured(t *testing.T) {
+        mock := NewMockDNSClient()
+        mock.SetBlockOnQuery(true)
+        a := &Analyzer{DNS: mock}
+
+        ctx, cancel := context.WithTimeout(context.Background(), 25*time.Millisecond)
+        defer cancel()
+
+        result := a.AnalyzeDNSSEC(ctx, triStateDomain)
+
+        if got := result[mapKeyDnssecState]; got != dnssecStateUnmeasured {
+                t.Fatalf("dnssec_state = %v, want %s", got, dnssecStateUnmeasured)
+        }
+        if got := result[mapKeyUnmeasuredReason]; got != "postlookup_deadline" {
+                t.Fatalf("unmeasured_reason = %v, want postlookup_deadline (the entry guard must not fire here)", got)
         }
 }
 
