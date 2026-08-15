@@ -73,15 +73,15 @@ rsync -azR \
 # (absent from the stage) from --delete.
 echo "Swapping ${DEPLOY_PATH} and restarting…"
 ssh "$DEPLOY_HOST" "set -u
+  # Re-read the unit + its drop-ins/EnvironmentFile BEFORE stop: systemctl flags
+  # the unit as "changed on disk" (the env.conf drop-in is newer than systemd's
+  # cached copy) on the STOP, so daemon-reload must precede it — a warning on
+  # every deploy trains us to ignore the output where real failures show up.
+  sudo systemctl daemon-reload
   sudo systemctl stop dnstool
   rsync -a --delete --exclude=/logs '${STAGE_PATH}/' '${DEPLOY_PATH}/'
   rc=\$?
   chmod +x '${DEPLOY_PATH}/dns-tool-server' 2>/dev/null || true
-  # Re-read the unit + its EnvironmentFile before start: the rsync rewrites the
-  # tree under the unit's WorkingDirectory, so systemd otherwise flags the unit
-  # as "changed on disk" on EVERY deploy — a warning that trains us to ignore
-  # the deploy output where real failures actually show up.
-  sudo systemctl daemon-reload
   sudo systemctl start dnstool
   exit \$rc
 "
