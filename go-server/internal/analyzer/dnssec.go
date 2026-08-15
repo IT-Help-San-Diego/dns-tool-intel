@@ -28,6 +28,8 @@ const (
         mapKeyHasDs                = "has_ds"
         mapKeyDnssecState          = "dnssec_state"
         mapKeyUnmeasuredReason     = "unmeasured_reason"
+        mapKeyDisplayLabel         = "display_label"
+        mapKeyDisplaySeverity      = "display_severity"
 
         // DNSSEC tri-state, mirroring DANE. dnssec_state lets drift tell a
         // genuine "unsigned zone" apart from a probe that failed transiently, so
@@ -48,6 +50,40 @@ const (
         // the unmeasured counter, never merged into honest-uncertainty.
         dnssecStateUnmeasured = "unmeasured"
 )
+
+// dnssecDisplayLabel maps the honest dnssec_state + chain_of_trust to a single
+// user-facing label + severity, so every template renders the SAME honest
+// verdict from one source — never re-deriving "Signed/Unsigned" from the raw
+// status string, which is what produced the "signed zone reads Unsigned" bug.
+// A zone whose DNSKEY+DS are present but whose validation is broken/unconfirmed/
+// unmeasured must never be labeled "Unsigned": it IS signed; the honest label is
+// Broken / Unconfirmed / Could Not Verify.
+func dnssecDisplayLabel(state, chain string) (label, severity string) {
+        switch state {
+        case dnssecStateAbsentConf:
+                return "Unsigned", "warning"
+        case dnssecStatePartial:
+                return "Partially Signed", "warning"
+        case dnssecStateIndeterminate:
+                return "Could Not Verify", "secondary"
+        case dnssecStateUnmeasured:
+                return "Not Measured", "secondary"
+        case dnssecStatePresent:
+                switch chain {
+                case "complete":
+                        return "Signed", "success"
+                case "broken":
+                        return "Broken", "danger"
+                case "unconfirmed":
+                        return "Unconfirmed", "warning"
+                case "unknown":
+                        return "Could Not Verify", "secondary"
+                case "inherited":
+                        return "Inherited", "success"
+                }
+        }
+        return "Unsigned", "warning"
+}
 
 var algorithmNames = map[int]string{
         1: "RSAMD5", 3: "DSA", 5: "RSA/SHA-1", 6: "DSA-NSEC3-SHA1",
@@ -127,6 +163,7 @@ func buildDNSSECResult(p dnssecParams) map[string]any {
                         status = "warning"
                         chain = "unconfirmed"
                 }
+                label, severity := dnssecDisplayLabel(dnssecStatePresent, chain)
                 return map[string]any{
                         mapKeyStatus:               status,
                         mapKeyMessage:              message,
@@ -143,10 +180,13 @@ func buildDNSSECResult(p dnssecParams) map[string]any {
                         mapKeyResolverAD:           p.resolverAD,
                         mapKeyAdResolver:           derefStr(p.adResolver),
                         mapKeyDnssecState:          dnssecStatePresent,
+                        mapKeyDisplayLabel:         label,
+                        mapKeyDisplaySeverity:      severity,
                 }
         }
 
         if p.hasDNSKEY && !p.hasDS {
+                label, severity := dnssecDisplayLabel(dnssecStatePartial, "broken")
                 return map[string]any{
                         mapKeyStatus:               "warning",
                         mapKeyMessage:              "DNSSEC partially configured - DNSKEY exists but DS record missing at registrar",
@@ -167,9 +207,12 @@ func buildDNSSECResult(p dnssecParams) map[string]any {
                         // authoritative parent confirmation, so the absence is real, never a
                         // consensus-miss fabrication (RFC 4035 §3.2.3, RFC 6781 §4.2.2).
                         mapKeyDnssecState: dnssecStatePartial,
+                        mapKeyDisplayLabel:         label,
+                        mapKeyDisplaySeverity:      severity,
                 }
         }
 
+        label, severity := dnssecDisplayLabel(dnssecStateAbsentConf, "none")
         return map[string]any{
                 mapKeyStatus:               "warning",
                 mapKeyMessage:              "DNSSEC not configured - DNS responses are unsigned",
@@ -186,6 +229,8 @@ func buildDNSSECResult(p dnssecParams) map[string]any {
                 mapKeyResolverAD:           p.resolverAD,
                 mapKeyAdResolver:           nil,
                 mapKeyDnssecState:          dnssecStateAbsentConf,
+                mapKeyDisplayLabel:         label,
+                mapKeyDisplaySeverity:      severity,
         }
 }
 
@@ -195,6 +240,7 @@ func buildDNSSECResult(p dnssecParams) map[string]any {
 // an authoritative answer — never from a failed lookup — so this is explicitly
 // NOT a finding of "unsigned".
 func buildIndeterminateDNSSECResult(adResolver *string) map[string]any {
+        label, severity := dnssecDisplayLabel(dnssecStateIndeterminate, statusUnknown)
         return map[string]any{
                 mapKeyStatus:               statusUnknown,
                 mapKeyMessage:              "DNSSEC could not be verified — DNSKEY/DS lookups did not complete (transient resolver failure). This is not evidence that DNSSEC is absent (RFC 4035).",
@@ -209,6 +255,8 @@ func buildIndeterminateDNSSECResult(adResolver *string) map[string]any {
                 mapKeyAdFlag:               false,
                 mapKeyAdResolver:           derefStr(adResolver),
                 mapKeyDnssecState:          dnssecStateIndeterminate,
+                mapKeyDisplayLabel:         label,
+                mapKeyDisplaySeverity:      severity,
         }
 }
 
@@ -218,6 +266,7 @@ func buildIndeterminateDNSSECResult(adResolver *string) map[string]any {
 // protocol cannot say"): here we never got to measure at all, so it belongs on
 // the unmeasured counter and must never merge into honest-uncertainty.
 func buildUnmeasuredDNSSECResult(reason string) map[string]any {
+        label, severity := dnssecDisplayLabel(dnssecStateUnmeasured, statusUnknown)
         return map[string]any{
                 mapKeyStatus:               statusUnknown,
                 mapKeyMessage:              "DNSSEC measurement deferred — the scan deadline expired before DNSSEC could be measured. This is not a claim about the domain's DNSSEC state; re-run the scan to measure it.",
@@ -233,6 +282,8 @@ func buildUnmeasuredDNSSECResult(reason string) map[string]any {
                 mapKeyAdResolver:           nil,
                 mapKeyDnssecState:          dnssecStateUnmeasured,
                 mapKeyUnmeasuredReason:     reason,
+                mapKeyDisplayLabel:         label,
+                mapKeyDisplaySeverity:      severity,
         }
 }
 
@@ -344,6 +395,7 @@ func buildInheritedDNSSECResult(parentZone string, adResolver *string, parentAlg
         } else {
                 message = "DNSSEC validated by resolver - DNS responses are authenticated"
         }
+        label, severity := dnssecDisplayLabel(dnssecStatePresent, "inherited")
         return map[string]any{
                 mapKeyStatus:               "success",
                 mapKeyMessage:              message,
@@ -358,6 +410,8 @@ func buildInheritedDNSSECResult(parentZone string, adResolver *string, parentAlg
                 mapKeyAdFlag:               true,
                 mapKeyAdResolver:           derefStr(adResolver),
                 mapKeyDnssecState:          dnssecStatePresent,
+                mapKeyDisplayLabel:         label,
+                mapKeyDisplaySeverity:      severity,
                 "is_subdomain":             true,
                 "parent_zone":              parentZone,
         }

@@ -656,13 +656,14 @@
                             <h6 class="fw-semibold font-monospace">{{icon "terminal" "me-1"}}DNSSEC</h6>
                             {{$dnssecStatus := mapGetStr "status" $dnssec}}
                             {{$dnssecState := mapGetStr "dnssec_state" $dnssec}}
-                            <div class="alert {{if or (eq $dnssecState "indeterminate") (eq $dnssecState "unmeasured")}}alert-secondary{{else if or (eq $dnssecStatus "secure") (eq $dnssecStatus "success")}}alert-success{{else}}alert-danger{{end}} py-2 mb-2 small">
+                            {{$chainOfTrust := mapGetStr "chain_of_trust" $dnssec}}
+                            <div class="alert {{if or (eq $dnssecState "indeterminate") (eq $dnssecState "unmeasured")}}alert-secondary{{else if eq $dnssecState "absent_confirmed"}}alert-danger{{else if eq $chainOfTrust "broken"}}alert-danger{{else if eq $chainOfTrust "unconfirmed"}}alert-warning{{else}}alert-success{{end}} py-2 mb-2 small">
                                 {{if or (eq $dnssecState "indeterminate") (eq $dnssecState "unmeasured")}}
                                 {{icon "question" "me-1"}}{{if eq $dnssecState "unmeasured"}}DNSSEC not measured &mdash; the scan deadline expired before DNSSEC could be measured. Not a finding of absence{{else}}DNSSEC could not be verified &mdash; DNSKEY/DS lookups did not complete (transient). Inconclusive, not a finding of absence (RFC 4035){{end}}
-                                {{else if or (eq $dnssecStatus "secure") (eq $dnssecStatus "success")}}
-                                {{icon "lock" "me-1"}}DNSSEC validated &mdash; DNS responses are cryptographically signed
-                                {{else}}
+                                {{else if eq $dnssecState "absent_confirmed"}}
                                 {{icon "skull-crossbones" "me-1"}}No DNSSEC &mdash; DNS responses can be spoofed or poisoned
+                                {{else}}
+                                {{icon "lock" "me-1"}}DNSSEC {{mapGetStr "display_label" $dnssec}}{{if eq $chainOfTrust "broken"}} &mdash; chain of trust broken{{else if eq $chainOfTrust "unconfirmed"}} &mdash; validation not uniformly confirmed{{end}}
                                 {{end}}
                             </div>
                             <details class="small text-muted">

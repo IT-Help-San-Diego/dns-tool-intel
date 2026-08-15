@@ -763,10 +763,10 @@
                                 <div class="small text-muted text-uppercase mb-1">DNS Tampering</div>
                                 {{if eq $dnssecStatus "success"}}
                                 <span class="badge bg-success px-3 py-2">Protected</span>
-                                {{else if and $dns_infra (eq (mapGetStr "provider_tier" $dns_infra) "enterprise")}}
+                                {{else if and (eq (mapGetStr "dnssec_state" $dnssec) "absent_confirmed") $dns_infra (eq (mapGetStr "provider_tier" $dns_infra) "enterprise")}}
                                 <span class="badge bg-info px-3 py-2">Enterprise</span>
                                 {{else}}
-                                <span class="badge bg-warning text-dark px-3 py-2">Unsigned</span>
+                                <span class="badge bg-{{mapGetStr "display_severity" $dnssec}} px-3 py-2">{{mapGetStr "display_label" $dnssec}}</span>
                                 {{end}}
                             </div>
                             <div class="col-6 col-md-3">
