@@ -454,6 +454,43 @@ func TestAppendDNSSECFixes_NotEnabled(t *testing.T) {
 	}
 }
 
+func TestAppendDNSSECFixes_IndeterminateNotReportedAsAbsent(t *testing.T) {
+	// Regression (it-help.tech false verdict): remediation must never flatten an
+	// honest "could not verify" state into a corrective "Enable DNSSEC"
+	// instruction. Only a measured negative — OK=false, Broken=false, and none
+	// of the honest states set — may emit the fix.
+	cases := []struct {
+		name string
+		ps   protocolState
+	}{
+		{"indeterminate", protocolState{dnssecIndeterminate: true}},
+		{"unmeasured", protocolState{dnssecUnmeasured: true}},
+		{"unconfirmed", protocolState{dnssecUnconfirmed: true}},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			fixes := appendDNSSECFixes(nil, tc.ps)
+			for _, f := range fixes {
+				if f.Title == "Enable DNSSEC" {
+					t.Errorf("%s state emitted 'Enable DNSSEC'; only a measured absence may", tc.name)
+				}
+			}
+		})
+	}
+}
+
+func TestAppendDANEFixes_DNSSECIndeterminate(t *testing.T) {
+	// DANE present but DNSSEC unverified must not emit "DANE Requires DNSSEC" —
+	// we do not know whether DNSSEC is absent or merely unmeasurable.
+	ps := protocolState{daneOK: true, dnssecIndeterminate: true}
+	fixes := appendDANEFixes(nil, ps, nil, "example.com")
+	for _, f := range fixes {
+		if f.Title == "DANE Requires DNSSEC" {
+			t.Error("DANE present + DNSSEC indeterminate emitted 'DANE Requires DNSSEC'")
+		}
+	}
+}
+
 func TestAppendDNSSECFixes_DeprecatedAlgo(t *testing.T) {
 	ps := protocolState{dnssecOK: true, dnssecAlgoStrength: "deprecated"}
 	fixes := appendDNSSECFixes(nil, ps)
