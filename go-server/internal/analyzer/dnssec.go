@@ -97,6 +97,28 @@ func dnssecDisplayLabel(state, chain string) (label, severity string) {
         return "Could Not Verify", "secondary"
 }
 
+// hasSecureNoBogus reports whether at least one resolver independently
+// validated the chain (a "secure" vote) and none reported CD-confirmed bogus —
+// the inherited-signing qualifier. A single ad_absent vote is "not validated by
+// me" (a couldn't-measure, not a measured negative — Claude Science's ruling,
+// measured: Cloudflare's AD flipped false/true/true/false on unchanged input),
+// so it must never veto the positive secure votes. Only CD-confirmed bogus may
+// veto, because that alone is a validator holding the data and refusing to
+// vouch for it. Unanimity was the live-falsified bug: a signed subdomain with
+// one non-AD resolver read "split" and blocked inheritance.
+func hasSecureNoBogus(resolverAD map[string]string) bool {
+        secure := false
+        for _, vote := range resolverAD {
+                if vote == "bogus" {
+                        return false
+                }
+                if vote == "secure" {
+                        secure = true
+                }
+        }
+        return secure
+}
+
 // RebucketDNSSECDisplayLabel backfills display_label + display_severity on a
 // persisted dnssec_analysis map written before those fields existed, so old
 // rows render the same honest label as a fresh scan (single source of truth —
@@ -542,7 +564,7 @@ func (a *Analyzer) AnalyzeDNSSEC(ctx context.Context, domain string) map[string]
         // subdomain is the broken-parent case, which is not inherited-valid signing,
         // so the guard still applies there.)
         inheritedZone := ""
-        if (!hasDNSKEY || !hasDS) && adState == "secure" {
+        if (!hasDNSKEY || !hasDS) && hasSecureNoBogus(resolverAD) {
                 inheritedZone = findParentZone(a.DNS, ctx, domain)
         }
         if (!hasDNSKEY || !hasDS) && (adState == "secure" || adState == "bogus" || adState == "split") && inheritedZone == "" {
@@ -572,7 +594,12 @@ func (a *Analyzer) AnalyzeDNSSEC(ctx context.Context, domain string) map[string]
                 }
         }
 
-        if !adFlag || hasDNSKEY || hasDS {
+        // The inherited path is reached when the subdomain has no own DNSKEY/DS
+        // AND at least one resolver independently validated the chain with no
+        // CD-confirmed bogus (secure-majority-no-bogus — not unanimous AD, which
+        // was the live-falsified bug: one ad_absent vote made "split" and a
+        // signed subdomain read "could not verify").
+        if hasDNSKEY || hasDS || !hasSecureNoBogus(resolverAD) {
                 return buildDNSSECResult(dnssecParams{
                         hasDNSKEY:     hasDNSKEY,
                         hasDS:         hasDS,
