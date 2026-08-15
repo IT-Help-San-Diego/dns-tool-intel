@@ -94,3 +94,46 @@ func TestCheckDomainExists_MixedTransientAndAbsence(t *testing.T) {
                 t.Fatalf("expected status %q, got %q", "undelegated", status)
         }
 }
+
+// TestCheckExistence_IndeterminateRoutesToFullAnalysis guards the persistence
+// fix: a domain whose existence probe fails transiently (SERVFAIL/timeout) must
+// route to the full analysis (nil earlyReturn) so it persists with
+// domain_exists=true, rather than being short-circuited into a non-existent
+// result and dropped. Regression: dnssec-failed.org (broken DNSSEC chain — every
+// query SERVFAIL) vanished after completing 29/29 tasks because it was
+// classified domain_exists=false and skipped at persistence.
+func TestCheckExistence_IndeterminateRoutesToFullAnalysis(t *testing.T) {
+        mock := NewMockDNSClient()
+        for _, rtype := range []string{"A", "TXT", "MX", "NS"} {
+                mock.AddStatusResponse(rtype, "broken.example", nil, dnsclient.LookupError)
+        }
+        a := &Analyzer{DNS: mock}
+
+        ds, _, earlyReturn := a.checkExistence(context.Background(), "broken.example", "broken.example", InputKindDNSDomain, Web3ResolutionResult{})
+        if earlyReturn != nil {
+                t.Fatalf("statusIndeterminate must route to full analysis (nil earlyReturn), got a non-existent short-circuit")
+        }
+        if ds != statusIndeterminate {
+                t.Fatalf("expected domain status %q, got %q", statusIndeterminate, ds)
+        }
+}
+
+// TestCheckExistence_UndelegatedStillShortCircuits guards the complement: an
+// authoritative absence must STILL short-circuit to a non-existent result — the
+// indeterminate fix must not over-correct into full-analyzing genuinely
+// undelegated domains.
+func TestCheckExistence_UndelegatedStillShortCircuits(t *testing.T) {
+        mock := NewMockDNSClient()
+        for _, rtype := range []string{"A", "TXT", "MX", "NS"} {
+                mock.AddStatusResponse(rtype, "gone.example", nil, dnsclient.LookupAbsent)
+        }
+        a := &Analyzer{DNS: mock}
+
+        _, _, earlyReturn := a.checkExistence(context.Background(), "gone.example", "gone.example", InputKindDNSDomain, Web3ResolutionResult{})
+        if earlyReturn == nil {
+                t.Fatalf("undelegated domain must still short-circuit to a non-existent result (got nil earlyReturn)")
+        }
+        if exists, _ := earlyReturn["domain_exists"].(bool); exists {
+                t.Fatalf("undelegated result must carry domain_exists=false")
+        }
+}

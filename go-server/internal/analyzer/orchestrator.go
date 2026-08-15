@@ -295,6 +295,15 @@ func (a *Analyzer) checkExistence(ctx context.Context, domain, originalInput str
 	if exists {
 		return ds, dsm, nil
 	}
+	if ds == statusIndeterminate {
+		// Transient failure (SERVFAIL/timeout) is NOT a definitive absence. A
+		// domain whose authoritative nameservers are unreachable — e.g. a broken
+		// DNSSEC chain that makes every query SERVFAIL — is registered but
+		// temporarily broken. It must run the full analysis and persist with
+		// domain_exists=true, not be dropped as non-existent. Only "undelegated"
+		// (an authoritative NXDOMAIN/NODATA) asserts absence.
+		return ds, dsm, nil
+	}
 	result := a.buildNonExistentResult(domain, ds, dsm)
 	if web3.IsWeb3Input {
 		result["web3_resolution"] = web3.ToMap()
