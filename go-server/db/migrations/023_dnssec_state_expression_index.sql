@@ -1,0 +1,25 @@
+-- +goose Up
+-- 023_dnssec_state_expression_index.sql
+-- Splits the DNSSEC "unmeasured" counter into two, keyed on dnssec_state:
+--   'unmeasured'    = the scan deadline expired before DNSSEC could be measured
+--                     (instrument-health: OUR scans are timing out)
+--   'indeterminate' = we measured and the protocol couldn't attribute
+--                     (corpus property: expected and stable)
+--
+-- The 022 chain_of_trust index conflated both — buildIndeterminateDNSSECResult
+-- and buildUnmeasuredDNSSECResult each write chain_of_trust='unknown' (the same
+-- statusUnknown), so the chain_of_trust='unknown' predicate caught BOTH states,
+-- merging "we measured and couldn't tell" with "we never got to measure". Those
+-- are different claims and must not merge.
+--
+-- CountDNSSECUnmeasured now keys on dnssec_state='unmeasured' and the new
+-- CountDNSSECIndeterminate keys on dnssec_state='indeterminate'. Both are
+-- equality tests on the same expression, so this ONE index serves both. The 022
+-- index (chain_of_trust) is now orphaned by the repoint — left in place, a
+-- separate cleanup migration can drop it once no query references it.
+--
+-- PLAIN CREATE INDEX, never CONCURRENTLY (see 021/022): migrate.go wraps each
+-- migration in a transaction, and CREATE INDEX CONCURRENTLY is rejected inside
+-- a transaction block.
+CREATE INDEX IF NOT EXISTS ix_da_dnssec_state
+    ON domain_analyses ((full_results -> 'dnssec_analysis' ->> 'dnssec_state'));

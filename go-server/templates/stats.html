@@ -568,6 +568,18 @@
                         </span>
                     </div>
                 </div>
+                <div class="stats-kpi kpi-dnssec">
+                    <div class="stats-kpi-icon">{{icon "question-circle"}}</div>
+                    <div class="stats-kpi-value">{{.DNSSECIndeterminate}}</div>
+                    <div class="stats-kpi-label">
+                        DNSSEC Indeterminate
+                        <span class="badge bg-secondary text-uppercase ms-1"
+                              style="font-size: 0.55rem; letter-spacing: 0.05em;"
+                              title="Corpus property: scans where DNSSEC was measured but the protocol could not attribute a verdict (RFC 4033 §5 cannot distinguish Insecure from Indeterminate). Expected and stable — not an alarm.">
+                            Corpus
+                        </span>
+                    </div>
+                </div>
             </div>
 
             <div class="stats-section">

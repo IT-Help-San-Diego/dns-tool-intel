@@ -86,9 +86,12 @@ var (
 )
 
 var (
-        dnssecUnmeasuredCache     int64
-        dnssecUnmeasuredCacheMu   sync.RWMutex
-        dnssecUnmeasuredCacheTime time.Time
+        dnssecUnmeasuredCache        int64
+        dnssecUnmeasuredCacheMu      sync.RWMutex
+        dnssecUnmeasuredCacheTime    time.Time
+        dnssecIndeterminateCache     int64
+        dnssecIndeterminateCacheMu   sync.RWMutex
+        dnssecIndeterminateCacheTime time.Time
 )
 
 // cachedDNSSECUnmeasured returns the DNSSEC-unmeasured instrument-health count
@@ -118,6 +121,36 @@ func (h *StatsHandler) cachedDNSSECUnmeasured(ctx context.Context) int64 {
         }
         dnssecUnmeasuredCache = count
         dnssecUnmeasuredCacheTime = time.Now()
+        return count
+}
+
+// cachedDNSSECIndeterminate returns the DNSSEC-indeterminate corpus count,
+// cached for 5 minutes. Distinct from cachedDNSSECUnmeasured (instrument-health,
+// "our scans are timing out"): this is "we measured and the protocol couldn't
+// attribute" (RFC 4033 §5) — a corpus property, expected and stable, not an
+// alarm. Indexed by migration 023.
+func (h *StatsHandler) cachedDNSSECIndeterminate(ctx context.Context) int64 {
+        dnssecIndeterminateCacheMu.RLock()
+        if !dnssecIndeterminateCacheTime.IsZero() && time.Since(dnssecIndeterminateCacheTime) < 5*time.Minute {
+                v := dnssecIndeterminateCache
+                dnssecIndeterminateCacheMu.RUnlock()
+                return v
+        }
+        dnssecIndeterminateCacheMu.RUnlock()
+
+        dnssecIndeterminateCacheMu.Lock()
+        defer dnssecIndeterminateCacheMu.Unlock()
+        if !dnssecIndeterminateCacheTime.IsZero() && time.Since(dnssecIndeterminateCacheTime) < 5*time.Minute {
+                return dnssecIndeterminateCache
+        }
+
+        count, err := h.DB.Queries.CountDNSSECIndeterminate(ctx)
+        if err != nil {
+                slog.Warn("Stats: failed to count DNSSEC-indeterminate scans", mapKeyError, err)
+                return dnssecIndeterminateCache // stale value on error, never fabricate 0
+        }
+        dnssecIndeterminateCache = count
+        dnssecIndeterminateCacheTime = time.Now()
         return count
 }
 
@@ -294,6 +327,7 @@ func (h *StatsHandler) Stats(c *gin.Context) {
         // usable AD-flag vote). A climbing count is OUR resolver probes
         // failing, not a domain finding — see CountDNSSECUnmeasured.
         dnssecUnmeasured := h.cachedDNSSECUnmeasured(ctx)
+        dnssecIndeterminate := h.cachedDNSSECIndeterminate(ctx)
 
         // True unique visitors via HyperLogLog++ union across every persisted
         // daily sketch. SUM(unique_visitors) is mathematically wrong (it
@@ -328,6 +362,7 @@ func (h *StatsHandler) Stats(c *gin.Context) {
         data["RecentStats"] = statItems
         data["RemediatedDomains"] = remediatedDomains
         data["DNSSECUnmeasured"] = dnssecUnmeasured
+        data["DNSSECIndeterminate"] = dnssecIndeterminate
         data["IntegrityData"] = integrityData
         c.HTML(http.StatusOK, "stats.html", data)
 }

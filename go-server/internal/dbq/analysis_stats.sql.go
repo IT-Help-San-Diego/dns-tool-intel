@@ -11,18 +11,33 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const countDNSSECIndeterminate = `-- name: CountDNSSECIndeterminate :one
+SELECT COUNT(*)::bigint AS count
+FROM domain_analyses
+WHERE full_results -> 'dnssec_analysis' ->> 'dnssec_state' = 'indeterminate'
+`
+
+// "Indeterminate" = we measured and the protocol couldn't attribute (a corpus
+// property, expected and stable) — distinct from CountDNSSECUnmeasured ("our
+// scan ran out of time"). Indexed (migration 023).
+func (q *Queries) CountDNSSECIndeterminate(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, countDNSSECIndeterminate)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const countDNSSECUnmeasured = `-- name: CountDNSSECUnmeasured :one
 SELECT COUNT(*)::bigint AS count
 FROM domain_analyses
-WHERE full_results -> 'dnssec_analysis' ->> 'chain_of_trust' = 'unknown'
+WHERE full_results -> 'dnssec_analysis' ->> 'dnssec_state' = 'unmeasured'
 `
 
-// "Unmeasured" = we could not measure DNSSEC (our validating resolvers were
-// unreachable, or the DNSKEY/DS lookup failed). This is an instrument-health
-// signal: if it climbs, OUR probes are failing, not the domains. Reaches into
-// the full_results JSON payload (the unindexed-payload class from the scale
-// audit) — it belongs on /stats, not the analysis path, and speeds up for free
-// once full_results converts JSON -> JSONB.
+// "Unmeasured" = the scan deadline expired before DNSSEC could be measured.
+// This is an instrument-health signal: if it climbs, OUR scans are timing out,
+// not the domains. Distinct from CountDNSSECIndeterminate ("we measured and
+// the protocol couldn't attribute"). Indexed (migration 023) and cached
+// (5-minute window) in the handler — see cachedDNSSECUnmeasured in stats.go.
 func (q *Queries) CountDNSSECUnmeasured(ctx context.Context) (int64, error) {
 	row := q.db.QueryRow(ctx, countDNSSECUnmeasured)
 	var count int64
