@@ -368,6 +368,18 @@ func (a *Analyzer) AnalyzeDNSSEC(ctx context.Context, domain string) map[string]
         // instead — we never got to measure — so honest-uncertainty isn't polluted by
         // deadline starvation (mirrors the CT subdomain task's
         // parent_deadline_exhausted guard).
+        //
+        // Reachability note: the "parent" context is the 60s re-wrap the orchestrator
+        // applies inside AnalyzeDomain (orchestrator.go:91), not the 90s handler
+        // scanContext. The shared fan-out dispatches this task at scan start — inside
+        // that 60s context, before the budget is gone — so this entry guard is
+        // structurally near-unreachable in production: on a within-budget scan the
+        // deadline hasn't passed yet, and on an overrun the goroutine is already
+        // running. The post-lookup guard below (ctx.Err() == DeadlineExceeded) is the
+        // one that fires when the budget expires mid-scan. This guard still earns its
+        // place: it defends a direct call with an already-expired context (the
+        // unit-test path) and keeps "never fabricate a verdict from a cancelled
+        // context" true at the boundary.
         if deadline, ok := ctx.Deadline(); ok && time.Until(deadline) <= 0 {
                 return buildUnmeasuredDNSSECResult()
         }
