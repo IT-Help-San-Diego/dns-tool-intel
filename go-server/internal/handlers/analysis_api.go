@@ -436,6 +436,12 @@ func (h *AnalysisHandler) ViewCrossReference(c *gin.Context) {
 	}
 
 	crossRef, _ := results["cross_reference"].(map[string]any)
+	// Recompute the five-way summary from the persisted comparisons so rows
+	// written before the present/absent/partial split render the same honest
+	// numbers as a fresh scan (idempotent on new-shape rows).
+	if crossRef != nil {
+		analyzer.RebucketCrossRefSummary(crossRef)
+	}
 
 	viewData := NewTemplateData(c, h.Config, "")
 	viewData["Domain"] = analysis.Domain
@@ -464,6 +470,7 @@ func (h *AnalysisHandler) APICrossReference(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{mapKeyError: "Cross-reference data not available for this analysis. The domain may have been analyzed before this feature was introduced."})
 		return
 	}
+	analyzer.RebucketCrossRefSummary(crossRef)
 
 	c.JSON(http.StatusOK, gin.H{
 		"analysis_id":     analysis.ID,

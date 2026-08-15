@@ -166,27 +166,27 @@
         <div class="xref-summary-card">
             <div class="row text-center">
                 <div class="col-4 col-md-2 xref-summary-stat">
-                    <div class="num">{{index $summary "total_checks"}}</div>
+                    <div class="num">{{with index $summary "total_checks"}}{{.}}{{else}}0{{end}}</div>
                     <div class="label">Total Checks</div>
                 </div>
                 <div class="col-4 col-md-2 xref-summary-stat">
-                    <div class="num xref-match">{{index $summary "matched"}}</div>
+                    <div class="num xref-match">{{with index $summary "matched"}}{{.}}{{else}}0{{end}}</div>
                     <div class="label">Present</div>
                 </div>
                 <div class="col-4 col-md-2 xref-summary-stat">
-                    <div class="num xref-absent">{{index $summary "absent"}}</div>
+                    <div class="num xref-absent">{{with index $summary "absent"}}{{.}}{{else}}0{{end}}</div>
                     <div class="label">Absent</div>
                 </div>
                 <div class="col-4 col-md-2 xref-summary-stat">
-                    <div class="num xref-partial">{{index $summary "partial"}}</div>
+                    <div class="num xref-partial">{{with index $summary "partial"}}{{.}}{{else}}0{{end}}</div>
                     <div class="label">Partial</div>
                 </div>
                 <div class="col-4 col-md-2 xref-summary-stat">
-                    <div class="num xref-mismatch">{{index $summary "mismatched"}}</div>
+                    <div class="num xref-mismatch">{{with index $summary "mismatched"}}{{.}}{{else}}0{{end}}</div>
                     <div class="label">Mismatched</div>
                 </div>
                 <div class="col-4 col-md-2 xref-summary-stat">
-                    <div class="num xref-unavailable">{{index $summary "unavailable"}}</div>
+                    <div class="num xref-unavailable">{{with index $summary "unavailable"}}{{.}}{{else}}0{{end}}</div>
                     <div class="label">Unavailable</div>
                 </div>
             </div>

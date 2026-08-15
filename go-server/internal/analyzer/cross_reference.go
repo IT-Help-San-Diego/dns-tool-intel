@@ -479,3 +479,70 @@ func crossRefToMap(r *CrossRefResult) map[string]any {
         json.Unmarshal(b, &m)
         return m
 }
+
+// RebucketCrossRefSummary recomputes the five-way summary from the persisted
+// comparisons, so rows written before the present/absent/partial split (which
+// folded corroborated-absences and soft mismatches into "matched") render the
+// same honest numbers as a fresh scan. It is idempotent: a new-shape summary
+// recomputes to itself, and a new-shape "match" is always present-and-equal so
+// the both-empty disambiguation only rewrites the old conflated "match".
+//
+// Caveat (unrecoverable for old rows): the pre-split code stored an empty
+// record slice for BOTH a successful empty answer and a per-type failed DoH
+// lookup under an "ok"/"partial" provider, so absent-vs-failed cannot be
+// distinguished for that slice — both-empty is rebucketed as "absent".
+func RebucketCrossRefSummary(crossRef map[string]any) {
+        comparisonsRaw, _ := crossRef["comparisons"].(map[string]any)
+        if len(comparisonsRaw) == 0 {
+                return
+        }
+
+        total, matched, absent, partial, mismatched, unavailable := 0, 0, 0, 0, 0, 0
+        for _, provVal := range comparisonsRaw {
+                comps, _ := provVal.([]any)
+                for _, compVal := range comps {
+                        comp, _ := compVal.(map[string]any)
+                        if comp == nil {
+                                continue
+                        }
+                        total++
+                        match, _ := comp["match"].(string)
+                        ours := anyToStringSlice(comp["our_records"])
+                        theirs := anyToStringSlice(comp["their_records"])
+                        switch match {
+                        case "absent":
+                                absent++
+                        case "unavailable":
+                                unavailable++
+                        case "partial":
+                                partial++
+                        case "mismatch":
+                                mismatched++
+                        case "match":
+                                if len(ours) == 0 && len(theirs) == 0 {
+                                        absent++
+                                } else {
+                                        matched++
+                                }
+                        }
+                }
+        }
+
+        verdict := "corroborated"
+        if mismatched > 0 || partial > 0 {
+                verdict = "discrepancy_detected"
+        }
+        if unavailable == total && total > 0 {
+                verdict = "verification_unavailable"
+        }
+
+        crossRef["summary"] = map[string]any{
+                "total_checks": total,
+                "matched":      matched,
+                "absent":       absent,
+                "partial":      partial,
+                "mismatched":   mismatched,
+                "unavailable":  unavailable,
+                "verdict":      verdict,
+        }
+}
