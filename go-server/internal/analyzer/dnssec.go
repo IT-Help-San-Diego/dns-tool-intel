@@ -27,6 +27,7 @@ const (
         mapKeyHasDnskey            = "has_dnskey"
         mapKeyHasDs                = "has_ds"
         mapKeyDnssecState          = "dnssec_state"
+        mapKeyUnmeasuredReason     = "unmeasured_reason"
 
         // DNSSEC tri-state, mirroring DANE. dnssec_state lets drift tell a
         // genuine "unsigned zone" apart from a probe that failed transiently, so
@@ -216,7 +217,7 @@ func buildIndeterminateDNSSECResult(adResolver *string) map[string]any {
 // DIFFERENT claim from "indeterminate" (which means "we measured and the
 // protocol cannot say"): here we never got to measure at all, so it belongs on
 // the unmeasured counter and must never merge into honest-uncertainty.
-func buildUnmeasuredDNSSECResult() map[string]any {
+func buildUnmeasuredDNSSECResult(reason string) map[string]any {
         return map[string]any{
                 mapKeyStatus:               statusUnknown,
                 mapKeyMessage:              "DNSSEC measurement deferred — the scan deadline expired before DNSSEC could be measured. This is not a claim about the domain's DNSSEC state; re-run the scan to measure it.",
@@ -231,6 +232,7 @@ func buildUnmeasuredDNSSECResult() map[string]any {
                 mapKeyAdFlag:               false,
                 mapKeyAdResolver:           nil,
                 mapKeyDnssecState:          dnssecStateUnmeasured,
+                mapKeyUnmeasuredReason:     reason,
         }
 }
 
@@ -381,7 +383,7 @@ func (a *Analyzer) AnalyzeDNSSEC(ctx context.Context, domain string) map[string]
         // unit-test path) and keeps "never fabricate a verdict from a cancelled
         // context" true at the boundary.
         if deadline, ok := ctx.Deadline(); ok && time.Until(deadline) <= 0 {
-                return buildUnmeasuredDNSSECResult()
+                return buildUnmeasuredDNSSECResult("entry_deadline")
         }
 
         dnskeyRec, dnskeyStatus := a.DNS.QueryDNSWithTTLStatus(ctx, "DNSKEY", domain, true)
@@ -400,7 +402,7 @@ func (a *Analyzer) AnalyzeDNSSEC(ctx context.Context, domain string) map[string]
         // "unmeasured" rather than "indeterminate" (a measurement interrupted
         // by deadline starvation is not a "couldn't tell" verdict).
         if ctx.Err() == context.DeadlineExceeded {
-                return buildUnmeasuredDNSSECResult()
+                return buildUnmeasuredDNSSECResult("postlookup_deadline")
         }
 
         algorithm, algorithmName := parseAlgorithm(dsRecords)
