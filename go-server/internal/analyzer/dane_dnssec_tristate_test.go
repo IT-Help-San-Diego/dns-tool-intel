@@ -339,6 +339,39 @@ func TestAnalyzeDNSSEC_InheritedSubdomainSplitAD(t *testing.T) {
         }
 }
 
+// TestAnalyzeDNSSEC_InheritedSubdomainSplitADLookupError pins gate one to the
+// same secure-majority ruling as the guard (#379): a transient DNSKEY lookup
+// error beside a split aggregate (4 secure + 1 ad_absent) must NOT exit as
+// indeterminate at the lookupErrored gate — a secure vote is definitive
+// positive evidence, so the scan proceeds to the guard and reads inherited.
+// This was the flap's second door: definitivePositive keyed on adFlag, which
+// is only true on unanimous-secure.
+func TestAnalyzeDNSSEC_InheritedSubdomainSplitADLookupError(t *testing.T) {
+        const subdomain = "www.tristate-example.test"
+        mockDNS := NewMockDNSClient()
+        mockDNS.AddTTLStatusResponse("DNSKEY", subdomain,
+                dnsclient.RecordWithTTL{}, dnsclient.LookupError)
+        mockDNS.AddTTLStatusResponse("DS", subdomain,
+                dnsclient.RecordWithTTL{}, dnsclient.LookupAbsent)
+        mockDNS.AddADFlagResult(subdomain, dnsclient.ADFlagResult{
+                State: "split",
+                ResolverAD: map[string]string{
+                        "Cloudflare": "secure", "Google": "secure", "Quad9": "secure", "OpenDNS": "secure", "DNS4EU": "ad_absent",
+                },
+        })
+        mockDNS.AddResponse("NS", "tristate-example.test", []string{"ns1.tristate-example.test."})
+        a := &Analyzer{DNS: mockDNS}
+
+        result := a.AnalyzeDNSSEC(context.Background(), subdomain)
+
+        if got := result[mapKeyChainOfTrust]; got != "inherited" {
+                t.Fatalf("chain_of_trust = %v, want inherited (transient lookup error must not veto a secure-majority aggregate)", got)
+        }
+        if got := result[mapKeyDnssecState]; got != dnssecStatePresent {
+                t.Fatalf("dnssec_state = %v, want present", got)
+        }
+}
+
 // TestAnalyzeDNSSEC_ApexFailedDNSKEYSecureAD pins the interaction between the
 // lookupErrored gate and the consistency guard (the case flagged for review):
 // an APEX whose DNSKEY lookup FAILED (transient) but whose AD is secure.

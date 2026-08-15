@@ -536,7 +536,13 @@ func (a *Analyzer) AnalyzeDNSSEC(ctx context.Context, domain string) map[string]
         // only assertable from an authoritative answer, never a failed lookup).
         lookupErrored := dnskeyStatus == dnsclient.LookupError || dsStatus == dnsclient.LookupError ||
                 dnskeyStatus == dnsclient.LookupConflict || dsStatus == dnsclient.LookupConflict
-        definitivePositive := (hasDNSKEY && hasDS) || adFlag
+        // A secure vote is definitive positive evidence regardless of coexisting
+        // ad_absent votes (the #379 ruling applied to THIS gate too): adFlag is
+        // only true on unanimous-secure, so keying on it let a transient DNSKEY/DS
+        // lookup error beside a split aggregate exit here as indeterminate before
+        // the secure-majority guard below ever ran — the flap's second door.
+        // hasSecureNoBogus strictly widens adFlag (unanimous secure implies it).
+        definitivePositive := (hasDNSKEY && hasDS) || hasSecureNoBogus(resolverAD)
         if lookupErrored && !definitivePositive {
                 reason := "lookup_errored"
                 if dnskeyStatus == dnsclient.LookupError || dnskeyStatus == dnsclient.LookupConflict {
