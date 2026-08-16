@@ -21,6 +21,7 @@ import (
         "time"
 
         "dnstool/go-server/internal/icons"
+        "dnstool/go-server/internal/severity"
 
         "golang.org/x/text/cases"
         "golang.org/x/text/language"
@@ -869,7 +870,22 @@ func displayFuncs() template.FuncMap {
                 "levelBadge":        logLevelBadge,
                 "levelColor":        logLevelColor,
                 "buildExportQuery":  buildExportQuery,
+                "severityRank":      severityRank,
+                "severityTier":      severityTier,
         }
+}
+
+// severityRank exposes the shared severity map (internal/severity, the
+// single source both report surfaces must consume) as an ascending sort
+// key: FAIL 0 renders first, PASS 3 last.
+func severityRank(status string) int {
+        return int(severity.Rank(status))
+}
+
+// severityTier returns the tier's CSS/JSON name (fail/warn/info/pass)
+// for the same shared map.
+func severityTier(status string) string {
+        return severity.Rank(status).Name()
 }
 
 func logLevelBadge(level string) string {

@@ -14,6 +14,7 @@ import (
 	"dnstool/go-server/internal/botverify"
 	"dnstool/go-server/internal/config"
 	"dnstool/go-server/internal/fixturecorpus"
+	"dnstool/go-server/internal/severity"
 
 	"github.com/gin-gonic/gin"
 )
@@ -65,6 +66,7 @@ func (h *TopologyHandler) Topology(c *gin.Context) {
 	data := NewTemplateData(c, h.Config, "topology")
 	data["SolverLayouts"] = h.SolverJSON()
 	data["FixtureCorpusJSON"] = FixtureCorpusJS()
+	data["SeverityRankJSON"] = SeverityRankJS()
 	// Autorun is the fail-closed server-side gate on the ?domain= scan
 	// auto-start. Only a COMPLETED botverify classification with zero bot
 	// signal (HumanVerified) may inject the autorun flag; JS-executing
@@ -81,4 +83,14 @@ func (h *TopologyHandler) Topology(c *gin.Context) {
 // domain is scanned.
 func FixtureCorpusJS() template.JS {
 	return template.JS(fixturecorpus.CorpusJSON())
+}
+
+// SeverityRankJS exposes the shared severity map (internal/severity) to
+// the topology page as a window global, so the client ranks statuses
+// from the same source the server templates use — never a local copy.
+// This matters because /api/analysis/:id serves full_results verbatim
+// (the SHA3-hashed artifact is never normalized), so the client must
+// rank raw status strings itself.
+func SeverityRankJS() template.JS {
+	return template.JS(severity.RankJSON())
 }

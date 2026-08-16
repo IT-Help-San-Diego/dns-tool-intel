@@ -566,7 +566,7 @@
     </main>
     {{template "footer" .}}
     {{template "scripts" .}}
-    <script nonce="{{.CspNonce}}">window.__TOPO_SOLVER={{.SolverLayouts}};window.__FIXTURE_CORPUS={{.FixtureCorpusJSON}};window.__TOPO_AUTORUN={{.Autorun}};</script>
+    <script nonce="{{.CspNonce}}">window.__TOPO_SOLVER={{.SolverLayouts}};window.__FIXTURE_CORPUS={{.FixtureCorpusJSON}};window.__SEVERITY_RANK={{.SeverityRankJSON}};window.__TOPO_AUTORUN={{.Autorun}};</script>
     {{if .ReplayID}}<script nonce="{{.CspNonce}}">window.__TOPO_REPLAY={id:{{.ReplayID}},domain:{{.ReplayDomain}},totalMs:{{.ReplayTotalMs}}};</script>{{end}}
     <script nonce="{{.CspNonce}}" src="{{staticVersionURL "js/topology.min.js" .AppVersion}}" defer {{staticSRI "js/topology.min.js"}}></script>
 </body>
