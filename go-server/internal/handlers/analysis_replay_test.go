@@ -245,6 +245,75 @@ func TestReplayVerdicts_TriState(t *testing.T) {
 	}
 }
 
+// TestReplayVerdictDetail pins the fixture-class case that motivated the
+// field: a CD-confirmed bogus chain carries status "warning" beside
+// display_severity "danger" in the same section, and the replay payload
+// must surface the producer's derivation so the client ring never keys
+// on the flattening status string.
+func TestReplayVerdictDetail(t *testing.T) {
+	results := map[string]any{
+		"dnssec_analysis": map[string]any{
+			"status":           "warning",
+			"display_label":    "Broken",
+			"display_severity": "danger",
+			"dnssec_state":     "present",
+			"chain_of_trust":   "broken",
+			"ad_consensus":     "bogus",
+		},
+	}
+	raw, _ := json.Marshal(results)
+	detail := replayVerdictDetail(raw)
+	if detail == nil {
+		t.Fatal("detail = nil, want dnssec entry")
+	}
+	d := detail["dnssec"]
+	want := map[string]string{
+		"display_label":    "Broken",
+		"display_severity": "danger",
+		"dnssec_state":     "present",
+		"chain_of_trust":   "broken",
+		"ad_consensus":     "bogus",
+	}
+	for k, w := range want {
+		if d[k] != w {
+			t.Errorf("dnssec[%q] = %q, want %q", k, d[k], w)
+		}
+	}
+}
+
+// TestReplayVerdictDetail_LegacyAndInherited: rows without a
+// display_severity produce NO detail (self-scoping — the client falls
+// back to status rendering), and the inherited path's missing
+// ad_consensus is omitted rather than fabricated as an empty string.
+func TestReplayVerdictDetail_LegacyAndInherited(t *testing.T) {
+	legacy, _ := json.Marshal(map[string]any{
+		"dnssec_analysis": map[string]any{"status": "success", "chain_of_trust": "complete"},
+	})
+	if got := replayVerdictDetail(legacy); got != nil {
+		t.Errorf("legacy row detail = %v, want nil", got)
+	}
+	if got := replayVerdictDetail([]byte("not json")); got != nil {
+		t.Errorf("malformed detail = %v, want nil", got)
+	}
+	inherited, _ := json.Marshal(map[string]any{
+		"dnssec_analysis": map[string]any{
+			"status": "success", "display_label": "Inherited",
+			"display_severity": "success", "dnssec_state": "present",
+			"chain_of_trust": "inherited",
+		},
+	})
+	d := replayVerdictDetail(inherited)
+	if d == nil {
+		t.Fatal("inherited row detail = nil, want dnssec entry")
+	}
+	if _, present := d["dnssec"]["ad_consensus"]; present {
+		t.Error("inherited row must omit ad_consensus, not fabricate one")
+	}
+	if d["dnssec"]["display_severity"] != "success" {
+		t.Errorf("inherited severity = %q", d["dnssec"]["display_severity"])
+	}
+}
+
 // TestReplayVerdicts_MalformedResults: unparseable full_results yield
 // all-indeterminate verdicts rather than an error or fabricated states.
 func TestReplayVerdicts_MalformedResults(t *testing.T) {

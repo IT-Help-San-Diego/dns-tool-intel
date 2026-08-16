@@ -2827,6 +2827,13 @@
             if (verdicts.dnssec !== 'warning') return;
             if (verdicts.mtasts === 'success') {
                 verdicts.dnssec = 'indeterminate';
+                // The architectural-choice flip carries the ring with it —
+                // a solid amber ring beside an indeterminate verdict would
+                // be a fresh contradiction. How this case renders under the
+                // two-channel grammar (measured absence + measured
+                // substitute) is an open Science ruling; until then the
+                // legacy dashed render stands.
+                if (scanState.verdictRings) delete scanState.verdictRings.dnssec;
             }
         }
 
@@ -2859,6 +2866,48 @@
             info: 'rgba(159,176,192,0.3)'
         };
 
+        /* ---- DNSSEC ring construction (build ledger, locked 2026-08-15) --
+           Colour comes from the producer's own display_severity — the
+           honest derivation the report already consumes — NEVER from the
+           status field, which flattens a CD-confirmed bogus chain into
+           the same "warning" as an unconfirmed one (dnssec.go:257).
+           Line style is the epistemic channel: dashed means we couldn't
+           tell. Dashed iff severity is 'secondary' (the producer's
+           could-not-measure tier) OR the chain is 'unconfirmed' without
+           a measured 'split' consensus — validators that answered and
+           disagreed are a MEASURED result (solid); an absent AD flag is
+           not (dashed). ad_consensus is consulted ONLY inside the
+           unconfirmed branch: the inherited path writes no ad_consensus
+           key at all, so a missing third field never falls through.
+           A severity word this client does not recognise renders dashed
+           amber — unknown states claim nothing. Rows scanned before the
+           display fields existed produce no spec at all and keep the
+           status-based rendering (the raw API payload is never
+           view-backfilled), so the construction is self-scoping. */
+        let RING_SEV_COLOR = { success: 'success', warning: 'warning', danger: 'failed', secondary: 'warning' };
+
+        function dnssecRingSpec(section) {
+            if (!section || typeof section !== 'object') return null;
+            let sev = section.display_severity;
+            if (typeof sev !== 'string' || !sev) return null;
+            let known = Object.prototype.hasOwnProperty.call(RING_SEV_COLOR, sev);
+            let dashed = !known || sev === 'secondary' ||
+                (section.chain_of_trust === 'unconfirmed' && section.ad_consensus !== 'split');
+            return {
+                colorKey: known ? RING_SEV_COLOR[sev] : 'warning',
+                dashed: dashed,
+                danger: sev === 'danger',
+                label: typeof section.display_label === 'string' ? section.display_label : ''
+            };
+        }
+
+        /* Canonical verdict implied by a ring spec — chips, counts and
+           node logic follow the ring instead of contradicting it. A
+           dashed state is could-not-tell regardless of its colour. */
+        function ringSpecCanon(spec) {
+            return spec.dashed ? 'indeterminate' : spec.colorKey;
+        }
+
         /* Standards references mirror the analyzer's verified-standards
            table (integrity_hash.go) — RFC-cited, never invented. */
         let VERDICT_RFCS = {
@@ -2884,7 +2933,8 @@
             lastPollMs: 0,
             groups: {},
             verdicts: null,
-            verdictDetails: null
+            verdictDetails: null,
+            verdictRings: null
         };
 
         function fmtScanDur(ms) {
@@ -3224,9 +3274,13 @@
         }
 
         function drawVerdictRings(n, status) {
-            let vc = VERDICT_RING_COLORS[status] || VERDICT_RING_COLORS.indeterminate;
-            let oc = VERDICT_RING_OUTER[status] || VERDICT_RING_OUTER.indeterminate;
-            let dashed = status === 'indeterminate' || status === 'info';
+            // A ring spec (producer-field construction) outranks the
+            // canonical status; nodes without one keep the legacy render.
+            let spec = scanState.verdictRings && scanState.verdictRings[n.id];
+            let key = spec ? spec.colorKey : status;
+            let vc = VERDICT_RING_COLORS[key] || VERDICT_RING_COLORS.indeterminate;
+            let oc = VERDICT_RING_OUTER[key] || VERDICT_RING_OUTER.indeterminate;
+            let dashed = spec ? spec.dashed : (status === 'indeterminate' || status === 'info');
             // The ring is now the sole carrier of the verdict, so it has to be
             // strong enough to read on its own against a family-coloured body.
             if (dashed) ctx.setLineDash([4, 3]);
@@ -3241,6 +3295,37 @@
             }
             ctx.stroke();
             if (dashed) ctx.setLineDash([]);
+            if (spec && spec.danger) drawDangerBadge(n);
+        }
+
+        /* The grammar's third, non-colour cue: solid-green and solid-red
+           rings differ only in hue, so a measured failure additionally
+           carries a badge — an exclamation drawn from primitives (bar +
+           dot) so no font is involved. Shape, not colour, is the channel. */
+        function drawDangerBadge(n) {
+            let bx, by;
+            if (isBoxNode(n)) {
+                let hw = ((n._drawW || n.radius * 2.2) / 2) + 9;
+                let hh = ((n._drawH || n.radius * 1.4) / 2) + 9;
+                bx = n.x + hw;
+                by = n.y - hh;
+            } else {
+                let r = effRadius(n) + 9;
+                bx = n.x + r * 0.7071;
+                by = n.y - r * 0.7071;
+            }
+            ctx.beginPath();
+            ctx.arc(bx, by, 7.5, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(239,83,80,0.95)';
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(13,17,23,0.9)';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(bx - 0.9, by - 4.2, 1.8, 5.2);
+            ctx.beginPath();
+            ctx.arc(bx, by + 3.1, 1.1, 0, Math.PI * 2);
+            ctx.fill();
         }
 
         function wrapPopoverText(text, maxW) {
@@ -3375,6 +3460,7 @@
             scanState.verdicts = null;
             scanState.verdictAt = 0;
             scanState.verdictDetails = null;
+            scanState.verdictRings = null;
             if (scanEls.phaseBar) scanEls.phaseBar.style.width = '0%';
             if (scanEls.taskBar) scanEls.taskBar.style.width = '0%';
             if (scanEls.latency) scanEls.latency.textContent = 'acquisition \u2014';
@@ -3468,6 +3554,7 @@
             _absentThisScan = {};
             scanState.verdicts = {};
             scanState.verdictDetails = {};
+            scanState.verdictRings = {};
             scanState.verdictAt = Date.now();
             for (let i = 0; i < VERDICT_PROTOCOLS.length; i++) {
                 let vp = VERDICT_PROTOCOLS[i];
@@ -3479,8 +3566,20 @@
                     // tooltip still shows the analyzer's own word so nothing
                     // is hidden by the translation.
                     let canon = canonicalVerdict(vp.node, section.status);
+                    let spec = vp.node === 'dnssec' ? dnssecRingSpec(section) : null;
+                    if (spec) {
+                        // Ring construction: the producer's display fields
+                        // outrank the flattening status string, and the chip
+                        // follows the ring so the console never contradicts
+                        // the canvas. Both words stay visible in the title.
+                        canon = ringSpecCanon(spec);
+                        scanState.verdictRings[vp.node] = spec;
+                        chip.title = vp.label + ': ' + (spec.label || section.status) +
+                            ' — analyzer status: ' + section.status;
+                    } else {
+                        chip.title = vp.label + ': ' + section.status;
+                    }
                     chip.className = 'topo-vchip ' + verdictClass(canon);
-                    chip.title = vp.label + ': ' + section.status;
                     scanState.verdicts[vp.node] = canon;
                     if (typeof section.message === 'string' && section.message) {
                         scanState.verdictDetails[vp.node] = section.message;
@@ -3855,6 +3954,17 @@
                 // they need the same canonicalisation as a live scan.
                 _absentThisScan = {};
                 for (let k in d.verdicts) scanState.verdicts[k] = canonicalVerdict(k, d.verdicts[k]);
+                // verdict_detail carries the producer's display derivation
+                // (analysis_replay.go), so the ring construction holds even
+                // when the follow-up analysis fetch fails or the row is
+                // access-restricted for this viewer.
+                scanState.verdictRings = {};
+                let replaySpec = d.verdict_detail && d.verdict_detail.dnssec ?
+                    dnssecRingSpec(d.verdict_detail.dnssec) : null;
+                if (replaySpec) {
+                    scanState.verdictRings.dnssec = replaySpec;
+                    scanState.verdicts.dnssec = ringSpecCanon(replaySpec);
+                }
                 reconcileDNSSECAbsence(scanState.verdicts);
                 scanState.verdictAt = Date.now();
             }
@@ -3869,6 +3979,7 @@
             scanState.verdicts = null;
             scanState.verdictAt = 0;
             scanState.verdictDetails = null;
+            scanState.verdictRings = null;
             scanState.groups = {};
             scanState.ringsOn = true;
             if (scanEls.chips) scanEls.chips.textContent = '';
