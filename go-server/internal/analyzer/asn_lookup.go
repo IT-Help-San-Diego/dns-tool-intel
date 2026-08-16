@@ -68,6 +68,24 @@ func (a *Analyzer) LookupASN(ctx context.Context, results map[string]any) map[st
 				result["cdn_asn"] = fmt.Sprintf("AS%s %s", asn, name)
 				result["flux_observable"] = false
 				result["flux_observable_reason"] = fmt.Sprintf("CDN-proxied: all observed addresses share a single CDN ASN (AS%s %s); origin rotation is structurally unobservable via DNS", asn, name)
+				// Second measurement: reverse-DNS on the first IP to
+				// distinguish shared CDN infrastructure from potentially
+				// dedicated enterprise IPs. A PTR pointing to the CDN
+				// provider's own domain (*.cloudflare.com, etc.) means the
+				// IP is shared; a custom or absent PTR is weaker but does
+				// not rule out enterprise use.
+				if len(aRecords) > 0 {
+					ptrName := reverseIPv4(aRecords[0])
+					if ptrName != "" {
+						ptrRecords := a.DNS.QueryDNS(asnCtx, "PTR", ptrName)
+						if len(ptrRecords) > 0 {
+							ptrHost := strings.TrimRight(ptrRecords[0], ".")
+							if isCDNInfrastructureHost(ptrHost) {
+								result["cdn_tier"] = "shared"
+							}
+						}
+					}
+				}
 				break
 			}
 		}
@@ -330,4 +348,36 @@ func filterEmpty(ss []string) []string {
 		}
 	}
 	return result
+}
+
+// isCDNInfrastructureHost reports whether a reverse-DNS hostname is a known
+// CDN infrastructure domain — the IP belongs to the CDN provider's own
+// infrastructure, not a dedicated customer allocation. A match means the IP
+// is shared (free/standard tier); a non-match is weaker but does not prove
+// enterprise — the PTR may be absent or point elsewhere.
+func isCDNInfrastructureHost(host string) bool {
+	host = strings.ToLower(host)
+	for _, suffix := range cdnInfrastructureSuffixes {
+		if strings.HasSuffix(host, suffix) {
+			return true
+		}
+	}
+	return false
+}
+
+// cdnInfrastructureSuffixes are reverse-DNS patterns that identify the CDN
+// provider's OWN infrastructure — shared IPs, not dedicated customer IPs.
+// A PTR matching one of these means the IP is a generic, pooled CDN address.
+var cdnInfrastructureSuffixes = []string{
+	".cloudflare.com",
+	".akamaiedge.net",
+	".akamai.net",
+	".fastly.net",
+	".edgecastcdn.net",
+	".stackpath.net",
+	".cdn77.net",
+	".b-cdn.net",
+	".kxcdn.com",
+	".keycdn.com",
+	".cdn.cloudflare.net",
 }
