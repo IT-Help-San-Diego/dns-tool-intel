@@ -25,7 +25,7 @@ echo "  ✓ clean"
 echo "▸ gocyclo (production ≤ baseline)"
 [ -f "$BASE/gocyclo.count" ] || { echo "  ✗ MISSING baseline: $BASE/gocyclo.count"; exit 1; }
 BASE_N=$(cat "$BASE/gocyclo.count")
-CUR_N=$(go run github.com/fzipp/gocyclo/cmd/gocyclo@v0.6.0 -over 15 $FILES 2>/dev/null | grep -v '_test.go' | wc -l | tr -d ' ')
+CUR_N=$(go run github.com/fzipp/gocyclo/cmd/gocyclo@v0.6.0 -over 15 $FILES 2>/dev/null | grep -v '_test.go' | wc -l | tr -d ' ' || true)
 CUR_N=${CUR_N:-0}
 if [ "$CUR_N" -gt "$BASE_N" ]; then
   echo "  ✗ REGRESSION: $CUR_N functions >15 vs baseline $BASE_N"
