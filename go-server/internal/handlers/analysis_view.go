@@ -56,8 +56,18 @@ func reportModeTemplate(mode string) string {
 		return "results_covert.html"
 	case "B":
 		return "results_executive.html"
-	default:
+	case "EC":
+		// Covert-flagged standard view keeps the legacy template until the
+		// workspace's covert treatment is designed — flipping it blind would
+		// change a privacy-adjacent surface without review.
 		return "results.html"
+	default:
+		// THE FLIP (Carey's consequences ruling, 2026-08-16): the Engineer
+		// Workspace is the default report. One live surface — /analysis/:id
+		// and the scan-completion render both serve it; /v2 stays as an
+		// alias so existing links keep working. results.html remains in the
+		// tree, reachable only via the EC carve-out above.
+		return "results_v2.html"
 	}
 }
 

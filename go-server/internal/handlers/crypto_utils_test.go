@@ -286,13 +286,13 @@ func TestReportModeTemplate_CB8(t *testing.T) {
                 mode string
                 want string
         }{
-                {"E", "results.html"},
+                {"E", "results_v2.html"},
                 {"C", "results_covert.html"},
-                {"Z", "results.html"},
+                {"Z", "results_v2.html"},
                 {"CZ", "results_covert.html"},
                 {"B", "results_executive.html"},
-                {"", "results.html"},
-                {"X", "results.html"},
+                {"", "results_v2.html"},
+                {"X", "results_v2.html"},
         }
         for _, tc := range tests {
                 t.Run(tc.mode, func(t *testing.T) {

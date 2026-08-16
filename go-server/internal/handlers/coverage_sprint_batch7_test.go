@@ -236,9 +236,9 @@ func TestReportModeTemplate_B7(t *testing.T) {
                 mode string
                 want string
         }{
-                {"E", "results.html"},
+                {"E", "results_v2.html"},
                 {"C", "results_covert.html"},
-                {"Z", "results.html"},
+                {"Z", "results_v2.html"},
                 {"CZ", "results_covert.html"},
         }
         for _, tt := range tests {
