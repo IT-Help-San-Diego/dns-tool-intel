@@ -84,7 +84,7 @@ func TestComputeDriftSeverity_NilFields(t *testing.T) {
 }
 
 func TestShouldPersistResult_NonExistentDomain(t *testing.T) {
-        persist, reason := shouldPersistResult(false, false, false, true)
+        persist, reason := shouldPersistResult(false, false, "undelegated", true)
         if persist {
                 t.Error("expected no persist for nonexistent domain")
         }
@@ -94,7 +94,7 @@ func TestShouldPersistResult_NonExistentDomain(t *testing.T) {
 }
 
 func TestShouldPersistResult_NormalSuccess(t *testing.T) {
-        persist, reason := shouldPersistResult(false, false, true, true)
+        persist, reason := shouldPersistResult(false, false, "active", true)
         if !persist {
                 t.Error("expected persist")
         }

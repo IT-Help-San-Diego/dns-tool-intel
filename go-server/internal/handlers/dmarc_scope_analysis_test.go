@@ -932,9 +932,9 @@ func TestApplyDevNullHeaders_CB6(t *testing.T) {
 }
 
 func TestLogEphemeralReason_CB6(t *testing.T) {
-        logEphemeralReason("example.com", true, false)
-        logEphemeralReason("example.com", false, false)
-        logEphemeralReason("localhost", false, true)
+        logEphemeralReason("example.com", true, "undelegated")
+        logEphemeralReason("example.com", false, "undelegated")
+        logEphemeralReason("localhost", false, "active")
 }
 
 func TestResolveCovertMode_CB6(t *testing.T) {

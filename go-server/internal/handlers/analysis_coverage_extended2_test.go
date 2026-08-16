@@ -61,7 +61,7 @@ func TestComputeDriftSeverity_InfoWarning_Ext2(t *testing.T) {
 }
 
 func TestShouldPersistResult_AllPositive_Ext2(t *testing.T) {
-        persist, reason := shouldPersistResult(false, false, true, true)
+        persist, reason := shouldPersistResult(false, false, "active", true)
         if !persist {
                 t.Error("expected persist")
         }
@@ -71,7 +71,7 @@ func TestShouldPersistResult_AllPositive_Ext2(t *testing.T) {
 }
 
 func TestShouldPersistResult_Ephemeral_Ext2(t *testing.T) {
-        persist, reason := shouldPersistResult(true, false, true, true)
+        persist, reason := shouldPersistResult(true, false, "active", true)
         if persist {
                 t.Error("expected no persist for ephemeral")
         }
@@ -81,7 +81,7 @@ func TestShouldPersistResult_Ephemeral_Ext2(t *testing.T) {
 }
 
 func TestShouldPersistResult_DevNull_Ext2(t *testing.T) {
-        persist, reason := shouldPersistResult(false, true, true, true)
+        persist, reason := shouldPersistResult(false, true, "active", true)
         if persist {
                 t.Error("expected no persist for devNull")
         }
@@ -91,7 +91,7 @@ func TestShouldPersistResult_DevNull_Ext2(t *testing.T) {
 }
 
 func TestShouldPersistResult_NotExist_Ext2(t *testing.T) {
-        persist, reason := shouldPersistResult(false, false, false, true)
+        persist, reason := shouldPersistResult(false, false, "undelegated", true)
         if persist {
                 t.Error("expected no persist for non-existent")
         }
@@ -101,7 +101,7 @@ func TestShouldPersistResult_NotExist_Ext2(t *testing.T) {
 }
 
 func TestShouldPersistResult_AnalysisFailure_Ext2(t *testing.T) {
-        persist, reason := shouldPersistResult(false, false, true, false)
+        persist, reason := shouldPersistResult(false, false, "active", false)
         if !persist {
                 t.Error("expected persist=true for domainExists=true, analysisSuccess=false (no filter on analysisSuccess)")
         }
