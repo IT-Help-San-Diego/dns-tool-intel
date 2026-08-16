@@ -23,17 +23,22 @@ License: **BUSL-1.1** (Business Source License — protected product path).
 
 ## Deployment reality (READ THIS)
 
-- **Hosted on Replit (ENTERPRISE VPS).** The live code only updates when the
-  Replit agent imports from GitHub — pushing to `main` does NOT auto-deploy
-  here the way the AWS static sites do. Changes go live only after telling the
-  Replit agent to import. DNS for dnstool.it-help.tech is on Hermes Route53.
-- `replit-verify` TXT record is LEGIT — do not remove it.
-- **An import must never drop, rebuild, or re-initialise the production
+- **Hosted on AWS since 2026-08-02** (EC2 Graviton app box us-west-2 + RDS
+  Postgres; nginx TLS in front of the Go server). Pushing to `main` does NOT
+  auto-deploy: ship with `DEPLOY_HOST=dnstool-app bash deploy/deploy-aws.sh`,
+  which builds via `build.sh --deploy` (a plain `go build` stamps literal
+  "dev" into production rows — never ship one), stages outside the live dir,
+  restarts, and verifies on-box (`--version` + /healthz BODY `{"status":"ok"}`
+  — the status code alone lies during boot). DNS for dnstool.it-help.tech is
+  on Hermes Route53.
+- `replit-verify` TXT record is LEGIT (domain-verification leftover) — do not
+  remove it.
+- **A deploy must never drop, rebuild, or re-initialise the production
   database.** It holds months of `scan_phase_telemetry` rows with no other copy.
   Since 2026-07-30 there IS a migration system, so schema changes ship as
   migrations and the server upgrades production in place on the next start —
   which is why rebuilding is unnecessary, not why it is now safe. A brief saying
-  "this import needs no schema change" describes the diff; it is not permission
+  "this deploy needs no schema change" describes the diff; it is not permission
   to rebuild. See `docs/DATABASE_MIGRATIONS.md`.
 
 ## Architecture (request path)
@@ -87,5 +92,5 @@ Domain input
 - BUSL-1.1 is a protected product path — keep license/NOTICE headers intact.
 - This is security tooling: no telemetry, no phoning home, RFC-compliance is a
   hard bar. Cite the RFC when changing protocol logic.
-- Deploy is via Replit import, not git push — never tell the user a push went
-  live here without the Replit import step.
+- Deploy is via deploy/deploy-aws.sh, not git push — never tell the user a
+  merge went live without the deploy step (and its on-box verification).

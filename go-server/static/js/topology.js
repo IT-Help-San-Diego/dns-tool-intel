@@ -2880,10 +2880,15 @@
            unconfirmed branch: the inherited path writes no ad_consensus
            key at all, so a missing third field never falls through.
            A severity word this client does not recognise renders dashed
-           amber — unknown states claim nothing. Rows scanned before the
-           display fields existed produce no spec at all and keep the
-           status-based rendering (the raw API payload is never
-           view-backfilled), so the construction is self-scoping. */
+           GREY — the indeterminate colour, matching canonicalVerdict's
+           own default. Amber is a verdict colour; painting it on a state
+           the client couldn't interpret would claim a gap from an
+           uninterpretable input (Science's fail-direction correction,
+           2026-08-16). Unknown states claim nothing in BOTH channels.
+           Rows scanned before the display fields existed produce no
+           spec at all and keep the status-based rendering (the raw API
+           payload is never view-backfilled), so the construction is
+           self-scoping. */
         let RING_SEV_COLOR = { success: 'success', warning: 'warning', danger: 'failed', secondary: 'warning' };
 
         function dnssecRingSpec(section) {
@@ -2894,7 +2899,7 @@
             let dashed = !known || sev === 'secondary' ||
                 (section.chain_of_trust === 'unconfirmed' && section.ad_consensus !== 'split');
             return {
-                colorKey: known ? RING_SEV_COLOR[sev] : 'warning',
+                colorKey: known ? RING_SEV_COLOR[sev] : 'indeterminate',
                 dashed: dashed,
                 danger: sev === 'danger',
                 label: typeof section.display_label === 'string' ? section.display_label : ''
