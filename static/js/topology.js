@@ -881,6 +881,10 @@
         }
 
         function measureNodeBox(n) {
+            // Reading-line captions are measured at construction (measureText
+            // against their own font) — remeasuring here with node fonts would
+            // corrupt the box the solve already honored.
+            if (n.shape === 'caption') return;
             let box = computeNodeBox(n.shape, n.radius, n.label, n.sub || null, SCL, FONT_LABEL, FONT_SUB, canvasMeasureText);
             n._boxW = box.w;
             n._boxH = box.h;
@@ -1405,6 +1409,7 @@
                 });
             }
             // ---- end vertical flow ---------------------------------------------
+
             let allLayoutEdges = FLOW_EDGES.concat(PROTO_EDGES);
 
             allLayoutNodes.forEach(function(nd) {
@@ -1619,6 +1624,132 @@
                 forceDirectedLayout(allLayoutNodes, allLayoutEdges, zones, globalBounds, 120);
             }
 
+            /* ---- Reading line 00→05 (V3 spec, ledger KEEP list) -----------
+               Station captions are FIRST-CLASS RECTS in the separation solve
+               (FIX-1: the prototype's captions ran through the ring cluster
+               because they were ink, not geometry). They are ANCHORED: the
+               pairwise pass moves nodes away from them, never them — a
+               caption that drifts stops being a reading line. Horizontal
+               flow only for now; vertical-flow captions ride the geometry
+               slice's band work. Built HERE — after the shelf
+               repartition and solver remap have produced the FINAL zone
+               bounds — because strips reserved from bounds that a later
+               stage rebuilds are reservations the page never had (the
+               first build sat before the repartition, and every
+               'mysterious' caption collision was that ordering bug). */
+            let readingLine = [];
+            if (!VERTICAL_FLOW) {
+                let stations = [
+                    { num: '01', name: 'SOURCES', q: 'WHERE DO THE FACTS COME FROM?', zone: 'source' },
+                    { num: '02', name: 'AGGREGATE', q: 'RESOLVERS AGREE?', zone: 'hub' },
+                    { num: '03', name: 'ANALYZE + AUDIT', q: 'WHO CHECKS THE CHECKER?', zone: 'engine' },
+                    { num: '04', name: 'VERDICTS', q: 'NINE CHECKS \u2014 RINGS TELL THE STATE', zone: 'protocol' },
+                    { num: '', name: 'MEMORY', q: 'WHAT DO WE REMEMBER & PROVE?', zone: 'storage' }
+                ];
+                let capH = 14 * SCL;
+                ctx.save();
+                ctx.font = '600 ' + Math.round(10.5 * SCL) + 'px ui-monospace, SFMono-Regular, Menlo, monospace';
+                let rl05W = consoleReserve > 0 ?
+                    ctx.measureText('05 \u00b7 YOUR REPORT \u2192').width + 24 : 0;
+                function reserveStrip(cap) {
+                    let capL = cap.targetX - cap._halfW, capR = cap.targetX + cap._halfW;
+                    let capBottom = cap.targetY + cap._halfH;
+                    for (let zk in zones) {
+                        if (zk === 'storage') continue;
+                        let zb = zones[zk].bounds;
+                        if (!zb) continue;
+                        if (capR > zb.x1 && capL < zb.x2 && capBottom > zb.y1) {
+                            zb.y1 = Math.max(zb.y1, capBottom + 8 * SCL);
+                        }
+                    }
+                }
+                function mkCap(id, head, q, cx, cy, zoneKey) {
+                    let text = head + (q ? ' \u2014 ' + q : '');
+                    let tw = ctx.measureText(text).width;
+                    let cap = {
+                        id: id, shape: 'caption', zone: zoneKey || null,
+                        head: head, q: q, text: text,
+                        radius: capH / 2,
+                        _boxW: tw, _boxH: capH,
+                        _halfW: tw / 2 + 4, _halfH: capH / 2 + 3,
+                        _anchored: true,
+                        targetX: cx, targetY: cy
+                    };
+                    readingLine.push(cap);
+                    allLayoutNodes.push(cap);
+                    return cap;
+                }
+                stations.forEach(function(st) {
+                    let z = zones[st.zone];
+                    if (!z || !z.bounds) return;
+                    let zoneW = z.bounds.x2 - z.bounds.x1;
+                    let head = st.num ? st.num + ' \u00b7 ' + st.name : st.name;
+                    // The question renders only where the zone can hold it —
+                    // a caption wider than its column is the FIX-1 collision
+                    // re-authored, and the verifier would rightly refuse it.
+                    let q = st.q;
+                    // Budget: the zone's width, further clipped by rl05's strip
+                    // when this zone's top row would meet it (the 04\u00d705
+                    // collision the verifier caught on first run).
+                    let budget = zoneW - 12;
+                    if (rl05W > 0) {
+                        budget = Math.min(budget, (W - consoleReserve - rl05W) - z.bounds.x1 - 12);
+                    }
+                    if (ctx.measureText(head + ' \u2014 ' + q).width > budget) q = '';
+                    let text = head + (q ? ' \u2014 ' + q : '');
+                    let tw = ctx.measureText(text).width;
+                    if (st.zone === 'storage') {
+                        // Storage is the measured-tight foundation row (the
+                        // 236px-in-211px history): stealing a strip from its
+                        // interior re-creates the squeeze the band repartition
+                        // fixed. The caption sits ABOVE the band, in the
+                        // inter-band gap, claiming no interior space.
+                        mkCap('rlmemory', head, q,
+                            z.bounds.x1 + tw / 2 + 6, z.bounds.y1 - capH / 2 - 4, null);
+                    } else {
+                        // Reserve the caption strip in EVERY zone whose x-range
+                        // the caption spans — zones share x at narrow widths,
+                        // and a neighbour zone's clamp squeezing its node back
+                        // into a caption it never reserved for was the ct\u00d7rl02
+                        // failure the verifier caught at 1024px. Space always
+                        // comes from zone interiors, never from the caption.
+                        reserveStrip(mkCap('rl' + st.num, head, q,
+                            z.bounds.x1 + tw / 2 + 6, z.bounds.y1 + capH / 2 + 4, st.zone));
+                    }
+                });
+                // 00 VANTAGE anchors to the globe itself — there is no
+                // vantage zone; the globe is the station.
+                let head0 = '00 \u00b7 VANTAGE';
+                // Head-only in g1: the full question collides with the engine
+                // cluster at every desktop width (verifier-measured); the
+                // question joins the top-rail treatment in the band slice.
+                let q0 = '';
+                let t0w = ctx.measureText(head0 + (q0 ? ' \u2014 ' + q0 : '')).width;
+                let y0 = Math.max(titleSafe + capH, globe.cy - globe.R - 10 * SCL);
+                // The globe IS station 00's home, and the globe lives OUTSIDE
+                // globalBounds (the graph area starts right of it) — so the
+                // caption anchors to the globe's own left edge with a small
+                // hard margin, never to globalBounds. The first version
+                // floored on globalBounds.x1 and shoved the caption into the
+                // hub column; the verifier caught the collision at every
+                // desktop width until the floor was traced and removed.
+                let x0 = Math.max(12 + t0w / 2, globe.cx - globe.R + t0w / 2);
+                if (zones.hub && zones.hub.bounds && x0 + t0w / 2 > zones.hub.bounds.x1 - 10) {
+                    // Globe crowds the hub column (very narrow beside-mode):
+                    // stagger below the hub caption's reserved strip instead
+                    // of authoring two anchored rects into each other.
+                    y0 = zones.hub.bounds.y1 + capH + 6 * SCL;
+                }
+                reserveStrip(mkCap('rl00', head0, q0, x0, y0, null));
+                if (consoleReserve > 0) {
+                    let head5 = '05 \u00b7 YOUR REPORT \u2192';
+                    let t5w = ctx.measureText(head5).width;
+                    reserveStrip(mkCap('rl05', head5, '',
+                        W - consoleReserve - t5w / 2 - 10, titleSafe + 10 * SCL, null));
+                }
+                ctx.restore();
+            }
+
             let overlapPad = overlapPadValue;
             for (let op = 0; op < 40; op++) {
                 let anyOverlap = false;
@@ -1630,17 +1761,25 @@
                         let odx = Math.abs(nb.targetX - na.targetX);
                         let ody = Math.abs(nb.targetY - na.targetY);
                         if (odx < ohw && ody < ohh) {
+                            // Anchored rects (reading-line captions) never move:
+                            // the free partner takes the whole separation. Two
+                            // anchored rects overlapping is an authoring error
+                            // the post-layout verifier reports rather than a
+                            // fight the pass can win.
+                            if (na._anchored && nb._anchored) continue;
                             let overX = ohw - odx;
                             let overY = ohh - ody;
                             let pushStr = 0.7;
                             if (overX < overY) {
                                 let sx = (nb.targetX >= na.targetX ? 1 : -1) * overX * pushStr;
-                                na.targetX -= sx;
-                                nb.targetX += sx;
+                                if (na._anchored) { nb.targetX += sx * 2; }
+                                else if (nb._anchored) { na.targetX -= sx * 2; }
+                                else { na.targetX -= sx; nb.targetX += sx; }
                             } else {
                                 let sy = (nb.targetY >= na.targetY ? 1 : -1) * overY * pushStr;
-                                na.targetY -= sy;
-                                nb.targetY += sy;
+                                if (na._anchored) { nb.targetY += sy * 2; }
+                                else if (nb._anchored) { na.targetY -= sy * 2; }
+                                else { na.targetY -= sy; nb.targetY += sy; }
                             }
                             anyOverlap = true;
                         }
@@ -1648,6 +1787,7 @@
                 }
                 if (!anyOverlap) break;
                 allLayoutNodes.forEach(function(nd) {
+                    if (nd._anchored) return;
                     let z = zones[nd.zone || nd.id];
                     if (z && z.bounds) {
                         let zHw = nd._halfW || nd.radius;
@@ -1667,6 +1807,38 @@
                     nd._initialized = true;
                 }
             });
+
+            /* ---- Post-layout verifier (FIX-4: "no overlap must be measured,
+               not asserted"). Runs once per layout on the SETTLED targets:
+               strict pairwise intersection over nodes \u222a captions, plus
+               node-vs-console intrusions when a reserve exists. The result is
+               a number the debug HUD shows and __topoDbg exposes — a claim
+               anyone can re-measure, not a property anyone asserts. */
+            lastLayoutVerify = (function() {
+                let rects = allLayoutNodes.map(function(n) {
+                    return { id: n.id, x: n.targetX, y: n.targetY,
+                             hw: n._halfW || n.radius, hh: n._halfH || n.radius };
+                });
+                let pairs = [];
+                for (let vi = 0; vi < rects.length; vi++) {
+                    for (let vj = vi + 1; vj < rects.length; vj++) {
+                        let a = rects[vi], b = rects[vj];
+                        if (Math.abs(b.x - a.x) < a.hw + b.hw &&
+                            Math.abs(b.y - a.y) < a.hh + b.hh) {
+                            pairs.push(a.id + '\u00d7' + b.id);
+                        }
+                    }
+                }
+                let intrusions = [];
+                if (consoleReserve > 0) {
+                    let cx1 = W - consoleReserve;
+                    rects.forEach(function(r) {
+                        if (r.x + r.hw > cx1) intrusions.push(r.id);
+                    });
+                }
+                return { overlaps: pairs.length, pairs: pairs.slice(0, 24),
+                         consoleIntrusions: intrusions, W: W, H: H };
+            })();
 
             // ?debug=bounds introspection: expose the exact layout the solver
             // produced so rendering bugs can be measured instead of eyeballed.
@@ -1690,6 +1862,7 @@
                             return { id: n.id, zone: n.zone, hw: n._halfW || n.radius, hh: n._halfH || n.radius };
                         }),
                         globe: { cx: globe.cx, cy: globe.cy, R: globe.R },
+                        postLayout: lastLayoutVerify,
                         // The ink registry, all five classes. Draw-time ink is
                         // reassigned every pass — a snapshot taken here would
                         // always be empty — so these are READERS that sample the
@@ -1762,6 +1935,7 @@
         }
 
         let hoverNode = null;
+        let lastLayoutVerify = null;
         let mouseX = -1, mouseY = -1;
 
         function hitTest(mx, my) {
@@ -2617,11 +2791,44 @@
         let scanInkCurrent = [];
         let _legendSafeY = 0;
 
+        /* The reading line: gold station heads, muted questions — drawn
+           from the same anchored rects the solve honored, so ink equals
+           geometry by construction. */
+        function drawReadingLine() {
+            if (VERTICAL_FLOW) return;
+            let caps = allLayoutNodes.filter(function(n) { return n.shape === 'caption'; });
+            if (!caps.length) return;
+            ctx.save();
+            ctx.font = '600 ' + Math.round(10.5 * SCL) + 'px ui-monospace, SFMono-Regular, Menlo, monospace';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            caps.forEach(function(c) {
+                let x = c.targetX - c._boxW / 2;
+                let headW = ctx.measureText(c.head).width;
+                ctx.fillStyle = 'rgba(212,168,83,0.92)';
+                ctx.fillText(c.head, x, c.targetY);
+                if (c.q) {
+                    ctx.fillStyle = 'rgba(125,136,150,0.85)';
+                    ctx.fillText(' \u2014 ' + c.q, x + headW, c.targetY);
+                }
+            });
+            if (debugBounds && lastLayoutVerify) {
+                let v = lastLayoutVerify;
+                ctx.font = '600 ' + Math.round(11 * SCL) + 'px ui-monospace, SFMono-Regular, Menlo, monospace';
+                ctx.fillStyle = v.overlaps === 0 ? 'rgba(63,185,80,0.95)' : 'rgba(239,83,80,0.95)';
+                ctx.fillText('verify: ' + v.overlaps + ' overlaps' +
+                    (v.consoleIntrusions.length ? ' \u00b7 console intrusions: ' + v.consoleIntrusions.join(',') : ''),
+                    12, H - 12);
+            }
+            ctx.restore();
+        }
+
         function draw() {
             ctx.clearRect(0, 0, W, H);
 
             drawAmbient();
             drawGlobe(time);
+            drawReadingLine();
 
             placedEdgeLabels = [];
             scanInkCurrent = [];
