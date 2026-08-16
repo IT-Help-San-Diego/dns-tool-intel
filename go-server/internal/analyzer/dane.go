@@ -4,12 +4,16 @@
 package analyzer
 
 import (
+        "bytes"
         "context"
+        "encoding/json"
         "fmt"
         "log/slog"
+        "net/http"
         "strconv"
         "strings"
         "sync"
+        "time"
 
         "dnstool/go-server/internal/dnsclient"
         "dnstool/go-server/internal/providers"
@@ -469,5 +473,123 @@ func (a *Analyzer) AnalyzeDANE(ctx context.Context, domain string, mxRecords []s
                 baseResult["issues"] = issues
         }
 
+        // Step-3 wiring: when TLSA records exist, ask the probe to actually
+        // fetch each MX host's certificate and match it against the published
+        // record (RFC 7671 §5). This is the verification half — presence says
+        // "configured", dane_verification says whether the certificate matches.
+        if len(scan.hostsWithDANE) > 0 {
+                if ver := verifyDANEHosts(ctx, a, scan.hostsWithDANE); ver != nil {
+                        baseResult["dane_verification"] = ver
+                }
+        }
+
         return baseResult
+}
+
+// probeDANEVerify asks the probe to fetch the presented certificate for one MX
+// host and match it against its TLSA records (RFC 7671 §5). ok=false only when
+// the probe is unreachable or returns a non-200 (transport failure); a probe
+// that answers cert_error/no_tlsa/not_verifiable is a MEASUREMENT, so it comes
+// back ok=true.
+func probeDANEVerify(ctx context.Context, probeURL, probeKey, host string) (map[string]any, bool) {
+        reqBody, _ := json.Marshal(map[string]any{"host": host, "port": 25})
+        reqCtx, cancel := context.WithTimeout(ctx, 35*time.Second)
+        defer cancel()
+        req, err := http.NewRequestWithContext(reqCtx, "POST", probeURL+"/probe/dane-verify", bytes.NewReader(reqBody))
+        if err != nil {
+                return nil, false
+        }
+        req.Header.Set("Content-Type", "application/json")
+        if probeKey != "" {
+                req.Header.Set("X-Probe-Key", probeKey)
+        }
+        resp, err := http.DefaultClient.Do(req)
+        if err != nil {
+                return nil, false
+        }
+        defer resp.Body.Close()
+        if resp.StatusCode != http.StatusOK {
+                return nil, false
+        }
+        var out map[string]any
+        if err := json.NewDecoder(resp.Body).Decode(&out); err != nil {
+                return nil, false
+        }
+        return out, true
+}
+
+// verifyDANEHosts calls the probe for each host that published TLSA records and
+// folds the per-host verification into one aggregate. It uses only the first
+// configured probe (cert fetch is a single-vantage measurement; multi-probe
+// fan-out is the SMTP path's concern). Returns nil when no probe is configured
+// or every call failed at the transport layer.
+func verifyDANEHosts(ctx context.Context, a *Analyzer, hosts []string) map[string]any {
+        if len(hosts) == 0 || len(a.Probes) == 0 {
+                return nil
+        }
+        ep := a.Probes[0]
+        perHost := make([]map[string]any, 0, len(hosts))
+        counts := map[string]int{}
+        anyMeasurement := false
+        for _, host := range hosts {
+                resp, ok := probeDANEVerify(ctx, ep.URL, ep.Key, host)
+                if !ok {
+                        perHost = append(perHost, map[string]any{mapKeyMxHost: host, mapKeyStatus: "unreachable"})
+                        counts["unreachable"]++
+                        continue
+                }
+                status, _ := resp[mapKeyStatus].(string)
+                if status == "" {
+                        status = "error"
+                }
+                anyMeasurement = true
+                counts[status]++
+                entry := map[string]any{mapKeyMxHost: host, mapKeyStatus: status}
+                if msg, _ := resp["message"].(string); msg != "" {
+                        entry["message"] = msg
+                }
+                if m, ok := resp["tlsa_match"].([]any); ok {
+                        entry["tlsa_match"] = m
+                }
+                perHost = append(perHost, entry)
+        }
+        if !anyMeasurement {
+                return nil
+        }
+        return map[string]any{
+                "status":         daneVerificationOverall(counts),
+                "per_host":       perHost,
+                "checked":        len(hosts),
+                "verified":       counts["verified"],
+                "mismatch":       counts["mismatch"],
+                "not_verifiable": counts["not_verifiable"],
+                "cert_error":     counts["cert_error"],
+                "error":          counts["error"],
+                "no_tlsa":        counts["no_tlsa"],
+                "unreachable":    counts["unreachable"],
+        }
+}
+
+// daneVerificationOverall folds per-host verification counts into one overall
+// verdict, worst honest state first: a measured digest mismatch outranks any
+// verified host (one healthy MX must not mask a sibling's real finding), then
+// verified, then the couldn't-measure states (not_verifiable, cert_error,
+// error, no_tlsa, unreachable).
+func daneVerificationOverall(counts map[string]int) string {
+        switch {
+        case counts["mismatch"] > 0:
+                return "mismatch"
+        case counts["verified"] > 0:
+                return "verified"
+        case counts["not_verifiable"] > 0:
+                return "not_verifiable"
+        case counts["cert_error"] > 0:
+                return "cert_error"
+        case counts["error"] > 0:
+                return "error"
+        case counts["no_tlsa"] > 0:
+                return "no_tlsa"
+        default:
+                return "unreachable"
+        }
 }
