@@ -951,6 +951,19 @@ func (c *Client) CheckDNSSECADFlag(ctx context.Context, domain string) ADFlagRes
         result.State = state
         result.ADFlag = adFlag
         result.Validated = validated
+        // Surface the most-voted resolver — the one whose vote determined the
+        // aggregate state — so the row carries a named witness rather than only
+        // anonymous vote counts. For disagreement (split/unmeasured), no single
+        // resolver represents the aggregate.
+        if state != "split" && state != "unmeasured" {
+                for _, r := range c.resolvers {
+                        if result.ResolverAD[r.Name] == state {
+                                name := r.Name
+                                result.ResolverUsed = &name
+                                break
+                        }
+                }
+        }
         if state == "unmeasured" {
                 errStr := "Could not verify AD flag"
                 result.Error = &errStr
