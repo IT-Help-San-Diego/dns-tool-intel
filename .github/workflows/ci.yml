@@ -208,6 +208,9 @@ jobs:
           ls -lh dns-tool-server
           file dns-tool-server
 
+      - name: Quality gate — gofmt / staticcheck / gocyclo ratchets
+        run: bash scripts/quality-gate.sh
+
   handler-tests-db-integration:
     name: Handler Tests — dbtest + integration
     runs-on: ubuntu-latest
