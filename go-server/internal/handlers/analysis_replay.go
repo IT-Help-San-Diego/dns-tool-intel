@@ -79,6 +79,45 @@ func replayVerdicts(fullResults []byte) map[string]string {
 	return verdicts
 }
 
+// replayVerdictDetail extracts the producer's own display derivation
+// for protocols that carry one, so replay rings render from the same
+// fields the report consumes — never from the flattening status string
+// (a CD-confirmed bogus chain emits status "warning" while
+// display_severity says "danger" in the same object). Today only dnssec
+// has the full set. Legacy rows scanned before the display fields
+// existed simply produce no entry — the client falls back to its
+// status-based rendering, so the detail is additive and self-scoping.
+func replayVerdictDetail(fullResults []byte) map[string]map[string]string {
+	var fr map[string]json.RawMessage
+	if len(fullResults) == 0 || json.Unmarshal(fullResults, &fr) != nil {
+		return nil
+	}
+	raw, ok := fr["dnssec_analysis"]
+	if !ok {
+		return nil
+	}
+	var section struct {
+		Label    string `json:"display_label"`
+		Severity string `json:"display_severity"`
+		State    string `json:"dnssec_state"`
+		Chain    string `json:"chain_of_trust"`
+		Ad       string `json:"ad_consensus"`
+	}
+	if json.Unmarshal(raw, &section) != nil || section.Severity == "" {
+		return nil
+	}
+	detail := map[string]string{
+		"display_label":    section.Label,
+		"display_severity": section.Severity,
+		"dnssec_state":     section.State,
+		"chain_of_trust":   section.Chain,
+	}
+	if section.Ad != "" {
+		detail["ad_consensus"] = section.Ad
+	}
+	return map[string]map[string]string{"dnssec": detail}
+}
+
 // APIReplay serves the derived replay v1 JSON for a stored analysis.
 // Privacy is enforced by the same loader as /api/analysis/:id: private
 // analyses are owner-only (403 for other signed-in users, 404 for
@@ -119,7 +158,7 @@ func (h *AnalysisHandler) APIReplay(c *gin.Context) {
 		events = append(events, ev)
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	payload := gin.H{
 		"v":           replayFormatVersion,
 		"analysis_id": analysis.ID,
 		mapKeyDomain:  analysis.Domain,
@@ -127,7 +166,11 @@ func (h *AnalysisHandler) APIReplay(c *gin.Context) {
 		"sha3_512":    hash.Sha3512,
 		"events":      events,
 		"verdicts":    replayVerdicts(analysis.FullResults),
-	})
+	}
+	if detail := replayVerdictDetail(analysis.FullResults); detail != nil {
+		payload["verdict_detail"] = detail
+	}
+	c.JSON(http.StatusOK, payload)
 }
 
 // ReplayPage renders the topology page in replay mode for a shareable
