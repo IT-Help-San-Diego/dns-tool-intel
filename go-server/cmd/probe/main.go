@@ -617,9 +617,15 @@ func handleDANEVerify(w http.ResponseWriter, r *http.Request) {
                 writeJSON(w, http.StatusOK, response)
                 return
         }
-        if rcode != "" && rcode != "NOERROR" {
+        if rcode == "" {
+                // No parseable status comment means the instrument's own state
+                // is unknown. An absence claim requires positively observing
+                // NOERROR, so an unparseable reply lands on the error path.
+                rcode = "UNPARSEABLE"
+        }
+        if rcode != "NOERROR" {
                 response[mapKeyStatus] = "error"
-                response["message"] = fmt.Sprintf("TLSA lookup for %s returned %s — could not measure (resolver refused), not evidence of absence", tlsaName, rcode)
+                response["message"] = fmt.Sprintf("TLSA lookup for %s returned %s — could not measure, not evidence of absence", tlsaName, rcode)
                 response[mapKeyElapsedSeconds] = time.Since(start).Seconds()
                 writeJSON(w, http.StatusOK, response)
                 return
