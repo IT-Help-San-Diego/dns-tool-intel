@@ -448,6 +448,12 @@
   .v2-posture-strip .sev-order-1 { order: 1; }
   .v2-posture-strip .sev-order-2 { order: 2; }
   .v2-posture-strip .sev-order-3 { order: 3; }
+  /* TRACE row: the citation path of the page's worst finding, L0 verdict down
+     to the reproduce commands. Chips are plain anchors — the goHash handler
+     opens the containing <details> on the way down. */
+  .v2-trace { display: flex; flex-wrap: wrap; align-items: center; gap: .45rem; margin-top: .8rem; }
+  .v2-trace-chip { border: 1px solid rgba(148,163,184,.3); border-radius: 4px; padding: .14rem .55rem; color: var(--er-text, #e6edf3); text-decoration: none; }
+  a.v2-trace-chip:hover, a.v2-trace-chip:focus-visible { border-color: var(--er-gold, #e3b341); color: var(--er-gold, #e3b341); }
   /* Priority-action DNS record tables: let long values wrap instead of squinting mid-token. */
   .v2-workspace .table-dark td code { overflow-wrap: anywhere; word-break: break-word; white-space: normal; }
   .v2-workspace .u-col-label-70 { width: 3.4rem; }
@@ -891,6 +897,23 @@
                                 <div class="small text-muted text-uppercase mb-1">Certificate Control</div>
                                 <span class="badge {{$ccClass}} px-3 py-2">{{$ccLabel}}</span>
                             </div>
+                        </div>
+                        {{/* TRACE row (V2.1): the citation path of the WORST cell — the same
+                             severityRank values that order the strip pick the finding, so the
+                             trace can never disagree with the visual order. Strict lt keeps
+                             the earlier cell on ties, matching the strip's DOM tie order. */}}
+                        {{$esR := severityRank $esLabel}}{{$biR := severityRank $biLabel}}{{$dtR := severityRank $dtLabel}}{{$ccR := severityRank $ccLabel}}
+                        {{$tN := "Email Spoofing"}}{{$tL := $esLabel}}{{$tR := $esR}}{{$tCard := "#section-email"}}{{$tG := "01 · Email Security · SPF/DMARC"}}
+                        {{if lt $biR $tR}}{{$tN = "Brand Impersonation"}}{{$tL = $biLabel}}{{$tR = $biR}}{{$tCard = "#section-brand"}}{{$tG = "04 · Brand & Trust · BIMI"}}{{end}}
+                        {{if lt $dtR $tR}}{{$tN = "DNS Tampering"}}{{$tL = $dtLabel}}{{$tR = $dtR}}{{$tCard = "#section-dnssec"}}{{$tG = "02 · Domain Security · DNSSEC"}}{{end}}
+                        {{if lt $ccR $tR}}{{$tN = "Certificate Control"}}{{$tL = $ccLabel}}{{$tR = $ccR}}{{$tCard = "#section-caa"}}{{$tG = "02 · Domain Security · CAA"}}{{end}}
+                        <div class="v2-trace font-monospace small" data-trace-sev="{{$tR}}">
+                            <span class="text-muted">TRACE</span>
+                            <span class="v2-trace-chip">L0 · {{$tN}} — {{$tL}}</span>
+                            <span class="text-muted" aria-hidden="true">→</span>
+                            <a class="v2-trace-chip" href="{{$tCard}}">L1 · {{$tG}}</a>
+                            <span class="text-muted" aria-hidden="true">→</span>
+                            <a class="v2-trace-chip" href="#verify-commands">L3 · Reproduce commands</a>
                         </div>
                     </div>
                 </div>
