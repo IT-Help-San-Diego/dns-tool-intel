@@ -34,7 +34,7 @@
     
     <link rel="canonical" href="{{.BaseURL}}/">
     <link rel="preload" as="image" type="image/webp" href="{{staticVersionURL "images/owl-of-athena-160.webp" .AppVersion}}">
-    <link rel="preload" as="image" type="image/webp" href="{{staticVersionURL "icons/icon-48x48.webp" .AppVersion}}">
+    <link rel="preload" as="image" type="image/webp" href="{{staticVersionURL "images/NORM-proof-transparent-w48.webp" .AppVersion}}" imagesrcset="{{staticVersionURL "images/NORM-proof-transparent-w48.webp" .AppVersion}} 1x, {{staticVersionURL "images/NORM-proof-transparent-w96.webp" .AppVersion}} 2x">
     {{template "critical_css" .}}
     <style nonce="{{.CspNonce}}">
         #main-content{min-height:50vh}
