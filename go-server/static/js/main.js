@@ -1518,6 +1518,17 @@ function initDomainForm() {
             return;
         }
 
+        // Fold the advanced panel the moment a scan starts (mirrors
+        // topology.js scanStart): its values still ride the FormData below,
+        // and the report stays in view instead of pushing below the fold.
+        const advPanel = document.getElementById('advancedOptions');
+        if (advPanel) {
+            advPanel.classList.remove('show');
+            advPanel.style.height = '';
+        }
+        const advToggle = document.querySelector('[data-bs-target="#advancedOptions"]');
+        if (advToggle) advToggle.setAttribute('aria-expanded', 'false');
+
         const overlay = document.getElementById('loadingOverlay');
         if (overlay) {
             const domainEl = overlay.querySelector('.scan-overlay-domain');
