@@ -528,6 +528,37 @@ func handleTestSSL(w http.ResponseWriter, r *http.Request) {
         writeJSON(w, http.StatusOK, response)
 }
 
+// digStatusRe extracts the rcode from a dig header comment
+// (";; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: ...").
+var digStatusRe = regexp.MustCompile(`status:\s+([A-Z]+)`)
+
+// parseDigTLSA extracts the rcode and the TLSA record RDATA from `dig +noall
+// +comments +answer TLSA` output. `+short` is deliberately avoided: it
+// suppresses the status comment, which makes a SERVFAIL (a DNSSEC-bogus zone
+// refusing through the validating resolver) indistinguishable from an
+// authoritative empty answer — both print nothing. The rcode is the only
+// signal separating "no TLSA records" (NOERROR) from "could not measure"
+// (SERVFAIL/NXDOMAIN/REFUSED).
+func parseDigTLSA(out string) (rcode string, records []string) {
+        for _, line := range strings.Split(out, "\n") {
+                if rcode == "" {
+                        if m := digStatusRe.FindStringSubmatch(line); m != nil {
+                                rcode = m[1]
+                        }
+                }
+                fields := strings.Fields(line)
+                for i := 0; i < len(fields); i++ {
+                        if fields[i] == "TLSA" && i+1 < len(fields) {
+                                if rdata := strings.Join(fields[i+1:], " "); rdata != "" {
+                                        records = append(records, rdata)
+                                }
+                                break
+                        }
+                }
+        }
+        return rcode, records
+}
+
 func handleDANEVerify(w http.ResponseWriter, r *http.Request) {
         start := time.Now()
 
@@ -575,9 +606,9 @@ func handleDANEVerify(w http.ResponseWriter, r *http.Request) {
         }
         digCtx, digCancel := context.WithTimeout(ctx, 8*time.Second)
         defer digCancel()
-        digCmd := exec.CommandContext(digCtx, digPath, "+short", "TLSA", tlsaName)
+        digCmd := exec.CommandContext(digCtx, digPath, "+noall", "+comments", "+answer", "TLSA", tlsaName)
         tlsaOut, err := digCmd.Output()
-        tlsaRecords := strings.TrimSpace(string(tlsaOut))
+        rcode, tlsaRecords := parseDigTLSA(string(tlsaOut))
 
         if err != nil {
                 response[mapKeyStatus] = "error"
@@ -586,7 +617,14 @@ func handleDANEVerify(w http.ResponseWriter, r *http.Request) {
                 writeJSON(w, http.StatusOK, response)
                 return
         }
-        if tlsaRecords == "" {
+        if rcode != "" && rcode != "NOERROR" {
+                response[mapKeyStatus] = "error"
+                response["message"] = fmt.Sprintf("TLSA lookup for %s returned %s — could not measure (resolver refused), not evidence of absence", tlsaName, rcode)
+                response[mapKeyElapsedSeconds] = time.Since(start).Seconds()
+                writeJSON(w, http.StatusOK, response)
+                return
+        }
+        if len(tlsaRecords) == 0 {
                 response[mapKeyStatus] = "no_tlsa"
                 response["message"] = fmt.Sprintf("No TLSA records found at %s", tlsaName)
                 response[mapKeyElapsedSeconds] = time.Since(start).Seconds()
@@ -594,7 +632,7 @@ func handleDANEVerify(w http.ResponseWriter, r *http.Request) {
                 return
         }
 
-        response["tlsa_records"] = strings.Split(tlsaRecords, "\n")
+        response["tlsa_records"] = tlsaRecords
 
         var certInfo map[string]any
         if req.Port == 25 {
@@ -611,7 +649,7 @@ func handleDANEVerify(w http.ResponseWriter, r *http.Request) {
                 leafSPKI, _ := certInfo["spki_der_hex"].(string)
                 chainDER, _ := certInfo["chain_der_hex"].([]string)
                 chainSPKI, _ := certInfo["chain_spki_hex"].([]string)
-                matched, usable, breakdown := verifyTLSA(strings.Split(tlsaRecords, "\n"), leafDER, leafSPKI, chainDER, chainSPKI)
+                matched, usable, breakdown := verifyTLSA(tlsaRecords, leafDER, leafSPKI, chainDER, chainSPKI)
                 response["tlsa_match"] = breakdown
                 status, message := daneVerdictStatus(matched, usable, summarizeUnusable(breakdown))
                 response[mapKeyStatus] = status

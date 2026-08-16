@@ -564,24 +564,29 @@ func verifyDANEHosts(ctx context.Context, a *Analyzer, hosts []string) map[strin
                 "mismatch":       counts["mismatch"],
                 "not_verifiable": counts["not_verifiable"],
                 "cert_error":     counts["cert_error"],
+                "error":          counts["error"],
                 "no_tlsa":        counts["no_tlsa"],
                 "unreachable":    counts["unreachable"],
         }
 }
 
 // daneVerificationOverall folds per-host verification counts into one overall
-// verdict, strongest signal first: any verified host wins; otherwise a digest
-// mismatch is the real finding; otherwise nothing was comparable.
+// verdict, worst honest state first: a measured digest mismatch outranks any
+// verified host (one healthy MX must not mask a sibling's real finding), then
+// verified, then the couldn't-measure states (not_verifiable, cert_error,
+// error, no_tlsa, unreachable).
 func daneVerificationOverall(counts map[string]int) string {
         switch {
-        case counts["verified"] > 0:
-                return "verified"
         case counts["mismatch"] > 0:
                 return "mismatch"
+        case counts["verified"] > 0:
+                return "verified"
         case counts["not_verifiable"] > 0:
                 return "not_verifiable"
         case counts["cert_error"] > 0:
                 return "cert_error"
+        case counts["error"] > 0:
+                return "error"
         case counts["no_tlsa"] > 0:
                 return "no_tlsa"
         default:

@@ -14,10 +14,11 @@ func TestDaneVerificationOverall(t *testing.T) {
 		counts map[string]int
 		want   string
 	}{
-		{"any verified wins", map[string]int{"verified": 1, "mismatch": 2}, "verified"},
+		{"mismatch outranks verified", map[string]int{"verified": 1, "mismatch": 2}, "mismatch"},
 		{"mismatch beats not_verifiable", map[string]int{"mismatch": 1, "not_verifiable": 1}, "mismatch"},
 		{"not_verifiable beats cert_error", map[string]int{"not_verifiable": 1, "cert_error": 1}, "not_verifiable"},
 		{"cert_error beats no_tlsa", map[string]int{"cert_error": 1, "no_tlsa": 1}, "cert_error"},
+		{"error (couldn't measure)", map[string]int{"error": 2}, "error"},
 		{"no_tlsa", map[string]int{"no_tlsa": 2}, "no_tlsa"},
 		{"empty -> unreachable", map[string]int{}, "unreachable"},
 	}
@@ -63,8 +64,8 @@ func TestVerifyDANEHosts(t *testing.T) {
 	if ver == nil {
 		t.Fatal("verifyDANEHosts returned nil, want aggregate")
 	}
-	if ver["status"] != "verified" {
-		t.Errorf("overall status = %v, want verified", ver["status"])
+	if ver["status"] != "mismatch" {
+		t.Errorf("overall status = %v, want mismatch (a measured mismatch outranks a sibling verified)", ver["status"])
 	}
 	if ver["verified"] != 1 || ver["mismatch"] != 1 || ver["unreachable"] != 1 {
 		t.Errorf("counts = verified:%v mismatch:%v unreachable:%v, want 1/1/1",
