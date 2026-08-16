@@ -36,6 +36,7 @@ func viewModeRouter(h *AnalysisHandler) *gin.Engine {
         tmpl := template.Must(template.New("").Parse(
                 `{{define "index.html"}}TMPL:index{{end}}` +
                         `{{define "results.html"}}TMPL:results ReportMode={{.ReportMode}} CovertMode={{.CovertMode}}{{end}}` +
+                        `{{define "results_v2.html"}}TMPL:results_v2 ReportMode={{.ReportMode}} CovertMode={{.CovertMode}}{{end}}` +
                         `{{define "results_covert.html"}}TMPL:covert ReportMode={{.ReportMode}} CovertMode={{.CovertMode}}{{end}}` +
                         `{{define "results_executive.html"}}TMPL:executive ReportMode={{.ReportMode}} CovertMode={{.CovertMode}}{{end}}` +
                         `{{define "results_zone.html"}}TMPL:zone ReportMode={{.ReportMode}} CovertMode={{.CovertMode}}{{end}}` +
@@ -155,8 +156,8 @@ func TestViewMode_Success(t *testing.T) {
                 t.Fatalf("expected 200, got %d", w.Code)
         }
         body := w.Body.String()
-        if !strings.Contains(body, "TMPL:results") {
-                t.Errorf("expected results template for mode E, got body: %s", body)
+        if !strings.Contains(body, "TMPL:results_v2") {
+                t.Errorf("expected v2 workspace template for mode E (the flip), got body: %s", body)
         }
         if !strings.Contains(body, "ReportMode=E") {
                 t.Errorf("expected ReportMode=E in body: %s", body)
@@ -226,8 +227,8 @@ func TestViewMode_TLDForceZone(t *testing.T) {
                 t.Fatalf("expected 200, got %d", w.Code)
         }
         body := w.Body.String()
-        if !strings.Contains(body, "TMPL:results") {
-                t.Errorf("expected results template for TLD (E→Z uses default), got body: %s", body)
+        if !strings.Contains(body, "TMPL:results_v2") {
+                t.Errorf("expected v2 workspace template for TLD (E→Z uses default, the flip), got body: %s", body)
         }
         if !strings.Contains(body, "ReportMode=Z") {
                 t.Errorf("expected ReportMode=Z for TLD, got body: %s", body)

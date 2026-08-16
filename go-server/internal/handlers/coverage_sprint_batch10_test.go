@@ -345,11 +345,11 @@ func TestReportModeTemplate_AllModes_B10(t *testing.T) {
                 mode     string
                 expected string
         }{
-                {"E", "results.html"},
+                {"E", "results_v2.html"},
                 {"B", "results_executive.html"},
                 {"C", "results_covert.html"},
                 {"CZ", "results_covert.html"},
-                {"Z", "results.html"},
+                {"Z", "results_v2.html"},
         }
         for _, tt := range tests {
                 t.Run(tt.mode, func(t *testing.T) {
