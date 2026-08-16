@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"strings"
 	"testing"
 )
@@ -190,5 +192,43 @@ func TestSummarizeUnusable(t *testing.T) {
 	}
 	if got := summarizeUnusable(nil); got != "no usable TLSA record to verify against" {
 		t.Errorf("summarizeUnusable(empty) = %q, want generic", got)
+	}
+}
+
+// TestParseTLSAWrappedData pins the fix for the truncation bug: `dig +short
+// TLSA` wraps association data into 56-hex chunks separated by spaces, so a
+// SHA-256 association (64 hex) arrives as two fields. The parser must join
+// fields[3:] or every real DANE record truncates and reports a false mismatch.
+func TestParseTLSAWrappedData(t *testing.T) {
+	chunk1 := strings.Repeat("a", 56)
+	chunk2 := "12345678" // 8 hex -> 64 total
+	rec, ok := parseTLSA("3 1 1 " + chunk1 + " " + chunk2)
+	if !ok {
+		t.Fatalf("parseTLSA(wrapped) = !ok, want ok")
+	}
+	want := chunk1 + chunk2
+	if rec.data != want {
+		t.Errorf("parseTLSA(wrapped).data = %q, want %q (joined 56+8 chunks)", rec.data, want)
+	}
+	if len(rec.data) != 64 {
+		t.Errorf("parseTLSA(wrapped).data length = %d, want 64", len(rec.data))
+	}
+}
+
+// TestVerifyTLSAWrappedSHA256 proves the end-to-end path a wrapped record
+// takes: parseTLSA joins the chunks, matchLeaf hashes the SPKI, and the SHA-256
+// digest matches. This is the exact case the truncation bug turned into a
+// false "mismatch" on correctly-configured DANE domains.
+func TestVerifyTLSAWrappedSHA256(t *testing.T) {
+	spki := []byte("example-spki-material")
+	digest := sha256.Sum256(spki)
+	digestHex := hex.EncodeToString(digest[:]) // 64 hex chars
+	record := "3 1 1 " + digestHex[:56] + " " + digestHex[56:]
+	leafDER := "deadbeef"
+	leafSPKI := hex.EncodeToString(spki)
+
+	ok, usable, _ := verifyTLSA([]string{record}, leafDER, leafSPKI, nil, nil)
+	if !ok || usable != 1 {
+		t.Errorf("verifyTLSA(wrapped SHA-256) = (ok=%v, usable=%d), want (true, 1)", ok, usable)
 	}
 }

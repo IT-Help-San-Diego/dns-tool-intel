@@ -752,7 +752,7 @@ func parseTLSA(line string) (tlsaRecord, bool) {
                 usage:        usage,
                 selector:     selector,
                 matchingType: matchingType,
-                data:         strings.ToLower(strings.TrimSpace(fields[3])),
+                data:         strings.ToLower(strings.Join(fields[3:], "")),
                 raw:          line,
         }, true
 }
