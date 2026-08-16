@@ -4,8 +4,11 @@ package main
 import (
         "bytes"
         "context"
+        "crypto/sha256"
+        "crypto/sha512"
         "crypto/subtle"
         "crypto/tls"
+        "encoding/hex"
         "encoding/json"
         "encoding/xml"
         "fmt"
@@ -17,6 +20,7 @@ import (
         "os/exec"
         "os/signal"
         "regexp"
+        "strconv"
         "strings"
         "sync"
         "syscall"
@@ -596,7 +600,17 @@ func handleDANEVerify(w http.ResponseWriter, r *http.Request) {
         if certInfo[mapKeyError] != nil {
                 response[mapKeyStatus] = "cert_error"
         } else {
-                response[mapKeyStatus] = "verified"
+                leafDER, _ := certInfo["cert_der_hex"].(string)
+                leafSPKI, _ := certInfo["spki_der_hex"].(string)
+                chainDER, _ := certInfo["chain_der_hex"].([]string)
+                chainSPKI, _ := certInfo["chain_spki_hex"].([]string)
+                matched, usable, breakdown := verifyTLSA(strings.Split(tlsaRecords, "\n"), leafDER, leafSPKI, chainDER, chainSPKI)
+                response["tlsa_match"] = breakdown
+                status, message := daneVerdictStatus(matched, usable, summarizeUnusable(breakdown))
+                response[mapKeyStatus] = status
+                if message != "" {
+                        response["message"] = message
+                }
         }
 
         response[mapKeyElapsedSeconds] = time.Since(start).Seconds()
@@ -692,11 +706,252 @@ func extractCertInfo(conn net.Conn, host string) map[string]any {
                         result["issuer"] = leaf.Issuer.CommonName
                 }
 
-                result["fingerprint_sha256"] = fmt.Sprintf("%x", leaf.Raw)
+                result["fingerprint_sha256"] = fmt.Sprintf("%x", sha256.Sum256(leaf.Raw))
+                result["cert_der_hex"] = hex.EncodeToString(leaf.Raw)
+                result["spki_der_hex"] = hex.EncodeToString(leaf.RawSubjectPublicKeyInfo)
+                chainDER := make([]string, 0, len(state.PeerCertificates))
+                chainSPKI := make([]string, 0, len(state.PeerCertificates))
+                for _, c := range state.PeerCertificates {
+                        chainDER = append(chainDER, hex.EncodeToString(c.Raw))
+                        chainSPKI = append(chainSPKI, hex.EncodeToString(c.RawSubjectPublicKeyInfo))
+                }
+                result["chain_der_hex"] = chainDER
+                result["chain_spki_hex"] = chainSPKI
                 result["serial"] = leaf.SerialNumber.String()
         }
 
         return result
+}
+
+// tlsaRecord holds one parsed TLSA RR (RFC 6698 §2.1).
+type tlsaRecord struct {
+        usage        int
+        selector     int
+        matchingType int
+        data         string // lowercased hex of the certificate association data
+        raw          string
+}
+
+// parseTLSA parses a "usage selector matching-type association-data" line as
+// emitted by `dig +short TLSA`. Returns false for malformed input.
+func parseTLSA(line string) (tlsaRecord, bool) {
+        fields := strings.Fields(strings.TrimSpace(line))
+        if len(fields) < 4 {
+                return tlsaRecord{}, false
+        }
+        usage, err1 := strconv.Atoi(fields[0])
+        selector, err2 := strconv.Atoi(fields[1])
+        matchingType, err3 := strconv.Atoi(fields[2])
+        if err1 != nil || err2 != nil || err3 != nil {
+                return tlsaRecord{}, false
+        }
+        if usage < 0 || selector < 0 || matchingType < 0 {
+                return tlsaRecord{}, false
+        }
+        return tlsaRecord{
+                usage:        usage,
+                selector:     selector,
+                matchingType: matchingType,
+                data:         strings.ToLower(strings.TrimSpace(fields[3])),
+                raw:          line,
+        }, true
+}
+
+// digestAssociation hashes certificate association data per the TLSA matching
+// type: 0 = full (no hash), 1 = SHA-256, 2 = SHA-512 (RFC 6698 §2.1.3).
+func digestAssociation(association []byte, matchingType int) string {
+        switch matchingType {
+        case 0:
+                return hex.EncodeToString(association)
+        case 1:
+                sum := sha256.Sum256(association)
+                return hex.EncodeToString(sum[:])
+        case 2:
+                sum := sha512.Sum512(association)
+                return hex.EncodeToString(sum[:])
+        default:
+                return ""
+        }
+}
+
+// certAssociationData returns the association bytes for a certificate given the
+// selector: 0 = full DER certificate, 1 = SubjectPublicKeyInfo (RFC 6698 §2.1.1).
+func certAssociationData(derHex, spkiHex string, selector int) ([]byte, bool) {
+        h := derHex
+        if selector == 1 {
+                h = spkiHex
+        }
+        if h == "" {
+                return nil, false
+        }
+        b, err := hex.DecodeString(h)
+        if err != nil {
+                return nil, false
+        }
+        return b, true
+}
+
+// verifyTLSA matches the presented certificate chain against the TLSA records.
+// usage 3 (DANE-EE) matches the leaf; usage 2 (DANE-TA) matches any trust
+// anchor in the presented chain; usage 0/1 (PKIX-TA/PKIX-EE) are reported
+// not-verifiable here because they require full PKIX validation, which the
+// probe's InsecureSkipVerify handshake intentionally does not perform
+// (RFC 6698 §2.1, RFC 7671 §5).
+func verifyTLSA(tlsaRecords []string, leafDER, leafSPKI string, chainDER, chainSPKI []string) (bool, int, []map[string]any) {
+        matched := false
+        usable := 0
+        breakdown := make([]map[string]any, 0, len(tlsaRecords))
+        for _, line := range tlsaRecords {
+                rec, ok := parseTLSA(line)
+                if !ok {
+                        breakdown = append(breakdown, map[string]any{
+                                "record":  line,
+                                "matched": false,
+                                "reason":  "malformed TLSA record",
+                        })
+                        continue
+                }
+                entry, recMatched, recUsable := verifyTLSARecord(rec, leafDER, leafSPKI, chainDER, chainSPKI)
+                if recMatched {
+                        matched = true
+                }
+                if recUsable {
+                        usable++
+                }
+                breakdown = append(breakdown, entry)
+        }
+        return matched, usable, breakdown
+}
+
+// verifyTLSARecord classifies one parsed TLSA record against the presented
+// certificate chain and returns the breakdown entry plus whether the record
+// matched and whether it was actually comparable (usable). Unusable records
+// (unsupported usage/selector/matching-type, or PKIX-based) must never count
+// toward the mismatch verdict.
+func verifyTLSARecord(rec tlsaRecord, leafDER, leafSPKI string, chainDER, chainSPKI []string) (map[string]any, bool, bool) {
+        entry := map[string]any{
+                "record":        rec.raw,
+                "usage":         rec.usage,
+                "selector":      rec.selector,
+                "matching_type": rec.matchingType,
+                "matched":       false,
+        }
+        matched := false
+        usable := false
+        reason := ""
+        switch {
+        case rec.usage > 3:
+                reason = "unsupported usage"
+        case rec.selector > 1:
+                reason = "unsupported selector"
+        case rec.matchingType > 2:
+                reason = "unsupported matching type"
+        case rec.usage == 0 || rec.usage == 1:
+                reason = "PKIX-based usage requires full PKIX validation, not performed by this probe (RFC 6698 §2.1.1)"
+        case rec.usage == 3: // DANE-EE: match the leaf certificate.
+                matched, usable, reason = matchLeaf(rec, leafDER, leafSPKI)
+        default: // usage 2 (DANE-TA): match a trust anchor in the chain.
+                var chainIndex int
+                matched, usable, reason, chainIndex = matchChain(rec, chainDER, chainSPKI)
+                if matched {
+                        entry["chain_index"] = chainIndex
+                }
+        }
+        if reason != "" {
+                entry["reason"] = reason
+        }
+        if matched {
+                entry["matched"] = true
+        }
+        return entry, matched, usable
+}
+
+// matchLeaf compares a DANE-EE record against the leaf certificate (RFC 6698
+// §2.1.1). usable reports whether the association data actually decoded — an
+// undecodable leaf is not a mismatch, it is unverifiable.
+func matchLeaf(rec tlsaRecord, leafDER, leafSPKI string) (bool, bool, string) {
+        assoc, ok := certAssociationData(leafDER, leafSPKI, rec.selector)
+        if !ok {
+                return false, false, "could not decode leaf association data"
+        }
+        if digestAssociation(assoc, rec.matchingType) == rec.data {
+                return true, true, ""
+        }
+        return false, true, "digest mismatch with leaf certificate"
+}
+
+// matchChain compares a DANE-TA record against the presented trust-anchor
+// chain (RFC 6698 §2.1.1). usable reports whether at least one chain entry's
+// association data decoded; an empty or undecodable chain is not a mismatch,
+// it is unverifiable.
+func matchChain(rec tlsaRecord, chainDER, chainSPKI []string) (bool, bool, string, int) {
+        if len(chainDER) == 0 {
+                return false, false, "no chain presented — cannot evaluate DANE-TA", -1
+        }
+        compared := false
+        for i := range chainDER {
+                if i >= len(chainSPKI) {
+                        break
+                }
+                assoc, ok := certAssociationData(chainDER[i], chainSPKI[i], rec.selector)
+                if !ok {
+                        continue
+                }
+                compared = true
+                if digestAssociation(assoc, rec.matchingType) == rec.data {
+                        return true, true, "", i
+                }
+        }
+        if !compared {
+                return false, false, "could not decode chain association data", -1
+        }
+        return false, true, "no trust anchor in the presented chain matches", -1
+}
+
+// daneVerdictStatus derives the honest verdict from the match result. A
+// non-match is only a "mismatch" when at least one record was actually
+// comparable (usage 2/3); an entirely unusable record set (PKIX-only,
+// malformed, or unsupported matching type) means the domain has no usable
+// TLSA, which RFC 7671 §4.1 / RFC 7672 §2.2.1 require us to report as
+// "not_verifiable", never as a failed match. The reason carries which case it
+// was, so the reader gets the right next action.
+func daneVerdictStatus(matched bool, usable int, reason string) (string, string) {
+        switch {
+        case matched:
+                return "verified", ""
+        case usable > 0:
+                return "mismatch", "TLSA record(s) do not match the presented certificate"
+        default:
+                if reason == "" {
+                        reason = "no usable TLSA record to verify against"
+                }
+                return "not_verifiable", reason
+        }
+}
+
+// summarizeUnusable collapses the per-record reasons of an all-unusable
+// breakdown into one human-readable summary. When every unusable record
+// shares a single reason, that reason is returned verbatim (the reader's next
+// action depends on which one it is); otherwise the generic summary is used
+// and the per-record detail remains in tlsa_match.
+func summarizeUnusable(breakdown []map[string]any) string {
+        reason := ""
+        uniform := true
+        for _, b := range breakdown {
+                r, _ := b["reason"].(string)
+                if r == "" {
+                        continue
+                }
+                if reason == "" {
+                        reason = r
+                } else if reason != r {
+                        uniform = false
+                }
+        }
+        if uniform && reason != "" {
+                return reason
+        }
+        return "no usable TLSA record to verify against"
 }
 
 const maxSMTPResponseSize = 64 * 1024
