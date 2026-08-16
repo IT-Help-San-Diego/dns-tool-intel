@@ -550,8 +550,8 @@ func TestReportModeTemplate_CB15(t *testing.T) {
                 {"C", "results_covert.html"},
                 {"CZ", "results_covert.html"},
                 {"B", "results_executive.html"},
-                {"E", "results.html"},
-                {"Z", "results.html"},
+                {"E", "results_v2.html"},
+                {"Z", "results_v2.html"},
         }
         for _, tt := range tests {
                 got := reportModeTemplate(tt.mode)
