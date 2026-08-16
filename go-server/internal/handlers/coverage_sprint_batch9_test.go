@@ -451,6 +451,7 @@ func TestShouldPersistResult_ExhaustiveMatrix(t *testing.T) {
                 {"ephemeral", true, false, "active", true, false, "ephemeral"},
                 {"nonexistent_success", false, false, "undelegated", true, false, "nonexistent_domain"},
                 {"nonexistent_failed", false, false, "undelegated", false, true, ""},
+                {"indeterminate_persists", false, false, "indeterminate", true, true, ""},
         }
         for _, tt := range tests {
                 t.Run(tt.name, func(t *testing.T) {
