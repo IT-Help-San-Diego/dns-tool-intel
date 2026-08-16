@@ -772,7 +772,7 @@ func (c *Client) QueryWithConsensus(ctx context.Context, recordType, domain stri
 
         return ConsensusResult{
                 Records:         consensusRecords,
-                Consensus:       allSame,
+                Consensus:       allSame && len(consensusRecords) > 0,
                 ResolverCount:   len(resolverResults),
                 TopVotes:        topVotes,
                 Discrepancies:   discrepancies,
