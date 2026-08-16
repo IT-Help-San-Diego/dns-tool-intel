@@ -102,6 +102,30 @@ type postureAccumulator struct {
 	absent          []string
 	providerLimited []string
 	unmeasurable    []string
+
+	// Index-aligned protocol tags for recommendations/monitoring, so the
+	// report can link each finding to its protocol card instead of a
+	// generic anchor (Carey's thrice-asked click-through). The producer
+	// states the protocol; consumers never parse it out of prose. The
+	// text slices remain THE arrays — counters take len() of them and
+	// links range over them, so count and targets cannot diverge
+	// (Science's same-array requirement).
+	recommendationProtos []string
+	monitoringProtos     []string
+}
+
+// recommend appends a recommendation with its protocol tag, keeping the
+// legacy string slice and the protocol slice index-aligned by construction.
+func (acc *postureAccumulator) recommend(proto, text string) {
+	acc.recommendations = append(acc.recommendations, text)
+	acc.recommendationProtos = append(acc.recommendationProtos, proto)
+}
+
+// monitor appends a monitoring note with its protocol tag; same alignment
+// guarantee as recommend.
+func (acc *postureAccumulator) monitor(proto, text string) {
+	acc.monitoring = append(acc.monitoring, text)
+	acc.monitoringProtos = append(acc.monitoringProtos, proto)
 }
 
 type gradeInput struct {
@@ -477,29 +501,29 @@ func scanDKIMIssueStrings(issues []any) (weakKeys, thirdPartyOnly bool) {
 func classifySPF(ps protocolState, acc *postureAccumulator) {
 	if ps.spfMissing {
 		acc.issues = append(acc.issues, "No SPF record published — RFC 7208 defines the SPF mechanism but does not mandate publication. Without SPF, any server can send email claiming to be this domain (CVE-2024-7208, CVE-2024-7209)")
-		acc.recommendations = append(acc.recommendations, "Publish an SPF record to authorize legitimate mail senders")
+		acc.recommend("SPF", "Publish an SPF record to authorize legitimate mail senders")
 		acc.absent = append(acc.absent, rtSPF)
 		return
 	}
 
 	if ps.spfDangerous {
 		acc.issues = append(acc.issues, "SPF record uses +all — allows any server to send mail as this domain (RFC 7208 §5.1 defines +all as passing all senders)")
-		acc.recommendations = append(acc.recommendations, "Change SPF mechanism from +all to ~all or -all")
+		acc.recommend("SPF", "Change SPF mechanism from +all to ~all or -all")
 		acc.configured = append(acc.configured, rtSPF)
 		return
 	}
 
 	if ps.spfLookupExceeded {
 		acc.issues = append(acc.issues, fmt.Sprintf("SPF record exceeds 10-lookup limit (%d lookups)", ps.spfLookupCount))
-		acc.recommendations = append(acc.recommendations, "Reduce SPF lookup count to 10 or fewer using IP-based mechanisms")
+		acc.recommend("SPF", "Reduce SPF lookup count to 10 or fewer using IP-based mechanisms")
 	}
 
 	if ps.spfNeutral {
-		acc.recommendations = append(acc.recommendations, "SPF uses ?all (neutral) — consider ~all or -all for stronger policy")
+		acc.recommend("SPF", "SPF uses ?all (neutral) — consider ~all or -all for stronger policy")
 	}
 
 	if ps.spfWarning && !ps.spfHardFail {
-		acc.monitoring = append(acc.monitoring, "SPF configured with soft fail (~all) — industry-standard when paired with DMARC enforcement (RFC 7489)")
+		acc.monitor("SPF", "SPF configured with soft fail (~all) — industry-standard when paired with DMARC enforcement (RFC 7489)")
 	}
 
 	if ps.spfHardFail {
@@ -512,7 +536,7 @@ func classifySPF(ps protocolState, acc *postureAccumulator) {
 func classifyDMARC(ps protocolState, acc *postureAccumulator) {
 	if ps.dmarcMissing {
 		acc.issues = append(acc.issues, "No DMARC record published — RFC 7489 is Informational (not Standards Track); DMARCbis will elevate to Standards Track. Without DMARC, receivers have no policy for handling SPF/DKIM failures — spoofed mail may be delivered (CVE-2024-49040)")
-		acc.recommendations = append(acc.recommendations, "Publish a DMARC record starting with p=none and rua reporting")
+		acc.recommend("DMARC", "Publish a DMARC record starting with p=none and rua reporting")
 		acc.absent = append(acc.absent, "DMARC")
 		return
 	}
@@ -534,37 +558,37 @@ func classifyDMARCSuccess(ps protocolState, acc *postureAccumulator) {
 			acc.configured = append(acc.configured, "DMARC (reject)")
 		case ps.dmarcPct > 0:
 			acc.configured = append(acc.configured, fmt.Sprintf("DMARC (reject, %d%%)", ps.dmarcPct))
-			acc.monitoring = append(acc.monitoring, fmt.Sprintf("DMARC reject policy only applies to %d%% of messages", ps.dmarcPct))
-			acc.recommendations = append(acc.recommendations, "Increase DMARC pct to 100 for full enforcement")
+			acc.monitor("DMARC", fmt.Sprintf("DMARC reject policy only applies to %d%% of messages", ps.dmarcPct))
+			acc.recommend("DMARC", "Increase DMARC pct to 100 for full enforcement")
 		default:
 			acc.configured = append(acc.configured, "DMARC (reject, pct=0)")
 			acc.issues = append(acc.issues, "DMARC policy is reject with pct=0 — enforcement applies to 0% of mail, so nothing is blocked (RFC 7489 §6.3)")
-			acc.recommendations = append(acc.recommendations, "Raise DMARC pct so the reject policy actually applies")
+			acc.recommend("DMARC", "Raise DMARC pct so the reject policy actually applies")
 		}
 	case mapKeyQuarantine:
 		switch {
 		case ps.dmarcPct >= 100:
 			acc.configured = append(acc.configured, "DMARC (quarantine, 100%)")
-			acc.recommendations = append(acc.recommendations, "Upgrade DMARC policy from quarantine to reject (p=reject) for maximum spoofing protection")
+			acc.recommend("DMARC", "Upgrade DMARC policy from quarantine to reject (p=reject) for maximum spoofing protection")
 		case ps.dmarcPct > 0:
 			acc.configured = append(acc.configured, fmt.Sprintf("DMARC (quarantine, %d%%)", ps.dmarcPct))
-			acc.monitoring = append(acc.monitoring, fmt.Sprintf("DMARC quarantine policy only applies to %d%% of messages", ps.dmarcPct))
-			acc.recommendations = append(acc.recommendations, "Increase DMARC pct to 100 for full enforcement")
+			acc.monitor("DMARC", fmt.Sprintf("DMARC quarantine policy only applies to %d%% of messages", ps.dmarcPct))
+			acc.recommend("DMARC", "Increase DMARC pct to 100 for full enforcement")
 		default:
 			// pct=0: zero enforcement is an issue, not a monitoring note —
 			// symmetric with the reject branch above.
 			acc.configured = append(acc.configured, "DMARC (quarantine, pct=0)")
 			acc.issues = append(acc.issues, "DMARC policy is quarantine with pct=0 — enforcement applies to 0% of mail, so nothing is blocked (RFC 7489 §6.3)")
-			acc.recommendations = append(acc.recommendations, "Raise DMARC pct so the quarantine policy actually applies")
+			acc.recommend("DMARC", "Raise DMARC pct so the quarantine policy actually applies")
 		}
 	case statusNone:
 		acc.configured = append(acc.configured, "DMARC (monitoring only)")
 		if ps.dmarcHasRua {
-			acc.monitoring = append(acc.monitoring, "DMARC policy is 'none' (monitoring mode) — receiving aggregate reports")
-			acc.recommendations = append(acc.recommendations, "Review DMARC aggregate reports and move to quarantine or reject policy")
+			acc.monitor("DMARC", "DMARC policy is 'none' (monitoring mode) — receiving aggregate reports")
+			acc.recommend("DMARC", "Review DMARC aggregate reports and move to quarantine or reject policy")
 		} else {
 			acc.issues = append(acc.issues, "DMARC policy is 'none' with no reporting — provides no protection or visibility")
-			acc.recommendations = append(acc.recommendations, "Add rua tag to receive DMARC aggregate reports before enforcing policy")
+			acc.recommend("DMARC", "Add rua tag to receive DMARC aggregate reports before enforcing policy")
 		}
 	default:
 		acc.configured = append(acc.configured, "DMARC")
@@ -576,21 +600,21 @@ func classifyDMARCSuccess(ps protocolState, acc *postureAccumulator) {
 	// Recommending it on a correct no-mail lockdown (e.g. null MX + p=reject) is
 	// noise — suppress it for no-mail domains.
 	if !ps.dmarcHasRua && ps.dmarcPolicy != statusNone && !ps.isNoMailDomain {
-		acc.recommendations = append(acc.recommendations, "Add DMARC aggregate reporting (rua) for visibility into email authentication")
+		acc.recommend("DMARC", "Add DMARC aggregate reporting (rua) for visibility into email authentication")
 	}
 }
 
 func classifyDMARCWarning(ps protocolState, acc *postureAccumulator) {
 	acc.configured = append(acc.configured, "DMARC (with warnings)")
-	acc.monitoring = append(acc.monitoring, "DMARC record has configuration warnings — review recommended")
+	acc.monitor("DMARC", "DMARC record has configuration warnings — review recommended")
 
 	if ps.dmarcPolicy == statusNone {
-		acc.recommendations = append(acc.recommendations, "Move DMARC policy from 'none' to 'quarantine' or 'reject'")
+		acc.recommend("DMARC", "Move DMARC policy from 'none' to 'quarantine' or 'reject'")
 	}
 	// No-mail domains gain no email-authentication visibility from rua (see
 	// classifyDMARCSuccess) — do not recommend it for them.
 	if !ps.dmarcHasRua && !ps.isNoMailDomain {
-		acc.recommendations = append(acc.recommendations, "Enable DMARC aggregate reporting (rua) for authentication visibility")
+		acc.recommend("DMARC", "Enable DMARC aggregate reporting (rua) for authentication visibility")
 	}
 }
 
@@ -600,10 +624,10 @@ func classifyDKIMPosture(ps protocolState, ds DKIMState, primaryProvider string,
 		acc.configured = append(acc.configured, "DKIM")
 	case DKIMProviderInferred:
 		acc.configured = append(acc.configured, fmt.Sprintf("DKIM (inferred via %s)", primaryProvider))
-		acc.monitoring = append(acc.monitoring, "DKIM signing inferred from provider — could not directly verify selector")
+		acc.monitor("DKIM", "DKIM signing inferred from provider — could not directly verify selector")
 	case DKIMThirdPartyOnly:
 		acc.configured = append(acc.configured, "DKIM (third-party only)")
-		acc.recommendations = append(acc.recommendations, "Configure DKIM signing for your primary domain selector in addition to third-party services")
+		acc.recommend("DKIM", "Configure DKIM signing for your primary domain selector in addition to third-party services")
 	case DKIMWeakKeysOnly:
 		acc.configured = append(acc.configured, "DKIM (weak keys)")
 	case DKIMNoMailDomain:
@@ -622,13 +646,13 @@ func classifyDKIMPosture(ps protocolState, ds DKIMState, primaryProvider string,
 		// monitoring note carries it instead: visible, flagged as needing
 		// attention, counted as neither configured nor absent.
 		acc.unmeasurable = append(acc.unmeasurable, "DKIM")
-		acc.monitoring = append(acc.monitoring, fmt.Sprintf(
+		acc.monitor("DKIM", fmt.Sprintf(
 			"DKIM status is inconclusive — no record was found at any of the %d common selector names this tool probes. DKIM selectors are arbitrary labels with no enumerating DNS record (RFC 6376), so this is not evidence that DKIM is absent. To resolve it, find the selector: the s= value in the DKIM-Signature header of any email from this domain (RFC 6376 §3.5), the record at <selector>._domainkey.<domain>, or your mail provider's DKIM setup console — then enter it and we'll verify.",
 			len(defaultDKIMSelectors),
 		))
 	case DKIMAbsent:
 		acc.absent = append(acc.absent, "DKIM")
-		acc.recommendations = append(acc.recommendations, "Configure DKIM signing to cryptographically authenticate outgoing email — RFC 6376 defines the mechanism; without it, messages cannot be verified as unaltered in transit")
+		acc.recommend("DKIM", "Configure DKIM signing to cryptographically authenticate outgoing email — RFC 6376 defines the mechanism; without it, messages cannot be verified as unaltered in transit")
 	}
 	// Co-occurring weak-key warning: weakKeys is derived independently of the
 	// primary state in evaluateDKIMIssues, so it pairs with success,
@@ -637,7 +661,7 @@ func classifyDKIMPosture(ps protocolState, ds DKIMState, primaryProvider string,
 	// label. Fire it whenever weak keys were detected, alongside the primary.
 	if ps.dkimWeakKeys {
 		acc.issues = append(acc.issues, "DKIM keys are weak (1024-bit or less) — RFC 6376 §3.3.3 requires minimum 1024-bit RSA; 2048-bit is the current operational standard. Keys below 1024-bit are considered cryptographically breakable")
-		acc.recommendations = append(acc.recommendations, "Upgrade DKIM keys to 2048-bit RSA or Ed25519")
+		acc.recommend("DKIM", "Upgrade DKIM keys to 2048-bit RSA or Ed25519")
 	}
 }
 
@@ -664,13 +688,13 @@ func classifyDNSSEC(ps protocolState, acc *postureAccumulator) {
 		acc.configured = append(acc.configured, "DNSSEC")
 	} else if ps.dnssecBroken {
 		acc.issues = append(acc.issues, "DNSSEC validation is failing — DNS responses cannot be trusted")
-		acc.recommendations = append(acc.recommendations, "Fix DNSSEC configuration or remove broken DS records")
+		acc.recommend("DNSSEC", "Fix DNSSEC configuration or remove broken DS records")
 	} else if ps.dnssecUnconfirmed {
-		acc.monitoring = append(acc.monitoring, "DNSSEC is configured but the chain of trust is unconfirmed — the AD flag was absent and RFC 4033 §5 cannot distinguish why")
+		acc.monitor("DNSSEC", "DNSSEC is configured but the chain of trust is unconfirmed — the AD flag was absent and RFC 4033 §5 cannot distinguish why")
 	} else if ps.dnssecUnmeasured {
-		acc.monitoring = append(acc.monitoring, "DNSSEC could not be measured — the validating resolvers were unreachable (instrument failure, not a domain finding)")
+		acc.monitor("DNSSEC", "DNSSEC could not be measured — the validating resolvers were unreachable (instrument failure, not a domain finding)")
 	} else if ps.dnssecIndeterminate {
-		acc.monitoring = append(acc.monitoring, "DNSSEC could not be verified — DNSKEY/DS lookup did not complete; re-run before concluding the zone is unsigned (RFC 4035)")
+		acc.monitor("DNSSEC", "DNSSEC could not be verified — DNSKEY/DS lookup did not complete; re-run before concluding the zone is unsigned (RFC 4035)")
 	} else {
 		acc.absent = append(acc.absent, "DNSSEC")
 	}
@@ -710,7 +734,7 @@ func simpleProtocolIndeterminate(result map[string]any, stateKey string) bool {
 func classifyPresenceTri(ok, indeterminate bool, name string, acc *postureAccumulator) {
 	if indeterminate {
 		acc.unmeasurable = append(acc.unmeasurable, name)
-		acc.monitoring = append(acc.monitoring, name+" could not be verified — the DNS lookup did not complete; re-run before concluding it is absent")
+		acc.monitor(name, name+" could not be verified — the DNS lookup did not complete; re-run before concluding it is absent")
 		return
 	}
 	classifyPresence(ok, name, acc)
@@ -724,7 +748,7 @@ func classifyDanglingDNS(results map[string]any, acc *postureAccumulator) {
 	count := extractIntField(dangling, "dangling_count")
 	if count > 0 {
 		acc.issues = append(acc.issues, fmt.Sprintf("%d dangling DNS record(s) detected — potential subdomain takeover risk", count))
-		acc.recommendations = append(acc.recommendations, "Review and remove dangling DNS records pointing to deprovisioned services")
+		acc.recommend("Subdomains", "Review and remove dangling DNS records pointing to deprovisioned services")
 	}
 }
 
@@ -736,7 +760,7 @@ func classifyDMARCReportAuth(results map[string]any, acc *postureAccumulator) {
 
 	issues, _ := reportAuth[mapKeyIssues].([]string)
 	for _, issue := range issues {
-		acc.monitoring = append(acc.monitoring, issue)
+		acc.monitor("DMARC", issue)
 	}
 
 	externalDomains := extractExternalDomainMaps(reportAuth["external_domains"])
@@ -744,7 +768,7 @@ func classifyDMARCReportAuth(results map[string]any, acc *postureAccumulator) {
 		if authorized, ok := ed["authorized"].(bool); ok && !authorized {
 			domain, _ := ed["domain"].(string)
 			if domain != "" {
-				acc.recommendations = append(acc.recommendations, fmt.Sprintf("Authorize external DMARC reporting for %s or remove from rua/ruf", domain))
+				acc.recommend("DMARC", fmt.Sprintf("Authorize external DMARC reporting for %s or remove from rua/ruf", domain))
 			}
 		}
 	}
@@ -836,13 +860,13 @@ func classifyCertificateCosts(results map[string]any, acc *postureAccumulator) {
 	}
 
 	if totalPaidCerts >= 3 && !hasWildcard {
-		acc.recommendations = append(acc.recommendations,
+		acc.recommend("Subdomains",
 			fmt.Sprintf("Consider a wildcard certificate (*.domain) to reduce certificate management overhead — %d individual certificates detected across %s",
 				totalPaidCerts, strings.Join(paidCANames, ", ")))
 	}
 
 	if totalPaidCerts >= 3 && !hasFreeCerts {
-		acc.recommendations = append(acc.recommendations,
+		acc.recommend("Subdomains",
 			"Evaluate free certificate providers (Let's Encrypt, AWS Certificate Manager) — automated issuance and renewal can reduce costs, especially with shorter certificate lifetimes ahead")
 	}
 }
@@ -1031,10 +1055,13 @@ func (a *Analyzer) CalculatePosture(results map[string]any) map[string]any {
 	deliberate, deliberateNote := evaluateDeliberateMonitoring(ps)
 
 	var criticalIssues []string
+	var criticalProtos []string
 	if ps.dnssecBroken {
 		criticalIssues = append(criticalIssues, "DNSSEC validation is failing")
+		criticalProtos = append(criticalProtos, "DNSSEC")
 	}
 	if !isTLD && ps.spfMissing && ps.dmarcMissing {
+		criticalProtos = append(criticalProtos, "SPF")
 		criticalIssues = append(criticalIssues, "No SPF and no DMARC — domain is completely unprotected against email spoofing. Both protocols are RFC-recommended (not mandatory), but their absence leaves the domain open to impersonation (CVE-2024-7208, CVE-2024-49040)")
 	}
 
@@ -1052,8 +1079,11 @@ func (a *Analyzer) CalculatePosture(results map[string]any) map[string]any {
 		"message":                    message,
 		mapKeyIssues:                 acc.issues,
 		"critical_issues":            criticalIssues,
+		"critical_issue_protocols":   criticalProtos,
 		"recommendations":            acc.recommendations,
+		"recommendation_protocols":   acc.recommendationProtos,
 		"monitoring":                 acc.monitoring,
+		"monitoring_protocols":       acc.monitoringProtos,
 		"configured":                 acc.configured,
 		"absent":                     acc.absent,
 		"provider_limited":           acc.providerLimited,

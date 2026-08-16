@@ -805,7 +805,7 @@
                             {{end}}
                         </div>
                         <div class="mt-2">
-                            <small class="d-block">{{$postureConfiguredCount := len (mapGetSlice "configured" $posture)}}{{$postureAbsentCount := len (mapGetSlice "absent" $posture)}}{{$postureProviderLimitedCount := len (mapGetSlice "provider_limited" $posture)}}{{if gt $postureConfiguredCount 0}}<span class="text-success">{{$postureConfiguredCount}} protocols configured</span>{{end}}{{if and (gt $postureConfiguredCount 0) (gt $postureAbsentCount 0)}}, {{end}}{{if gt $postureAbsentCount 0}}{{$absentItems := mapGetSlice "absent" $posture}}<a href="{{if eq $postureAbsentCount 1}}{{$singleAbsent := index $absentItems 0}}{{if eq $singleAbsent "DANE"}}#section-dane{{else if or (eq $singleAbsent "SPF") (eq $singleAbsent "DMARC") (eq $singleAbsent "DKIM") (eq $singleAbsent "MTA-STS") (eq $singleAbsent "TLS-RPT")}}#section-email{{else if or (eq $singleAbsent "BIMI") (eq $singleAbsent "CAA")}}#section-brand{{else if eq $singleAbsent "DNSSEC"}}#section-dnssec{{else}}#findings-summary{{end}}{{else}}#findings-summary{{end}}" class="text-warning text-decoration-none" id="posture-absent-link">{{$postureAbsentCount}} not configured</a>{{end}}{{if gt $postureProviderLimitedCount 0}}{{if or (gt $postureConfiguredCount 0) (gt $postureAbsentCount 0)}}, {{end}}{{$plItems := mapGetSlice "provider_limited" $posture}}<a href="{{if eq $postureProviderLimitedCount 1}}{{$singlePL := index $plItems 0}}{{if eq $singlePL "DANE"}}#section-dane{{else}}#findings-summary{{end}}{{else}}#findings-summary{{end}}" class="text-muted text-decoration-none">{{$postureProviderLimitedCount}} unavailable on provider</a>{{end}}</small>
+                            <small class="d-block">{{$postureConfiguredCount := len (mapGetSlice "configured" $posture)}}{{$postureAbsentCount := len (mapGetSlice "absent" $posture)}}{{$postureProviderLimitedCount := len (mapGetSlice "provider_limited" $posture)}}{{if gt $postureConfiguredCount 0}}<span class="text-success">{{$postureConfiguredCount}} protocols configured</span>{{end}}{{if and (gt $postureConfiguredCount 0) (gt $postureAbsentCount 0)}}, {{end}}{{if gt $postureAbsentCount 0}}{{$absentItems := mapGetSlice "absent" $posture}}<a href="{{if eq $postureAbsentCount 1}}{{protocolAnchor (index $absentItems 0)}}{{else}}#findings-summary{{end}}" class="text-warning text-decoration-none" id="posture-absent-link">{{$postureAbsentCount}} not configured</a>{{end}}{{if gt $postureProviderLimitedCount 0}}{{if or (gt $postureConfiguredCount 0) (gt $postureAbsentCount 0)}}, {{end}}{{$plItems := mapGetSlice "provider_limited" $posture}}<a href="{{if eq $postureProviderLimitedCount 1}}{{protocolAnchor (index $plItems 0)}}{{else}}#findings-summary{{end}}" class="text-muted text-decoration-none">{{$postureProviderLimitedCount}} unavailable on provider</a>{{end}}</small>
                             {{$postureUnmeasurable := mapGetSlice "unmeasurable" $posture}}{{if gt (len $postureUnmeasurable) 0}}
                             <small class="text-danger d-block mt-1 fw-semibold">{{icon "exclamation-triangle" "me-1"}}Score excludes {{len $postureUnmeasurable}} unmeasurable control{{if gt (len $postureUnmeasurable) 1}}s{{end}} ({{range $i, $u := $postureUnmeasurable}}{{if $i}}, {{end}}{{$u}}{{end}}) &mdash; this verdict covers only what we could measure.</small>
                             {{end}}
@@ -825,14 +825,21 @@
                         {{if or $postureCritical $postureRecs $postureMonitoring}}
                         <div class="mt-3 pt-3 border-top border-{{$postureColor}} border-opacity-25">
                             <span class="text-uppercase fw-bold d-block u-fs-070rem mb-2 text-{{$postureColor}}">{{icon "exclamation-triangle" "me-1"}}What&rsquo;s Wrong</span>
-                            {{range $issue := $postureCritical}}
-                            <a href="#findings-summary" class="d-block text-danger text-decoration-none small mb-1">{{icon "times-circle" "me-2"}}{{$issue}}</a>
+                            {{/* Each finding links its OWN protocol card via the producer's
+                                 index-aligned protocol slice — never parsed from the prose, and
+                                 the links range over the same arrays the counters len() (the
+                                 same-array requirement). Legacy rows fall back per item. */}}
+                            {{$criticalProtos := mapGetSlice "critical_issue_protocols" $posture}}
+                            {{$recProtos := mapGetSlice "recommendation_protocols" $posture}}
+                            {{$monProtos := mapGetSlice "monitoring_protocols" $posture}}
+                            {{range $i, $issue := $postureCritical}}
+                            <a href="{{protocolAnchorAt $criticalProtos $i}}" class="d-block text-danger text-decoration-none small mb-1">{{icon "times-circle" "me-2"}}{{$issue}}</a>
                             {{end}}
-                            {{range $rec := $postureRecs}}
-                            <a href="#findings-summary" class="d-block text-warning text-decoration-none small mb-1">{{icon "lightbulb" "me-2"}}{{$rec}}</a>
+                            {{range $i, $rec := $postureRecs}}
+                            <a href="{{protocolAnchorAt $recProtos $i}}" class="d-block text-warning text-decoration-none small mb-1">{{icon "lightbulb" "me-2"}}{{$rec}}</a>
                             {{end}}
-                            {{range $mon := $postureMonitoring}}
-                            <a href="#findings-summary" class="d-block text-info text-decoration-none small mb-1">{{icon "eye" "me-2"}}{{$mon}}</a>
+                            {{range $i, $mon := $postureMonitoring}}
+                            <a href="{{protocolAnchorAt $monProtos $i}}" class="d-block text-info text-decoration-none small mb-1">{{icon "eye" "me-2"}}{{$mon}}</a>
                             {{end}}
                             {{if mapGetBool "dkim_inconclusive" $posture}}
                             <a href="/topology?domain={{.AsciiDomain | urlquery}}&amp;dkim=1" class="d-block text-info text-decoration-none small mb-1">{{icon "key" "me-2"}}DKIM inconclusive &mdash; provide your selector to verify</a>
@@ -843,7 +850,7 @@
                         <div class="mt-2 d-flex align-items-center flex-wrap gap-2 screen-only">
                             <span class="text-uppercase text-muted fw-bold u-fs-070rem">Jump To:</span>
                             {{range $p := $postureAbsent}}
-                            <a href="{{if eq $p "DANE"}}#section-dane{{else if or (eq $p "SPF") (eq $p "DMARC") (eq $p "DKIM") (eq $p "MTA-STS") (eq $p "TLS-RPT")}}#section-email{{else if or (eq $p "BIMI") (eq $p "CAA")}}#section-brand{{else if eq $p "DNSSEC"}}#section-dnssec{{else}}#findings-summary{{end}}" class="badge bg-{{$postureColor}} bg-opacity-25 border border-{{$postureColor}} border-opacity-50 text-{{$postureColor}} text-decoration-none">{{$p}} {{icon "arrow-right" "ms-1"}}</a>
+                            <a href="{{protocolAnchor $p}}" class="badge bg-{{$postureColor}} bg-opacity-25 border border-{{$postureColor}} border-opacity-50 text-{{$postureColor}} text-decoration-none">{{$p}} {{icon "arrow-right" "ms-1"}}</a>
                             {{end}}
                         </div>
                         {{end}}

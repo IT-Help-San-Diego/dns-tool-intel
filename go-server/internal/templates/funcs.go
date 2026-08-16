@@ -872,7 +872,54 @@ func displayFuncs() template.FuncMap {
                 "buildExportQuery":  buildExportQuery,
                 "severityRank":      severityRank,
                 "severityTier":      severityTier,
+                "protocolAnchor":    protocolAnchor,
+                "protocolAnchorAt":  protocolAnchorAt,
         }
+}
+
+// protocolAnchor returns the in-page anchor for a protocol's canonical
+// card — the SINGLE source of the protocol→section mapping the report
+// template previously hardcoded in three separate chains (topology's JS
+// protocolSectionMap still carries a copy). CAA goes to its canonical
+// Domain Security home (#section-caa), not the brand see-also — the old
+// chains predated the CAA relocation. Unknown names fall back to the
+// findings summary, never a dead link.
+func protocolAnchor(p string) string {
+        switch p {
+        case "SPF", "DMARC", "DKIM", "MTA-STS", "TLS-RPT":
+                return "#section-email"
+        case "DANE":
+                return "#section-dane"
+        case "BIMI":
+                return "#section-brand"
+        case "CAA":
+                return "#section-caa"
+        case "DNSSEC":
+                return "#section-dnssec"
+        case "Subdomains":
+                return "#section-subdomains"
+        }
+        return "#findings-summary"
+}
+
+// protocolAnchorAt links finding i of an index-aligned protocol slice
+// (posture.go's recommend/monitor helpers keep text and protocol slices
+// aligned by construction). Legacy rows carry no protocol slice — nil,
+// short, or non-string entries all fall back to the findings summary.
+func protocolAnchorAt(protos interface{}, i int) string {
+        switch list := protos.(type) {
+        case []interface{}:
+                if i >= 0 && i < len(list) {
+                        if s, ok := list[i].(string); ok {
+                                return protocolAnchor(s)
+                        }
+                }
+        case []string:
+                if i >= 0 && i < len(list) {
+                        return protocolAnchor(list[i])
+                }
+        }
+        return "#findings-summary"
 }
 
 // severityRank exposes the shared severity map (internal/severity, the
