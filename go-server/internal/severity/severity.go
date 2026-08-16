@@ -86,6 +86,7 @@ var statusTier = map[string]Tier{
 	"unsigned":       TierFail,
 	"broken":         TierFail,
 	"bogus":          TierFail,
+	"vulnerable":     TierFail,
 
 	// WARN — measured qualified
 	"basic":            TierWarn,

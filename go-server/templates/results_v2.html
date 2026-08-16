@@ -442,6 +442,12 @@
   .v2-workspace .v2-posture-strip > [class*="col-"] { width: auto; max-width: none; flex: none; padding: 0 !important; margin: 0 !important; display: inline-flex; align-items: center; gap: .5rem; }
   .v2-workspace .v2-posture-strip .small { margin: 0 !important; font-size: .68rem !important; letter-spacing: .05em; }
   .v2-workspace .v2-posture-strip .badge { padding: .28rem .6rem !important; font-size: .72rem !important; }
+  /* Severity order stamped server-side from the shared map (severityRank):
+     FAIL 0 renders first, INFO above PASS. Visual order only — DOM stays canonical. */
+  .v2-posture-strip .sev-order-0 { order: 0; }
+  .v2-posture-strip .sev-order-1 { order: 1; }
+  .v2-posture-strip .sev-order-2 { order: 2; }
+  .v2-posture-strip .sev-order-3 { order: 3; }
   /* Priority-action DNS record tables: let long values wrap instead of squinting mid-token. */
   .v2-workspace .table-dark td code { overflow-wrap: anywhere; word-break: break-word; white-space: normal; }
   .v2-workspace .u-col-label-70 { width: 3.4rem; }
@@ -841,58 +847,49 @@
             <div class="col-12">
                 <div class="card bg-dark bg-opacity-25 u-border-soft">
                     <div class="card-body py-3 px-3">
+                        <!-- Each cell hoists its badge label/class into variables so the
+                             flex order can be stamped from the SHARED severity map
+                             (internal/severity via severityRank) — FAIL 0 renders first,
+                             unmeasurables above passes. Single source; never a local rank. -->
+                        <div class="small text-muted text-uppercase mb-2">Sorted by severity — worst first</div>
                         <div class="row g-3 text-center v2-posture-strip">
-                            <div class="col-6 col-md-3">
+                            {{$esLabel := ""}}{{$esClass := ""}}{{$esTip := false}}
+                            {{if .IsTLD}}{{$esLabel = "N/A — Registry"}}{{$esClass = "bg-secondary"}}
+                            {{else if or (eq (mapGetStr "spf_state" $spf) "indeterminate") (eq (mapGetStr "dmarc_state" $dmarc) "indeterminate")}}{{$esLabel = "Inconclusive"}}{{$esClass = "bg-secondary"}}{{$esTip = true}}
+                            {{else if and (eq $spfStatus "success") (eq $dmarcStatus "success") (or (eq $dmarcPolicy "reject") (eq $dmarcPolicy "quarantine"))}}{{$esLabel = "Protected"}}{{$esClass = "bg-success"}}
+                            {{else if and (eq $spfStatus "success") (eq $dmarcStatus "success") (eq $dmarcPolicy "none")}}{{$esLabel = "Monitoring"}}{{$esClass = "bg-info"}}
+                            {{else if or (eq $spfStatus "success") (eq $dmarcStatus "success")}}{{$esLabel = "Partial"}}{{$esClass = "bg-warning text-dark"}}
+                            {{else}}{{$esLabel = "Vulnerable"}}{{$esClass = "bg-danger"}}{{end}}
+                            <div class="col-6 col-md-3 sev-order-{{severityRank $esLabel}}" data-sev="{{severityRank $esLabel}}">
                                 <div class="small text-muted text-uppercase mb-1">Email Spoofing</div>
-                                {{if .IsTLD}}
-                                <span class="badge bg-secondary px-3 py-2">N/A — Registry</span>
-                                {{else if or (eq (mapGetStr "spf_state" $spf) "indeterminate") (eq (mapGetStr "dmarc_state" $dmarc) "indeterminate")}}
-                                <span class="badge bg-secondary px-3 py-2" data-bs-toggle="tooltip" title="A TXT lookup did not complete (transient SERVFAIL/timeout). Re-run before concluding.">Inconclusive</span>
-                                {{else if and (eq $spfStatus "success") (eq $dmarcStatus "success") (or (eq $dmarcPolicy "reject") (eq $dmarcPolicy "quarantine"))}}
-                                <span class="badge bg-success px-3 py-2">Protected</span>
-                                {{else if and (eq $spfStatus "success") (eq $dmarcStatus "success") (eq $dmarcPolicy "none")}}
-                                <span class="badge bg-info px-3 py-2">Monitoring</span>
-                                {{else if or (eq $spfStatus "success") (eq $dmarcStatus "success")}}
-                                <span class="badge bg-warning text-dark px-3 py-2">Partial</span>
-                                {{else}}
-                                <span class="badge bg-danger px-3 py-2">Vulnerable</span>
-                                {{end}}
+                                <span class="badge {{$esClass}} px-3 py-2"{{if $esTip}} data-bs-toggle="tooltip" title="A TXT lookup did not complete (transient SERVFAIL/timeout). Re-run before concluding."{{end}}>{{$esLabel}}</span>
                             </div>
-                            <div class="col-6 col-md-3">
+                            {{$biLabel := ""}}{{$biClass := ""}}
+                            {{if .IsTLD}}{{$biLabel = "N/A — Registry"}}{{$biClass = "bg-secondary"}}
+                            {{else if and $bimi (eq (mapGetStr "status" $bimi) "success") (mapGetBool "vmc_valid" $bimi)}}{{$biLabel = "Protected"}}{{$biClass = "bg-success"}}
+                            {{else if and $bimi (eq (mapGetStr "status" $bimi) "success")}}{{$biLabel = "Basic"}}{{$biClass = "bg-info"}}
+                            {{else if eq $bimiState "indeterminate"}}{{$biLabel = "Inconclusive"}}{{$biClass = "bg-secondary"}}
+                            {{else}}{{$biLabel = "Not Setup"}}{{$biClass = "bg-secondary"}}{{end}}
+                            <div class="col-6 col-md-3 sev-order-{{severityRank $biLabel}}" data-sev="{{severityRank $biLabel}}">
                                 <div class="small text-muted text-uppercase mb-1">Brand Impersonation</div>
-                                {{if .IsTLD}}
-                                <span class="badge bg-secondary px-3 py-2">N/A — Registry</span>
-                                {{else if and $bimi (eq (mapGetStr "status" $bimi) "success") (mapGetBool "vmc_valid" $bimi)}}
-                                <span class="badge bg-success px-3 py-2">Protected</span>
-                                {{else if and $bimi (eq (mapGetStr "status" $bimi) "success")}}
-                                <span class="badge bg-info px-3 py-2">Basic</span>
-                                {{else if eq $bimiState "indeterminate"}}
-                                <span class="badge bg-secondary px-3 py-2">Inconclusive</span>
-                                {{else}}
-                                <span class="badge bg-secondary px-3 py-2">Not Setup</span>
-                                {{end}}
+                                <span class="badge {{$biClass}} px-3 py-2">{{$biLabel}}</span>
                             </div>
-                            <div class="col-6 col-md-3">
+                            {{$dtLabel := ""}}{{$dtClass := ""}}
+                            {{if eq $dnssecStatus "success"}}{{$dtLabel = "Protected"}}{{$dtClass = "bg-success"}}
+                            {{else if and (eq (mapGetStr "dnssec_state" $dnssec) "absent_confirmed") $dns_infra (eq (mapGetStr "provider_tier" $dns_infra) "enterprise")}}{{$dtLabel = "Enterprise"}}{{$dtClass = "bg-info"}}
+                            {{else}}{{$dtLabel = mapGetStr "display_label" $dnssec}}{{$dtClass = printf "bg-%s" (mapGetStr "display_severity" $dnssec)}}{{end}}
+                            <div class="col-6 col-md-3 sev-order-{{severityRank $dtLabel}}" data-sev="{{severityRank $dtLabel}}">
                                 <div class="small text-muted text-uppercase mb-1">DNS Tampering</div>
-                                {{if eq $dnssecStatus "success"}}
-                                <span class="badge bg-success px-3 py-2">Protected</span>
-                                {{else if and (eq (mapGetStr "dnssec_state" $dnssec) "absent_confirmed") $dns_infra (eq (mapGetStr "provider_tier" $dns_infra) "enterprise")}}
-                                <span class="badge bg-info px-3 py-2">Enterprise</span>
-                                {{else}}
-                                <span class="badge bg-{{mapGetStr "display_severity" $dnssec}} px-3 py-2">{{mapGetStr "display_label" $dnssec}}</span>
-                                {{end}}
+                                <span class="badge {{$dtClass}} px-3 py-2">{{$dtLabel}}</span>
                             </div>
-                            <div class="col-6 col-md-3">
+                            {{$ccLabel := ""}}{{$ccClass := ""}}
+                            {{if .IsTLD}}{{$ccLabel = "N/A — Registry"}}{{$ccClass = "bg-secondary"}}
+                            {{else if and $caa (eq (mapGetStr "status" $caa) "success")}}{{$ccLabel = "Configured"}}{{$ccClass = "bg-success"}}
+                            {{else if eq $caaState "indeterminate"}}{{$ccLabel = "Inconclusive"}}{{$ccClass = "bg-secondary"}}
+                            {{else}}{{$ccLabel = "Open"}}{{$ccClass = "bg-secondary"}}{{end}}
+                            <div class="col-6 col-md-3 sev-order-{{severityRank $ccLabel}}" data-sev="{{severityRank $ccLabel}}">
                                 <div class="small text-muted text-uppercase mb-1">Certificate Control</div>
-                                {{if .IsTLD}}
-                                <span class="badge bg-secondary px-3 py-2">N/A — Registry</span>
-                                {{else if and $caa (eq (mapGetStr "status" $caa) "success")}}
-                                <span class="badge bg-success px-3 py-2">Configured</span>
-                                {{else if eq $caaState "indeterminate"}}
-                                <span class="badge bg-secondary px-3 py-2">Inconclusive</span>
-                                {{else}}
-                                <span class="badge bg-secondary px-3 py-2">Open</span>
-                                {{end}}
+                                <span class="badge {{$ccClass}} px-3 py-2">{{$ccLabel}}</span>
                             </div>
                         </div>
                     </div>
@@ -915,10 +912,22 @@
                         <div class="row g-3 align-items-start u-fs-088rem">
                             {{$criticalIssues := mapGetSlice "critical_issues" $posture}}
                             {{$postureRecs := mapGetSlice "recommendations" $posture}}
+                            {{$postureProviderLimited := mapGetSlice "provider_limited" $posture}}
+                            {{/* Bucket order follows the shared severity map (internal/severity):
+                                 FAIL (Action Required, Not Configured) → WARN (Recommended,
+                                 Monitoring) → INFO (Unavailable on Provider) → PASS (Configured).
+                                 The old order rendered Configured above Not Configured — passes
+                                 above fails, the inversion the map exists to prevent. */}}
                             {{if $criticalIssues}}
                             <div class="col-6 col-lg-3">
                                 <span class="text-danger fw-bold">{{icon "times-circle" "me-1"}}Action Required</span>
                                 <div class="mt-1 u-color-coral">{{range $i, $issue := $criticalIssues}}{{if $i}}, {{end}}{{$issue}}{{end}}</div>
+                            </div>
+                            {{end}}
+                            {{if $postureAbsent}}
+                            <div class="col-6 col-lg-3">
+                                <span class="text-muted fw-bold">{{icon "minus-circle" "me-1"}}Not Configured</span>
+                                <div class="mt-1 text-muted posture-protocol-list">{{range $i, $item := $postureAbsent}}{{if $i}}, {{end}}<span class="protocol-link" data-protocol="{{$item}}">{{$item}}</span>{{end}}</div>
                             </div>
                             {{end}}
                             {{if $postureRecs}}
@@ -933,23 +942,16 @@
                                 <div class="mt-1 u-color-sky">{{range $i, $item := $postureMonitoringF}}{{if $i}}, {{end}}{{$item}}{{end}}</div>
                             </div>
                             {{end}}
-                            {{if $postureConfigured}}
-                            <div class="col-6 col-lg-3">
-                                <span class="text-success fw-bold">{{icon "check-circle" "me-1"}}Configured</span>
-                                <div class="mt-1 u-color-green-soft posture-protocol-list">{{range $i, $item := $postureConfigured}}{{if $i}}, {{end}}<span class="protocol-link" data-protocol="{{$item}}">{{$item}}</span>{{end}}</div>
-                            </div>
-                            {{end}}
-                            {{if $postureAbsent}}
-                            <div class="col-6 col-lg-3">
-                                <span class="text-muted fw-bold">{{icon "minus-circle" "me-1"}}Not Configured</span>
-                                <div class="mt-1 text-muted posture-protocol-list">{{range $i, $item := $postureAbsent}}{{if $i}}, {{end}}<span class="protocol-link" data-protocol="{{$item}}">{{$item}}</span>{{end}}</div>
-                            </div>
-                            {{end}}
-                            {{$postureProviderLimited := mapGetSlice "provider_limited" $posture}}
                             {{if $postureProviderLimited}}
                             <div class="col-6 col-lg-3">
                                 <span class="text-muted fw-bold">{{icon "ban" "me-1"}}Unavailable on Provider</span>
                                 <div class="mt-1 text-muted posture-protocol-list">{{range $i, $item := $postureProviderLimited}}{{if $i}}, {{end}}<span class="protocol-link" data-protocol="{{$item}}">{{$item}}</span>{{end}}</div>
+                            </div>
+                            {{end}}
+                            {{if $postureConfigured}}
+                            <div class="col-6 col-lg-3">
+                                <span class="text-success fw-bold">{{icon "check-circle" "me-1"}}Configured</span>
+                                <div class="mt-1 u-color-green-soft posture-protocol-list">{{range $i, $item := $postureConfigured}}{{if $i}}, {{end}}<span class="protocol-link" data-protocol="{{$item}}">{{$item}}</span>{{end}}</div>
                             </div>
                             {{end}}
                         </div>

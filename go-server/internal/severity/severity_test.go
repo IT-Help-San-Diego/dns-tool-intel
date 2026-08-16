@@ -18,7 +18,7 @@ func TestRankExactMatches(t *testing.T) {
 		"missing": TierFail, "failed": TierFail, "fail": TierFail,
 		"error": TierFail, "none": TierFail, "absent": TierFail,
 		"no record": TierFail, "unsigned": TierFail,
-		"broken": TierFail, "bogus": TierFail,
+		"broken": TierFail, "bogus": TierFail, "vulnerable": TierFail,
 		// WARN
 		"basic": TierWarn, "partial": TierWarn, "partially signed": TierWarn,
 		"warning": TierWarn, "warn": TierWarn, "incomplete": TierWarn,
@@ -63,6 +63,33 @@ func TestRankDNSSECDisplayLabels(t *testing.T) {
 		"Unconfirmed":      TierInfo,
 		"Could Not Verify": TierInfo,
 		"Not Measured":     TierInfo,
+	}
+	for label, want := range cases {
+		if got := Rank(label); got != want {
+			t.Errorf("Rank(%q) = %v, want %v", label, got, want)
+		}
+	}
+}
+
+// TestRankScorecardLabels pins the tier of every label the Engineer
+// Report's Executive Scorecard can render (results_v2.html L0 band),
+// since the scorecard's visual order is stamped from this map. "Not
+// Setup" and "Open" deliberately ride the WARN fallback — neutral
+// confirmed absences that should surface before INFO/PASS without a
+// dedicated entry.
+func TestRankScorecardLabels(t *testing.T) {
+	cases := map[string]Tier{
+		"Protected":      TierPass,
+		"Enterprise":     TierPass,
+		"Configured":     TierPass,
+		"Monitoring":     TierWarn,
+		"Partial":        TierWarn,
+		"Basic":          TierWarn,
+		"Not Setup":      TierWarn,
+		"Open":           TierWarn,
+		"Inconclusive":   TierInfo,
+		"N/A — Registry": TierInfo,
+		"Vulnerable":     TierFail,
 	}
 	for label, want := range cases {
 		if got := Rank(label); got != want {
