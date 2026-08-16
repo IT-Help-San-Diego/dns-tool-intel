@@ -88,6 +88,17 @@ func NormalizeResults(fullResults json.RawMessage) map[string]interface{} {
 		normalizeVerdicts(results, posture)
 	}
 
+	// Legacy remediation rows persisted "Secure" as the achievable posture.
+	// The instrument measures configuration work, not safety — badge_embed's
+	// own doctrine says no badge claims Secure — so rebucket to "Hardened"
+	// at view time (same pattern as the DNSSEC backfill below). New rows
+	// write "Hardened" at scan time (remediation.go computeAchievablePosture).
+	if rem, ok := results["remediation"].(map[string]interface{}); ok {
+		if rem["posture_achievable"] == "Secure" {
+			rem["posture_achievable"] = "Hardened"
+		}
+	}
+
 	// Backfill the DNSSEC display_label/severity for rows written before those
 	// fields existed, so old reports render the same honest verdict as a fresh
 	// scan (single source of truth, never re-derived per-template).

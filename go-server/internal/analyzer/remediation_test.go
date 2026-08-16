@@ -679,8 +679,8 @@ func TestComputeAchievablePosture(t *testing.T) {
 		fixes []fix
 		want  string
 	}{
-		{"no fixes", protocolState{}, nil, "Secure"},
-		{"low severity only", protocolState{}, []fix{{SeverityLevel: sevLow}, {SeverityLevel: sevMedium}}, "Secure"},
+		{"no fixes", protocolState{}, nil, "Hardened"},
+		{"low severity only", protocolState{}, []fix{{SeverityLevel: sevLow}, {SeverityLevel: sevMedium}}, "Hardened"},
 		{"one critical few fixes", protocolState{}, []fix{{SeverityLevel: sevCritical}}, "Low Risk"},
 		{"many fixes with critical", protocolState{}, []fix{
 			{SeverityLevel: sevCritical},

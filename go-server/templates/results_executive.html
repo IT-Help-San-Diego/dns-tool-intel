@@ -1578,7 +1578,7 @@
                             <span class="badge bg-secondary">{{formatFloat 0 (mapGetFloat "fix_count" $remediation)}} total</span>
                             {{$postureAchievable := mapGetStr "posture_achievable" $remediation}}
                             {{if $postureAchievable}}
-                            <span class="badge bg-{{if or (eq $postureAchievable "Secure") (eq $postureAchievable "Informational") (eq $postureAchievable "Low Risk")}}success{{else}}warning{{end}} ms-1">Achievable: {{$postureAchievable}}</span>
+                            <span class="badge bg-{{if or (eq $postureAchievable "Hardened") (eq $postureAchievable "Informational") (eq $postureAchievable "Low Risk")}}success{{else}}warning{{end}} ms-1">Achievable: {{$postureAchievable}}</span>
                             {{end}}
                         </span>
                     </h5>

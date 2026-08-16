@@ -544,10 +544,10 @@ func TestJoinFixTitles_B3(t *testing.T) {
 }
 
 func TestComputeAchievablePosture_B3(t *testing.T) {
-        if got := computeAchievablePosture(protocolState{}, nil); got != "Secure" {
+        if got := computeAchievablePosture(protocolState{}, nil); got != "Hardened" {
                 t.Errorf("no fixes = %q", got)
         }
-        if got := computeAchievablePosture(protocolState{}, []fix{{SeverityLevel: sevMedium}}); got != "Secure" {
+        if got := computeAchievablePosture(protocolState{}, []fix{{SeverityLevel: sevMedium}}); got != "Hardened" {
                 t.Errorf("medium-only (no core issues) = %q", got)
         }
         if got := computeAchievablePosture(protocolState{}, []fix{
