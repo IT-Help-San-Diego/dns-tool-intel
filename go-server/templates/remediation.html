@@ -109,7 +109,7 @@
                         <h1 class="h4 mb-1">{{icon "wrench" "text-warning me-2"}}Remediation: <span class="text-info">{{.AnalysisDomain}}</span></h1>
                         <p class="text-muted small mb-0">
                             Scan #{{.AnalysisID}} &middot; {{.AnalysisTime}}
-                            {{if .PostureAchievable}} &middot; Achievable posture: <span class="badge bg-{{if or (eq .PostureAchievable "Secure") (eq .PostureAchievable "Informational") (eq .PostureAchievable "Low Risk")}}success{{else}}warning{{end}}">{{.PostureAchievable}}</span>{{end}}
+                            {{if .PostureAchievable}} &middot; Achievable posture: <span class="badge bg-{{if or (eq .PostureAchievable "Hardened") (eq .PostureAchievable "Informational") (eq .PostureAchievable "Low Risk")}}success{{else}}warning{{end}}">{{.PostureAchievable}}</span>{{end}}
                         </p>
                     </div>
                     <div class="d-flex gap-2">

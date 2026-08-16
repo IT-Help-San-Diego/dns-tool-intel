@@ -861,7 +861,12 @@ func buildPerSection(fixes []fix) map[string]any {
 func computeAchievablePosture(ps protocolState, fixes []fix) string {
         coreIssues := countCoreIssues(fixes)
         if coreIssues == 0 {
-                return "Secure"
+                // "Hardened", never "Secure": the instrument measures configuration
+                // work, not safety — a domain with an unmeasurable control can reach
+                // zero core issues without anyone establishing it is secure. The
+                // badge documentation states this doctrine outright (badge_embed.html:
+                // no badge says Safe, Secure or Verified). Carey + Science, 2026-08-16.
+                return "Hardened"
         }
         if !hasSeverity(fixes, severityCritical) {
                 return "Low Risk"
