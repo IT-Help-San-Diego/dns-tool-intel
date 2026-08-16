@@ -85,3 +85,27 @@ func TestHandleDANEVerifyNoErrorEmptyIsNoTLSA(t *testing.T) {
 		t.Errorf("NOERROR-empty status = %v, want no_tlsa", resp["status"])
 	}
 }
+
+// TestHandleDANEVerifyHeaderlessIsError is the mutation guard for the
+// unparseable-rcode hole: a dig shim that omits the ;; ->>HEADER<<- status
+// comment leaves parseDigTLSA's rcode empty, and the old guard
+// `rcode != "" && rcode != "NOERROR"` let an empty rcode fall through to
+// no_tlsa — absence licensed without positively observing NOERROR. A
+// header-less (or otherwise unparseable) rcode must report "error".
+func TestHandleDANEVerifyHeaderlessIsError(t *testing.T) {
+	dir := t.TempDir()
+	writeFakeDig(t, dir, ";; connection timed out; no servers could be reached")
+	t.Setenv("PATH", dir+string(os.PathListSeparator)+os.Getenv("PATH"))
+
+	req := httptest.NewRequest(http.MethodPost, "/probe/dane-verify", strings.NewReader(`{"host":"mx.example","port":25}`))
+	rec := httptest.NewRecorder()
+	handleDANEVerify(rec, req)
+
+	var resp map[string]any
+	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("decode response: %v", err)
+	}
+	if resp["status"] != "error" {
+		t.Errorf("headerless status = %v, want error (unparseable rcode must not license absence)", resp["status"])
+	}
+}

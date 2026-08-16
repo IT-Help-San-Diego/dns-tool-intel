@@ -617,7 +617,10 @@ func handleDANEVerify(w http.ResponseWriter, r *http.Request) {
                 writeJSON(w, http.StatusOK, response)
                 return
         }
-        if rcode != "" && rcode != "NOERROR" {
+        // Require a positively observed NOERROR before the zero-record check
+        // below may report "no_tlsa" (absence). An empty rcode — header-less
+        // or unparseable dig output — is "could not measure", never absence.
+        if rcode != "NOERROR" {
                 response[mapKeyStatus] = "error"
                 response["message"] = fmt.Sprintf("TLSA lookup for %s returned %s — could not measure (resolver refused), not evidence of absence", tlsaName, rcode)
                 response[mapKeyElapsedSeconds] = time.Since(start).Seconds()
