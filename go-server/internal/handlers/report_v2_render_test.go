@@ -141,6 +141,25 @@ func TestResultsV2_CAAHasOneCanonicalDomainSecurityHome(t *testing.T) {
 // relocation out of the Brand section's {{if not .IsPublicSuffix}} guard breaks
 // template balance. A template parse/execute error, a truncated page (missing
 // </html>), or a leaked scaffold string all fail here.
+// TestNormalizeResultsRebucketsAchievablePosture: legacy rows persisted
+// "Secure" as the achievable posture inside full_results; view-time
+// rebucket must render them "Hardened" (map-on-read, never backfill),
+// while any other value passes through untouched.
+func TestNormalizeResultsRebucketsAchievablePosture(t *testing.T) {
+	legacy := NormalizeResults([]byte(`{"remediation":{"posture_achievable":"Secure"}}`))
+	if legacy == nil {
+		t.Fatal("expected non-nil result")
+	}
+	rem := legacy["remediation"].(map[string]interface{})
+	if got := rem["posture_achievable"]; got != "Hardened" {
+		t.Errorf("legacy Secure rebucketed to %q, want Hardened", got)
+	}
+	modern := NormalizeResults([]byte(`{"remediation":{"posture_achievable":"Low Risk"}}`))
+	if got := modern["remediation"].(map[string]interface{})["posture_achievable"]; got != "Low Risk" {
+		t.Errorf("non-legacy value mutated to %q, want Low Risk untouched", got)
+	}
+}
+
 // TestResultsV2_AnchorIntegrity: every in-page link in the RENDERED
 // output must resolve to an id in the same output, for every envelope.
 // A section that renders conditionally must take its ToC chip with it —
