@@ -30,8 +30,8 @@ type persistParams struct {
 	// becomes the persisted scan_source value so the leaderboard can split
 	// human vs verified-bot vs investigate traffic. scanner.Classification still
 	// wins when it identifies a security-tool scan (Qualys/CISA/etc).
-	botClass     string
-	ephemeral    bool
+	botClass  string
+	ephemeral bool
 	// domainExists is DEPRECATED — callers now read domain_status directly
 	// from results. Kept as a struct field for compile-time compatibility
 	// until all call sites are updated.
