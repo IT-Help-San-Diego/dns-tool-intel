@@ -3389,7 +3389,26 @@
             let tipH = headerH + bodyLines.length * lineH + 12;
             let tipX = hoverNode.x + effRadius(hoverNode) + 16;
             let tipY = hoverNode.y - tipH / 2;
-            if (tipX + tipW > W - 10) tipX = hoverNode.x - effRadius(hoverNode) - 16 - tipW;
+            // W is the canvas width, not the USABLE width: the scan console
+            // is a DOM panel absolutely positioned OVER the canvas's right
+            // side, and a popover that only respects W slides beneath it and
+            // clips mid-sentence (measured on the 2026-08-16 hover series —
+            // DKIM, MTA-STS and BIMI all buried under the console). The
+            // console is a DOM element; measure it, per the layout code's
+            // own rule. In vertical flow it sits full-width at the top, so
+            // an edge that low collapses to W and the old behaviour stands.
+            let limitR = W;
+            let cEl = document.getElementById('topoScanConsole');
+            let cvs = ctx.canvas.getBoundingClientRect();
+            if (cEl && cvs.width > 0) {
+                let pr = cEl.getBoundingClientRect();
+                if (pr.width > 0 && pr.bottom > cvs.top && pr.top < cvs.bottom) {
+                    let edge = (pr.left - cvs.left) * (W / cvs.width);
+                    if (edge > W * 0.3 && edge < W) limitR = edge;
+                }
+            }
+            if (tipX + tipW > limitR - 10) tipX = hoverNode.x - effRadius(hoverNode) - 16 - tipW;
+            if (tipX + tipW > limitR - 10) tipX = limitR - 10 - tipW;
             if (tipX < 10) tipX = 10;
             if (tipY < 10) tipY = 10;
             if (tipY + tipH > H - 10) tipY = H - tipH - 10;
