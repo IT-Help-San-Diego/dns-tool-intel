@@ -132,6 +132,9 @@ func hasBogusNoSecure(resolverAD map[string]string) bool {
                 if vote == "secure" {
                         return false
                 }
+                if vote == "split" {
+                        return false // validators disagree — not a measured negative
+                }
                 if vote == "bogus" {
                         bogus = true
                 }
