@@ -208,6 +208,9 @@ jobs:
           ls -lh dns-tool-server
           file dns-tool-server
 
+      - name: Quality ratchets — gofmt / gocyclo / file-size
+        run: bash scripts/ci-ratchets.sh
+
   handler-tests-db-integration:
     name: Handler Tests — dbtest + integration
     runs-on: ubuntu-latest
