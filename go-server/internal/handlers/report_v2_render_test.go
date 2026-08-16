@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strings"
 	"testing"
 )
@@ -140,6 +141,110 @@ func TestResultsV2_CAAHasOneCanonicalDomainSecurityHome(t *testing.T) {
 // relocation out of the Brand section's {{if not .IsPublicSuffix}} guard breaks
 // template balance. A template parse/execute error, a truncated page (missing
 // </html>), or a leaked scaffold string all fail here.
+// TestResultsV2_AnchorIntegrity: every in-page link in the RENDERED
+// output must resolve to an id in the same output, for every envelope.
+// A section that renders conditionally must take its ToC chip with it —
+// a link must never outlive its target (found live 2026-08-16:
+// #section-dnssec-ops, #section-web-exposure and #section-web3 dangled
+// on production because the chips were unconditional). Needs no
+// browser: both sides are in the server-rendered HTML.
+func TestResultsV2_AnchorIntegrity(t *testing.T) {
+	hrefRe := regexp.MustCompile(`href="#([^"]+)"`)
+	idRe := regexp.MustCompile(`id="([^"]+)"`)
+	// knownDangling is a RATCHET, not an allowlist: the test fails on any
+	// NEW dangling link AND on any entry that now resolves (remove it) —
+	// the list can only shrink (the TestStaticMirrorsAgree pattern). These
+	// are pre-existing envelope-specific gaps measured 2026-08-16: links
+	// whose target sections need data this envelope never has. Fixing one
+	// means gating the link with its section's condition, then deleting
+	// the entry here.
+	cases := []struct {
+		name          string
+		reportMode    string
+		domainExists  bool
+		publicSuffix  bool
+		knownDangling []string
+	}{
+		{"normal domain", "E", true, false, []string{
+			"confidencePanel", "currencyPanel", "report-integrity",
+			"section-ai", "section-delegation-consistency", "section-infra",
+			"section-securitytxt", "section-smtp", "verify-commands"}},
+		{"non-existent domain", "E", false, false, []string{
+			"brand-trust", "domain-security", "email-security",
+			"evidence-verification", "infrastructure-intel", "report-integrity",
+			"section-dns-diff", "section-dnssec", "section-subdomains",
+			"section-traffic", "transport-security"}},
+		{"registry zone", "Z", true, true, []string{
+			"confidencePanel", "currencyPanel", "report-integrity",
+			"section-ai", "section-brand", "section-dane",
+			"section-delegation-consistency", "section-email", "section-infra",
+			"section-securitytxt", "section-smtp", "section-subdomains",
+			"section-traffic", "verify-commands"}},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			tmpl := mustLoadRealTemplates(t)
+			c, cfg := resultsRenderContext(t)
+			data := NewTemplateData(c, cfg, "")
+			data["Domain"] = "example.com"
+			data["AsciiDomain"] = "example.com"
+			data["AnalysisID"] = "test-id"
+			data["ReportMode"] = tc.reportMode
+			data["CovertMode"] = false
+			data["DomainExists"] = tc.domainExists
+			data["IsPublicSuffix"] = tc.publicSuffix
+			data["IsTLD"] = false
+			data["SectionTuning"] = map[string]string{}
+			data["Results"] = map[string]any{
+				"posture":         map[string]any{"state": "Low Risk", "color": "success", "configured": []any{"SPF"}},
+				"spf_analysis":    map[string]any{"status": "success", "spf_state": "present"},
+				"dmarc_analysis":  map[string]any{"status": "success", "dmarc_state": "present", "policy": "reject"},
+				"dkim_analysis":   map[string]any{"status": "success"},
+				"caa_analysis":    map[string]any{"status": "success", "caa_state": "present"},
+				"dnssec_analysis": map[string]any{"status": "secure"},
+				"dane_analysis":   map[string]any{"status": "success", "has_dane": true},
+				"bimi_analysis":   map[string]any{"status": "success"},
+			}
+			var buf strings.Builder
+			if err := tmpl.ExecuteTemplate(&buf, "results_v2.html", data); err != nil {
+				t.Fatalf("render failed: %v", err)
+			}
+			body := buf.String()
+			ids := map[string]bool{}
+			for _, m := range idRe.FindAllStringSubmatch(body, -1) {
+				ids[m[1]] = true
+			}
+			var dangling []string
+			seen := map[string]bool{}
+			for _, m := range hrefRe.FindAllStringSubmatch(body, -1) {
+				if !ids[m[1]] && !seen[m[1]] {
+					seen[m[1]] = true
+					dangling = append(dangling, m[1])
+				}
+			}
+			sort.Strings(dangling)
+			known := map[string]bool{}
+			for _, k := range tc.knownDangling {
+				known[k] = true
+			}
+			for _, d := range dangling {
+				if !known[d] {
+					t.Errorf("NEW dangling in-page link %q — gate the link with the same condition as its target section", d)
+				}
+			}
+			stillDangling := map[string]bool{}
+			for _, d := range dangling {
+				stillDangling[d] = true
+			}
+			for _, k := range tc.knownDangling {
+				if !stillDangling[k] {
+					t.Errorf("knownDangling entry %q now resolves — delete it (the list only shrinks)", k)
+				}
+			}
+		})
+	}
+}
+
 func TestResultsV2_RendersThroughRealTemplateEngine(t *testing.T) {
 	cases := []struct {
 		name         string

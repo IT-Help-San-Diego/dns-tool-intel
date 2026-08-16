@@ -201,6 +201,38 @@
         {{$basic := mapGetMap "basic_records" $results}}
         {{$ns := mapGetMap "ns_delegation_analysis" $results}}
         {{$dns_infra := mapGetMap "dns_infrastructure" $results}}
+        {{/* Executive Scorecard labels, hoisted to top scope: computed ONCE
+             from producer fields and consumed by the L0 strip, the TRACE row,
+             and the group-summary collapsed-state badges — single source,
+             never re-derived (the severity map ranks these labels; raw
+             "success"/"danger" strings would hit the WARN fallback). */}}
+        {{$spfStatus := mapGetStr "status" $spf}}
+        {{$dmarcStatus := mapGetStr "status" $dmarc}}
+        {{$dmarcPolicy := mapGetStr "policy" $dmarc}}
+        {{$dnssecStatus := mapGetStr "status" $dnssec}}
+        {{$esLabel := ""}}{{$esClass := ""}}{{$esTip := false}}
+                            {{if .IsTLD}}{{$esLabel = "N/A — Registry"}}{{$esClass = "bg-secondary"}}
+                            {{else if or (eq (mapGetStr "spf_state" $spf) "indeterminate") (eq (mapGetStr "dmarc_state" $dmarc) "indeterminate")}}{{$esLabel = "Inconclusive"}}{{$esClass = "bg-secondary"}}{{$esTip = true}}
+                            {{else if and (eq $spfStatus "success") (eq $dmarcStatus "success") (or (eq $dmarcPolicy "reject") (eq $dmarcPolicy "quarantine"))}}{{$esLabel = "Protected"}}{{$esClass = "bg-success"}}
+                            {{else if and (eq $spfStatus "success") (eq $dmarcStatus "success") (eq $dmarcPolicy "none")}}{{$esLabel = "Monitoring"}}{{$esClass = "bg-info"}}
+                            {{else if or (eq $spfStatus "success") (eq $dmarcStatus "success")}}{{$esLabel = "Partial"}}{{$esClass = "bg-warning text-dark"}}
+                            {{else}}{{$esLabel = "Vulnerable"}}{{$esClass = "bg-danger"}}{{end}}
+        {{$biLabel := ""}}{{$biClass := ""}}
+                            {{if .IsTLD}}{{$biLabel = "N/A — Registry"}}{{$biClass = "bg-secondary"}}
+                            {{else if and $bimi (eq (mapGetStr "status" $bimi) "success") (mapGetBool "vmc_valid" $bimi)}}{{$biLabel = "Protected"}}{{$biClass = "bg-success"}}
+                            {{else if and $bimi (eq (mapGetStr "status" $bimi) "success")}}{{$biLabel = "Basic"}}{{$biClass = "bg-info"}}
+                            {{else if eq $bimiState "indeterminate"}}{{$biLabel = "Inconclusive"}}{{$biClass = "bg-secondary"}}
+                            {{else}}{{$biLabel = "Not Setup"}}{{$biClass = "bg-secondary"}}{{end}}
+        {{$dtLabel := ""}}{{$dtClass := ""}}
+                            {{if eq $dnssecStatus "success"}}{{$dtLabel = "Protected"}}{{$dtClass = "bg-success"}}
+                            {{else if and (eq (mapGetStr "dnssec_state" $dnssec) "absent_confirmed") $dns_infra (eq (mapGetStr "provider_tier" $dns_infra) "enterprise")}}{{$dtLabel = "Enterprise"}}{{$dtClass = "bg-info"}}
+                            {{else}}{{$dtLabel = mapGetStr "display_label" $dnssec}}{{$dtClass = printf "bg-%s" (mapGetStr "display_severity" $dnssec)}}{{end}}
+        {{$ccLabel := ""}}{{$ccClass := ""}}
+                            {{if .IsTLD}}{{$ccLabel = "N/A — Registry"}}{{$ccClass = "bg-secondary"}}
+                            {{else if and $caa (eq (mapGetStr "status" $caa) "success")}}{{$ccLabel = "Configured"}}{{$ccClass = "bg-success"}}
+                            {{else if eq $caaState "indeterminate"}}{{$ccLabel = "Inconclusive"}}{{$ccClass = "bg-secondary"}}
+                            {{else}}{{$ccLabel = "Open"}}{{$ccClass = "bg-secondary"}}{{end}}
+        {{$dsLabel := $dtLabel}}{{if lt (severityRank $ccLabel) (severityRank $dtLabel)}}{{$dsLabel = $ccLabel}}{{end}}
         {{$esm := mapGetMap "email_security_mgmt" $results}}
         {{$mp := mapGetMap "mail_posture" $results}}
         {{$resolver_consensus := mapGetMap "resolver_consensus" $results}}
@@ -231,6 +263,12 @@
         {{$delegation_consistency := mapGetMap "delegation_consistency" $results}}
         {{$ns_fleet := mapGetMap "ns_fleet" $results}}
         {{$dnssec_ops := mapGetMap "dnssec_ops" $results}}
+        {{/* Web3 section visibility, hoisted so the ToC chip and the section
+             share ONE condition — a link must never outlive its target
+             (Science's anchor-integrity finding, 2026-08-16). */}}
+        {{$showWeb3Section := false}}
+        {{if and $web3 (mapGetBool "detected" $web3) (not .IsPublicSuffix)}}{{$showWeb3Section = true}}{{end}}
+        {{if and $web3res (mapGetBool "is_web3_input" $web3res) (not .IsPublicSuffix)}}{{$showWeb3Section = true}}{{end}}
         {{$dns_history := mapGetMap "dns_history" $results}}
         {{$dns_history_available := and $dns_history (mapGetBool "has_changes" $dns_history)}}
 
@@ -454,6 +492,14 @@
   .v2-trace { display: flex; flex-wrap: wrap; align-items: center; gap: .45rem; margin-top: .8rem; }
   .v2-trace-chip { border: 1px solid rgba(148,163,184,.3); border-radius: 4px; padding: .14rem .55rem; color: var(--er-text, #e6edf3); text-decoration: none; }
   a.v2-trace-chip:hover, a.v2-trace-chip:focus-visible { border-color: var(--er-gold, #e3b341); color: var(--er-gold, #e3b341); }
+  /* Collapsed-state badges: colour = verdict tier from the shared map.
+     Clean = green outline; findings = filled; info = blue outline. */
+  .v2-sum-badge { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; border-radius: 999px; padding: 5px 13px; border: 1px solid; align-self: center; white-space: nowrap; }
+  .v2-sum-badge-pass { color: #3fb950; border-color: rgba(63,185,80,.5); }
+  .v2-sum-badge-warn { color: #e3b341; border-color: rgba(227,179,65,.5); background: rgba(227,179,65,.12); }
+  .v2-sum-badge-fail { color: #ef5350; border-color: rgba(239,83,80,.5); background: rgba(239,83,80,.12); }
+  .v2-sum-badge-info { color: #78a9d4; border-color: rgba(120,169,212,.5); }
+  .v2-keys { margin-top: 13px; }
   /* Priority-action DNS record tables: let long values wrap instead of squinting mid-token. */
   .v2-workspace .table-dark td code { overflow-wrap: anywhere; word-break: break-word; white-space: normal; }
   .v2-workspace .u-col-label-70 { width: 3.4rem; }
@@ -509,6 +555,7 @@
       <a href="#section-dnssec"><span>DNSSEC</span><span aria-hidden="true">→</span></a>
       <a href="#section-dns-diff"><span>What changed</span><span aria-hidden="true">→</span></a>
     </div>
+    <div class="v2-keys font-monospace small text-muted">KEYS — 1–6 JUMP · ESC RETURN TO L0</div>
   </div>
 </section>
 
@@ -535,6 +582,20 @@
       else a.removeAttribute('aria-current');
     }
   }
+  var GROUPS=['email-security','domain-security','transport-security','brand-trust','infrastructure-intel','evidence-verification'];
+  document.addEventListener('keydown',function(e){
+    if(e.ctrlKey||e.metaKey||e.altKey) return;
+    var t=e.target;
+    if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.tagName==='SELECT'||t.isContentEditable)) return;
+    if(e.key>='1'&&e.key<='6'){
+      var id=GROUPS[Number(e.key)-1];
+      if(!id||!document.getElementById(id)) return;
+      if('#'+id===location.hash){ goHash(); } else { location.hash=id; }
+    } else if(e.key==='Escape'){
+      for(var d of document.querySelectorAll('details.v2-group')){ d.open = d.id==='email-security'; }
+      window.scrollTo({top:0,behavior:'smooth'});
+    }
+  });
   window.addEventListener('hashchange', goHash);
   window.addEventListener('scroll', updateCurrent, {passive:true});
   if(location.hash) setTimeout(goHash,0);
@@ -845,10 +906,6 @@
 
         <!-- Executive Scorecard - At-a-Glance Security Status -->
         {{if $posture}}
-        {{$spfStatus := mapGetStr "status" $spf}}
-        {{$dmarcStatus := mapGetStr "status" $dmarc}}
-        {{$dmarcPolicy := mapGetStr "policy" $dmarc}}
-        {{$dnssecStatus := mapGetStr "status" $dnssec}}
         <div class="row mb-3">
             <div class="col-12">
                 <div class="card bg-dark bg-opacity-25 u-border-soft">
@@ -859,40 +916,18 @@
                              unmeasurables above passes. Single source; never a local rank. -->
                         <div class="small text-muted text-uppercase mb-2">Sorted by severity — worst first</div>
                         <div class="row g-3 text-center v2-posture-strip">
-                            {{$esLabel := ""}}{{$esClass := ""}}{{$esTip := false}}
-                            {{if .IsTLD}}{{$esLabel = "N/A — Registry"}}{{$esClass = "bg-secondary"}}
-                            {{else if or (eq (mapGetStr "spf_state" $spf) "indeterminate") (eq (mapGetStr "dmarc_state" $dmarc) "indeterminate")}}{{$esLabel = "Inconclusive"}}{{$esClass = "bg-secondary"}}{{$esTip = true}}
-                            {{else if and (eq $spfStatus "success") (eq $dmarcStatus "success") (or (eq $dmarcPolicy "reject") (eq $dmarcPolicy "quarantine"))}}{{$esLabel = "Protected"}}{{$esClass = "bg-success"}}
-                            {{else if and (eq $spfStatus "success") (eq $dmarcStatus "success") (eq $dmarcPolicy "none")}}{{$esLabel = "Monitoring"}}{{$esClass = "bg-info"}}
-                            {{else if or (eq $spfStatus "success") (eq $dmarcStatus "success")}}{{$esLabel = "Partial"}}{{$esClass = "bg-warning text-dark"}}
-                            {{else}}{{$esLabel = "Vulnerable"}}{{$esClass = "bg-danger"}}{{end}}
                             <div class="col-6 col-md-3 sev-order-{{severityRank $esLabel}}" data-sev="{{severityRank $esLabel}}">
                                 <div class="small text-muted text-uppercase mb-1">Email Spoofing</div>
                                 <span class="badge {{$esClass}} px-3 py-2"{{if $esTip}} data-bs-toggle="tooltip" title="A TXT lookup did not complete (transient SERVFAIL/timeout). Re-run before concluding."{{end}}>{{$esLabel}}</span>
                             </div>
-                            {{$biLabel := ""}}{{$biClass := ""}}
-                            {{if .IsTLD}}{{$biLabel = "N/A — Registry"}}{{$biClass = "bg-secondary"}}
-                            {{else if and $bimi (eq (mapGetStr "status" $bimi) "success") (mapGetBool "vmc_valid" $bimi)}}{{$biLabel = "Protected"}}{{$biClass = "bg-success"}}
-                            {{else if and $bimi (eq (mapGetStr "status" $bimi) "success")}}{{$biLabel = "Basic"}}{{$biClass = "bg-info"}}
-                            {{else if eq $bimiState "indeterminate"}}{{$biLabel = "Inconclusive"}}{{$biClass = "bg-secondary"}}
-                            {{else}}{{$biLabel = "Not Setup"}}{{$biClass = "bg-secondary"}}{{end}}
                             <div class="col-6 col-md-3 sev-order-{{severityRank $biLabel}}" data-sev="{{severityRank $biLabel}}">
                                 <div class="small text-muted text-uppercase mb-1">Brand Impersonation</div>
                                 <span class="badge {{$biClass}} px-3 py-2">{{$biLabel}}</span>
                             </div>
-                            {{$dtLabel := ""}}{{$dtClass := ""}}
-                            {{if eq $dnssecStatus "success"}}{{$dtLabel = "Protected"}}{{$dtClass = "bg-success"}}
-                            {{else if and (eq (mapGetStr "dnssec_state" $dnssec) "absent_confirmed") $dns_infra (eq (mapGetStr "provider_tier" $dns_infra) "enterprise")}}{{$dtLabel = "Enterprise"}}{{$dtClass = "bg-info"}}
-                            {{else}}{{$dtLabel = mapGetStr "display_label" $dnssec}}{{$dtClass = printf "bg-%s" (mapGetStr "display_severity" $dnssec)}}{{end}}
                             <div class="col-6 col-md-3 sev-order-{{severityRank $dtLabel}}" data-sev="{{severityRank $dtLabel}}">
                                 <div class="small text-muted text-uppercase mb-1">DNS Tampering</div>
                                 <span class="badge {{$dtClass}} px-3 py-2">{{$dtLabel}}</span>
                             </div>
-                            {{$ccLabel := ""}}{{$ccClass := ""}}
-                            {{if .IsTLD}}{{$ccLabel = "N/A — Registry"}}{{$ccClass = "bg-secondary"}}
-                            {{else if and $caa (eq (mapGetStr "status" $caa) "success")}}{{$ccLabel = "Configured"}}{{$ccClass = "bg-success"}}
-                            {{else if eq $caaState "indeterminate"}}{{$ccLabel = "Inconclusive"}}{{$ccClass = "bg-secondary"}}
-                            {{else}}{{$ccLabel = "Open"}}{{$ccClass = "bg-secondary"}}{{end}}
                             <div class="col-6 col-md-3 sev-order-{{severityRank $ccLabel}}" data-sev="{{severityRank $ccLabel}}">
                                 <div class="small text-muted text-uppercase mb-1">Certificate Control</div>
                                 <span class="badge {{$ccClass}} px-3 py-2">{{$ccLabel}}</span>
@@ -1183,6 +1218,7 @@
 <span class="v2-summary-question">Can this domain be impersonated by email?</span>
 </span>
 <span class="v2-toc"><a class="v2-toc-chip" href="#section-email">SPF</a> <a class="v2-toc-chip" href="#section-email">DMARC</a> <a class="v2-toc-chip" href="#section-email">DKIM</a> <a class="v2-toc-chip" href="#section-email">MTA-STS</a> <a class="v2-toc-chip" href="#section-email">TLS-RPT</a> <a class="v2-toc-chip" href="#section-traffic">MX & Routing</a></span>
+<span class="v2-sum-badge v2-sum-badge-{{severityTier $esLabel}}">{{$esLabel}}</span>
 <span class="v2-summary-toggle" aria-hidden="true">⌄</span>
 </summary>
 <div class="v2-group-body">
@@ -2253,7 +2289,8 @@
 <span class="v2-summary-title">Domain Security</span>
 <span class="v2-summary-question">Can DNS answers and certificate issuance be trusted?</span>
 </span>
-<span class="v2-toc"><a class="v2-toc-chip" href="#section-dane">DANE / TLSA</a> <a class="v2-toc-chip" href="#section-caa">CAA</a> <a class="v2-toc-chip" href="#section-delegation-consistency">Delegation</a> <a class="v2-toc-chip" href="#section-dnssec-ops">DNSSEC Operations</a> <a class="v2-toc-chip" href="#section-dnssec">DNSSEC & NS</a></span>
+<span class="v2-toc"><a class="v2-toc-chip" href="#section-dane">DANE / TLSA</a> <a class="v2-toc-chip" href="#section-caa">CAA</a> <a class="v2-toc-chip" href="#section-delegation-consistency">Delegation</a> {{if and $dnssec_ops (ne (mapGetStr "status" $dnssec_ops) "info")}}<a class="v2-toc-chip" href="#section-dnssec-ops">DNSSEC Operations</a>{{end}} <a class="v2-toc-chip" href="#section-dnssec">DNSSEC & NS</a></span>
+<span class="v2-sum-badge v2-sum-badge-{{severityTier $dsLabel}}">{{$dsLabel}}</span>
 <span class="v2-summary-toggle" aria-hidden="true">⌄</span>
 </summary>
 <div class="v2-group-body">
@@ -3665,6 +3702,7 @@
 <span class="v2-summary-question">Can this brand be convincingly faked?</span>
 </span>
 <span class="v2-toc"><a class="v2-toc-chip" href="#section-brand">BIMI & VMC</a> <a class="v2-toc-chip" data-edge="see-also" href="#section-caa">CAA · see Domain Security</a></span>
+<span class="v2-sum-badge v2-sum-badge-{{severityTier $biLabel}}">{{$biLabel}}</span>
 <span class="v2-summary-toggle" aria-hidden="true">⌄</span>
 </summary>
 <div class="v2-group-body">
@@ -3881,7 +3919,7 @@
 <span class="v2-summary-title">Infrastructure Intelligence</span>
 <span class="v2-summary-question">Who operates this domain, and what is exposed?</span>
 </span>
-<span class="v2-toc"><a class="v2-toc-chip" href="#section-infra">Registrar / RDAP</a> <a class="v2-toc-chip" href="#section-securitytxt">security.txt</a> <a class="v2-toc-chip" href="#section-web-exposure">Web Exposure</a> <a class="v2-toc-chip" href="#section-ai">AI Surface</a> <a class="v2-toc-chip" href="#section-web3">Web3</a> <a class="v2-toc-chip" href="#section-subdomains">Subdomains</a></span>
+<span class="v2-toc"><a class="v2-toc-chip" href="#section-infra">Registrar / RDAP</a> <a class="v2-toc-chip" href="#section-securitytxt">security.txt</a> {{if $web_exposure}}<a class="v2-toc-chip" href="#section-web-exposure">Web Exposure</a>{{end}} <a class="v2-toc-chip" href="#section-ai">AI Surface</a> {{if $showWeb3Section}}<a class="v2-toc-chip" href="#section-web3">Web3</a>{{end}} <a class="v2-toc-chip" href="#section-subdomains">Subdomains</a></span>
 <span class="v2-summary-toggle" aria-hidden="true">⌄</span>
 </summary>
 <div class="v2-group-body">
@@ -4116,9 +4154,6 @@
         {{end}}
 
         <!-- Web3 Domain Analysis Section — shown when detected OR when input is ENS/HNS -->
-        {{$showWeb3Section := false}}
-        {{if and $web3 (mapGetBool "detected" $web3) (not .IsPublicSuffix)}}{{$showWeb3Section = true}}{{end}}
-        {{if and $web3res (mapGetBool "is_web3_input" $web3res) (not .IsPublicSuffix)}}{{$showWeb3Section = true}}{{end}}
         {{if $showWeb3Section}}
         <div class="row section-web3" id="section-web3">
             <div class="col-12 mb-4">
