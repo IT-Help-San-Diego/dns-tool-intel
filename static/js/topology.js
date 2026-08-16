@@ -4041,6 +4041,15 @@
             let domain = scanEls.domain.value.trim();
             if (!domain) { scanEls.domain.focus(); return; }
             scanReset();
+            // Fold the advanced panel the moment a scan starts: its values
+            // still ride the FormData below (hidden containers serialize),
+            // and the console returns to its default height so the verdict
+            // cards and report CTAs stay in the viewing area instead of
+            // pushing the Engineer's Report below the fold.
+            if (scanEls.adv && !scanEls.adv.hidden) {
+                scanEls.adv.hidden = true;
+                scanEls.advBtn.setAttribute('aria-expanded', 'false');
+            }
             let myGen = scanState.gen;
             scanState.startedAt = Date.now();
             scanEls.target.textContent = domain;
