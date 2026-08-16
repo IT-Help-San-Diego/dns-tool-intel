@@ -757,8 +757,14 @@ func (c *Client) QueryWithConsensus(ctx context.Context, recordType, domain stri
         if len(resolverResults) == 0 {
                 dohResults := c.dohQuery(ctx, domain, recordType)
                 return ConsensusResult{
-                        Records:         dohResults,
-                        Consensus:       true,
+                        Records: dohResults,
+                        // Zero resolver answers is not consensus. #386 fixed the
+                        // main path but this early return still claimed it, and an
+                        // all-SERVFAIL bogus zone takes exactly this branch — the
+                        // fixture's row 18400 persisted consensus_reached=true with
+                        // resolver_count=0 on every record type. Agreement requires
+                        // at least one measurement.
+                        Consensus:       len(dohResults) > 0,
                         ResolverCount:   boolToInt(len(dohResults) > 0),
                         TopVotes:        boolToInt(len(dohResults) > 0),
                         ResolverResults: map[string][]string{"DoH": dohResults},
@@ -876,6 +882,23 @@ func (c *Client) ValidateResolverConsensus(ctx context.Context, domain string) m
         return result
 }
 
+// witnessResolver returns the first resolver whose vote equals the aggregate
+// state — a named witness for the verdict (#385), extracted so the gocyclo
+// ratchet stays at baseline. For disagreement states (split/unmeasured) no
+// single resolver represents the aggregate, so no witness is named.
+func witnessResolver(state string, resolverAD map[string]string, resolvers []ResolverConfig) *string {
+        if state == "split" || state == "unmeasured" {
+                return nil
+        }
+        for _, r := range resolvers {
+                if resolverAD[r.Name] == state {
+                        name := r.Name
+                        return &name
+                }
+        }
+        return nil
+}
+
 func (c *Client) CheckDNSSECADFlag(ctx context.Context, domain string) ADFlagResult {
         result := ADFlagResult{ResolverAD: make(map[string]string)}
 
@@ -951,19 +974,7 @@ func (c *Client) CheckDNSSECADFlag(ctx context.Context, domain string) ADFlagRes
         result.State = state
         result.ADFlag = adFlag
         result.Validated = validated
-        // Surface the most-voted resolver — the one whose vote determined the
-        // aggregate state — so the row carries a named witness rather than only
-        // anonymous vote counts. For disagreement (split/unmeasured), no single
-        // resolver represents the aggregate.
-        if state != "split" && state != "unmeasured" {
-                for _, r := range c.resolvers {
-                        if result.ResolverAD[r.Name] == state {
-                                name := r.Name
-                                result.ResolverUsed = &name
-                                break
-                        }
-                }
-        }
+        result.ResolverUsed = witnessResolver(state, result.ResolverAD, c.resolvers)
         if state == "unmeasured" {
                 errStr := "Could not verify AD flag"
                 result.Error = &errStr

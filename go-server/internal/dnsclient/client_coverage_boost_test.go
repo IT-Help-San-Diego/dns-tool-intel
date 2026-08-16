@@ -195,6 +195,37 @@ func TestQueryWithConsensus_AllResolversFail(t *testing.T) {
 	_ = result
 }
 
+// failingRoundTripper fails every request, so the DoH fallback deterministically
+// returns zero records without touching the network.
+type failingRoundTripper struct{}
+
+func (failingRoundTripper) RoundTrip(*http.Request) (*http.Response, error) {
+	return nil, io.ErrUnexpectedEOF
+}
+
+// TestQueryWithConsensus_ZeroAnswers_NoConsensusClaim pins the early-return
+// branch #386 missed: when every resolver fails AND the DoH fallback is empty
+// (the all-SERVFAIL bogus-zone path — fixture row 18400 persisted
+// consensus_reached=true with resolver_count=0), the result must NOT claim
+// consensus. Agreement requires at least one measurement.
+func TestQueryWithConsensus_ZeroAnswers_NoConsensusClaim(t *testing.T) {
+	c := New(
+		WithResolvers([]ResolverConfig{{Name: "unreachable", IP: "192.0.2.1"}}),
+		WithHTTPClient(&http.Client{Transport: failingRoundTripper{}}),
+		WithTimeout(50*time.Millisecond),
+	)
+	ctx, cancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
+	defer cancel()
+
+	result := c.QueryWithConsensus(ctx, "A", "bogus-fixture.example")
+	if result.Consensus {
+		t.Fatal("Consensus=true from zero resolver answers and an empty DoH fallback — the green card from zero measurements")
+	}
+	if result.ResolverCount != 0 || result.TopVotes != 0 {
+		t.Fatalf("expected zero counts, got resolvers=%d top=%d", result.ResolverCount, result.TopVotes)
+	}
+}
+
 func TestQueryWithConsensus_SingleResolverFails(t *testing.T) {
 	c := New(
 		WithResolvers([]ResolverConfig{
