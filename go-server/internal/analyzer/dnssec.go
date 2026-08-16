@@ -119,7 +119,58 @@ func hasSecureNoBogus(resolverAD map[string]string) bool {
         return secure
 }
 
-// RebucketDNSSECDisplayLabel backfills display_label + display_severity on a
+// hasBogusNoSecure is the companion to hasSecureNoBogus: it returns true when
+// at least one resolver independently measured a broken chain (CD-confirmed
+// bogus) AND no resolver measured a secure chain. A CD-confirmed bogus vote is
+// a measured negative — the strongest evidence of breakage available — and must
+// carry a verdict, not be flattened into indeterminate. (The other half of the
+// #379 ruling: if a CD-confirmed bogus vote can veto a positive, it can carry
+// a verdict on its own.)
+func hasBogusNoSecure(resolverAD map[string]string) bool {
+        bogus := false
+        for _, vote := range resolverAD {
+                if vote == "secure" {
+                        return false
+                }
+                if vote == "bogus" {
+                        bogus = true
+                }
+        }
+        return bogus
+}
+
+// buildMeasuredBogusResult renders a broken-chain verdict built on the AD
+// evidence alone: every validator independently confirmed a broken chain
+// (unanimous CD-confirmed bogus with zero secure votes). The DNSKEY records
+// are salvaged via a fresh CD=1 query — if that also fails, the verdict still
+// stands on the AD vote; the key-material gap is documented in has_dnskey=false
+// but does not weaken the measurement.
+func buildMeasuredBogusResult(adResolver *string, resolverAD map[string]string, hasDNSKEY bool, dnskeyRecords []string) map[string]any {
+        msg := "DNSSEC validation failed — all validating resolvers independently confirmed the chain of trust is broken (unanimous CD-confirmed SERVFAIL)."
+        if hasDNSKEY {
+                msg += " The zone publishes key material that no validator will vouch for."
+        }
+        return map[string]any{
+                mapKeyStatus:              "warning",
+                mapKeyMessage:             msg,
+                mapKeyHasDnskey:           hasDNSKEY,
+                mapKeyHasDs:               false,
+                mapKeyDnskeyRecords:       dnskeyRecords,
+                mapKeyDsRecords:           []string{},
+                mapKeyAlgorithm:           nil,
+                mapKeyAlgorithmName:       nil,
+                mapKeyAlgorithmObservation: nil,
+                mapKeyChainOfTrust:        "broken",
+                mapKeyAdFlag:              false,
+                mapKeyAdConsensus:         "bogus",
+                mapKeyResolverAD:          resolverAD,
+                mapKeyAdResolver:          derefStr(adResolver),
+                mapKeyDnssecState:         "present",
+                mapKeyIndeterminateReason: "measured_bogus",
+                mapKeyDisplayLabel:        "Broken",
+                mapKeyDisplaySeverity:     "danger",
+        }
+}
 // persisted dnssec_analysis map written before those fields existed, so old
 // rows render the same honest label as a fresh scan (single source of truth —
 // never re-derived per-template). Idempotent: a map that already carries the
@@ -543,6 +594,25 @@ func (a *Analyzer) AnalyzeDNSSEC(ctx context.Context, domain string) map[string]
         // the secure-majority guard below ever ran — the flap's second door.
         // hasSecureNoBogus strictly widens adFlag (unanimous secure implies it).
         definitivePositive := (hasDNSKEY && hasDS) || hasSecureNoBogus(resolverAD)
+
+        // Bogus-without-secure: before the lookupErrored gate flattens a measured
+        // negative into indeterminate, check whether every validator independently
+        // confirmed a broken chain (CD-confirmed bogus with zero secure votes).
+        // A unanimous bogus vote IS the measurement — "broken", not "could not
+        // verify." The companion predicate hasBogusNoSecure returns true only when
+        // bogus ≥ 1 AND secure == 0, so a single secure vote still blocks the
+        // verdict (the last door from the boolean-collapse class). When the
+        // DNSKEY/DS lookups errored through the validating path (the definition of
+        // a bogus zone), try to salvage the key material via a fresh CD=1 query so
+        // the verdict carries its evidence.
+        if lookupErrored && hasBogusNoSecure(resolverAD) {
+                salvageRec, salvageStatus := a.DNS.QueryDNSWithTTLStatus(ctx, "DNSKEY", domain, true)
+                if salvageStatus == dnsclient.LookupResolved {
+                        hasDNSKEY, dnskeyRecords = collectDNSKEYRecords(salvageRec.Records)
+                }
+                return buildMeasuredBogusResult(adResolver, resolverAD, hasDNSKEY, dnskeyRecords)
+        }
+
         if lookupErrored && !definitivePositive {
                 reason := "lookup_errored"
                 if dnskeyStatus == dnsclient.LookupError || dnskeyStatus == dnsclient.LookupConflict {
