@@ -208,6 +208,34 @@ jobs:
           ls -lh dns-tool-server
           file dns-tool-server
 
+      - name: Ratchets — gofmt / gocyclo / file-size
+        run: |
+          set -euo pipefail
+          BASE="scripts/quality-baselines"
+          FILES=$(find go-server -path 'go-server/.go-*' -prune -o -type f -name '*.go' -print)
+          echo "▸ gofmt (no new unformatted)"
+          [ -f "$BASE/gofmt-unformatted.txt" ] || { echo "MISSING baseline"; exit 1; }
+          gofmt -l $FILES 2>/dev/null | while IFS= read -r f; do
+            [ -z "$f" ] && continue
+            grep -qxF "$f" "$BASE/gofmt-unformatted.txt" || { echo "NEW unformatted: $f"; exit 1; }
+          done
+          echo "  ✓ clean"
+          echo "▸ gocyclo (production ≤ baseline)"
+          [ -f "$BASE/gocyclo.count" ] || { echo "MISSING baseline"; exit 1; }
+          BASE_N=$(cat "$BASE/gocyclo.count")
+          CUR_N=$(go run github.com/fzipp/gocyclo/cmd/gocyclo@v0.6.0 -over 15 $FILES 2>/dev/null | grep -v '_test.go' | grep -c . || echo 0)
+          [ "$CUR_N" -le "$BASE_N" ] || { echo "REGRESSION: $CUR_N > baseline $BASE_N"; exit 1; }
+          echo "  ✓ gocyclo: $CUR_N ≤ $BASE_N"
+          echo "▸ file-size (≤900 lines)"
+          [ -f "$BASE/file-size-exceptions.txt" ] || touch "$BASE/file-size-exceptions.txt"
+          echo "$FILES" | grep -v '_test.go' | while IFS= read -r f; do
+            [ -z "$f" ] && continue
+            [ $(wc -l < "$f") -le 900 ] && continue
+            grep -qxF "$f" "$BASE/file-size-exceptions.txt" || { echo "OVER 900: $f"; exit 1; }
+          done
+          echo "  ✓ within cap"
+          echo "RATCHETS: PASSED"
+
   handler-tests-db-integration:
     name: Handler Tests — dbtest + integration
     runs-on: ubuntu-latest
