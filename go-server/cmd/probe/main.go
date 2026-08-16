@@ -579,7 +579,14 @@ func handleDANEVerify(w http.ResponseWriter, r *http.Request) {
         tlsaOut, err := digCmd.Output()
         tlsaRecords := strings.TrimSpace(string(tlsaOut))
 
-        if err != nil || tlsaRecords == "" {
+        if err != nil {
+                response[mapKeyStatus] = "error"
+                response["message"] = fmt.Sprintf("TLSA lookup failed for %s — could not measure (dig transport error), not evidence of absence", tlsaName)
+                response[mapKeyElapsedSeconds] = time.Since(start).Seconds()
+                writeJSON(w, http.StatusOK, response)
+                return
+        }
+        if tlsaRecords == "" {
                 response[mapKeyStatus] = "no_tlsa"
                 response["message"] = fmt.Sprintf("No TLSA records found at %s", tlsaName)
                 response[mapKeyElapsedSeconds] = time.Since(start).Seconds()
