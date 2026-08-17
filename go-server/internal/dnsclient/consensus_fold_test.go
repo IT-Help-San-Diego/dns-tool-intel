@@ -160,3 +160,27 @@ func TestCanonicalRecordKey_DoesNotMutate(t *testing.T) {
                 t.Fatalf("canonicalRecordKey mutated its input: %v", in)
         }
 }
+
+
+// TestAbsentDenialAD pins the denial-authentication fold: one AD-bearing
+// absent vote is positive evidence (a validating resolver PROVED the record
+// absent, RFC 4035 §3.2.3); resolved or transient voters' bits never count.
+func TestAbsentDenialAD(t *testing.T) {
+        cases := []struct {
+                name     string
+                outcomes []resolverOutcome
+                auth     []bool
+                want     bool
+        }{
+                {"one authenticated denial suffices", []resolverOutcome{outcomeAbsent, outcomeAbsent}, []bool{false, true}, true},
+                {"no authenticated denial", []resolverOutcome{outcomeAbsent, outcomeAbsent}, []bool{false, false}, false},
+                {"AD on a RESOLVED voter never counts", []resolverOutcome{outcomeResolved, outcomeAbsent}, []bool{true, false}, false},
+                {"AD on a transient voter never counts", []resolverOutcome{outcomeTransient, outcomeAbsent}, []bool{true, false}, false},
+                {"empty", nil, nil, false},
+        }
+        for _, c := range cases {
+                if got := absentDenialAD(c.outcomes, c.auth); got != c.want {
+                        t.Errorf("%s: absentDenialAD = %v, want %v", c.name, got, c.want)
+                }
+        }
+}

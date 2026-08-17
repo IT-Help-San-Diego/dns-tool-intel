@@ -16,6 +16,7 @@ import (
 const (
         mapKeyAdFlag               = "ad_flag"
         mapKeyAdResolver           = "ad_resolver"
+        mapKeyDsDenial             = "ds_denial"
         mapKeyAdConsensus          = "ad_consensus"
         mapKeyResolverAD           = "resolver_ad"
         mapKeyAlgorithm            = "algorithm"
@@ -230,6 +231,10 @@ type dnssecParams struct {
         algorithm     *int
         algorithmName *string
         adResolver    *string
+        // dsDenial qualifies a confirmed island of security: was the parent's
+        // denial of the DS itself authenticated? (authenticated /
+        // unauthenticated / unmeasured; empty outside the island path.)
+        dsDenial string
 }
 
 func algorithmObservation(algo *int) map[string]any {
@@ -295,9 +300,26 @@ func buildDNSSECResult(p dnssecParams) map[string]any {
 
         if p.hasDNSKEY && !p.hasDS {
                 label, severity := dnssecDisplayLabel(dnssecStatePartial, "broken")
+                // The broken chain is accurate (RFC 6781 §4.2.2 — an island of
+                // security cannot be validated from the root); ds_denial QUALIFIES
+                // it: broken-and-confirmed (parent's denial authenticated, e.g. a
+                // signed parent) vs broken-and-unconfirmable (unsigned parent or
+                // NSEC3 opt-out span — absence real, proof impossible).
+                dsDenial := p.dsDenial
+                if dsDenial == "" {
+                        dsDenial = dsDenialUnmeasured
+                }
+                msg := "DNSSEC partially configured - DNSKEY exists but DS record missing at registrar"
+                switch dsDenial {
+                case dsDenialAuthenticated:
+                        msg += " (the parent zone's denial of the DS is itself DNSSEC-authenticated — a confirmed island of security)"
+                case dsDenialUnauthenticated:
+                        msg += " (absence confirmed at the parent's authoritative servers; the denial itself is not DNSSEC-provable — unsigned parent or opt-out span)"
+                }
                 return map[string]any{
                         mapKeyStatus:               "warning",
-                        mapKeyMessage:              "DNSSEC partially configured - DNSKEY exists but DS record missing at registrar",
+                        mapKeyMessage:              msg,
+                        mapKeyDsDenial:             dsDenial,
                         mapKeyHasDnskey:            true,
                         mapKeyHasDs:                false,
                         mapKeyDnskeyRecords:        p.dnskeyRecords,
@@ -420,6 +442,34 @@ func collectDNSKEYRecords(results []string) (bool, []string) {
                 }
         }
         return true, records
+}
+
+// dsDenial* classify the DS-denial's own authentication — a DIFFERENT
+// measurement from the zone AD consensus: zone AD says "no validator asserted
+// this ZONE secure" (true for every island of security), while the DS-query AD
+// says "the parent's denial of the DS was itself validated" (true only under a
+// signed parent; false under an unsigned parent or an NSEC3 opt-out span,
+// where absence is real but unprovable).
+const (
+        dsDenialAuthenticated   = "authenticated"
+        dsDenialUnauthenticated = "unauthenticated"
+        dsDenialUnmeasured      = "unmeasured"
+)
+
+// probeDSDenial measures whether the parent's denial of the DS is itself
+// authenticated. It MUST run with CD=0: the CD bit disables validation, so AD
+// is protocol-zeroed on every CD=1 answer (measured live 2026-08-17 — the
+// same denial shows AD under CD=0 and no AD under CD=1). Run only on the
+// confirmed-absent island path, so the extra query is rare.
+func (a *Analyzer) probeDSDenial(ctx context.Context, domain string) string {
+        rec, status := a.DNS.QueryDNSWithTTLStatus(ctx, "DS", domain, false)
+        switch {
+        case status == dnsclient.LookupAbsent && rec.Authenticated:
+                return dsDenialAuthenticated
+        case status == dnsclient.LookupAbsent:
+                return dsDenialUnauthenticated
+        }
+        return dsDenialUnmeasured
 }
 
 func collectDSRecords(results []string) (bool, []string) {
@@ -659,6 +709,7 @@ func (a *Analyzer) AnalyzeDNSSEC(ctx context.Context, domain string) map[string]
         // adopt the real DS; authoritatively absent → genuine island of security;
         // unconfirmable → indeterminate, never a fabricated absence (RFC 4035 §3.2.3,
         // RFC 6781 §4.2.2).
+        dsDenial := ""
         if hasDNSKEY && !hasDS && !adFlag {
                 switch confirm := a.queryParentAuthoritativeDS(ctx, domain); confirm.state {
                 case parentDSConfirmedPresent:
@@ -670,6 +721,9 @@ func (a *Analyzer) AnalyzeDNSSEC(ctx context.Context, domain string) map[string]
                 case parentDSConfirmedAbsent:
                         // Real DNSKEY-without-DS, authoritatively confirmed at the parent. Fall
                         // through to buildDNSSECResult, which now labels dnssec_state=partial.
+                        // Qualify the broken chain before falling through: is the parent's
+                        // DENIAL itself authenticated? (CD=0 probe — see probeDSDenial.)
+                        dsDenial = a.probeDSDenial(ctx, domain)
                 }
         }
 
@@ -689,6 +743,7 @@ func (a *Analyzer) AnalyzeDNSSEC(ctx context.Context, domain string) map[string]
                         algorithm:     algorithm,
                         algorithmName: algorithmName,
                         adResolver:    adResolver,
+                        dsDenial:      dsDenial,
                 })
         }
 

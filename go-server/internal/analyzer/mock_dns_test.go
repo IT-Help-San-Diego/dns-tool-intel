@@ -31,6 +31,7 @@ type MockDNSClient struct {
         specificAuthResp   map[string]specificAuthEntry
         specificTTLResp    map[string]dnsclient.RecordWithTTL
         ttlStatusResponses map[string]ttlStatusEntry
+        ttlStatusResponsesCD map[string]ttlStatusEntry
         statusResponses    map[string]statusEntry
         blockOnQuery       bool
 }
@@ -183,6 +184,25 @@ func (m *MockDNSClient) AddTTLStatusResponse(recordType, domain string, r dnscli
         m.ttlStatusResponses[mockKey(recordType, domain)] = ttlStatusEntry{rec: r, status: status}
 }
 
+// AddTTLStatusResponseCD registers a response for a specific CheckingDisabled
+// value, letting a test give the CD=0 path (e.g. the ds_denial probe) a
+// different answer from the CD=1 lookup — as protocol does.
+func (m *MockDNSClient) AddTTLStatusResponseCD(recordType, domain string, cd bool, r dnsclient.RecordWithTTL, status dnsclient.LookupStatus) {
+        m.mu.Lock()
+        defer m.mu.Unlock()
+        if m.ttlStatusResponsesCD == nil {
+                m.ttlStatusResponsesCD = map[string]ttlStatusEntry{}
+        }
+        m.ttlStatusResponsesCD[mockKeyCD(recordType, domain, cd)] = ttlStatusEntry{rec: r, status: status}
+}
+
+func mockKeyCD(recordType, domain string, cd bool) string {
+        if cd {
+                return mockKey(recordType, domain) + "|cd=1"
+        }
+        return mockKey(recordType, domain) + "|cd=0"
+}
+
 // SetBlockOnQuery makes QueryDNSWithTTLStatus block until its context is
 // cancelled (simulating a slow resolver), so a test can exercise the
 // post-lookup deadline guard — the branch that fires in production — rather
@@ -193,7 +213,7 @@ func (m *MockDNSClient) SetBlockOnQuery(b bool) {
         m.blockOnQuery = b
 }
 
-func (m *MockDNSClient) QueryDNSWithTTLStatus(ctx context.Context, recordType, domain string, _ bool) (dnsclient.RecordWithTTL, dnsclient.LookupStatus) {
+func (m *MockDNSClient) QueryDNSWithTTLStatus(ctx context.Context, recordType, domain string, cd bool) (dnsclient.RecordWithTTL, dnsclient.LookupStatus) {
         m.mu.Lock()
         if m.blockOnQuery {
                 m.mu.Unlock()
@@ -201,9 +221,22 @@ func (m *MockDNSClient) QueryDNSWithTTLStatus(ctx context.Context, recordType, d
                 return dnsclient.RecordWithTTL{}, dnsclient.LookupError
         }
         defer m.mu.Unlock()
+        // Protocol truth the mock must not be able to violate: CD=1 disables
+        // validation, so AD can never be set on a CD=1 answer. Zeroing it here
+        // makes the impossible shape (an authenticated CD=1 response)
+        // inexpressible in tests — the mock-shape doctrine.
+        serve := func(e ttlStatusEntry) (dnsclient.RecordWithTTL, dnsclient.LookupStatus) {
+                if cd {
+                        e.rec.Authenticated = false
+                }
+                return e.rec, e.status
+        }
+        if e, ok := m.ttlStatusResponsesCD[mockKeyCD(recordType, domain, cd)]; ok {
+                return serve(e)
+        }
         key := mockKey(recordType, domain)
         if e, ok := m.ttlStatusResponses[key]; ok {
-                return e.rec, e.status
+                return serve(e)
         }
         if r, ok := m.ttlResponses[key]; ok {
                 if len(r.Records) > 0 {
