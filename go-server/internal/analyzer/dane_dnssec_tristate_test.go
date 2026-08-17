@@ -1025,11 +1025,13 @@ func TestAnalyzeDNSSEC_BogusNoSecure_SalvageDNSKEY(t *testing.T) {
         // First DNSKEY lookup errors (validating path).
         mock.AddTTLStatusResponse("DNSKEY", domain, dnsclient.RecordWithTTL{}, dnsclient.LookupError)
         mock.AddTTLStatusResponse("DS", domain, dnsclient.RecordWithTTL{}, dnsclient.LookupError)
-        // Salvage query succeeds (CD=1).
+        // Salvage query succeeds (CD=1). Bare-rdata shape — what rrToString
+        // actually emits since the warm-cache consensus fix; a mock feeding a
+        // shape the client cannot produce hides parser breaks.
         mock.AddTTLStatusResponse("DNSKEY", domain, dnsclient.RecordWithTTL{
                 Records: []string{
-                        "dns-evil-flicker.com.\t300\tIN\tDNSKEY\t256 3 13 6Vi5uVS+3Xwv5Lo9Ppcz7f+qIgWBI/iatOi3zhXs63NHyuuKN5uRLwE3hSxokxKayXJtX8CV+xpKFKawqhLk0w==",
-                        "dns-evil-flicker.com.\t300\tIN\tDNSKEY\t257 3 13 Yl9q/HDVKhp7dyJ2SaVZ73WTP8mT1iubDLrEmWSs1SvHfmGhkS+BMT2OlTuipFiS9MkOXS77OfwtUtRwFu4LCg==",
+                        "256 3 13 6Vi5uVS+3Xwv5Lo9Ppcz7f+qIgWBI/iatOi3zhXs63NHyuuKN5uRLwE3hSxokxKayXJtX8CV+xpKFKawqhLk0w==",
+                        "257 3 13 Yl9q/HDVKhp7dyJ2SaVZ73WTP8mT1iubDLrEmWSs1SvHfmGhkS+BMT2OlTuipFiS9MkOXS77OfwtUtRwFu4LCg==",
                 },
         }, dnsclient.LookupResolved)
         mock.AddADFlagResult(domain, dnsclient.ADFlagResult{

@@ -264,15 +264,27 @@ func rrToString(rr dns.RR) string {
                 return fmt.Sprintf("%d %d %d %s", v.SRV.Priority, v.SRV.Weight, v.SRV.Port, v.SRV.Target)
         case *dns.TLSA:
                 return fmt.Sprintf("%d %d %d %s", v.TLSA.Usage, v.TLSA.Selector, v.TLSA.MatchingType, v.TLSA.Certificate)
-        // DNSKEY/DS/RRSIG deliberately have NO String() special case: the full
-        // presentation format embeds the header (name/TTL/class), and the TTL is
-        // resolver-cache state, not zone data — five healthy resolvers answering a
-        // warm-cache zone report five different remaining TTLs, so TTL-bearing
-        // strings make canonicalRecordKey read agreement as conflict (measured
-        // live 2026-08-17: example.com DNSKEY TTLs 1527/553/2787/3076 across four
-        // resolvers -> consensusConflict -> signed domains graded indeterminate).
-        // The default branch strips the header, yielding the same rdata-only
-        // shape the DoH path has always produced.
+        // DNSKEY/DS/RRSIG render RDATA ONLY — the embedded rdata's String(),
+        // never the RR's full presentation format. The full form embeds the
+        // header name/TTL/class, and TTL is resolver-cache state, not zone
+        // data: five healthy resolvers answering a warm-cache zone report five
+        // different remaining TTLs, so TTL-bearing strings made
+        // canonicalRecordKey read agreement as conflict (measured live
+        // 2026-08-17: example.com DNSKEY TTLs 1527/553/2787/3076 across four
+        // resolvers -> consensusConflict -> signed domains graded
+        // indeterminate). Bare rdata is the shape the DoH path returns and the
+        // shape field-position consumers (parseAlgorithm reads Fields[1] as
+        // the algorithm) and analyzer test mocks have always assumed. NOTE:
+        // the default branch's TrimPrefix idiom is NOT equivalent here —
+        // Header.String() omits the TYPE token that RR.String() includes, so
+        // it would leave a "	TYPE	" residue (adversarial review caught
+        // exactly that in the first version of this fix).
+        case *dns.DNSKEY:
+                return v.DNSKEY.String()
+        case *dns.DS:
+                return v.DS.String()
+        case *dns.RRSIG:
+                return v.RRSIG.String()
         default:
                 hdr := rr.Header()
                 full := rr.String()
