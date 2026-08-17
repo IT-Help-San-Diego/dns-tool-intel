@@ -79,7 +79,7 @@ Three purpose-built analysis engines power the intelligence:
 
 ## Covert Recon Mode
 
-The Recon Report includes live CIE scotopic/photopic luminosity validation and WCAG 2.2 contrast calculations. Scientific rigor grounded in MIL-STD-1472H (Human Engineering Design Criteria for Military Systems, Equipment and Facilities) and MIL-STD-3009 (Defense Standard Practice and General Requirements for Combat and Training) to preserve tactical operator vision in low-light operational environments. Available at `/color-science`.
+The Recon Report includes live CIE scotopic/photopic luminosity validation and WCAG 2.2 contrast calculations. Scientific rigor grounded in MIL-STD-1472H (Human Engineering Design Criteria for Military Systems, Equipment and Facilities) and Luria & Kobus (1984) red-light dark-adaptation research to preserve tactical operator vision in low-light operational environments. Available at `/color-science`.
 
 ## Security & Design Philosophy
 

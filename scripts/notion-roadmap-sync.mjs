@@ -82,7 +82,7 @@ const ROADMAP_ITEMS = [
   { title: "Stats Confidence Engine Preview Card", status: "Done", type: "Feature", priority: "Medium", version: "v26.26.05" },
   { title: "Failed Analysis Transparency Page", status: "Done", type: "Feature", priority: "Medium", version: "v26.26.05" },
   { title: "Documentation Reality Check (LLMs + JSON-LD + Roadmap)", status: "Done", type: "Feature", priority: "Medium", version: "v26.26.06" },
-  { title: "Covert Mode Tactical Red Filter (MIL-STD-3009)", status: "Done", type: "Feature", priority: "Medium", version: "v26.26.08" },
+  { title: "Covert Mode Tactical Red Filter (Luria & Kobus 1984)", status: "Done", type: "Feature", priority: "Medium", version: "v26.26.08" },
   { title: "Covert Mode Environment Presets (Submarine/Tactical/Operator)", status: "Done", type: "Feature", priority: "Medium", version: "v26.26.10" },
   { title: "Operator Mode Color Science (mix-blend-mode: color)", status: "Done", type: "Feature", priority: "Medium", version: "v26.26.11" },
   { title: "Covert Environment Icons & Accent Gray Hierarchy", status: "Done", type: "Feature", priority: "Medium", version: "v26.26.12" },

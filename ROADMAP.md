@@ -57,7 +57,7 @@
 | Stats Confidence Engine Preview Card | v26.26.05 | Feb 2026 |
 | Failed Analysis Transparency Page | v26.26.05 | Feb 2026 |
 | Documentation Reality Check (LLMs + JSON-LD + Roadmap) | v26.26.06 | Feb 2026 |
-| Covert Mode Tactical Red Filter (MIL-STD-3009) | v26.26.08 | Feb 2026 |
+| Covert Mode Tactical Red Filter (Luria & Kobus 1984) | v26.26.08 | Feb 2026 |
 | Covert Mode Environment Presets (Submarine/Tactical/Operator) | v26.26.10 | Feb 2026 |
 | Operator Mode Color Science (mix-blend-mode: color) | v26.26.11 | Feb 2026 |
 | Covert Environment Icons & Accent Gray Hierarchy | v26.26.12 | Feb 2026 |
