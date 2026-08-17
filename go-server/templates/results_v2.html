@@ -195,6 +195,11 @@
         {{$tlsrptState := mapGetStr "tlsrpt_state" $tlsrpt}}
         {{$bimiState := mapGetStr "bimi_state" $bimi}}
         {{$posture := mapGetMap "posture" $results}}
+        {{/* Pill vars hoisted (2026-08-16): the risk pill now ALSO renders
+             beside the domain name, so the derivation lives at top scope —
+             defined once, consumed by header pill + posture panel. */}}
+        {{$postureColor := mapGetStr "color" $posture}}
+        {{$postureState := mapGetStr "state" $posture}}
         {{$remediation := mapGetMap "remediation" $results}}
         {{$hosting := mapGetMap "hosting_summary" $results}}
         {{$registrar := mapGetMap "registrar_info" $results}}
@@ -258,6 +263,7 @@
                             {{if .IsTLD}}{{$dvLabel = "N/A — Registry"}}{{$dvClass = "bg-secondary"}}
                             {{else if $daneVerSC}}{{$dvs := mapGetStr "status" $daneVerSC}}{{if eq $dvs "mismatch"}}{{$dvLabel = "Broken"}}{{$dvClass = "bg-danger"}}{{else if eq $dvs "verified"}}{{$dvLabel = "Verified"}}{{$dvClass = "bg-success"}}{{else if eq $dvs "no_tlsa"}}{{$dvLabel = "Not Deployed"}}{{$dvClass = "bg-secondary"}}{{else}}{{$dvLabel = "Could Not Verify"}}{{$dvClass = "bg-secondary"}}{{end}}
                             {{else if eq (mapGetStr "dane_state" $dane) "indeterminate"}}{{$dvLabel = "Inconclusive"}}{{$dvClass = "bg-secondary"}}
+                            {{else if eq (mapGetStr "dane_deployable" $dane) "false"}}{{$dvLabel = "Unavailable on Provider"}}{{$dvClass = "bg-secondary"}}
                             {{else if mapGetBool "has_dane" $dane}}{{$dvLabel = "Unconfirmed"}}{{$dvClass = "bg-secondary"}}
                             {{else}}{{$dvLabel = "Not Deployed"}}{{$dvClass = "bg-secondary"}}{{end}}
         {{$dsLabel := $dtLabel}}{{if lt (severityRank $ccLabel) (severityRank $dtLabel)}}{{$dsLabel = $ccLabel}}{{end}}
@@ -367,6 +373,7 @@
                 <h1 class="h3 mb-1">{{if .IsPublicSuffix}}Registry Zone Health Report{{else}}Engineer's DNS Intelligence Report{{end}}</h1>
                 <div class="domain-display">
                     <span class="domain-name-prominent">{{.Domain}}</span>
+                    {{if and .DomainExists $postureState (not .IsPublicSuffix)}}<a href="#posture-panel" class="text-decoration-none"><span class="badge bg-{{$postureColor}} ms-2 align-middle" title="DNS Security &amp; Trust Posture — the mission-critical verdict, up front (details below)">{{$postureState}}</span></a>{{end}}
                     {{if ne .AsciiDomain .Domain}}
                         <span class="badge bg-secondary ms-2">ASCII: {{.AsciiDomain}}</span>
                     {{end}}
@@ -566,7 +573,16 @@
     .v2-group-body { padding: .65rem; }
     .v2-workspace .domain-summary-row { grid-template-columns: 1fr 1fr; }
   }
-  @media (prefers-reduced-motion: reduce) { .v2-summary-toggle { transition: none; } }
+  /* Beckon (Carey 2026-08-16): the numbered jump points and the hurry path
+     draw the eye for three gentle cycles after load, then rest. Discovery
+     cue only — never a constant motion. */
+  @keyframes v2-beckon {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(240, 185, 11, 0); }
+    50% { box-shadow: 0 0 9px 1px rgba(240, 185, 11, .38); }
+  }
+  .v2-nav-index { border-radius: .25rem; animation: v2-beckon 2.2s ease-in-out .8s 3; }
+  .v2-hurry a { animation: v2-beckon 2.2s ease-in-out .8s 3; }
+  @media (prefers-reduced-motion: reduce) { .v2-summary-toggle { transition: none; } .v2-nav-index, .v2-hurry a { animation: none; } }
   @media print {
     .v2-orientation, .v2-nav, .v2-summary-toggle, .screen-only { display: none !important; }
     details.v2-group { border: 0; }
@@ -825,9 +841,7 @@
             </div>
         </div>
         {{else}}
-        {{$postureColor := mapGetStr "color" $posture}}
-        {{$postureIcon := mapGetStr "icon" $posture}}
-        {{$postureState := mapGetStr "state" $posture}}
+
         {{$postureMsg := mapGetStr "message" $posture}}
         {{$postureCritical := mapGetSlice "critical_issues" $posture}}
         {{$postureRecs := mapGetSlice "recommendations" $posture}}
@@ -835,11 +849,10 @@
         {{$postureAbsent := mapGetSlice "absent" $posture}}
         <div class="row mb-4" id="command-card">
             <div class="col-12">
-                <div class="card border-{{$postureColor}} bg-{{$postureColor}} bg-opacity-10">
+                <div class="card border-{{$postureColor}} bg-{{$postureColor}} bg-opacity-10" id="posture-panel">
                     <div class="card-body py-3">
                         <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
                             <div class="d-flex align-items-center">
-                                {{icon $postureIcon "icon-2x" (printf "text-%s me-3" $postureColor)}}
                                 <div>
                                     <span class="text-uppercase text-muted fw-bold d-block u-fs-070rem">DNS Security &amp; Trust Posture</span>
                                     <span class="fw-semibold me-2">Risk Level:</span>
