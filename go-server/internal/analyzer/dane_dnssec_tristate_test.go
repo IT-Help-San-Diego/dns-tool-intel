@@ -930,7 +930,7 @@ func TestComputeInternalScore_IndeterminateNeutral(t *testing.T) {
                 dnssecOK: true, daneOK: true, mtaStsOK: true,
                 tlsrptOK: true, caaOK: true, bimiOK: true,
         }
-        if got := computeInternalScore(spfIndet, DKIMSuccess); got != 100 {
+        if got, _, _ := computeInternalScore(spfIndet, DKIMSuccess); got != 100 {
                 t.Errorf("SPF indeterminate + otherwise perfect: score = %d, want 100 (no penalty for an unmeasurable protocol)", got)
         }
 
@@ -940,8 +940,41 @@ func TestComputeInternalScore_IndeterminateNeutral(t *testing.T) {
                 dnssecOK:           true, daneOK: true, mtaStsOK: true,
                 tlsrptOK: true, caaOK: true, bimiOK: true,
         }
-        if got := computeInternalScore(dmarcIndet, DKIMSuccess); got != 100 {
+        if got, _, _ := computeInternalScore(dmarcIndet, DKIMSuccess); got != 100 {
                 t.Errorf("DMARC indeterminate + otherwise perfect: score = %d, want 100", got)
+        }
+}
+
+// TestComputeInternalScore_AttainablePersisted pins the transparency contract:
+// the denominator shrinks by each unmeasurable protocol's weight, and the
+// returned attainable value is the number the report must disclose so a
+// "score out of 100" can never masquerade as "score out of 62".
+func TestComputeInternalScore_AttainablePersisted(t *testing.T) {
+        spfIndet := protocolState{
+                spfIndeterminate: true,
+                dmarcOK:          true, dmarcPct: 100, dmarcPolicy: "reject",
+                dnssecOK: true, daneOK: true, mtaStsOK: true,
+                tlsrptOK: true, caaOK: true, bimiOK: true,
+        }
+        got, attainable, worst := computeInternalScore(spfIndet, DKIMSuccess)
+        if got != 100 {
+                t.Errorf("SPF indeterminate + otherwise perfect: score = %d, want 100", got)
+        }
+        if attainable != 80 {
+                t.Errorf("SPF indeterminate removes weightSPF (20) from the denominator: attainable = %d, want 80", attainable)
+        }
+        if worst != 80 {
+                t.Errorf("worst-case bound (unmeasurable counted broken): %d, want 80 (20 SPF points lost)", worst)
+        }
+
+        clean := protocolState{
+                spfOK: true, spfHardFail: true,
+                dmarcOK: true, dmarcPct: 100, dmarcPolicy: "reject",
+                dnssecOK: true, daneOK: true, mtaStsOK: true,
+                tlsrptOK: true, caaOK: true, bimiOK: true,
+        }
+        if _, attainable, worst := computeInternalScore(clean, DKIMSuccess); attainable != 100 || worst != 100 {
+                t.Errorf("fully measurable posture: attainable = %d, worst = %d, want 100/100", attainable, worst)
         }
 }
 
@@ -960,8 +993,8 @@ func TestComputeInternalScore_IndeterminateBeatsMissing(t *testing.T) {
                 spf.bimiOK = true
                 return spf
         }
-        indeterminate := computeInternalScore(withRest(protocolState{spfIndeterminate: true}), DKIMSuccess)
-        missing := computeInternalScore(withRest(protocolState{spfMissing: true}), DKIMSuccess)
+        indeterminate, _, _ := computeInternalScore(withRest(protocolState{spfIndeterminate: true}), DKIMSuccess)
+        missing, _, _ := computeInternalScore(withRest(protocolState{spfMissing: true}), DKIMSuccess)
         if indeterminate <= missing {
                 t.Errorf("indeterminate SPF (%d) must score higher than missing SPF (%d)", indeterminate, missing)
         }

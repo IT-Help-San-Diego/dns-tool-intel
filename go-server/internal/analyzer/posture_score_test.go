@@ -12,7 +12,7 @@ func TestComputeInternalScore_AllPresent(t *testing.T) {
 		dnssecOK: true, daneOK: true, mtaStsOK: true,
 		tlsrptOK: true, caaOK: true, bimiOK: true,
 	}
-	score := computeInternalScore(ps, DKIMSuccess)
+	score, _, _ := computeInternalScore(ps, DKIMSuccess)
 	if score != 100 {
 		t.Errorf("full posture should score 100, got %d", score)
 	}
@@ -25,7 +25,7 @@ func TestComputeInternalScore_Capped(t *testing.T) {
 		dnssecOK: true, daneOK: true, mtaStsOK: true,
 		tlsrptOK: true, caaOK: true, bimiOK: true,
 	}
-	score := computeInternalScore(ps, DKIMNoMailDomain)
+	score, _, _ := computeInternalScore(ps, DKIMNoMailDomain)
 	if score > 100 {
 		t.Errorf("score should be capped at 100, got %d", score)
 	}
@@ -45,14 +45,14 @@ func TestComputeInternalScore_DKIMInconclusiveIsNeutral(t *testing.T) {
 	// DKIM inconclusive: 0 raw points, but DKIM's weight (15) is removed from the
 	// denominator, so 85/85 = 100 — indistinguishable from a fully-configured
 	// domain. "No selector matched" must never read as a missing control.
-	if got := computeInternalScore(ps, DKIMInconclusive); got != 100 {
+	if got, _, _ := computeInternalScore(ps, DKIMInconclusive); got != 100 {
 		t.Errorf("DKIM inconclusive should be neutral (score 100), got %d", got)
 	}
 
 	// DKIM absent: 0 raw points AND the weight stays in the denominator, so
 	// 85/100 = 85 — a genuine absence penalty. The distinction between these two
 	// cases is the entire point of the weightDKIM denominator fix.
-	if got := computeInternalScore(ps, DKIMAbsent); got != 85 {
+	if got, _, _ := computeInternalScore(ps, DKIMAbsent); got != 85 {
 		t.Errorf("DKIM absent should be a penalty (score 85), got %d", got)
 	}
 }
@@ -873,7 +873,7 @@ func TestComputeInternalScore_IndeterminateNeutralized(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			ps := base
 			tc.mutate(&ps)
-			got := computeInternalScore(ps, DKIMSuccess)
+			got, _, _ := computeInternalScore(ps, DKIMSuccess)
 			if got != 100 {
 				t.Errorf("%s: indeterminate must be neutral (weight removed from denominator); want 100, got %d", tc.name, got)
 			}

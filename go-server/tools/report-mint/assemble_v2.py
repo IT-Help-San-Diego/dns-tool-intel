@@ -35,7 +35,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 SRC = ROOT / "templates" / "results.html"
 DST = ROOT / "templates" / "results_v2.html"
-SOURCE_LINE_COUNT = 7045
+SOURCE_LINE_COUNT = 7061
 
 lines = SRC.read_text().split("\n")
 assert len(lines) >= SOURCE_LINE_COUNT, (
@@ -89,7 +89,7 @@ GROUPS = (
         "Can DNS answers and certificate issuance be trusted?",
         "L1",
         False,
-        ((2384, 2568), (2705, 2759), (3693, 3843), (3964, 4103), (4723, 5187)),
+        ((2384, 2568), (2705, 2759), (3693, 3843), (3964, 4103), (4723, 5203)),
         (
             ("DANE / TLSA", "section-dane"),
             ("CAA", "section-caa"),
@@ -138,9 +138,9 @@ GROUPS = (
             (3844, 3963),
             (4104, 4200),
             (4572, 4722),
-            (5188, 5340),
-            (5341, 5750),
-            (5751, 5789),
+            (5204, 5356),
+            (5357, 5766),
+            (5767, 5805),
         ),
         (
             ("Registrar / RDAP", "section-infra"),
@@ -164,7 +164,7 @@ GROUPS = (
             (2062, 2292),
             (2293, 2347),
             (2348, 2383),
-            (5790, 6328),
+            (5806, 6344),
         ),
         (
             ("Analysis Confidence", "confidencePanel"),
@@ -179,7 +179,7 @@ GROUPS = (
 
 # Coverage proof: every canonical source line appears exactly once. Generated
 # workspace chrome is additive and therefore excluded from source coverage.
-covered: list[tuple[int, int]] = [(1, 962), (6329, SOURCE_LINE_COUNT)]
+covered: list[tuple[int, int]] = [(1, 962), (6345, SOURCE_LINE_COUNT)]
 for group in GROUPS:
     covered.extend(group.ranges)
 seen = [0] * (SOURCE_LINE_COUNT + 1)
@@ -418,7 +418,7 @@ NAV = '<nav class="v2-nav screen-only" aria-label="Engineer report workspace">\n
 # renders below, but the workspace/navigation now owns the first decision frame.
 out = [seg(1, 355), CSS, ORIENTATION, NAV, SCRIPT, seg(356, 962), '<div class="v2-groups">']
 out.extend(group_markup(group) for group in GROUPS)
-out.extend(("</div>", seg(6329, SOURCE_LINE_COUNT)))
+out.extend(("</div>", seg(6345, SOURCE_LINE_COUNT)))
 html = "\n".join(out)
 html = html.replace('<main id="main-content" class="container my-4"', '<main id="main-content" class="container my-4 v2-workspace"', 1)
 html = html.replace("<title>", "<title>[ENGINEER WORKSPACE] ", 1)
