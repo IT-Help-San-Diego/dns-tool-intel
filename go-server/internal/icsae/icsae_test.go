@@ -37,6 +37,7 @@ type pyResult struct {
         Passed           []string `json:"passed"`
         NotApplicable    []string `json:"not_applicable"`
         NotMeasured      []string `json:"not_measured"`
+        NullObservations []string `json:"null_observations"`
         Results          []struct {
                 ID     string `json:"id"`
                 Status string `json:"status"`
@@ -115,6 +116,10 @@ func TestCrossCheckPython(t *testing.T) {
                         assertSameSet(t, "passed", got.Passed, want.Passed)
                         assertSameSet(t, "not_applicable", got.NotApplicable, want.NotApplicable)
                         assertSameSet(t, "not_measured", got.NotMeasured, want.NotMeasured)
+                        // null_observations pins the NORMALIZER: a derivation that
+                        // returns measured-false where Python returns nil (or vice
+                        // versa) can hide behind requires_any verdict agreement.
+                        assertSameSet(t, "null_observations", got.NullObservations, want.NullObservations)
                 })
         }
 }
@@ -219,6 +224,95 @@ func ptrState(v *bool) string {
                 return "true"
         }
         return "false"
+}
+
+// TestFailDirectionPair pins both directions of the tri-state fix on the
+// control fed by the defect's original line (MAIL_POLICY_SIGNALING,
+// requires_any: MTA_STS_DNS | TLS_RPT):
+//
+//  1. measured absence still FAILS and stays in the denominator — the fix is
+//     tri-state grading, NOT a nullability change that swallows real findings;
+//  2. unmeasured lands not_measured and leaves the denominator;
+//  3. mixed measured-false + unmeasured is not_measured — requires_any cannot
+//     claim all-measured-false, so no phantom failure.
+func TestFailDirectionPair(t *testing.T) {
+        statusOf := func(res Result, id string) string {
+                for _, r := range res.Results {
+                        if r.ID == id {
+                                return r.Status
+                        }
+                }
+                t.Fatalf("control %s not in results", id)
+                return ""
+        }
+
+        measuredAbsent := Evaluate(map[string]any{
+                "mta_sts_analysis": map[string]any{"status": "warning"},
+                "tlsrpt_analysis":  map[string]any{"status": "warning"},
+        })
+        if st := statusOf(measuredAbsent, "MAIL_POLICY_SIGNALING"); st != "failed" {
+                t.Fatalf("both channels measured absent: MAIL_POLICY_SIGNALING = %s, want failed (measured absence must still fail)", st)
+        }
+        if !contains(measuredAbsent.LowFailures, "MAIL_POLICY_SIGNALING") {
+                t.Error("measured-absent MAIL_POLICY_SIGNALING missing from low_failures")
+        }
+        if contains(measuredAbsent.NotMeasured, "MAIL_POLICY_SIGNALING") {
+                t.Error("measured-absent MAIL_POLICY_SIGNALING leaked into not_measured")
+        }
+
+        unmeasured := Evaluate(map[string]any{})
+        if st := statusOf(unmeasured, "MAIL_POLICY_SIGNALING"); st != "not_measured" {
+                t.Fatalf("nothing measured: MAIL_POLICY_SIGNALING = %s, want not_measured", st)
+        }
+        if contains(unmeasured.LowFailures, "MAIL_POLICY_SIGNALING") {
+                t.Error("unmeasured MAIL_POLICY_SIGNALING graded a failure")
+        }
+
+        mixed := Evaluate(map[string]any{
+                "mta_sts_analysis": map[string]any{"status": "warning"},
+        })
+        if st := statusOf(mixed, "MAIL_POLICY_SIGNALING"); st != "not_measured" {
+                t.Fatalf("one channel measured false, one unmeasured: MAIL_POLICY_SIGNALING = %s, want not_measured (requires_any cannot claim all-measured-false)", st)
+        }
+
+        // requires_any true+nil: one measured healthy channel beats an
+        // unmeasured sibling — passed, in the denominator. Pins against a
+        // nil-dominant mutation, which a review panel demonstrated survives
+        // the rest of the suite.
+        oneHealthy := Evaluate(map[string]any{
+                "mta_sts_analysis": map[string]any{"status": "success", "mode": "enforce"},
+        })
+        if st := statusOf(oneHealthy, "MAIL_POLICY_SIGNALING"); st != "passed" {
+                t.Fatalf("one channel measured true, one unmeasured: MAIL_POLICY_SIGNALING = %s, want passed (a measured healthy channel beats an unmeasured sibling)", st)
+        }
+        if !contains(oneHealthy.Passed, "MAIL_POLICY_SIGNALING") {
+                t.Error("true+nil MAIL_POLICY_SIGNALING missing from passed list")
+        }
+}
+
+// TestRequiresFalseDominance pins measured-false dominance over unmeasured in
+// the multi-key requires branch, on the ONLY control that can exercise it
+// (NO_MAIL_HARDENED: requires NO_MAIL_DOMAIN + NULL_MX + DMARC_REJECT). With
+// the no-mail gate measured true, NULL_MX unmeasured, and DMARC_REJECT
+// measured false, the control must grade FAILED — a measured false is a
+// verdict regardless of unmeasured siblings. A review panel demonstrated the
+// order-swap mutation (nil checked before false) survives the rest of the
+// suite; this is its pin.
+func TestRequiresFalseDominance(t *testing.T) {
+        res := Evaluate(map[string]any{
+                "is_no_mail_domain": true,
+                "dmarc_analysis":    map[string]any{"status": "success", "policy": "none"},
+        })
+        for _, r := range res.Results {
+                if r.ID != "NO_MAIL_HARDENED" {
+                        continue
+                }
+                if r.Status != "failed" {
+                        t.Fatalf("NO_MAIL_HARDENED with measured-false DMARC_REJECT and unmeasured NULL_MX = %s, want failed (measured false dominates unmeasured)", r.Status)
+                }
+                return
+        }
+        t.Fatal("NO_MAIL_HARDENED not in results")
 }
 
 // TestEvaluateNativeVsJSONParity is the strongest drift guard: a representative
@@ -349,6 +443,25 @@ func TestWeaknessRefsVerifiedBridge(t *testing.T) {
         }
         if mapped == 0 {
                 t.Fatal("no controls carry weakness_refs")
+        }
+}
+
+// TestCatalogNoEmptyRequirementSets pins the shape equivalence the Go engine
+// relies on: Python dispatches on KEY PRESENCE ("requires" in m) while Go
+// dispatches on len>0 — equivalent only while no mapping carries an EMPTY
+// requires/requires_any/applies_when array (Python would grade all-of-empty
+// as passed where Go falls through to the next branch). Forbid the shape.
+func TestCatalogNoEmptyRequirementSets(t *testing.T) {
+        for _, m := range Catalog().Mappings {
+                if m.Requires != nil && len(m.Requires) == 0 {
+                        t.Errorf("%s: empty requires array", m.ID)
+                }
+                if m.RequiresAny != nil && len(m.RequiresAny) == 0 {
+                        t.Errorf("%s: empty requires_any array", m.ID)
+                }
+                if m.AppliesWhen != nil && len(m.AppliesWhen) == 0 {
+                        t.Errorf("%s: empty applies_when array", m.ID)
+                }
         }
 }
 
