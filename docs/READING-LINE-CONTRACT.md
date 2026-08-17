@@ -74,7 +74,9 @@ only copy of this reasoning.
   hub column.
 - **`MEMORY`** sits *above* the storage band, in the inter-band gap, claiming no
   interior space (stealing a strip from its interior re-creates the squeeze the
-  band repartition fixed).
+  band repartition fixed — measured: the storage row is **236px of content in a
+  211px band**, `topology.js:1462`; that figure is why the exception exists, and
+  this parenthetical is its only home outside comments the minifier strips).
 - **`reserveStrip`** reserves the caption strip in *every* zone whose x-range the
   caption spans — zones share x at narrow widths, and a neighbour zone's clamp
   squeezing a node back into a caption it never reserved is the `ct×rl02` failure.
