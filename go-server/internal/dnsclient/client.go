@@ -675,16 +675,28 @@ func (c *Client) QueryDNSWithTTLStatus(ctx context.Context, recordType, domain s
         return RecordWithTTL{}, LookupError
 }
 
-// absentDenialAD reports whether any absent-voting resolver's answer carried
-// the AD bit — positive evidence the denial itself was validated. Meaningful
-// only for CD=0 queries (CD=1 protocol-zeroes AD, RFC 4035 §3.2.2).
+// absentDenialAD reports whether EVERY absent-voting resolver's answer carried
+// the AD bit — unanimity, not any-vote. Measured 2026-08-17: OpenDNS sets AD
+// on NSEC3 opt-out DS denials (resolutionscope.com, google.com) where absence
+// is genuinely unprovable (RFC 5155 — an opt-out span proves nothing), while
+// strict validators (Cloudflare/Quad9/DNS4EU) correctly omit it. One loose
+// AD-setter must never fake a cryptographic proof; unanimity passes exactly
+// the provable denials (measured: all resolvers set AD on the signed-parent
+// .dev denial) and errs only in the safe direction — a never-AD resolver can
+// demote a provable denial to "unauthenticated", never assert proof that
+// does not exist. Meaningful only for CD=0 queries (CD=1 protocol-zeroes AD).
 func absentDenialAD(outcomes []resolverOutcome, authenticated []bool) bool {
+        sawAbsent := false
         for i, oc := range outcomes {
-                if oc == outcomeAbsent && i < len(authenticated) && authenticated[i] {
-                        return true
+                if oc != outcomeAbsent {
+                        continue
+                }
+                sawAbsent = true
+                if i >= len(authenticated) || !authenticated[i] {
+                        return false
                 }
         }
-        return false
+        return sawAbsent
 }
 
 func (c *Client) querySingleResolver(ctx context.Context, domain, recordType, resolverIP string) (string, []string, string) {
