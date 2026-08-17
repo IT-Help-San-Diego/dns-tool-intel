@@ -264,12 +264,15 @@ func rrToString(rr dns.RR) string {
                 return fmt.Sprintf("%d %d %d %s", v.SRV.Priority, v.SRV.Weight, v.SRV.Port, v.SRV.Target)
         case *dns.TLSA:
                 return fmt.Sprintf("%d %d %d %s", v.TLSA.Usage, v.TLSA.Selector, v.TLSA.MatchingType, v.TLSA.Certificate)
-        case *dns.DNSKEY:
-                return v.String()
-        case *dns.DS:
-                return v.String()
-        case *dns.RRSIG:
-                return v.String()
+        // DNSKEY/DS/RRSIG deliberately have NO String() special case: the full
+        // presentation format embeds the header (name/TTL/class), and the TTL is
+        // resolver-cache state, not zone data — five healthy resolvers answering a
+        // warm-cache zone report five different remaining TTLs, so TTL-bearing
+        // strings make canonicalRecordKey read agreement as conflict (measured
+        // live 2026-08-17: example.com DNSKEY TTLs 1527/553/2787/3076 across four
+        // resolvers -> consensusConflict -> signed domains graded indeterminate).
+        // The default branch strips the header, yielding the same rdata-only
+        // shape the DoH path has always produced.
         default:
                 hdr := rr.Header()
                 full := rr.String()
