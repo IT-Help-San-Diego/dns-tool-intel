@@ -451,6 +451,25 @@
             .topo-scan-owls { gap: 8px; }
             .topo-scan-hud-row { flex-wrap: wrap; row-gap: 5px; }
         }
+        /* Console-above is a MEASURED mode, not a media guess: topology.js
+           sets .topo-vertical on the wrap when the graph cannot fit beside
+           the console (W < horizontalNeed + the console's 386px beside
+           cost — the g2 flow-switch, "the FLOW switches, not the console").
+           The 576px media block above remains as the no-JS first-paint
+           fallback; these rules carry the same treatment at whatever width
+           the measurement says. */
+        .topo-canvas-wrap.topo-vertical .topo-scan-console {
+            left: 13px;
+            right: 13px;
+            width: auto;
+            top: 66px;
+            max-height: calc(100% - 79px);
+            overflow-y: auto;
+            overscroll-behavior: contain;
+        }
+        .topo-canvas-wrap.topo-vertical .topo-scan-ticker { max-height: 72px; }
+        .topo-canvas-wrap.topo-vertical .topo-scan-owls { gap: 8px; }
+        .topo-canvas-wrap.topo-vertical .topo-scan-hud-row { flex-wrap: wrap; row-gap: 5px; }
         .topo-c-cf { background: #f6821f; }
         .topo-c-g  { background: #4285f4; }
         .topo-c-q9 { background: #0078d4; }
