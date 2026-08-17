@@ -256,4 +256,21 @@ normalized = {
 with open(DEST, "w") as f:
     json.dump(normalized, f, indent=2)
 
-print(json.dumps(normalized, indent=2))
+# Console prints a REDACTED summary, never the raw observation payload: the full
+# artifact lives in the file. (The raw dict includes fields named by the producer
+# like "secret_exposure" — analyzer findings, not credentials — but the console
+# does not need them, and printing them trips code scanners. Counts + context only.)
+_triage = {
+    "measured_true": sum(1 for v in normalized["observations"].values() if v is True),
+    "measured_false": sum(1 for v in normalized["observations"].values() if v is False),
+    "not_measured": sum(1 for v in normalized["observations"].values() if v is None),
+}
+print(json.dumps({
+    "source_file": normalized["source_file"],
+    "domain": normalized["domain"],
+    "state_model": normalized["state_model"],
+    "is_mail_domain": normalized["is_mail_domain"],
+    "is_no_mail_domain": normalized["is_no_mail_domain"],
+    "triage": _triage,
+    "context": normalized["context"],
+}, indent=2))
