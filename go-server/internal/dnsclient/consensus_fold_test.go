@@ -162,9 +162,10 @@ func TestCanonicalRecordKey_DoesNotMutate(t *testing.T) {
 }
 
 
-// TestAbsentDenialAD pins the denial-authentication fold: one AD-bearing
-// absent vote is positive evidence (a validating resolver PROVED the record
-// absent, RFC 4035 §3.2.3); resolved or transient voters' bits never count.
+// TestAbsentDenialAD pins the denial-authentication fold: UNANIMITY among
+// absent voters is required — one loose AD-setter (measured: OpenDNS on
+// NSEC3 opt-out denials) must never fake a cryptographic proof; resolved or
+// transient voters' bits never count and never break unanimity.
 func TestAbsentDenialAD(t *testing.T) {
         cases := []struct {
                 name     string
@@ -172,9 +173,11 @@ func TestAbsentDenialAD(t *testing.T) {
                 auth     []bool
                 want     bool
         }{
-                {"one authenticated denial suffices", []resolverOutcome{outcomeAbsent, outcomeAbsent}, []bool{false, true}, true},
+                {"unanimous authenticated denial", []resolverOutcome{outcomeAbsent, outcomeAbsent}, []bool{true, true}, true},
+                {"one loose AD-setter cannot fake proof (the OpenDNS opt-out case)", []resolverOutcome{outcomeAbsent, outcomeAbsent, outcomeAbsent}, []bool{false, true, false}, false},
                 {"no authenticated denial", []resolverOutcome{outcomeAbsent, outcomeAbsent}, []bool{false, false}, false},
                 {"AD on a RESOLVED voter never counts", []resolverOutcome{outcomeResolved, outcomeAbsent}, []bool{true, false}, false},
+                {"transient voters do not break unanimity", []resolverOutcome{outcomeTransient, outcomeAbsent}, []bool{false, true}, true},
                 {"AD on a transient voter never counts", []resolverOutcome{outcomeTransient, outcomeAbsent}, []bool{true, false}, false},
                 {"empty", nil, nil, false},
         }
