@@ -331,9 +331,9 @@ func TestComputeInternalScore_DNSSECExcludedFromDenominator(t *testing.T) {
 	// unmeasured must score HIGHER than absent — that's the absence penalty the
 	// exclusion exists to remove. Before the exclusion was wired, all three tied
 	// at 20, hiding the bug behind a green bucket-label test.
-	absent := computeInternalScore(protocolState{spfHardFail: true}, DKIMAbsent)
-	unconfirmed := computeInternalScore(protocolState{spfHardFail: true, dnssecUnconfirmed: true}, DKIMAbsent)
-	unmeasured := computeInternalScore(protocolState{spfHardFail: true, dnssecUnmeasured: true}, DKIMAbsent)
+	absent, _ := computeInternalScore(protocolState{spfHardFail: true}, DKIMAbsent)
+	unconfirmed, _ := computeInternalScore(protocolState{spfHardFail: true, dnssecUnconfirmed: true}, DKIMAbsent)
+	unmeasured, _ := computeInternalScore(protocolState{spfHardFail: true, dnssecUnmeasured: true}, DKIMAbsent)
 
 	if unconfirmed <= absent {
 		t.Errorf("unconfirmed DNSSEC should be excluded from denominator: unconfirmed=%d absent=%d", unconfirmed, absent)
@@ -628,12 +628,12 @@ func TestEvaluateDeliberateMonitoring(t *testing.T) {
 }
 
 func TestComputeInternalScore(t *testing.T) {
-	score := computeInternalScore(protocolState{spfMissing: true, dmarcMissing: true}, DKIMAbsent)
+	score, _ := computeInternalScore(protocolState{spfMissing: true, dmarcMissing: true}, DKIMAbsent)
 	if score != 0 {
 		t.Errorf("all missing should score 0, got %d", score)
 	}
 
-	score = computeInternalScore(protocolState{
+	score, _ = computeInternalScore(protocolState{
 		spfOK: true, spfHardFail: true,
 		dmarcOK: true, dmarcPct: 100, dmarcPolicy: "reject",
 		dnssecOK: true, daneOK: true, mtaStsOK: true, tlsrptOK: true, caaOK: true, bimiOK: true,

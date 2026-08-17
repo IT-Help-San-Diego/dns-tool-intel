@@ -170,7 +170,7 @@ func TestComputeInternalScore_Opts(t *testing.T) {
         }
         for _, tc := range tests {
                 t.Run(tc.name, func(t *testing.T) {
-                        score := computeInternalScore(tc.ps, tc.ds)
+                        score, _ := computeInternalScore(tc.ps, tc.ds)
                         if score < 0 || score > 100 {
                                 t.Errorf("score = %d, want 0-100", score)
                         }

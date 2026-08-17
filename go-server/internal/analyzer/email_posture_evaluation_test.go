@@ -255,7 +255,7 @@ func TestComputeInternalScore_CB7(t *testing.T) {
                 bimiOK:   true,
                 caaOK:    true,
         }
-        score := computeInternalScore(ps, DKIMSuccess)
+        score, _ := computeInternalScore(ps, DKIMSuccess)
         if score <= 0 {
                 t.Fatalf("expected positive score, got %d", score)
         }
