@@ -40,6 +40,9 @@ func TestQueryAuthoritativeDSTTL_Live(t *testing.T) {
 	if got.TTL != 86400 {
 		t.Fatalf("cloudflare.com authoritative DS TTL = %d, want 86400 (dig DS cloudflare.com @a.gtld-servers.net)", got.TTL)
 	}
+	if got.ParentNS == "" {
+		t.Fatalf("cloudflare.com ParentNS should be recorded, got %+v", got)
+	}
 
 	unsigned := a.queryAuthoritativeDSTTL(ctx, "google.com")
 	if unsigned.Present {

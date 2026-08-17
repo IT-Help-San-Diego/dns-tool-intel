@@ -28,6 +28,63 @@ func TestQueryAuthoritativeDSTTL_Present(t *testing.T) {
 	if got.TTL != 86400 {
 		t.Fatalf("expected TTL 86400, got %d", got.TTL)
 	}
+	if got.ParentNS != "192.5.6.30" {
+		t.Fatalf("expected ParentNS 192.5.6.30, got %q", got.ParentNS)
+	}
+	if got.Agreed {
+		t.Fatalf("single nameserver must not set Agreed, got %+v", got)
+	}
+}
+
+func TestQueryAuthoritativeDSTTL_TwoNameserversAgree(t *testing.T) {
+	mock := NewMockDNSClient()
+	mock.AddResponse("NS", "com", []string{"a.gtld-servers.net.", "b.gtld-servers.net."})
+	mock.AddResponse("A", "a.gtld-servers.net", []string{"192.5.6.30"})
+	mock.AddResponse("A", "b.gtld-servers.net", []string{"192.5.6.31"})
+	ttl := uint32(86400)
+	// Resolver-agnostic fixture: both parent IPs resolve to the same TTL.
+	mock.AddTTLResponse("DS", "example.com", dnsclient.RecordWithTTL{
+		Records: []string{"12345 13 2 32996839A6D808AFE3EB4A795A0E6A7A39A76FC52FF228B22B76F6D63826F2B9"},
+		TTL:     &ttl,
+	})
+
+	a := &Analyzer{DNS: mock}
+	got := a.queryAuthoritativeDSTTL(context.Background(), "example.com")
+	if !got.Present || got.TTL != 86400 {
+		t.Fatalf("expected present TTL 86400, got %+v", got)
+	}
+	if !got.Agreed {
+		t.Fatalf("two agreeing nameservers should set Agreed, got %+v", got)
+	}
+}
+
+func TestQueryAuthoritativeDSTTL_TwoNameserversDisagree(t *testing.T) {
+	mock := NewMockDNSClient()
+	mock.AddResponse("NS", "com", []string{"a.gtld-servers.net.", "b.gtld-servers.net."})
+	mock.AddResponse("A", "a.gtld-servers.net", []string{"192.5.6.30"})
+	mock.AddResponse("A", "b.gtld-servers.net", []string{"192.5.6.31"})
+	long := uint32(86400)
+	short := uint32(3600)
+	mock.AddSpecificResolverTTLResponse("DS", "example.com", "192.5.6.30", dnsclient.RecordWithTTL{
+		Records: []string{"12345 13 2 32996839A6D808AFE3EB4A795A0E6A7A39A76FC52FF228B22B76F6D63826F2B9"},
+		TTL:     &long,
+	})
+	mock.AddSpecificResolverTTLResponse("DS", "example.com", "192.5.6.31", dnsclient.RecordWithTTL{
+		Records: []string{"12345 13 2 32996839A6D808AFE3EB4A795A0E6A7A39A76FC52FF228B22B76F6D63826F2B9"},
+		TTL:     &short,
+	})
+
+	a := &Analyzer{DNS: mock}
+	got := a.queryAuthoritativeDSTTL(context.Background(), "example.com")
+	if !got.Present {
+		t.Fatalf("expected DS present, got %+v", got)
+	}
+	if got.TTL != 86400 {
+		t.Fatalf("expected TTL from first nameserver (86400), got %d", got.TTL)
+	}
+	if got.Agreed {
+		t.Fatalf("disagreeing nameservers must not set Agreed, got %+v", got)
+	}
 }
 
 func TestQueryAuthoritativeDSTTL_Unsigned(t *testing.T) {
