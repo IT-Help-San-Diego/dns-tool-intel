@@ -29,6 +29,7 @@ type MockDNSClient struct {
         validationResp     map[string]map[string]any
         specificResp       map[string][]string
         specificAuthResp   map[string]specificAuthEntry
+        specificTTLResp    map[string]dnsclient.RecordWithTTL
         ttlStatusResponses map[string]ttlStatusEntry
         statusResponses    map[string]statusEntry
         blockOnQuery       bool
@@ -63,6 +64,7 @@ func NewMockDNSClient() *MockDNSClient {
                 validationResp:     make(map[string]map[string]any),
                 specificResp:       make(map[string][]string),
                 specificAuthResp:   make(map[string]specificAuthEntry),
+                specificTTLResp:    make(map[string]dnsclient.RecordWithTTL),
                 ttlStatusResponses: make(map[string]ttlStatusEntry),
                 statusResponses:    make(map[string]statusEntry),
         }
@@ -117,6 +119,13 @@ func (m *MockDNSClient) AddSpecificResolverAuthResponse(recordType, domain, reso
         defer m.mu.Unlock()
         key := fmt.Sprintf("%s:%s:%s", strings.ToUpper(recordType), strings.ToLower(domain), resolverIP)
         m.specificAuthResp[key] = specificAuthEntry{records: records, authoritative: authoritative, status: status}
+}
+
+func (m *MockDNSClient) AddSpecificResolverTTLResponse(recordType, domain, resolverIP string, r dnsclient.RecordWithTTL) {
+        m.mu.Lock()
+        defer m.mu.Unlock()
+        key := fmt.Sprintf("%s:%s:%s", strings.ToUpper(recordType), strings.ToLower(domain), resolverIP)
+        m.specificTTLResp[key] = r
 }
 
 func (m *MockDNSClient) SetExchangeFunc(f func(ctx context.Context, msg *dns.Msg) (*dns.Msg, error)) {
@@ -253,9 +262,13 @@ func (m *MockDNSClient) QuerySpecificResolverAuth(_ context.Context, recordType,
         return m.responses[mockKey(recordType, domain)], true, ""
 }
 
-func (m *MockDNSClient) QueryWithTTLFromResolver(_ context.Context, recordType, domain, _ string) dnsclient.RecordWithTTL {
+func (m *MockDNSClient) QueryWithTTLFromResolver(_ context.Context, recordType, domain, resolverIP string) dnsclient.RecordWithTTL {
         m.mu.Lock()
         defer m.mu.Unlock()
+        key := fmt.Sprintf("%s:%s:%s", strings.ToUpper(recordType), strings.ToLower(domain), resolverIP)
+        if r, ok := m.specificTTLResp[key]; ok {
+                return r
+        }
         if r, ok := m.ttlResponses[mockKey(recordType, domain)]; ok {
                 return r
         }
