@@ -13,5 +13,16 @@
   ],
   "total": 8,
   "coverage_note": "Domains are chosen to cover the STATE SPACE, not merely to be real captures: a corpus missing a state cannot detect a regression in it. TestGoldenFixtureStateCoverage enforces the states listed there.",
-  "subject_constraint": "Fixture subjects must be large public institutions or companies. These captures are published in an immutable DOI-bearing Zenodo deposit; freezing a private party's spoofability into a permanent public archive is not licensed by the state-coverage requirement. If only a private domain exhibits a needed state, leave it uncovered by live capture and unit-test the state directly. See scripts/refresh-golden-fixtures.sh."
+  "subject_constraint": "Fixture subjects must be large public institutions or companies. These captures are published in an immutable DOI-bearing Zenodo deposit; freezing a private party's spoofability into a permanent public archive is not licensed by the state-coverage requirement. If only a private domain exhibits a needed state, leave it uncovered by live capture and unit-test the state directly. See scripts/refresh-golden-fixtures.sh.",
+  "partial_refresh": {
+    "at": "2026-08-17T20:45:00Z",
+    "tool_version": "26.51.0-108-gf8e4afc1c",
+    "domains": [
+      "example.com",
+      "cloudflare.com",
+      "ietf.org",
+      "whitehouse.gov"
+    ],
+    "reason": "The 2026-07-31 captures of these four pinned defect-era DNSSEC measurements (pre-#336 validating-path key lookups; also captured through an un-ldflagged build stamping _tool_version 'dev'). Recaptured through production v26.51.0-108 after the warm-cache consensus fix (#447+#448), cross-checked against live protocol (DS keytag 2371 alg 13 in parent, DNSKEYs present, AD set, for all four). Each fixture file's _tool_version identifies its producing instrument; the four non-refreshed fixtures retain their 2026-07-31 captures."
+  }
 }
