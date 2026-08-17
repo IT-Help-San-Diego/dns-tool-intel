@@ -221,6 +221,56 @@ func ptrState(v *bool) string {
         return "false"
 }
 
+// TestFailDirectionPair pins both directions of the tri-state fix on the
+// control fed by the defect's original line (MAIL_POLICY_SIGNALING,
+// requires_any: MTA_STS_DNS | TLS_RPT):
+//
+//  1. measured absence still FAILS and stays in the denominator — the fix is
+//     tri-state grading, NOT a nullability change that swallows real findings;
+//  2. unmeasured lands not_measured and leaves the denominator;
+//  3. mixed measured-false + unmeasured is not_measured — requires_any cannot
+//     claim all-measured-false, so no phantom failure.
+func TestFailDirectionPair(t *testing.T) {
+        statusOf := func(res Result, id string) string {
+                for _, r := range res.Results {
+                        if r.ID == id {
+                                return r.Status
+                        }
+                }
+                t.Fatalf("control %s not in results", id)
+                return ""
+        }
+
+        measuredAbsent := Evaluate(map[string]any{
+                "mta_sts_analysis": map[string]any{"status": "warning"},
+                "tlsrpt_analysis":  map[string]any{"status": "warning"},
+        })
+        if st := statusOf(measuredAbsent, "MAIL_POLICY_SIGNALING"); st != "failed" {
+                t.Fatalf("both channels measured absent: MAIL_POLICY_SIGNALING = %s, want failed (measured absence must still fail)", st)
+        }
+        if !contains(measuredAbsent.LowFailures, "MAIL_POLICY_SIGNALING") {
+                t.Error("measured-absent MAIL_POLICY_SIGNALING missing from low_failures")
+        }
+        if contains(measuredAbsent.NotMeasured, "MAIL_POLICY_SIGNALING") {
+                t.Error("measured-absent MAIL_POLICY_SIGNALING leaked into not_measured")
+        }
+
+        unmeasured := Evaluate(map[string]any{})
+        if st := statusOf(unmeasured, "MAIL_POLICY_SIGNALING"); st != "not_measured" {
+                t.Fatalf("nothing measured: MAIL_POLICY_SIGNALING = %s, want not_measured", st)
+        }
+        if contains(unmeasured.LowFailures, "MAIL_POLICY_SIGNALING") {
+                t.Error("unmeasured MAIL_POLICY_SIGNALING graded a failure")
+        }
+
+        mixed := Evaluate(map[string]any{
+                "mta_sts_analysis": map[string]any{"status": "warning"},
+        })
+        if st := statusOf(mixed, "MAIL_POLICY_SIGNALING"); st != "not_measured" {
+                t.Fatalf("one channel measured false, one unmeasured: MAIL_POLICY_SIGNALING = %s, want not_measured (requires_any cannot claim all-measured-false)", st)
+        }
+}
+
 // TestEvaluateNativeVsJSONParity is the strongest drift guard: a representative
 // results map built with native Go types (typed slices, int counts, bools) must
 // produce identical control verdicts to the same map after a JSON round-trip
