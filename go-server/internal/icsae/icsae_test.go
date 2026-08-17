@@ -37,6 +37,7 @@ type pyResult struct {
         Passed           []string `json:"passed"`
         NotApplicable    []string `json:"not_applicable"`
         NotMeasured      []string `json:"not_measured"`
+        NullObservations []string `json:"null_observations"`
         Results          []struct {
                 ID     string `json:"id"`
                 Status string `json:"status"`
@@ -115,6 +116,10 @@ func TestCrossCheckPython(t *testing.T) {
                         assertSameSet(t, "passed", got.Passed, want.Passed)
                         assertSameSet(t, "not_applicable", got.NotApplicable, want.NotApplicable)
                         assertSameSet(t, "not_measured", got.NotMeasured, want.NotMeasured)
+                        // null_observations pins the NORMALIZER: a derivation that
+                        // returns measured-false where Python returns nil (or vice
+                        // versa) can hide behind requires_any verdict agreement.
+                        assertSameSet(t, "null_observations", got.NullObservations, want.NullObservations)
                 })
         }
 }
@@ -438,6 +443,25 @@ func TestWeaknessRefsVerifiedBridge(t *testing.T) {
         }
         if mapped == 0 {
                 t.Fatal("no controls carry weakness_refs")
+        }
+}
+
+// TestCatalogNoEmptyRequirementSets pins the shape equivalence the Go engine
+// relies on: Python dispatches on KEY PRESENCE ("requires" in m) while Go
+// dispatches on len>0 — equivalent only while no mapping carries an EMPTY
+// requires/requires_any/applies_when array (Python would grade all-of-empty
+// as passed where Go falls through to the next branch). Forbid the shape.
+func TestCatalogNoEmptyRequirementSets(t *testing.T) {
+        for _, m := range Catalog().Mappings {
+                if m.Requires != nil && len(m.Requires) == 0 {
+                        t.Errorf("%s: empty requires array", m.ID)
+                }
+                if m.RequiresAny != nil && len(m.RequiresAny) == 0 {
+                        t.Errorf("%s: empty requires_any array", m.ID)
+                }
+                if m.AppliesWhen != nil && len(m.AppliesWhen) == 0 {
+                        t.Errorf("%s: empty applies_when array", m.ID)
+                }
         }
 }
 
