@@ -4,9 +4,13 @@ on:
   push:
     paths:
       - "dns-eval/**"
+      - "go-server/internal/icsae/testdata/**"
+      - ".github/workflows/dns-eval-harness.yml"
   pull_request:
     paths:
       - "dns-eval/**"
+      - "go-server/internal/icsae/testdata/**"
+      - ".github/workflows/dns-eval-harness.yml"
 
 permissions:
   contents: read
@@ -18,3 +22,26 @@ jobs:
       - uses: actions/checkout@v4
       - name: Tri-state harness regression + drift net
         run: python3 dns-eval/Mappings/test_harness.py
+      # The Go engine's parity test (TestCrossCheckPython) reads COMMITTED
+      # expected files and never executes Python — so a Python-engine change
+      # de-syncs the two engines silently until someone regenerates. This step
+      # closes that loop: the committed expectations must match what the LIVE
+      # Python pipeline produces, so an engine change that ships without
+      # regenerated expectations (and a re-run Go cross-check) fails here.
+      - name: Go-engine parity expectations match the live Python pipeline
+        run: |
+          set -euo pipefail
+          cd dns-eval
+          fail=0
+          for f in ../go-server/internal/icsae/testdata/*.input.json; do
+            base=$(basename "$f" .input.json)
+            python3 Mappings/normalize_input.py "$f" /tmp/obs.json > /dev/null
+            python3 Mappings/evaluate.py /tmp/obs.json /tmp/regen.json > /dev/null
+            # evaluated_at is a run timestamp; everything else must be identical.
+            if ! diff <(jq -S 'del(.evaluated_at)' /tmp/regen.json) \
+                      <(jq -S 'del(.evaluated_at)' "../go-server/internal/icsae/testdata/$base.expected.json"); then
+              echo "::error::$base.expected.json drifted from the live Python pipeline — regenerate via normalize_input.py + evaluate.py and re-run the Go cross-check"
+              fail=1
+            fi
+          done
+          exit "$fail"

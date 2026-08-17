@@ -269,6 +269,45 @@ func TestFailDirectionPair(t *testing.T) {
         if st := statusOf(mixed, "MAIL_POLICY_SIGNALING"); st != "not_measured" {
                 t.Fatalf("one channel measured false, one unmeasured: MAIL_POLICY_SIGNALING = %s, want not_measured (requires_any cannot claim all-measured-false)", st)
         }
+
+        // requires_any true+nil: one measured healthy channel beats an
+        // unmeasured sibling — passed, in the denominator. Pins against a
+        // nil-dominant mutation, which a review panel demonstrated survives
+        // the rest of the suite.
+        oneHealthy := Evaluate(map[string]any{
+                "mta_sts_analysis": map[string]any{"status": "success", "mode": "enforce"},
+        })
+        if st := statusOf(oneHealthy, "MAIL_POLICY_SIGNALING"); st != "passed" {
+                t.Fatalf("one channel measured true, one unmeasured: MAIL_POLICY_SIGNALING = %s, want passed (a measured healthy channel beats an unmeasured sibling)", st)
+        }
+        if !contains(oneHealthy.Passed, "MAIL_POLICY_SIGNALING") {
+                t.Error("true+nil MAIL_POLICY_SIGNALING missing from passed list")
+        }
+}
+
+// TestRequiresFalseDominance pins measured-false dominance over unmeasured in
+// the multi-key requires branch, on the ONLY control that can exercise it
+// (NO_MAIL_HARDENED: requires NO_MAIL_DOMAIN + NULL_MX + DMARC_REJECT). With
+// the no-mail gate measured true, NULL_MX unmeasured, and DMARC_REJECT
+// measured false, the control must grade FAILED — a measured false is a
+// verdict regardless of unmeasured siblings. A review panel demonstrated the
+// order-swap mutation (nil checked before false) survives the rest of the
+// suite; this is its pin.
+func TestRequiresFalseDominance(t *testing.T) {
+        res := Evaluate(map[string]any{
+                "is_no_mail_domain": true,
+                "dmarc_analysis":    map[string]any{"status": "success", "policy": "none"},
+        })
+        for _, r := range res.Results {
+                if r.ID != "NO_MAIL_HARDENED" {
+                        continue
+                }
+                if r.Status != "failed" {
+                        t.Fatalf("NO_MAIL_HARDENED with measured-false DMARC_REJECT and unmeasured NULL_MX = %s, want failed (measured false dominates unmeasured)", r.Status)
+                }
+                return
+        }
+        t.Fatal("NO_MAIL_HARDENED not in results")
 }
 
 // TestEvaluateNativeVsJSONParity is the strongest drift guard: a representative
