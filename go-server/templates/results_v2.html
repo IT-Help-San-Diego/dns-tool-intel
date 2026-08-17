@@ -479,9 +479,18 @@
   .v2-layer-key { display: grid; grid-template-columns: repeat(4, 1fr); gap: .45rem; margin-top: .75rem; }
   .v2-layer-key span { padding-top: .45rem; border-top: 2px solid var(--er-line-strong); color: var(--er-muted); font-size: .7rem; }
   .v2-layer-key strong { display: block; color: var(--er-text); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
-  .v2-keys kbd { display: inline-block; min-width: 1.6em; padding: .1em .35em; text-align: center;
-    border: 1px solid var(--er-line-strong); border-bottom-width: 2px; border-radius: .3em;
-    background: var(--er-layer-1); color: var(--er-text); font-size: .95em; }
+  /* The key, Apple-documentation grade: geometrically SQUARE
+     (aspect-ratio 1), legends centered, cap-top highlight, heavy bottom
+     edge. One class everywhere a key appears, so the lesson transfers. */
+  .v2-key { display: inline-flex; flex-direction: column; align-items: center;
+    justify-content: center; aspect-ratio: 1; min-width: 2.1em; padding: .15em;
+    border: 1px solid var(--er-line-strong); border-bottom-width: 3px;
+    border-radius: .4em; background: var(--er-layer-1); color: var(--er-text);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.07);
+    font-size: .95em; line-height: 1.05; text-align: center; vertical-align: middle; }
+  .v2-key-sym { display: block; font-size: .64em; color: var(--er-muted); line-height: 1.15; }
+  .v2-key--esc { aspect-ratio: auto; min-width: 2.6em; font-size: .8em; padding: .35em .3em; }
+  .v2-keys-row { display: inline-flex; gap: .3em; vertical-align: middle; margin: 0 .35em; }
   .v2-keys-label { color: var(--er-muted); letter-spacing: .08em; margin-right: .35em; }
   .v2-keys-sep { margin: 0 .35em; }
   /* c2b: severity-proportional sizing — the worst finding reads largest.
@@ -589,13 +598,7 @@
   .v2-nav-index { border-radius: .3rem; animation: v2-beckon 2.2s ease-in-out .8s 3;
     border: 1px solid var(--er-line-strong); border-bottom-width: 2px;
     background: var(--er-layer-1); padding: .1em .4em; }
-  /* The pictured key is the REAL number-row cap (Carey, on his own
-     Keychron): shift-symbol riding above the digit, like the physical key. */
-  .v2-skey { display: block; width: fit-content; min-width: 1.7em; margin-top: .35rem;
-    padding: .18em .42em .14em; border: 1px solid var(--er-line-strong);
-    border-bottom-width: 3px; border-radius: .34em; background: var(--er-layer-1);
-    color: var(--er-text); font-size: .82rem; line-height: 1.05; text-align: center; }
-  .v2-skey-sym { display: block; font-size: .66em; color: var(--er-muted); line-height: 1.1; }
+  .v2-skey { margin-top: .4rem; font-size: .92rem; }
   .v2-hurry a { animation: v2-beckon 2.2s ease-in-out .8s 3; }
   @media (prefers-reduced-motion: reduce) { .v2-summary-toggle { transition: none; } .v2-nav-index, .v2-hurry a { animation: none; } }
   @media print {
@@ -629,11 +632,16 @@
     {{/* The keyboard doorway earns a real explanation (Carey, 2026-08-16:
          "I want people to really be able to find it") — key-cap chips that
          READ as keys, tied to the numbered sections they drive. */}}
+    {{/* The teaching row (Carey, 2026-08-16): the FULL number-row caps,
+         Apple-documentation grade — square, centered, unmistakable — right
+         where the beckon draws the eye. Learn the keys here, find them
+         again on every section below. */}}
     <div class="v2-keys font-monospace small text-muted">
         <span class="v2-keys-label">KEYBOARD</span>
-        <span class="text-nowrap"><kbd>1</kbd>–<kbd>6</kbd> jump to a numbered section</span>
+        <span class="v2-keys-row" aria-label="Keys 1 through 6"><kbd class="v2-key"><span class="v2-key-sym">!</span>1</kbd><kbd class="v2-key"><span class="v2-key-sym">@</span>2</kbd><kbd class="v2-key"><span class="v2-key-sym">#</span>3</kbd><kbd class="v2-key"><span class="v2-key-sym">$</span>4</kbd><kbd class="v2-key"><span class="v2-key-sym">%</span>5</kbd><kbd class="v2-key"><span class="v2-key-sym">^</span>6</kbd></span>
+        <span class="text-nowrap">jump to that section</span>
         <span class="v2-keys-sep">·</span>
-        <span class="text-nowrap"><kbd>Esc</kbd> back to the verdict</span>
+        <span class="text-nowrap"><kbd class="v2-key v2-key--esc">esc</kbd> back to the verdict</span>
     </div>
   </div>
 </section>
@@ -1305,7 +1313,7 @@
 <div class="v2-groups">
 <details class="v2-group" id="email-security" data-v2-level="L1" open>
 <summary>
-<span class="v2-summary-index">01<kbd class="v2-skey" aria-hidden="true"><span class="v2-skey-sym">!</span>1</kbd></span>
+<span class="v2-summary-index">01<kbd class="v2-key v2-skey" aria-hidden="true"><span class="v2-key-sym">!</span>1</kbd></span>
 <span class="v2-summary-copy">
 <span class="v2-summary-eyebrow">Identity & policy · L1</span>
 <span class="v2-summary-title">Email Security</span>
@@ -2377,7 +2385,7 @@
 </details>
 <details class="v2-group" id="domain-security" data-v2-level="L1">
 <summary>
-<span class="v2-summary-index">02<kbd class="v2-skey" aria-hidden="true"><span class="v2-skey-sym">@</span>2</kbd></span>
+<span class="v2-summary-index">02<kbd class="v2-key v2-skey" aria-hidden="true"><span class="v2-key-sym">@</span>2</kbd></span>
 <span class="v2-summary-copy">
 <span class="v2-summary-eyebrow">Chain of authority · L1</span>
 <span class="v2-summary-title">Domain Security</span>
@@ -3404,7 +3412,7 @@
 </details>
 <details class="v2-group" id="transport-security" data-v2-level="L1">
 <summary>
-<span class="v2-summary-index">03<kbd class="v2-skey" aria-hidden="true"><span class="v2-skey-sym">#</span>3</kbd></span>
+<span class="v2-summary-index">03<kbd class="v2-key v2-skey" aria-hidden="true"><span class="v2-key-sym">#</span>3</kbd></span>
 <span class="v2-summary-copy">
 <span class="v2-summary-eyebrow">Delivery path · L1</span>
 <span class="v2-summary-title">Transport Security</span>
@@ -3789,7 +3797,7 @@
 </details>
 <details class="v2-group" id="brand-trust" data-v2-level="L1">
 <summary>
-<span class="v2-summary-index">04<kbd class="v2-skey" aria-hidden="true"><span class="v2-skey-sym">$</span>4</kbd></span>
+<span class="v2-summary-index">04<kbd class="v2-key v2-skey" aria-hidden="true"><span class="v2-key-sym">$</span>4</kbd></span>
 <span class="v2-summary-copy">
 <span class="v2-summary-eyebrow">Human-visible identity · L1</span>
 <span class="v2-summary-title">Brand & Trust</span>
@@ -4007,7 +4015,7 @@
 </details>
 <details class="v2-group" id="infrastructure-intel" data-v2-level="L1">
 <summary>
-<span class="v2-summary-index">05<kbd class="v2-skey" aria-hidden="true"><span class="v2-skey-sym">%</span>5</kbd></span>
+<span class="v2-summary-index">05<kbd class="v2-key v2-skey" aria-hidden="true"><span class="v2-key-sym">%</span>5</kbd></span>
 <span class="v2-summary-copy">
 <span class="v2-summary-eyebrow">Ownership & attack surface · L1</span>
 <span class="v2-summary-title">Infrastructure Intelligence</span>
@@ -5854,7 +5862,7 @@
 </details>
 <details class="v2-group" id="evidence-verification" data-v2-level="L2–L3">
 <summary>
-<span class="v2-summary-index">06<kbd class="v2-skey" aria-hidden="true"><span class="v2-skey-sym">^</span>6</kbd></span>
+<span class="v2-summary-index">06<kbd class="v2-key v2-skey" aria-hidden="true"><span class="v2-key-sym">^</span>6</kbd></span>
 <span class="v2-summary-copy">
 <span class="v2-summary-eyebrow">Raw records & reproducibility · L2–L3</span>
 <span class="v2-summary-title">Evidence & Verification</span>
