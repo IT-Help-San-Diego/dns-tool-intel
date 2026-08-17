@@ -1,0 +1,41 @@
+{
+  "verdicts": {
+    "DNSSEC_AUTHENTICATED": "not_measured",
+    "DNSSEC_CHAIN_TRUSTED": "not_measured",
+    "DNSSEC_KEY_ROLLOVER": "not_measured",
+    "NO_MAIL_HARDENED": "not_measured",
+    "SPF_EFFECTIVE_POLICY": "passed",
+    "DMARC_ENFORCEMENT": "passed",
+    "DKIM_PRESENT": "not_measured",
+    "MAIL_POLICY_SIGNALING": "passed",
+    "CAA_RESTRICTION_PRESENT": "failed",
+    "DANE_DEPLOYED": "not_measured",
+    "BIMI_CONFIGURED": "not_measured",
+    "SECURITY_TXT_PRESENT": "not_measured",
+    "DANGLING_DNS_CLEAN": "not_measured",
+    "DELEGATION_CONSISTENT": "not_measured",
+    "SECRET_EXPOSURE_CLEAN": "not_measured",
+    "HTTPS_SVCB_MODERN": "not_measured"
+  },
+  "passed_count": 3,
+  "failed_count": 1,
+  "na_count": 0,
+  "not_measured_count": 12,
+  "measured_controls": 4,
+  "null_observations": [
+    "BIMI_VALID",
+    "DANE_PRESENT",
+    "DELEGATION_OK",
+    "DKIM_FOUND",
+    "DNSSEC_CHAIN_VALID",
+    "DNSSEC_ROLLOVER_READY",
+    "DNSSEC_VALID",
+    "HTTPS_SVCB_PRESENT",
+    "MAIL_DOMAIN",
+    "NO_DANGLING_DNS",
+    "NO_MAIL_DOMAIN",
+    "NO_SECRETS_EXPOSED",
+    "SECURITY_TXT_FOUND",
+    "TLS_RPT"
+  ]
+}

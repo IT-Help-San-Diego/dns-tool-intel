@@ -1,0 +1,31 @@
+{
+  "observations": {
+    "DNSSEC_VALID": false,
+    "DNSSEC_CHAIN_VALID": false,
+    "DNSSEC_ROLLOVER_READY": null,
+    "NULL_MX": null,
+    "SPF_HARD_FAIL": false,
+    "SPF_SOFTFAIL_WITH_DMARC": false,
+    "DMARC_REJECT": false,
+    "DMARC_ENFORCING": false,
+    "NO_MAIL_DOMAIN": false,
+    "MAIL_DOMAIN": true,
+    "TLS_RPT": false,
+    "MTA_STS_DNS": false,
+    "CAA_PRESENT": false,
+    "DKIM_FOUND": false,
+    "DANE_PRESENT": false,
+    "BIMI_VALID": false,
+    "SECURITY_TXT_FOUND": false,
+    "NO_DANGLING_DNS": false,
+    "DELEGATION_OK": false,
+    "NO_SECRETS_EXPOSED": false,
+    "HTTPS_SVCB_PRESENT": false
+  },
+  "context": {
+    "dnssec_chain_type": "none",
+    "spf_mechanism": "",
+    "dmarc_policy": "",
+    "spf_dmarc_effective": "unenforced"
+  }
+}

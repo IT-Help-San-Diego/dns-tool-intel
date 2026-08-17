@@ -1,0 +1,39 @@
+{
+  "domain": "fixture-all-null.example",
+  "source_file": "fixture-all-null.json",
+  "state_model": "tri-state (true|false|null)",
+  "is_mail_domain": null,
+  "is_no_mail_domain": null,
+  "is_subdomain": false,
+  "dns_provider_hint": "other",
+  "calibrated_confidence": {},
+  "observations": {
+    "DNSSEC_VALID": null,
+    "DNSSEC_CHAIN_VALID": null,
+    "DNSSEC_ROLLOVER_READY": null,
+    "NULL_MX": null,
+    "SPF_HARD_FAIL": null,
+    "SPF_SOFTFAIL_WITH_DMARC": null,
+    "DMARC_REJECT": null,
+    "DMARC_ENFORCING": null,
+    "NO_MAIL_DOMAIN": null,
+    "MAIL_DOMAIN": null,
+    "TLS_RPT": null,
+    "MTA_STS_DNS": null,
+    "CAA_PRESENT": null,
+    "DKIM_FOUND": null,
+    "DANE_PRESENT": null,
+    "BIMI_VALID": null,
+    "SECURITY_TXT_FOUND": null,
+    "NO_DANGLING_DNS": null,
+    "DELEGATION_OK": null,
+    "NO_SECRETS_EXPOSED": null,
+    "HTTPS_SVCB_PRESENT": null
+  },
+  "context": {
+    "dnssec_chain_type": "",
+    "spf_mechanism": "",
+    "dmarc_policy": "",
+    "spf_dmarc_effective": "unenforced"
+  }
+}

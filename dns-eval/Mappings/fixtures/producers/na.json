@@ -1,0 +1,55 @@
+{
+  "domain": "fixture-na.example",
+  "full_results": {
+    "dnssec_analysis": {
+      "status": "n/a"
+    },
+    "spf_analysis": {
+      "status": "n/a"
+    },
+    "dmarc_analysis": {
+      "status": "n/a"
+    },
+    "mail_posture": {},
+    "tlsrpt_analysis": {
+      "status": "n/a"
+    },
+    "mta_sts_analysis": {
+      "status": "n/a"
+    },
+    "caa_analysis": {
+      "status": "n/a"
+    },
+    "dkim_analysis": {
+      "status": "n/a"
+    },
+    "dane_analysis": {},
+    "bimi_analysis": {
+      "status": "n/a"
+    },
+    "security_txt": {
+      "status": "n/a"
+    },
+    "dangling_dns": {
+      "status": "n/a"
+    },
+    "delegation_consistency": {
+      "status": "n/a"
+    },
+    "secret_exposure": {
+      "status": "n/a"
+    },
+    "https_svcb": {
+      "status": "n/a"
+    },
+    "cds_cdnskey": {
+      "status": "n/a"
+    },
+    "ns_delegation_analysis": {
+      "is_subdomain": false
+    },
+    "ns_fleet": {
+      "nameservers": []
+    }
+  }
+}

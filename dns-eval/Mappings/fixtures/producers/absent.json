@@ -1,0 +1,66 @@
+{
+  "domain": "fixture-absent.example",
+  "full_results": {
+    "dnssec_analysis": {
+      "status": "warning",
+      "chain_of_trust": "none",
+      "ad_flag": false
+    },
+    "spf_analysis": {
+      "status": "missing"
+    },
+    "dmarc_analysis": {
+      "status": "missing"
+    },
+    "mail_posture": {
+      "verdict": "unprotected",
+      "is_no_mail": false
+    },
+    "is_no_mail_domain": false,
+    "tlsrpt_analysis": {
+      "status": "warning"
+    },
+    "mta_sts_analysis": {
+      "status": "warning"
+    },
+    "caa_analysis": {
+      "status": "warning",
+      "records": []
+    },
+    "dkim_analysis": {
+      "status": "missing"
+    },
+    "dane_analysis": {
+      "has_dane": false
+    },
+    "bimi_analysis": {
+      "status": "warning"
+    },
+    "security_txt": {
+      "status": "missing"
+    },
+    "dangling_dns": {
+      "status": "success",
+      "dangling_count": 3
+    },
+    "delegation_consistency": {
+      "status": "warning"
+    },
+    "secret_exposure": {
+      "status": "clear",
+      "finding_count": 4
+    },
+    "https_svcb": {
+      "status": "absent"
+    },
+    "cds_cdnskey": {
+      "status": "absent"
+    },
+    "ns_delegation_analysis": {
+      "is_subdomain": false
+    },
+    "ns_fleet": {
+      "nameservers": []
+    }
+  }
+}
