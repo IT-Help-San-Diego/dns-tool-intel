@@ -486,13 +486,28 @@ func (a *Analyzer) AnalyzeDANE(ctx context.Context, domain string, mxRecords []s
         return baseResult
 }
 
+// perHostBudget divides the time remaining before deadline evenly among
+// hostsLeft hosts, so a serial loop can give each host a fair slice of the
+// parent's budget instead of letting one slow host consume it all. Returns 0
+// when there is no usable budget (deadline already passed or nothing left).
+func perHostBudget(deadline time.Time, hostsLeft int) time.Duration {
+        remaining := time.Until(deadline)
+        if remaining <= 0 || hostsLeft <= 0 {
+                return 0
+        }
+        return remaining / time.Duration(hostsLeft)
+}
+
 // probeDANEVerify asks the probe to fetch the presented certificate for one MX
 // host and match it against its TLSA records (RFC 7671 §5). ok=false only when
 // the probe is unreachable or returns a non-200 (transport failure); a probe
-// that answers cert_error/no_tlsa/not_verifiable is a MEASUREMENT, so it comes
+// that answers cert_invalid/no_tlsa/not_verifiable is a MEASUREMENT, so it comes
 // back ok=true.
 func probeDANEVerify(ctx context.Context, probeURL, probeKey, host string) (map[string]any, bool) {
         reqBody, _ := json.Marshal(map[string]any{"host": host, "port": 25})
+        // 35s is a CEILING, not a promise: the caller hands down a per-host
+        // context whose deadline divides the parent's remaining budget among the
+        // hosts left to measure, so the effective timeout is min(per-host, 35s).
         reqCtx, cancel := context.WithTimeout(ctx, 35*time.Second)
         defer cancel()
         req, err := http.NewRequestWithContext(reqCtx, "POST", probeURL+"/probe/dane-verify", bytes.NewReader(reqBody))
@@ -531,16 +546,50 @@ func verifyDANEHosts(ctx context.Context, a *Analyzer, hosts []string) map[strin
         perHost := make([]map[string]any, 0, len(hosts))
         counts := map[string]int{}
         anyMeasurement := false
-        for _, host := range hosts {
-                resp, ok := probeDANEVerify(ctx, ep.URL, ep.Key, host)
+        for i, host := range hosts {
+                // Divide the parent's remaining budget evenly among the hosts still
+                // to measure, so one slow host cannot consume the whole envelope and
+                // starve its siblings (the positional-failure class — host 1 always
+                // measured, host N maybe never attempted). probeDANEVerify's own 35s
+                // timeout then acts as a ceiling, not a promise: the effective
+                // deadline is the smaller of the per-host budget and 35s.
+                hostCtx, cancel := ctx, func() {}
+                if deadline, ok := ctx.Deadline(); ok {
+                        if per := perHostBudget(deadline, len(hosts)-i); per > 0 {
+                                hostCtx, cancel = context.WithTimeout(ctx, per)
+                        } else {
+                                // The shared budget is already spent before this
+                                // host — a couldn't-measure of OUR instrument, not
+                                // a probe failure. Record it as unmeasured, never
+                                // unreachable (which would blame the probe for a
+                                // deadline we imposed).
+                                perHost = append(perHost, map[string]any{mapKeyMxHost: host, mapKeyStatus: "unmeasured"})
+                                counts["unmeasured"]++
+                                continue
+                        }
+                }
+                resp, ok := probeDANEVerify(hostCtx, ep.URL, ep.Key, host)
+                cancel()
                 if !ok {
                         perHost = append(perHost, map[string]any{mapKeyMxHost: host, mapKeyStatus: "unreachable"})
                         counts["unreachable"]++
                         continue
                 }
                 status, _ := resp[mapKeyStatus].(string)
-                if status == "" {
-                        status = "error"
+                // Normalize the probe's raw status into the DANE-verification
+                // vocabulary before it reaches severity.Rank. The probe emits
+                // "error" for "could not measure" (dig transport error, unparseable
+                // reply) and "cert_error" for a certificate fetch/inspection failure.
+                // Neither may pass through as-is: "error" is an exact key at TierFail
+                // and "cert_error" contains the "error" substring, so the fragment
+                // matcher drags both to FAIL. Couldn't-measure is "unmeasured"
+                // (Info); a bad certificate is a real finding about that host,
+                // "cert_invalid" (Warn).
+                switch status {
+                case "", "error":
+                        status = "unmeasured"
+                case "cert_error":
+                        status = "cert_invalid"
                 }
                 anyMeasurement = true
                 counts[status]++
@@ -563,30 +612,30 @@ func verifyDANEHosts(ctx context.Context, a *Analyzer, hosts []string) map[strin
                 "verified":       counts["verified"],
                 "mismatch":       counts["mismatch"],
                 "not_verifiable": counts["not_verifiable"],
-                "cert_error":     counts["cert_error"],
-                "error":          counts["error"],
+                "cert_invalid":   counts["cert_invalid"],
+                "unmeasured":     counts["unmeasured"],
                 "no_tlsa":        counts["no_tlsa"],
                 "unreachable":    counts["unreachable"],
         }
 }
 
 // daneVerificationOverall folds per-host verification counts into one overall
-// verdict, worst honest state first: a measured digest mismatch outranks any
-// verified host (one healthy MX must not mask a sibling's real finding), then
-// verified, then the couldn't-measure states (not_verifiable, cert_error,
-// error, no_tlsa, unreachable).
+// verdict, worst honest state first: a measured digest mismatch (FAIL) outranks a
+// bad-certificate finding (cert_invalid, WARN), which outranks a verified host
+// (PASS) — one healthy MX must not mask a sibling's real finding. Then the
+// couldn't-measure states (not_verifiable, unmeasured, no_tlsa, unreachable).
 func daneVerificationOverall(counts map[string]int) string {
         switch {
         case counts["mismatch"] > 0:
                 return "mismatch"
+        case counts["cert_invalid"] > 0:
+                return "cert_invalid"
         case counts["verified"] > 0:
                 return "verified"
         case counts["not_verifiable"] > 0:
                 return "not_verifiable"
-        case counts["cert_error"] > 0:
-                return "cert_error"
-        case counts["error"] > 0:
-                return "error"
+        case counts["unmeasured"] > 0:
+                return "unmeasured"
         case counts["no_tlsa"] > 0:
                 return "no_tlsa"
         default:
