@@ -117,7 +117,7 @@ var statusTier = map[string]Tier{
 	// absence is unremarkable (most of the internet). Every pre-existing
 	// absence word ("absent", "missing", "none") ranks FAIL because for
 	// SPF/DMARC absence IS the finding — DANE needs its own word at INFO.
-	"not deployed":             TierInfo,
+	"not deployed": TierInfo,
 
 	// PASS — measured affirmative
 	"configured":         TierPass,

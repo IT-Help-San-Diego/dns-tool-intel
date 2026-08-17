@@ -232,6 +232,34 @@
                             {{else if and $caa (eq (mapGetStr "status" $caa) "success")}}{{$ccLabel = "Configured"}}{{$ccClass = "bg-success"}}
                             {{else if eq $caaState "indeterminate"}}{{$ccLabel = "Inconclusive"}}{{$ccClass = "bg-secondary"}}
                             {{else}}{{$ccLabel = "Open"}}{{$ccClass = "bg-secondary"}}{{end}}
+        {{/* c2b: Monitoring — would the owner SEE attacks and failures?
+             Channels: DMARC aggregate reports (rua) + TLS-RPT delivery
+             reports. One measured channel outranks an indeterminate sibling;
+             both absent-confirmed = Not Setup; unproven absence stays
+             Inconclusive. */}}
+        {{$tlsrptStatusSC := mapGetStr "status" $tlsrpt}}
+        {{$dmarcRua := mapGetStr "rua" $dmarc}}
+        {{$moLabel := ""}}{{$moClass := ""}}
+                            {{if .IsTLD}}{{$moLabel = "N/A — Registry"}}{{$moClass = "bg-secondary"}}
+                            {{else if and (ne $dmarcRua "") (eq $tlsrptStatusSC "success")}}{{$moLabel = "Configured"}}{{$moClass = "bg-success"}}
+                            {{else if or (ne $dmarcRua "") (eq $tlsrptStatusSC "success")}}{{$moLabel = "Partial"}}{{$moClass = "bg-warning text-dark"}}
+                            {{else if or (eq (mapGetStr "dmarc_state" $dmarc) "indeterminate") (eq $tlsrptState "indeterminate")}}{{$moLabel = "Inconclusive"}}{{$moClass = "bg-secondary"}}
+                            {{else}}{{$moLabel = "Not Setup"}}{{$moClass = "bg-secondary"}}{{end}}
+        {{/* c2b: DANE — the first consumer of dane_verification (#406-#408).
+             The status maps through THIS chain, never the generic severity
+             map: DANE's "error" means could-not-measure, and the generic
+             error→FAIL would render a transport failure as a broken domain
+             (the collision documented when the aliases landed). Absent field
+             (legacy rows, no probe, all-transport-failed) falls back to
+             measured PRESENCE at the honest tier: present-but-unverified is
+             Unconfirmed, never Configured. */}}
+        {{$daneVerSC := mapGetMap "dane_verification" $dane}}
+        {{$dvLabel := ""}}{{$dvClass := ""}}
+                            {{if .IsTLD}}{{$dvLabel = "N/A — Registry"}}{{$dvClass = "bg-secondary"}}
+                            {{else if $daneVerSC}}{{$dvs := mapGetStr "status" $daneVerSC}}{{if eq $dvs "mismatch"}}{{$dvLabel = "Broken"}}{{$dvClass = "bg-danger"}}{{else if eq $dvs "verified"}}{{$dvLabel = "Verified"}}{{$dvClass = "bg-success"}}{{else if eq $dvs "no_tlsa"}}{{$dvLabel = "Not Deployed"}}{{$dvClass = "bg-secondary"}}{{else}}{{$dvLabel = "Could Not Verify"}}{{$dvClass = "bg-secondary"}}{{end}}
+                            {{else if eq (mapGetStr "dane_state" $dane) "indeterminate"}}{{$dvLabel = "Inconclusive"}}{{$dvClass = "bg-secondary"}}
+                            {{else if mapGetBool "has_dane" $dane}}{{$dvLabel = "Unconfirmed"}}{{$dvClass = "bg-secondary"}}
+                            {{else}}{{$dvLabel = "Not Deployed"}}{{$dvClass = "bg-secondary"}}{{end}}
         {{$dsLabel := $dtLabel}}{{if lt (severityRank $ccLabel) (severityRank $dtLabel)}}{{$dsLabel = $ccLabel}}{{end}}
         {{$esm := mapGetMap "email_security_mgmt" $results}}
         {{$mp := mapGetMap "mail_posture" $results}}
@@ -438,6 +466,13 @@
   .v2-layer-key { display: grid; grid-template-columns: repeat(4, 1fr); gap: .45rem; margin-top: .75rem; }
   .v2-layer-key span { padding-top: .45rem; border-top: 2px solid var(--er-line-strong); color: var(--er-muted); font-size: .7rem; }
   .v2-layer-key strong { display: block; color: var(--er-text); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  /* c2b: severity-proportional sizing — the worst finding reads largest.
+     data-sev stamps 0-3 from the SHARED severity map; type scale only,
+     the six-wide grid stays intact. */
+  .v2-posture-strip [data-sev="0"] .badge { font-size: 1rem; }
+  .v2-posture-strip [data-sev="1"] .badge { font-size: .9rem; }
+  .v2-posture-strip [data-sev="2"] .badge { font-size: .78rem; }
+  .v2-posture-strip [data-sev="3"] .badge { font-size: .78rem; }
   .v2-hurry { display: grid; gap: .55rem; }
   .v2-hurry a { display: flex; align-items: center; justify-content: space-between; min-height: 42px; padding: .55rem .75rem; color: var(--er-text); text-decoration: none; background: var(--er-layer-2); border-left: 3px solid var(--er-gold); }
   .v2-hurry a:hover, .v2-hurry a:focus-visible { background: var(--er-layer-3); color: #fff; }
@@ -923,32 +958,42 @@
                              unmeasurables above passes. Single source; never a local rank. -->
                         <div class="small text-muted text-uppercase mb-2">Sorted by severity — worst first</div>
                         <div class="row g-3 text-center v2-posture-strip">
-                            <div class="col-6 col-md-3 sev-order-{{severityRank $esLabel}}" data-sev="{{severityRank $esLabel}}">
+                            <div class="col-6 col-md-2 sev-order-{{severityRank $esLabel}}" data-sev="{{severityRank $esLabel}}">
                                 <div class="small text-muted text-uppercase mb-1">Email Spoofing</div>
                                 <span class="badge {{$esClass}} px-3 py-2"{{if $esTip}} data-bs-toggle="tooltip" title="A TXT lookup did not complete (transient SERVFAIL/timeout). Re-run before concluding."{{end}}>{{$esLabel}}</span>
                             </div>
-                            <div class="col-6 col-md-3 sev-order-{{severityRank $biLabel}}" data-sev="{{severityRank $biLabel}}">
+                            <div class="col-6 col-md-2 sev-order-{{severityRank $biLabel}}" data-sev="{{severityRank $biLabel}}">
                                 <div class="small text-muted text-uppercase mb-1">Brand Impersonation</div>
                                 <span class="badge {{$biClass}} px-3 py-2">{{$biLabel}}</span>
                             </div>
-                            <div class="col-6 col-md-3 sev-order-{{severityRank $dtLabel}}" data-sev="{{severityRank $dtLabel}}">
+                            <div class="col-6 col-md-2 sev-order-{{severityRank $dtLabel}}" data-sev="{{severityRank $dtLabel}}">
                                 <div class="small text-muted text-uppercase mb-1">DNS Tampering</div>
                                 <span class="badge {{$dtClass}} px-3 py-2">{{$dtLabel}}</span>
                             </div>
-                            <div class="col-6 col-md-3 sev-order-{{severityRank $ccLabel}}" data-sev="{{severityRank $ccLabel}}">
+                            <div class="col-6 col-md-2 sev-order-{{severityRank $ccLabel}}" data-sev="{{severityRank $ccLabel}}">
                                 <div class="small text-muted text-uppercase mb-1">Certificate Control</div>
                                 <span class="badge {{$ccClass}} px-3 py-2">{{$ccLabel}}</span>
+                            </div>
+                            <div class="col-6 col-md-2 sev-order-{{severityRank $moLabel}}" data-sev="{{severityRank $moLabel}}">
+                                <div class="small text-muted text-uppercase mb-1">Monitoring</div>
+                                <span class="badge {{$moClass}} px-3 py-2">{{$moLabel}}</span>
+                            </div>
+                            <div class="col-6 col-md-2 sev-order-{{severityRank $dvLabel}}" data-sev="{{severityRank $dvLabel}}">
+                                <div class="small text-muted text-uppercase mb-1">DANE</div>
+                                <span class="badge {{$dvClass}} px-3 py-2">{{$dvLabel}}</span>
                             </div>
                         </div>
                         {{/* TRACE row (V2.1): the citation path of the WORST cell — the same
                              severityRank values that order the strip pick the finding, so the
                              trace can never disagree with the visual order. Strict lt keeps
                              the earlier cell on ties, matching the strip's DOM tie order. */}}
-                        {{$esR := severityRank $esLabel}}{{$biR := severityRank $biLabel}}{{$dtR := severityRank $dtLabel}}{{$ccR := severityRank $ccLabel}}
+                        {{$esR := severityRank $esLabel}}{{$biR := severityRank $biLabel}}{{$dtR := severityRank $dtLabel}}{{$ccR := severityRank $ccLabel}}{{$moR := severityRank $moLabel}}{{$dvR := severityRank $dvLabel}}
                         {{$tN := "Email Spoofing"}}{{$tL := $esLabel}}{{$tR := $esR}}{{$tCard := "#section-email"}}{{$tG := "01 · Email Security · SPF/DMARC"}}
                         {{if lt $biR $tR}}{{$tN = "Brand Impersonation"}}{{$tL = $biLabel}}{{$tR = $biR}}{{$tCard = "#section-brand"}}{{$tG = "04 · Brand & Trust · BIMI"}}{{end}}
                         {{if lt $dtR $tR}}{{$tN = "DNS Tampering"}}{{$tL = $dtLabel}}{{$tR = $dtR}}{{$tCard = "#section-dnssec"}}{{$tG = "02 · Domain Security · DNSSEC"}}{{end}}
                         {{if lt $ccR $tR}}{{$tN = "Certificate Control"}}{{$tL = $ccLabel}}{{$tR = $ccR}}{{$tCard = "#section-caa"}}{{$tG = "02 · Domain Security · CAA"}}{{end}}
+                        {{if lt $moR $tR}}{{$tN = "Monitoring"}}{{$tL = $moLabel}}{{$tR = $moR}}{{$tCard = "#section-email"}}{{$tG = "01 · Email Security · DMARC rua / TLS-RPT"}}{{end}}
+                        {{if lt $dvR $tR}}{{$tN = "DANE"}}{{$tL = $dvLabel}}{{$tR = $dvR}}{{$tCard = "#section-dane"}}{{$tG = "03 · Transport Security · DANE"}}{{end}}
                         <div class="v2-trace font-monospace small" data-trace-sev="{{$tR}}">
                             <span class="text-muted">TRACE</span>
                             <span class="v2-trace-chip">L0 · {{$tN}} — {{$tL}}</span>
