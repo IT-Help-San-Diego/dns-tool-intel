@@ -1,0 +1,26 @@
+{
+  "verdicts": {
+    "DNSSEC_AUTHENTICATED": "passed",
+    "DNSSEC_CHAIN_TRUSTED": "passed",
+    "DNSSEC_KEY_ROLLOVER": "passed",
+    "NO_MAIL_HARDENED": "not_applicable",
+    "SPF_EFFECTIVE_POLICY": "passed",
+    "DMARC_ENFORCEMENT": "passed",
+    "DKIM_PRESENT": "passed",
+    "MAIL_POLICY_SIGNALING": "passed",
+    "CAA_RESTRICTION_PRESENT": "passed",
+    "DANE_DEPLOYED": "passed",
+    "BIMI_CONFIGURED": "passed",
+    "SECURITY_TXT_PRESENT": "passed",
+    "DANGLING_DNS_CLEAN": "passed",
+    "DELEGATION_CONSISTENT": "passed",
+    "SECRET_EXPOSURE_CLEAN": "passed",
+    "HTTPS_SVCB_MODERN": "passed"
+  },
+  "passed_count": 15,
+  "failed_count": 0,
+  "na_count": 1,
+  "not_measured_count": 0,
+  "measured_controls": 15,
+  "null_observations": []
+}

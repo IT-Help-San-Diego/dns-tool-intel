@@ -1,0 +1,26 @@
+{
+  "verdicts": {
+    "DNSSEC_AUTHENTICATED": "failed",
+    "DNSSEC_CHAIN_TRUSTED": "failed",
+    "DNSSEC_KEY_ROLLOVER": "failed",
+    "NO_MAIL_HARDENED": "not_applicable",
+    "SPF_EFFECTIVE_POLICY": "failed",
+    "DMARC_ENFORCEMENT": "failed",
+    "DKIM_PRESENT": "failed",
+    "MAIL_POLICY_SIGNALING": "failed",
+    "CAA_RESTRICTION_PRESENT": "failed",
+    "DANE_DEPLOYED": "failed",
+    "BIMI_CONFIGURED": "failed",
+    "SECURITY_TXT_PRESENT": "failed",
+    "DANGLING_DNS_CLEAN": "failed",
+    "DELEGATION_CONSISTENT": "failed",
+    "SECRET_EXPOSURE_CLEAN": "failed",
+    "HTTPS_SVCB_MODERN": "failed"
+  },
+  "passed_count": 0,
+  "failed_count": 15,
+  "na_count": 1,
+  "not_measured_count": 0,
+  "measured_controls": 15,
+  "null_observations": []
+}

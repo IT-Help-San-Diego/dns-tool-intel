@@ -1,0 +1,39 @@
+{
+  "domain": "fixture-all-true-mail.example",
+  "source_file": "fixture-all-true-mail.json",
+  "state_model": "tri-state (true|false|null)",
+  "is_mail_domain": true,
+  "is_no_mail_domain": false,
+  "is_subdomain": false,
+  "dns_provider_hint": "other",
+  "calibrated_confidence": {},
+  "observations": {
+    "DNSSEC_VALID": true,
+    "DNSSEC_CHAIN_VALID": true,
+    "DNSSEC_ROLLOVER_READY": true,
+    "NULL_MX": true,
+    "SPF_HARD_FAIL": true,
+    "SPF_SOFTFAIL_WITH_DMARC": false,
+    "DMARC_REJECT": true,
+    "DMARC_ENFORCING": true,
+    "NO_MAIL_DOMAIN": false,
+    "MAIL_DOMAIN": true,
+    "TLS_RPT": true,
+    "MTA_STS_DNS": true,
+    "CAA_PRESENT": true,
+    "DKIM_FOUND": true,
+    "DANE_PRESENT": true,
+    "BIMI_VALID": true,
+    "SECURITY_TXT_FOUND": true,
+    "NO_DANGLING_DNS": true,
+    "DELEGATION_OK": true,
+    "NO_SECRETS_EXPOSED": true,
+    "HTTPS_SVCB_PRESENT": true
+  },
+  "context": {
+    "dnssec_chain_type": "",
+    "spf_mechanism": "",
+    "dmarc_policy": "",
+    "spf_dmarc_effective": "unenforced"
+  }
+}
