@@ -113,6 +113,11 @@ var statusTier = map[string]Tier{
 	"not measured":            TierInfo,
 	"unconfirmed":             TierInfo,
 	"inconclusive":            TierInfo,
+	// DANE's absence label: absence-severity is protocol-dependent and DANE
+	// absence is unremarkable (most of the internet). Every pre-existing
+	// absence word ("absent", "missing", "none") ranks FAIL because for
+	// SPF/DMARC absence IS the finding — DANE needs its own word at INFO.
+	"not deployed": TierInfo,
 
 	// PASS — measured affirmative
 	"configured":         TierPass,

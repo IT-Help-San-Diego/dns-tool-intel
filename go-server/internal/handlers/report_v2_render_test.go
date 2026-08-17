@@ -145,6 +145,24 @@ func TestResultsV2_CAAHasOneCanonicalDomainSecurityHome(t *testing.T) {
 // "Secure" as the achievable posture inside full_results; view-time
 // rebucket must render them "Hardened" (map-on-read, never backfill),
 // while any other value passes through untouched.
+// TestPostureStripSixCells pins the c2b six-card scorecard: exactly six
+// severity-ordered cells, including the two 2026-08-16 additions. The count
+// is a both-directions ratchet — a seventh card or a lost card both fail.
+func TestPostureStripSixCells(t *testing.T) {
+	body := loadResultsV2Source(t)
+	if n := strings.Count(body, `class="col-6 col-md-2 sev-order-`); n != 6 {
+		t.Errorf("posture strip has %d severity-ordered cells, want exactly 6", n)
+	}
+	for _, title := range []string{
+		`<div class="small text-muted text-uppercase mb-1">Monitoring</div>`,
+		`<div class="small text-muted text-uppercase mb-1">DANE</div>`,
+	} {
+		if !strings.Contains(body, title) {
+			t.Errorf("posture strip missing cell title %q", title)
+		}
+	}
+}
+
 func TestNormalizeResultsRebucketsAchievablePosture(t *testing.T) {
 	legacy := NormalizeResults([]byte(`{"remediation":{"posture_achievable":"Secure"}}`))
 	if legacy == nil {

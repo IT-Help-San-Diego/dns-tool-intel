@@ -30,7 +30,7 @@ func TestRankExactMatches(t *testing.T) {
 		"n/a": TierInfo, "could not be verified": TierInfo,
 		"could not verify": TierInfo, "indeterminate": TierInfo,
 		"unmeasured": TierInfo, "not measured": TierInfo,
-		"unconfirmed": TierInfo, "inconclusive": TierInfo,
+		"unconfirmed": TierInfo, "inconclusive": TierInfo, "not deployed": TierInfo,
 		// PASS
 		"configured": TierPass, "enabled": TierPass, "protected": TierPass,
 		"strongly protected": TierPass, "enterprise": TierPass,
@@ -90,6 +90,13 @@ func TestRankScorecardLabels(t *testing.T) {
 		"Inconclusive":   TierInfo,
 		"N/A — Registry": TierInfo,
 		"Vulnerable":     TierFail,
+		// c2b six-card strip additions (2026-08-16): the DANE card's
+		// namespace-mapped labels + the protocol-dependent absence word.
+		"Not Deployed":     TierInfo,
+		"Verified":         TierPass,
+		"Broken":           TierFail,
+		"Could Not Verify": TierInfo,
+		"Unconfirmed":      TierInfo,
 	}
 	for label, want := range cases {
 		if got := Rank(label); got != want {
