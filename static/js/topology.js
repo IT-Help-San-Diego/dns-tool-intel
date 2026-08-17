@@ -6,6 +6,10 @@
 
         let canvas = document.getElementById('topoCanvas');
         let wrap = document.getElementById('topoWrap');
+        // The console's beside cost: 360px card + 13px margins each side.
+        // Shared by the flow-switch threshold and the beside-mode reserve —
+        // one number, one meaning.
+        let CONSOLE_BESIDE_W = 386;
         if (!canvas || !wrap) return;
         let ctx = canvas.getContext('2d');
         let dpr = window.devicePixelRatio || 1;
@@ -1083,7 +1087,22 @@
             let protoNeed = widest(PROTOCOLS) * 2 + 26;
             let horizontalNeed = 2 * Math.min(W * 0.13 * SCL, H * 0.25 * SCL, 180)
                 + srcNeed + confNeed + protoNeed + 40;
-            VERTICAL_FLOW = W > 0 && W < horizontalNeed;
+            // Beside-mode is satisfiable only when the graph fits NEXT TO the
+            // console: the old test ignored the console's own beside cost
+            // (386 = 360px card + margins), which created the 577-1000 band
+            // where beside-mode ran with zero reserve and nodes slid under
+            // the console overlay (the popover bug's family, ledger g2 spec:
+            // "the FLOW switches, not the console"). The threshold is
+            // measured content need + measured console cost — never a
+            // media-query guess.
+            let besideFits = W >= horizontalNeed + CONSOLE_BESIDE_W;
+            VERTICAL_FLOW = W > 0 && !besideFits;
+            // CSS follows the MEASURED mode: .topo-vertical carries the
+            // console-above treatment at whatever width the measurement
+            // says (the <=576px media block remains as no-JS first-paint
+            // fallback). Toggle before any console measurement below so
+            // consoleBox sees the post-switch geometry.
+            if (wrap) wrap.classList.toggle('topo-vertical', VERTICAL_FLOW);
 
             // Portrait reserves space ABOVE the graph for the console instead of
             // beside it; the console is full-width at these sizes.
@@ -1127,7 +1146,12 @@
             // it — that is what put the console on top of DANE and TLS-RPT.
             // Below 1000px the console goes near-full-width and overlaying is
             // unavoidable, so reserve nothing and let it sit above.
-            let consoleReserve = W >= 1000 ? 386 : 0;
+            // Reserve whenever beside-mode runs — the mode IS the condition.
+            // The old `W >= 1000` proxy left 577-1000 beside-mode widths with
+            // zero reserve (nodes under the console); that band is now
+            // VERTICAL_FLOW by measurement, and every remaining beside width
+            // reserves.
+            let consoleReserve = VERTICAL_FLOW ? 0 : CONSOLE_BESIDE_W;
             let pipeEnd = W * 0.99 - consoleReserve;
             let pipeTotal = pipeEnd - pipeStart;
             let colGap = Math.max(4, pipeTotal * 0.01);
@@ -1223,6 +1247,21 @@
                 if (!consoleBox) {
                     consoleBox = { x1: W - consoleReserve, y1: titleSafe, x2: W, y2: legendSafe };
                 }
+            }
+            // The console joins the pairwise solve as an anchored rect —
+            // band-as-rect per the g2 spec: the solve, not just the clamps,
+            // keeps nodes out of it, and the verifier measures the same box.
+            if (!VERTICAL_FLOW && consoleBox) {
+                allLayoutNodes.push({
+                    id: 'consolerect', shape: 'rect', zone: null,
+                    _anchored: true,
+                    targetX: (consoleBox.x1 + consoleBox.x2) / 2,
+                    targetY: (consoleBox.y1 + consoleBox.y2) / 2,
+                    x: (consoleBox.x1 + consoleBox.x2) / 2,
+                    y: (consoleBox.y1 + consoleBox.y2) / 2,
+                    _halfW: (consoleBox.x2 - consoleBox.x1) / 2,
+                    _halfH: (consoleBox.y2 - consoleBox.y1) / 2
+                });
             }
             // When the console's bottom clears this band, the band may use
             // the full pipe width — the space under the console is real.
@@ -1966,6 +2005,7 @@
                         // (minification renames locals). inkRev survives.
                         inkRev: 6,
                         W: W, H: H, scl: SCL, solver: SOLVER_ACTIVE,
+                        verticalFlow: VERTICAL_FLOW, horizontalNeed: horizontalNeed,
                         edgeLabelTrace: function() { return edgeLabelTrace.slice(); },
                         zones: (function() {
                             let z = {};
