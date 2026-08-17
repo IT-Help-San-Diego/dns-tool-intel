@@ -486,13 +486,28 @@ func (a *Analyzer) AnalyzeDANE(ctx context.Context, domain string, mxRecords []s
         return baseResult
 }
 
+// perHostBudget divides the time remaining before deadline evenly among
+// hostsLeft hosts, so a serial loop can give each host a fair slice of the
+// parent's budget instead of letting one slow host consume it all. Returns 0
+// when there is no usable budget (deadline already passed or nothing left).
+func perHostBudget(deadline time.Time, hostsLeft int) time.Duration {
+        remaining := time.Until(deadline)
+        if remaining <= 0 || hostsLeft <= 0 {
+                return 0
+        }
+        return remaining / time.Duration(hostsLeft)
+}
+
 // probeDANEVerify asks the probe to fetch the presented certificate for one MX
 // host and match it against its TLSA records (RFC 7671 §5). ok=false only when
 // the probe is unreachable or returns a non-200 (transport failure); a probe
-// that answers cert_error/no_tlsa/not_verifiable is a MEASUREMENT, so it comes
+// that answers cert_invalid/no_tlsa/not_verifiable is a MEASUREMENT, so it comes
 // back ok=true.
 func probeDANEVerify(ctx context.Context, probeURL, probeKey, host string) (map[string]any, bool) {
         reqBody, _ := json.Marshal(map[string]any{"host": host, "port": 25})
+        // 35s is a CEILING, not a promise: the caller hands down a per-host
+        // context whose deadline divides the parent's remaining budget among the
+        // hosts left to measure, so the effective timeout is min(per-host, 35s).
         reqCtx, cancel := context.WithTimeout(ctx, 35*time.Second)
         defer cancel()
         req, err := http.NewRequestWithContext(reqCtx, "POST", probeURL+"/probe/dane-verify", bytes.NewReader(reqBody))
@@ -531,8 +546,21 @@ func verifyDANEHosts(ctx context.Context, a *Analyzer, hosts []string) map[strin
         perHost := make([]map[string]any, 0, len(hosts))
         counts := map[string]int{}
         anyMeasurement := false
-        for _, host := range hosts {
-                resp, ok := probeDANEVerify(ctx, ep.URL, ep.Key, host)
+        for i, host := range hosts {
+                // Divide the parent's remaining budget evenly among the hosts still
+                // to measure, so one slow host cannot consume the whole envelope and
+                // starve its siblings (the positional-failure class — host 1 always
+                // measured, host N maybe never attempted). probeDANEVerify's own 35s
+                // timeout then acts as a ceiling, not a promise: the effective
+                // deadline is the smaller of the per-host budget and 35s.
+                hostCtx, cancel := ctx, func() {}
+                if deadline, ok := ctx.Deadline(); ok {
+                        if per := perHostBudget(deadline, len(hosts)-i); per > 0 {
+                                hostCtx, cancel = context.WithTimeout(ctx, per)
+                        }
+                }
+                resp, ok := probeDANEVerify(hostCtx, ep.URL, ep.Key, host)
+                cancel()
                 if !ok {
                         perHost = append(perHost, map[string]any{mapKeyMxHost: host, mapKeyStatus: "unreachable"})
                         counts["unreachable"]++
