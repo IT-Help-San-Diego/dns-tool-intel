@@ -1046,7 +1046,7 @@ func (a *Analyzer) CalculatePosture(results map[string]any) map[string]any {
 		spoofDoorState = doorString(classifySpoofDoor(ps, hasSPF, hasDMARC))
 	}
 
-	score, attainable := computeInternalScore(ps, ds)
+	score, attainable, worstCase := computeInternalScore(ps, ds)
 
 	vi := verdictInput{ps: ps, ds: ds, hasSPF: hasSPF, hasDMARC: hasDMARC, hasDKIM: hasDKIM}
 	verdicts := buildVerdicts(vi)
@@ -1071,6 +1071,7 @@ func (a *Analyzer) CalculatePosture(results map[string]any) map[string]any {
 	return map[string]any{
 		"score":                      score,
 		"attainable":                 attainable,
+		"score_worst_case":           worstCase,
 		"grade":                      grade,
 		mapKeyLabel:                  label,
 		"state":                      state,
@@ -2089,7 +2090,7 @@ const (
 	weightBIMI       = 5
 )
 
-func computeInternalScore(ps protocolState, ds DKIMState) (int, int) {
+func computeInternalScore(ps protocolState, ds DKIMState) (int, int, int) {
 	rawScore := computeSPFScore(ps) + computeDMARCScore(ps) + computeDKIMScore(ds) + computeAuxScore(ps)
 
 	attainable := scoreDenominator
@@ -2131,7 +2132,9 @@ func computeInternalScore(ps protocolState, ds DKIMState) (int, int) {
 	}
 	if attainable <= 0 {
 		// Nothing measurable was scored; refuse to fabricate a point estimate.
-		return 0, attainable
+		// rawScore is the disclosed worst-case bound: every unmeasurable
+		// control scored as broken.
+		return 0, attainable, rawScore
 	}
 
 	// Integer round-half-up of rawScore/attainable*100. When nothing is
@@ -2141,7 +2144,7 @@ func computeInternalScore(ps protocolState, ds DKIMState) (int, int) {
 	if score > 100 {
 		score = 100
 	}
-	return score, attainable
+	return score, attainable, rawScore
 }
 
 func computeSPFScore(ps protocolState) int {
