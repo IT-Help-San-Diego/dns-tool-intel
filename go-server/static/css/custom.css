@@ -1588,6 +1588,21 @@ html[data-bs-theme="dark"] .tooltip-inner {
 /* ============================================
    MOBILE RESPONSIVE STYLES
    ============================================ */
+/* <=430px: the brand row cannot hold "DNS Tool" + version + Beta at once —
+   the version badge yields (diagnostic detail; Beta is the user-facing
+   state). Measured on Carey's 2026-08-16 frames: the Beta chip clipped to
+   "B" on the audit page and jammed into the covert toggle on /topology. */
+@media (max-width: 430px) {
+    .navbar-brand-sub .nav-version-badge {
+        display: none;
+    }
+    /* The LOCAL <-> WEB flipper (local builds only) superimposes the Beta
+       tag at phone width — it yields too; prod never renders it. */
+    .nav-context-flip {
+        display: none;
+    }
+}
+
 @media (max-width: 768px) {
     .display-4 {
         font-size: 2rem;
