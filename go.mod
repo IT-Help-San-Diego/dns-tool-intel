@@ -14,7 +14,7 @@ require (
 	github.com/pressly/goose/v3 v3.27.3
 	golang.org/x/crypto v0.54.0
 	golang.org/x/net v0.57.0
-	golang.org/x/text v0.40.0
+	golang.org/x/text v0.41.0
 	gonum.org/v1/gonum v0.17.0
 )
 
