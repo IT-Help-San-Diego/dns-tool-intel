@@ -1733,8 +1733,30 @@
                         // into a caption it never reserved for was the ct\u00d7rl02
                         // failure the verifier caught at 1024px. Space always
                         // comes from zone interiors, never from the caption.
-                        reserveStrip(mkCap('rl' + st.num, head, q,
-                            capCx, z.bounds.y1 + capH / 2 + 4, st.zone));
+                        // The caption sits ON its cluster: y drops to just
+                        // above the topmost member node, so the label owns
+                        // its contents instead of a rank line with dead air
+                        // under it (Carey's ruling on the 2026-08-16 frames:
+                        // "labels in correct places" — the hug variant).
+                        // Interior captions are plain anchored rects — the
+                        // pairwise solve moves nodes off them; a strip
+                        // reservation here would push whole zone tops around.
+                        // Zone with no members: rank-line home + strip, the
+                        // pre-hug behaviour.
+                        let mTop = Infinity;
+                        for (let mi2 = 0; mi2 < allLayoutNodes.length; mi2++) {
+                            let nd2 = allLayoutNodes[mi2];
+                            if (nd2.zone === st.zone && nd2.shape !== 'caption') {
+                                let te = nd2.targetY - (nd2._halfH || nd2.radius || 0);
+                                if (te < mTop) mTop = te;
+                            }
+                        }
+                        if (mTop < Infinity) {
+                            mkCap('rl' + st.num, head, q, capCx, mTop - capH / 2 - 8, st.zone);
+                        } else {
+                            reserveStrip(mkCap('rl' + st.num, head, q,
+                                capCx, z.bounds.y1 + capH / 2 + 4, st.zone));
+                        }
                     }
                 });
                 // 00 VANTAGE anchors to the globe itself — there is no
