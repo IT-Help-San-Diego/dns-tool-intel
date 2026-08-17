@@ -4,22 +4,232 @@
     "input_kind": "dns_domain"
   },
   "_icae_snapshot": {
-    "overall_maturity": "development",
+    "overall_maturity": "gold",
     "unified_confidence": {
       "accuracy_factor": 61.1,
       "currency_factor": 73,
-      "explanation": "The measurement system is still accumulating scan history. Accuracy and currency are adequate but the system has not yet reached full maturity.",
+      "explanation": "Resolver agreement is inconsistent for some protocols, limiting confidence. Data currency and system maturity are adequate.",
       "level": "MODERATE",
-      "maturity_ceiling": 60,
-      "maturity_level": "development",
+      "maturity_ceiling": 95,
+      "maturity_level": "gold",
       "protocol_count": 9,
-      "score": 60,
-      "weakest_detail": "System maturity is capping the confidence score \u2014 the scan data is strong but more scan history is needed to unlock higher tiers",
-      "weakest_link": "maturity"
+      "score": 66.8,
+      "weakest_detail": "Resolver agreement is low for this scan — some protocols returned inconsistent results across resolvers",
+      "weakest_link": "accuracy"
     }
   },
+  "_scan_telemetry": {
+    "analysis_id": 0,
+    "sha3_512": "82b338cbe611b55b18f5c1f09b6ee8ee990b7b6b00df62ab0375930371615fc693fc9bd582962cee3ab9c408ac3002489517e81faac1c98a612c076f10c00b0a",
+    "timings": [
+      {
+        "duration_ms": 3,
+        "phase_group": "ct_subdomains",
+        "phase_task": "ct_subdomains",
+        "record_count": 0,
+        "started_at_ms": 0
+      },
+      {
+        "duration_ms": 13,
+        "phase_group": "dnssec_dane",
+        "phase_task": "cds_cdnskey",
+        "record_count": 0,
+        "started_at_ms": 1
+      },
+      {
+        "duration_ms": 14,
+        "phase_group": "registrar_infra",
+        "phase_task": "https_svcb",
+        "record_count": 0,
+        "started_at_ms": 0
+      },
+      {
+        "duration_ms": 26,
+        "phase_group": "smtp_transport",
+        "phase_task": "smimea_openpgpkey",
+        "record_count": 0,
+        "started_at_ms": 0
+      },
+      {
+        "duration_ms": 52,
+        "phase_group": "smtp_transport",
+        "phase_task": "nmap_dns",
+        "record_count": 0,
+        "started_at_ms": 1
+      },
+      {
+        "duration_ms": 56,
+        "phase_group": "dns_records",
+        "phase_task": "auth",
+        "record_count": 0,
+        "started_at_ms": 0
+      },
+      {
+        "duration_ms": 63,
+        "phase_group": "dnssec_dane",
+        "phase_task": "dnssec_ops",
+        "record_count": 0,
+        "started_at_ms": 0
+      },
+      {
+        "duration_ms": 86,
+        "phase_group": "registrar_infra",
+        "phase_task": "ns_delegation",
+        "record_count": 0,
+        "started_at_ms": 0
+      },
+      {
+        "duration_ms": 148,
+        "phase_group": "policy_records",
+        "phase_task": "mta_sts",
+        "record_count": 0,
+        "started_at_ms": 0
+      },
+      {
+        "duration_ms": 148,
+        "phase_group": "policy_records",
+        "phase_task": "caa",
+        "record_count": 0,
+        "started_at_ms": 0
+      },
+      {
+        "duration_ms": 149,
+        "phase_group": "dns_records",
+        "phase_task": "resolver_consensus",
+        "record_count": 0,
+        "started_at_ms": 0
+      },
+      {
+        "duration_ms": 155,
+        "phase_group": "email_auth",
+        "phase_task": "spf",
+        "record_count": 3,
+        "started_at_ms": 0
+      },
+      {
+        "duration_ms": 161,
+        "phase_group": "email_auth",
+        "phase_task": "dmarc",
+        "record_count": 1,
+        "started_at_ms": 0
+      },
+      {
+        "duration_ms": 168,
+        "phase_group": "policy_records",
+        "phase_task": "tlsrpt",
+        "record_count": 0,
+        "started_at_ms": 0
+      },
+      {
+        "duration_ms": 185,
+        "phase_group": "registrar_infra",
+        "phase_task": "registrar",
+        "record_count": 0,
+        "started_at_ms": 0
+      },
+      {
+        "duration_ms": 189,
+        "phase_group": "registrar_infra",
+        "phase_task": "delegation_consistency",
+        "record_count": 0,
+        "started_at_ms": 1
+      },
+      {
+        "duration_ms": 203,
+        "phase_group": "policy_records",
+        "phase_task": "bimi",
+        "record_count": 0,
+        "started_at_ms": 0
+      },
+      {
+        "duration_ms": 222,
+        "phase_group": "dns_records",
+        "phase_task": "basic",
+        "record_count": 0,
+        "started_at_ms": 0
+      },
+      {
+        "duration_ms": 360,
+        "phase_group": "registrar_infra",
+        "phase_task": "ns_fleet",
+        "record_count": 0,
+        "started_at_ms": 0
+      },
+      {
+        "duration_ms": 403,
+        "phase_group": "ct_subdomains",
+        "phase_task": "secret_exposure",
+        "record_count": 0,
+        "started_at_ms": 0
+      },
+      {
+        "duration_ms": 210,
+        "phase_group": "dnssec_dane",
+        "phase_task": "dane",
+        "record_count": 0,
+        "started_at_ms": 222
+      },
+      {
+        "duration_ms": 470,
+        "phase_group": "dnssec_dane",
+        "phase_task": "dnssec",
+        "record_count": 0,
+        "started_at_ms": 0
+      },
+      {
+        "duration_ms": 488,
+        "phase_group": "email_auth",
+        "phase_task": "dkim",
+        "record_count": 0,
+        "started_at_ms": 0
+      },
+      {
+        "duration_ms": 907,
+        "phase_group": "ct_subdomains",
+        "phase_task": "security_txt",
+        "record_count": 0,
+        "started_at_ms": 0
+      },
+      {
+        "duration_ms": 1950,
+        "phase_group": "ct_subdomains",
+        "phase_task": "ai_surface",
+        "record_count": 0,
+        "started_at_ms": 0
+      },
+      {
+        "duration_ms": 5403,
+        "phase_group": "smtp_transport",
+        "phase_task": "smtp_transport",
+        "record_count": 0,
+        "started_at_ms": 433
+      },
+      {
+        "duration_ms": 312,
+        "phase_group": "dns_records",
+        "phase_task": "cross_reference",
+        "record_count": 0,
+        "started_at_ms": 5836
+      },
+      {
+        "duration_ms": 188,
+        "phase_group": "web3_analysis",
+        "phase_task": "web3_analysis",
+        "record_count": 0,
+        "started_at_ms": 7498
+      },
+      {
+        "duration_ms": 2919,
+        "phase_group": "analysis_engine",
+        "phase_task": "synthesis",
+        "record_count": 0,
+        "started_at_ms": 6149
+      }
+    ],
+    "total_duration_ms": 9068
+  },
   "_schema_version": 2,
-  "_tool_version": "dev",
+  "_tool_version": "26.51.0-108-gf8e4afc1c",
   "ai_surface": {
     "evidence": [
       {
@@ -86,50 +296,72 @@
   },
   "analysis_scope": "owned_dns",
   "asn_info": {
+    "cdn_asn": "AS13335 Cloudflare, Inc.",
+    "cdn_proxied": true,
+    "flux_observable": false,
+    "flux_observable_reason": "CDN-proxied: all observed addresses share a single CDN ASN (AS13335 Cloudflare, Inc.); origin rotation is structurally unobservable via DNS",
     "ipv4_asn": [
       {
+        "as_name": "Cloudflare, Inc.",
+        "asn": "13335",
         "confidence": {
           "label": "Third-party data",
           "level": "third_party",
           "method": "Team Cymru DNS-based ASN lookup"
         },
-        "error": "no ASN data",
-        "ip": "104.16.44.99"
+        "country": "US",
+        "ip": "104.16.44.99",
+        "prefix": "104.16.32.0/20"
       },
       {
+        "as_name": "Cloudflare, Inc.",
+        "asn": "13335",
         "confidence": {
           "label": "Third-party data",
           "level": "third_party",
           "method": "Team Cymru DNS-based ASN lookup"
         },
-        "error": "no ASN data",
-        "ip": "104.16.45.99"
+        "country": "US",
+        "ip": "104.16.45.99",
+        "prefix": "104.16.32.0/20"
       }
     ],
     "ipv6_asn": [
       {
+        "as_name": "Cloudflare, Inc.",
+        "asn": "13335",
         "confidence": {
           "label": "Third-party data",
           "level": "third_party",
           "method": "Team Cymru DNS-based ASN lookup"
         },
-        "error": "no ASN data",
-        "ip": "2606:4700::6810:2c63"
+        "country": "US",
+        "ip": "2606:4700::6810:2c63",
+        "prefix": "2606:4700::/44"
       },
       {
+        "as_name": "Cloudflare, Inc.",
+        "asn": "13335",
         "confidence": {
           "label": "Third-party data",
           "level": "third_party",
           "method": "Team Cymru DNS-based ASN lookup"
         },
-        "error": "no ASN data",
-        "ip": "2606:4700::6810:2d63"
+        "country": "US",
+        "ip": "2606:4700::6810:2d63",
+        "prefix": "2606:4700::/44"
       }
     ],
     "issues": [],
-    "message": "Resolved 0 unique ASN(s) across 4 IP address(es)",
+    "message": "Resolved 1 unique ASN(s) across 4 IP address(es)",
     "status": "success",
-    "unique_asns": null
+    "unique_asns": [
+      {
+        "as_name": "Cloudflare, Inc.",
+        "asn": "13335",
+        "country": "US"
+      }
+    ]
   },
   "auth_query_status": {},
   "auth_ttl": {
@@ -142,8 +374,8 @@
   },
   "authoritative_records": {
     "A": [
-      "104.16.44.99",
-      "104.16.45.99"
+      "104.16.45.99",
+      "104.16.44.99"
     ],
     "AAAA": [
       "2606:4700::6810:2c63",
@@ -162,7 +394,7 @@
       "ken.ns.cloudflare.com."
     ],
     "SOA": [
-      "jill.ns.cloudflare.com. dns.cloudflare.com. 2410901519 10000 2400 604800 1800"
+      "jill.ns.cloudflare.com. dns.cloudflare.com. 2412430342 10000 2400 604800 1800"
     ],
     "TLS-RPT": [],
     "TXT": [
@@ -193,7 +425,7 @@
       "ken.ns.cloudflare.com."
     ],
     "SOA": [
-      "jill.ns.cloudflare.com. dns.cloudflare.com. 2410901519 10000 2400 604800 1800"
+      "jill.ns.cloudflare.com. dns.cloudflare.com. 2412430342 10000 2400 604800 1800"
     ],
     "SRV": [],
     "TXT": [
@@ -325,7 +557,7 @@
           ]
         },
         {
-          "match": "match",
+          "match": "absent",
           "our_records": null,
           "record_type": "CNAME",
           "their_records": []
@@ -393,7 +625,7 @@
           ]
         },
         {
-          "match": "match",
+          "match": "absent",
           "our_records": null,
           "record_type": "CNAME",
           "their_records": []
@@ -401,7 +633,7 @@
       ]
     },
     "domain": "ietf.org",
-    "generated_at": "2026-07-31T05:45:09Z",
+    "generated_at": "2026-08-17T20:40:09Z",
     "manual_verify": {
       "cloudflare_doh": "https://cloudflare-dns.com/dns-query?name=ietf.org&type=A",
       "google_dig_a": "https://toolbox.googleapps.com/apps/dig/#A/ietf.org",
@@ -413,7 +645,7 @@
     "providers": {
       "cloudflare": {
         "endpoint": "https://cloudflare-dns.com/dns-query",
-        "latency_ms": 2226,
+        "latency_ms": 149,
         "name": "cloudflare",
         "query_urls": {
           "A": "https://cloudflare-dns.com/dns-query?name=ietf.org&type=A",
@@ -450,7 +682,7 @@
       },
       "google": {
         "endpoint": "https://dns.google/resolve",
-        "latency_ms": 2159,
+        "latency_ms": 311,
         "name": "google",
         "query_urls": {
           "A": "https://dns.google/resolve?name=ietf.org&type=A",
@@ -496,44 +728,22 @@
     ],
     "schema_version": "1.0",
     "summary": {
-      "matched": 12,
+      "absent": 2,
+      "matched": 10,
       "mismatched": 0,
+      "partial": 0,
       "total_checks": 12,
       "unavailable": 0,
       "verdict": "corroborated"
     }
   },
   "ct_subdomains": {
-    "ca_summary": [
-      {
-        "active": true,
-        "cert_count": 138,
-        "first_seen": "2026-05-07",
-        "last_seen": "2026-07-29",
-        "name": "Let's Encrypt"
-      },
-      {
-        "active": true,
-        "cert_count": 88,
-        "first_seen": "2026-05-10",
-        "last_seen": "2026-07-30",
-        "name": "Google Trust Services"
-      },
-      {
-        "active": true,
-        "cert_count": 5,
-        "first_seen": "2025-09-06",
-        "last_seen": "2026-04-27",
-        "name": "Amazon"
-      }
-    ],
     "caveat": "Subdomains discovered via CT logs (RFC 6962), DNS probing of common service names, and CNAME chain traversal.",
-    "cname_count": 0,
-    "cname_discovered_count": 0,
+    "cname_count": 2,
     "ct_available": true,
-    "ct_source": "live",
-    "current_count": "128",
-    "displayed_count": 128,
+    "ct_source": "cache",
+    "current_count": "93",
+    "displayed_count": 93,
     "expired_count": "0",
     "providers_found": 0,
     "source": "Certificate Transparency + DNS Intelligence",
@@ -550,7 +760,7 @@
         "source": "ct"
       },
       {
-        "cert_count": "10",
+        "cert_count": "6",
         "first_seen": "2026-07-20T08:02:07",
         "is_current": true,
         "issuers": [
@@ -560,42 +770,43 @@
         "source": "ct"
       },
       {
-        "cert_count": "4",
-        "first_seen": "2026-07-17T10:44:15",
-        "is_current": true,
-        "issuers": [
-          "Let's Encrypt"
-        ],
-        "name": "alertmanager.meeting.ietf.org",
-        "source": "ct"
-      },
-      {
-        "cert_count": "\u2014",
-        "first_seen": "\u2014",
+        "cert_count": "—",
+        "first_seen": "—",
         "is_current": true,
         "issuers": [],
-        "name": "analytics.ietf.org",
+        "name": "alertmanager.meeting.ietf.org",
         "source": "external_tools"
       },
       {
-        "cert_count": "\u2014",
-        "first_seen": "\u2014",
+        "cert_count": "12",
+        "first_seen": "2026-06-01",
+        "is_current": true,
+        "issuers": [
+          "Google Trust Services",
+          "Let's Encrypt"
+        ],
+        "name": "analytics.ietf.org",
+        "source": "dns"
+      },
+      {
+        "cert_count": "—",
+        "first_seen": "—",
         "is_current": true,
         "issuers": [],
         "name": "auth-01-cn.meeting.ietf.org",
         "source": "external_tools"
       },
       {
-        "cert_count": "\u2014",
-        "first_seen": "\u2014",
+        "cert_count": "—",
+        "first_seen": "—",
         "is_current": true,
         "issuers": [],
         "name": "auth-02-cn.meeting.ietf.org",
         "source": "external_tools"
       },
       {
-        "cert_count": "19",
-        "first_seen": "2026-05-09",
+        "cert_count": "12",
+        "first_seen": "2026-06-01",
         "is_current": true,
         "issuers": [
           "Google Trust Services",
@@ -605,16 +816,16 @@
         "source": "dns"
       },
       {
-        "cert_count": "\u2014",
-        "first_seen": "\u2014",
+        "cert_count": "—",
+        "first_seen": "—",
         "is_current": true,
         "issuers": [],
         "name": "author-tools.ietf.org",
         "source": "external_tools"
       },
       {
-        "cert_count": "\u2014",
-        "first_seen": "\u2014",
+        "cert_count": "—",
+        "first_seen": "—",
         "is_current": true,
         "issuers": [],
         "name": "authors.ietf.org",
@@ -631,16 +842,16 @@
         "source": "ct"
       },
       {
-        "cert_count": "\u2014",
-        "first_seen": "\u2014",
+        "cert_count": "—",
+        "first_seen": "—",
         "is_current": true,
         "issuers": [],
         "name": "bib.ietf.org",
         "source": "external_tools"
       },
       {
-        "cert_count": "3",
-        "first_seen": "2026-06-09T02:26:10",
+        "cert_count": "7",
+        "first_seen": "2026-08-07T03:09:45",
         "is_current": true,
         "issuers": [
           "Google Trust Services"
@@ -649,24 +860,24 @@
         "source": "ct"
       },
       {
-        "cert_count": "\u2014",
-        "first_seen": "\u2014",
+        "cert_count": "—",
+        "first_seen": "—",
         "is_current": true,
         "issuers": [],
         "name": "chairs.ietf.org",
         "source": "external_tools"
       },
       {
-        "cert_count": "\u2014",
-        "first_seen": "\u2014",
+        "cert_count": "—",
+        "first_seen": "—",
         "is_current": true,
         "issuers": [],
         "name": "codimd.ietf.org",
         "source": "external_tools"
       },
       {
-        "cert_count": "19",
-        "first_seen": "2026-05-09",
+        "cert_count": "12",
+        "first_seen": "2026-06-01",
         "is_current": true,
         "issuers": [
           "Google Trust Services",
@@ -676,52 +887,39 @@
         "source": "dns"
       },
       {
-        "cert_count": "4",
-        "cname_target": "docker.meeting.ietf.org",
-        "first_seen": "2026-07-17T10:44:15",
+        "cert_count": "—",
+        "first_seen": "—",
         "is_current": true,
-        "issuers": [
-          "Let's Encrypt"
-        ],
+        "issuers": [],
         "name": "dashboard.meeting.ietf.org",
-        "source": "ct"
+        "source": "external_tools"
       },
       {
-        "cert_count": "\u2014",
-        "first_seen": "\u2014",
+        "cert_count": "—",
+        "first_seen": "—",
         "is_current": true,
         "issuers": [],
         "name": "datatracker.ietf.org",
         "source": "external_tools"
       },
       {
-        "cert_count": "6",
-        "first_seen": "2026-07-15T10:13:52",
-        "is_current": true,
-        "issuers": [
-          "Let's Encrypt"
-        ],
-        "name": "deadmon.meeting.ietf.org",
-        "source": "ct"
-      },
-      {
-        "cert_count": "\u2014",
-        "first_seen": "\u2014",
+        "cert_count": "—",
+        "first_seen": "—",
         "is_current": true,
         "issuers": [],
-        "name": "deadperson-cn.meeting.ietf.org",
+        "name": "deadmon.meeting.ietf.org",
         "source": "external_tools"
       },
       {
-        "cert_count": "\u2014",
-        "first_seen": "\u2014",
+        "cert_count": "—",
+        "first_seen": "—",
         "is_current": true,
         "issuers": [],
         "name": "deadperson.meeting.ietf.org",
         "source": "external_tools"
       },
       {
-        "cert_count": "24",
+        "cert_count": "12",
         "first_seen": "2026-07-23T01:53:55",
         "is_current": true,
         "issuers": [
@@ -731,7 +929,7 @@
         "source": "ct"
       },
       {
-        "cert_count": "8",
+        "cert_count": "4",
         "first_seen": "2026-07-29T18:30:39",
         "is_current": true,
         "issuers": [
@@ -742,7 +940,7 @@
       },
       {
         "cert_count": "16",
-        "first_seen": "2026-06-07T17:51:05",
+        "first_seen": "2026-08-05T17:54:48",
         "is_current": true,
         "issuers": [
           "Let's Encrypt"
@@ -751,7 +949,7 @@
         "source": "ct"
       },
       {
-        "cert_count": "24",
+        "cert_count": "12",
         "first_seen": "2026-07-22T20:33:32",
         "is_current": true,
         "issuers": [
@@ -761,8 +959,8 @@
         "source": "ct"
       },
       {
-        "cert_count": "4",
-        "first_seen": "2026-06-05T13:17:03",
+        "cert_count": "3",
+        "first_seen": "2026-08-03T12:48:20",
         "is_current": true,
         "issuers": [
           "Let's Encrypt"
@@ -771,7 +969,7 @@
         "source": "ct"
       },
       {
-        "cert_count": "32",
+        "cert_count": "16",
         "first_seen": "2026-07-27T23:51:57",
         "is_current": true,
         "issuers": [
@@ -781,88 +979,68 @@
         "source": "ct"
       },
       {
-        "cert_count": "\u2014",
-        "first_seen": "\u2014",
+        "cert_count": "—",
+        "first_seen": "—",
         "is_current": true,
         "issuers": [],
         "name": "dhcp-0040.meeting.ietf.org",
         "source": "external_tools"
       },
       {
-        "cert_count": "\u2014",
-        "first_seen": "\u2014",
+        "cert_count": "—",
+        "first_seen": "—",
         "is_current": true,
         "issuers": [],
         "name": "dhcp-0042.meeting.ietf.org",
         "source": "external_tools"
       },
       {
-        "cert_count": "\u2014",
-        "first_seen": "\u2014",
+        "cert_count": "—",
+        "first_seen": "—",
         "is_current": true,
         "issuers": [],
         "name": "dhcp-0043.meeting.ietf.org",
         "source": "external_tools"
       },
       {
-        "cert_count": "\u2014",
-        "first_seen": "\u2014",
+        "cert_count": "—",
+        "first_seen": "—",
         "is_current": true,
         "issuers": [],
         "name": "dhcp-0044.meeting.ietf.org",
         "source": "external_tools"
       },
       {
-        "cert_count": "\u2014",
-        "first_seen": "\u2014",
+        "cert_count": "—",
+        "first_seen": "—",
         "is_current": true,
         "issuers": [],
         "name": "dhcp-0045.meeting.ietf.org",
         "source": "external_tools"
       },
       {
-        "cert_count": "\u2014",
-        "first_seen": "\u2014",
+        "cert_count": "—",
+        "first_seen": "—",
         "is_current": true,
         "issuers": [],
         "name": "dhcp-0046.meeting.ietf.org",
         "source": "external_tools"
       },
       {
-        "cert_count": "\u2014",
-        "first_seen": "\u2014",
+        "cert_count": "—",
+        "first_seen": "—",
         "is_current": true,
         "issuers": [],
         "name": "dhcp-0047.meeting.ietf.org",
         "source": "external_tools"
       },
       {
-        "cert_count": "\u2014",
-        "first_seen": "\u2014",
+        "cert_count": "—",
+        "first_seen": "—",
         "is_current": true,
         "issuers": [],
         "name": "dhcp-0048.meeting.ietf.org",
         "source": "external_tools"
-      },
-      {
-        "cert_count": "4",
-        "first_seen": "2026-07-17T10:44:15",
-        "is_current": true,
-        "issuers": [
-          "Let's Encrypt"
-        ],
-        "name": "docker.meeting.ietf.org",
-        "source": "ct"
-      },
-      {
-        "cert_count": "6",
-        "first_seen": "2026-07-17T10:44:17",
-        "is_current": true,
-        "issuers": [
-          "Let's Encrypt"
-        ],
-        "name": "docker.noc.ietf.org",
-        "source": "ct"
       },
       {
         "cert_count": "5",
@@ -875,43 +1053,32 @@
         "source": "ct"
       },
       {
-        "cert_count": "4",
-        "cname_target": "docker.meeting.ietf.org",
-        "first_seen": "2026-07-17T10:44:15",
-        "is_current": true,
-        "issuers": [
-          "Let's Encrypt"
-        ],
-        "name": "drone.meeting.ietf.org",
-        "source": "ct"
-      },
-      {
-        "cert_count": "\u2014",
-        "first_seen": "\u2014",
+        "cert_count": "—",
+        "first_seen": "—",
         "is_current": true,
         "issuers": [],
         "name": "dt-django4.dev.ietf.org",
         "source": "external_tools"
       },
       {
-        "cert_count": "\u2014",
-        "first_seen": "\u2014",
+        "cert_count": "—",
+        "first_seen": "—",
         "is_current": true,
         "issuers": [],
         "name": "dt-issuewglc.dev.ietf.org",
         "source": "external_tools"
       },
       {
-        "cert_count": "\u2014",
-        "first_seen": "\u2014",
+        "cert_count": "—",
+        "first_seen": "—",
         "is_current": true,
         "issuers": [],
         "name": "dt-main.dev.ietf.org",
         "source": "external_tools"
       },
       {
-        "cert_count": "3",
-        "first_seen": "2026-06-13T02:28:46",
+        "cert_count": "7",
+        "first_seen": "2026-08-11T04:00:26",
         "is_current": true,
         "issuers": [
           "Google Trust Services"
@@ -921,27 +1088,7 @@
       },
       {
         "cert_count": "4",
-        "first_seen": "2026-07-17T10:44:15",
-        "is_current": true,
-        "issuers": [
-          "Let's Encrypt"
-        ],
-        "name": "files.meeting.ietf.org",
-        "source": "ct"
-      },
-      {
-        "cert_count": "6",
-        "first_seen": "2026-07-17T10:44:17",
-        "is_current": true,
-        "issuers": [
-          "Let's Encrypt"
-        ],
-        "name": "forgejo.noc.ietf.org",
-        "source": "ct"
-      },
-      {
-        "cert_count": "2",
-        "first_seen": "2026-06-09T23:10:07",
+        "first_seen": "2026-08-08T19:38:18",
         "is_current": true,
         "issuers": [
           "Let's Encrypt"
@@ -950,8 +1097,8 @@
         "source": "ct"
       },
       {
-        "cert_count": "3",
-        "first_seen": "2026-06-08T20:13:44",
+        "cert_count": "7",
+        "first_seen": "2026-08-06T21:00:41",
         "is_current": true,
         "issuers": [
           "Google Trust Services"
@@ -970,36 +1117,16 @@
         "source": "ct"
       },
       {
-        "cert_count": "6",
-        "first_seen": "2026-07-17T10:44:17",
-        "is_current": true,
-        "issuers": [
-          "Let's Encrypt"
-        ],
-        "name": "git.noc.ietf.org",
-        "source": "ct"
-      },
-      {
-        "cert_count": "6",
-        "first_seen": "2026-07-17T10:44:17",
-        "is_current": true,
-        "issuers": [
-          "Let's Encrypt"
-        ],
-        "name": "grafana.noc.ietf.org",
-        "source": "ct"
-      },
-      {
-        "cert_count": "\u2014",
-        "first_seen": "\u2014",
+        "cert_count": "—",
+        "first_seen": "—",
         "is_current": true,
         "issuers": [],
         "name": "gsuite.ietf.org",
         "source": "external_tools"
       },
       {
-        "cert_count": "\u2014",
-        "first_seen": "\u2014",
+        "cert_count": "—",
+        "first_seen": "—",
         "is_current": true,
         "issuers": [],
         "name": "guides.ietf.org",
@@ -1007,37 +1134,6 @@
       },
       {
         "cert_count": "4",
-        "first_seen": "2026-07-21T09:02:13",
-        "is_current": true,
-        "issuers": [
-          "Let's Encrypt"
-        ],
-        "name": "hacknet.meeting.ietf.org",
-        "source": "ct"
-      },
-      {
-        "cert_count": "6",
-        "cname_target": "docker.noc.ietf.org",
-        "first_seen": "2026-07-17T10:44:17",
-        "is_current": true,
-        "issuers": [
-          "Let's Encrypt"
-        ],
-        "name": "hedgedoc.noc.ietf.org",
-        "source": "ct"
-      },
-      {
-        "cert_count": "1",
-        "first_seen": "2025-09-13T00:00:00",
-        "is_current": true,
-        "issuers": [
-          "Amazon"
-        ],
-        "name": "iabdev.ietf.org",
-        "source": "ct"
-      },
-      {
-        "cert_count": "10",
         "first_seen": "2026-07-08T18:44:49",
         "is_current": true,
         "issuers": [
@@ -1057,8 +1153,8 @@
         "source": "ct"
       },
       {
-        "cert_count": "19",
-        "first_seen": "2026-05-09",
+        "cert_count": "12",
+        "first_seen": "2026-06-01",
         "is_current": true,
         "issuers": [
           "Google Trust Services",
@@ -1068,19 +1164,8 @@
         "source": "dns"
       },
       {
-        "cert_count": "6",
-        "cname_target": "docker.noc.ietf.org",
-        "first_seen": "2026-07-17T10:44:17",
-        "is_current": true,
-        "issuers": [
-          "Let's Encrypt"
-        ],
-        "name": "influxdb.noc.ietf.org",
-        "source": "ct"
-      },
-      {
-        "cert_count": "2",
-        "first_seen": "2026-06-09T05:28:51",
+        "cert_count": "7",
+        "first_seen": "2026-08-07T06:16:10",
         "is_current": true,
         "issuers": [
           "Google Trust Services"
@@ -1089,7 +1174,7 @@
         "source": "ct"
       },
       {
-        "cert_count": "16",
+        "cert_count": "4",
         "first_seen": "2026-07-07T16:15:23",
         "is_current": true,
         "issuers": [
@@ -1099,46 +1184,16 @@
         "source": "ct"
       },
       {
-        "cert_count": "6",
-        "first_seen": "2026-07-17T10:44:17",
-        "is_current": true,
-        "issuers": [
-          "Let's Encrypt"
-        ],
-        "name": "keycloak.noc.ietf.org",
-        "source": "ct"
-      },
-      {
-        "cert_count": "4",
-        "first_seen": "2026-07-17T10:44:15",
-        "is_current": true,
-        "issuers": [
-          "Let's Encrypt"
-        ],
-        "name": "keyclone.meeting.ietf.org",
-        "source": "ct"
-      },
-      {
-        "cert_count": "2",
-        "first_seen": "2026-07-15T08:33:44",
-        "is_current": true,
-        "issuers": [
-          "Let's Encrypt"
-        ],
-        "name": "librenms.meeting.ietf.org",
-        "source": "ct"
-      },
-      {
-        "cert_count": "\u2014",
-        "first_seen": "\u2014",
+        "cert_count": "—",
+        "first_seen": "—",
         "is_current": true,
         "issuers": [],
         "name": "lists.ietf.org",
         "source": "external_tools"
       },
       {
-        "cert_count": "19",
-        "first_seen": "2026-05-09",
+        "cert_count": "12",
+        "first_seen": "2026-06-01",
         "is_current": true,
         "issuers": [
           "Google Trust Services",
@@ -1148,30 +1203,20 @@
         "source": "dns"
       },
       {
-        "cert_count": "\u2014",
-        "first_seen": "\u2014",
+        "cert_count": "—",
+        "first_seen": "—",
         "is_current": true,
         "issuers": [],
         "name": "mailarchive.ietf.org",
         "source": "external_tools"
       },
       {
-        "cert_count": "\u2014",
-        "first_seen": "\u2014",
+        "cert_count": "—",
+        "first_seen": "—",
         "is_current": true,
         "issuers": [],
         "name": "mailman3.ietf.org",
         "source": "external_tools"
-      },
-      {
-        "cert_count": "4",
-        "first_seen": "2026-07-15T06:37:14",
-        "is_current": true,
-        "issuers": [
-          "Let's Encrypt"
-        ],
-        "name": "management-new.meeting.ietf.org",
-        "source": "ct"
       },
       {
         "cert_count": "1",
@@ -1184,7 +1229,7 @@
         "source": "ct"
       },
       {
-        "cert_count": "4",
+        "cert_count": "3",
         "first_seen": "2026-06-29T12:32:48",
         "is_current": true,
         "issuers": [
@@ -1194,8 +1239,7 @@
         "source": "ct"
       },
       {
-        "cert_count": "2",
-        "cname_target": "or.conf.meetecho.com",
+        "cert_count": "1",
         "first_seen": "2026-04-27T00:00:00",
         "is_current": true,
         "issuers": [
@@ -1205,8 +1249,8 @@
         "source": "ct"
       },
       {
-        "cert_count": "6",
-        "first_seen": "2026-06-08T18:50:56",
+        "cert_count": "10",
+        "first_seen": "2026-08-06T19:48:22",
         "is_current": true,
         "issuers": [
           "Google Trust Services"
@@ -1215,7 +1259,7 @@
         "source": "ct"
       },
       {
-        "cert_count": "2",
+        "cert_count": "1",
         "first_seen": "2025-12-26T00:00:00",
         "is_current": true,
         "issuers": [
@@ -1225,8 +1269,8 @@
         "source": "ct"
       },
       {
-        "cert_count": "2",
-        "first_seen": "2025-09-06T00:00:00",
+        "cert_count": "3",
+        "first_seen": "2026-08-07T00:00:00",
         "is_current": true,
         "issuers": [
           "Amazon"
@@ -1235,35 +1279,15 @@
         "source": "ct"
       },
       {
-        "cert_count": "4",
-        "first_seen": "2026-07-01T02:57:51",
+        "cert_count": "12",
+        "first_seen": "2026-06-01",
         "is_current": true,
         "issuers": [
+          "Google Trust Services",
           "Let's Encrypt"
         ],
         "name": "meeting.ietf.org",
-        "source": "ct"
-      },
-      {
-        "cert_count": "4",
-        "first_seen": "2026-07-01T02:57:51",
-        "is_current": true,
-        "issuers": [
-          "Let's Encrypt"
-        ],
-        "name": "mon.noc.ietf.org",
-        "source": "ct"
-      },
-      {
-        "cert_count": "4",
-        "cname_target": "noc.ietf.org",
-        "first_seen": "2026-07-01T02:57:51",
-        "is_current": true,
-        "issuers": [
-          "Let's Encrypt"
-        ],
-        "name": "monitoring.noc.ietf.org",
-        "source": "ct"
+        "source": "dns"
       },
       {
         "cert_count": "2",
@@ -1276,58 +1300,19 @@
         "source": "ct"
       },
       {
-        "cert_count": "2",
-        "cname_target": "management-new.meeting.ietf.org",
-        "first_seen": "2026-07-15T10:13:25",
+        "cert_count": "12",
+        "cname_target": "3056135155a742cca97f448d76fb141e.pacloudflare.com",
+        "first_seen": "2026-06-01",
         "is_current": true,
         "issuers": [
+          "Google Trust Services",
           "Let's Encrypt"
         ],
-        "name": "nagios.meeting.ietf.org",
-        "source": "ct"
+        "name": "mx.ietf.org",
+        "source": "dns"
       },
       {
         "cert_count": "6",
-        "first_seen": "2026-07-17T10:44:17",
-        "is_current": true,
-        "issuers": [
-          "Let's Encrypt"
-        ],
-        "name": "netbox.noc.ietf.org",
-        "source": "ct"
-      },
-      {
-        "cert_count": "2",
-        "first_seen": "2026-07-15T06:38:15",
-        "is_current": true,
-        "issuers": [
-          "Let's Encrypt"
-        ],
-        "name": "netdisco.meeting.ietf.org",
-        "source": "ct"
-      },
-      {
-        "cert_count": "2",
-        "first_seen": "2026-06-30T23:37:36",
-        "is_current": true,
-        "issuers": [
-          "Let's Encrypt"
-        ],
-        "name": "nms.noc.ietf.org",
-        "source": "ct"
-      },
-      {
-        "cert_count": "4",
-        "first_seen": "2026-07-01T02:57:51",
-        "is_current": true,
-        "issuers": [
-          "Let's Encrypt"
-        ],
-        "name": "noc.ietf.org",
-        "source": "ct"
-      },
-      {
-        "cert_count": "9",
         "first_seen": "2026-07-08T19:14:13",
         "is_current": true,
         "issuers": [
@@ -1337,24 +1322,13 @@
         "source": "ct"
       },
       {
-        "cert_count": "16",
+        "cert_count": "4",
         "first_seen": "2026-07-08T14:22:48",
         "is_current": true,
         "issuers": [
           "Let's Encrypt"
         ],
         "name": "ops.ietf.org",
-        "source": "ct"
-      },
-      {
-        "cert_count": "2",
-        "cname_target": "management-new.meeting.ietf.org",
-        "first_seen": "2026-07-15T08:26:01",
-        "is_current": true,
-        "issuers": [
-          "Let's Encrypt"
-        ],
-        "name": "oxidized.meeting.ietf.org",
         "source": "ct"
       },
       {
@@ -1368,7 +1342,7 @@
         "source": "ct"
       },
       {
-        "cert_count": "24",
+        "cert_count": "12",
         "first_seen": "2026-07-26T22:52:43",
         "is_current": true,
         "issuers": [
@@ -1378,7 +1352,7 @@
         "source": "ct"
       },
       {
-        "cert_count": "8",
+        "cert_count": "4",
         "first_seen": "2026-06-16T10:04:41",
         "is_current": true,
         "issuers": [
@@ -1388,7 +1362,7 @@
         "source": "ct"
       },
       {
-        "cert_count": "10",
+        "cert_count": "4",
         "first_seen": "2026-07-08T20:31:00",
         "is_current": true,
         "issuers": [
@@ -1398,7 +1372,7 @@
         "source": "ct"
       },
       {
-        "cert_count": "8",
+        "cert_count": "4",
         "first_seen": "2026-06-14T17:45:08",
         "is_current": true,
         "issuers": [
@@ -1408,8 +1382,8 @@
         "source": "ct"
       },
       {
-        "cert_count": "4",
-        "first_seen": "2026-06-05T13:17:03",
+        "cert_count": "3",
+        "first_seen": "2026-08-03T12:48:20",
         "is_current": true,
         "issuers": [
           "Let's Encrypt"
@@ -1418,7 +1392,7 @@
         "source": "ct"
       },
       {
-        "cert_count": "4",
+        "cert_count": "2",
         "first_seen": "2026-06-21T15:45:54",
         "is_current": true,
         "issuers": [
@@ -1428,8 +1402,8 @@
         "source": "ct"
       },
       {
-        "cert_count": "3",
-        "first_seen": "2026-06-09T16:26:39",
+        "cert_count": "8",
+        "first_seen": "2026-08-07T17:21:20",
         "is_current": true,
         "issuers": [
           "Google Trust Services"
@@ -1448,47 +1422,7 @@
         "source": "ct"
       },
       {
-        "cert_count": "6",
-        "first_seen": "2026-07-17T10:44:17",
-        "is_current": true,
-        "issuers": [
-          "Let's Encrypt"
-        ],
-        "name": "pushgateway.noc.ietf.org",
-        "source": "ct"
-      },
-      {
-        "cert_count": "6",
-        "first_seen": "2026-07-17T16:43:40",
-        "is_current": true,
-        "issuers": [
-          "Let's Encrypt"
-        ],
-        "name": "pvm0.meeting.ietf.org",
-        "source": "ct"
-      },
-      {
-        "cert_count": "6",
-        "first_seen": "2026-07-17T16:33:40",
-        "is_current": true,
-        "issuers": [
-          "Let's Encrypt"
-        ],
-        "name": "pvm1.meeting.ietf.org",
-        "source": "ct"
-      },
-      {
-        "cert_count": "6",
-        "first_seen": "2026-07-17T16:23:41",
-        "is_current": true,
-        "issuers": [
-          "Let's Encrypt"
-        ],
-        "name": "pvm2.meeting.ietf.org",
-        "source": "ct"
-      },
-      {
-        "cert_count": "4",
+        "cert_count": "2",
         "first_seen": "2026-07-06T04:12:54",
         "is_current": true,
         "issuers": [
@@ -1498,60 +1432,19 @@
         "source": "ct"
       },
       {
-        "cert_count": "29",
-        "first_seen": "2026-07-22T17:03:00",
+        "cert_count": "19",
+        "first_seen": "2026-08-09T01:47:10",
         "is_current": true,
         "issuers": [
-          "Let's Encrypt",
-          "Google Trust Services"
+          "Google Trust Services",
+          "Let's Encrypt"
         ],
         "name": "sandbox.ietf.org",
         "source": "ct"
       },
       {
-        "cert_count": "6",
-        "first_seen": "2026-07-17T16:43:41",
-        "is_current": true,
-        "issuers": [
-          "Let's Encrypt"
-        ],
-        "name": "services-1.meeting.ietf.org",
-        "source": "ct"
-      },
-      {
-        "cert_count": "8",
-        "first_seen": "2026-07-17T16:22:41",
-        "is_current": true,
-        "issuers": [
-          "Let's Encrypt"
-        ],
-        "name": "services-2.meeting.ietf.org",
-        "source": "ct"
-      },
-      {
-        "cert_count": "2",
-        "cname_target": "management-new.meeting.ietf.org",
-        "first_seen": "2026-07-15T08:24:24",
-        "is_current": true,
-        "issuers": [
-          "Let's Encrypt"
-        ],
-        "name": "smokeping.meeting.ietf.org",
-        "source": "ct"
-      },
-      {
-        "cert_count": "4",
-        "first_seen": "2026-07-17T10:44:15",
-        "is_current": true,
-        "issuers": [
-          "Let's Encrypt"
-        ],
-        "name": "snmp-exporter.meeting.ietf.org",
-        "source": "ct"
-      },
-      {
-        "cert_count": "4",
-        "first_seen": "2026-06-05T13:17:03",
+        "cert_count": "3",
+        "first_seen": "2026-08-03T12:48:20",
         "is_current": true,
         "issuers": [
           "Let's Encrypt"
@@ -1560,8 +1453,8 @@
         "source": "ct"
       },
       {
-        "cert_count": "3",
-        "first_seen": "2026-06-12T17:58:51",
+        "cert_count": "7",
+        "first_seen": "2026-08-10T18:50:06",
         "is_current": true,
         "issuers": [
           "Google Trust Services"
@@ -1570,7 +1463,7 @@
         "source": "ct"
       },
       {
-        "cert_count": "16",
+        "cert_count": "8",
         "first_seen": "2026-07-18T09:44:33",
         "is_current": true,
         "issuers": [
@@ -1580,8 +1473,8 @@
         "source": "ct"
       },
       {
-        "cert_count": "4",
-        "first_seen": "2026-06-05T13:17:03",
+        "cert_count": "3",
+        "first_seen": "2026-08-03T12:48:20",
         "is_current": true,
         "issuers": [
           "Let's Encrypt"
@@ -1590,8 +1483,8 @@
         "source": "ct"
       },
       {
-        "cert_count": "5",
-        "first_seen": "2026-06-11T03:35:09",
+        "cert_count": "10",
+        "first_seen": "2026-08-09T04:22:34",
         "is_current": true,
         "issuers": [
           "Google Trust Services"
@@ -1600,29 +1493,29 @@
         "source": "ct"
       },
       {
-        "cert_count": "2",
+        "cert_count": "12",
         "cname_target": "cname.instatus.com",
-        "first_seen": "2026-06-17T08:51:32",
-        "is_current": true,
-        "issuers": [
-          "Let's Encrypt"
-        ],
-        "name": "status.ietf.org",
-        "source": "ct"
-      },
-      {
-        "cert_count": "4",
-        "first_seen": "2026-07-14T20:07:26",
+        "first_seen": "2026-06-01",
         "is_current": true,
         "issuers": [
           "Google Trust Services",
           "Let's Encrypt"
         ],
+        "name": "status.ietf.org",
+        "source": "dns"
+      },
+      {
+        "cert_count": "2",
+        "first_seen": "2026-07-14T20:07:26",
+        "is_current": true,
+        "issuers": [
+          "Google Trust Services"
+        ],
         "name": "store.ietf.org",
         "source": "ct"
       },
       {
-        "cert_count": "6",
+        "cert_count": "3",
         "first_seen": "2026-07-08T13:15:08",
         "is_current": true,
         "issuers": [
@@ -1632,19 +1525,19 @@
         "source": "ct"
       },
       {
-        "cert_count": "28",
-        "first_seen": "2026-07-08T07:30:40",
+        "cert_count": "15",
+        "first_seen": "2026-08-07T23:29:29",
         "is_current": true,
         "issuers": [
-          "Let's Encrypt",
-          "Google Trust Services"
+          "Google Trust Services",
+          "Let's Encrypt"
         ],
         "name": "tools.ietf.org",
         "source": "ct"
       },
       {
-        "cert_count": "3",
-        "first_seen": "2026-06-13T23:28:11",
+        "cert_count": "7",
+        "first_seen": "2026-08-12T01:06:39",
         "is_current": true,
         "issuers": [
           "Google Trust Services"
@@ -1653,8 +1546,8 @@
         "source": "ct"
       },
       {
-        "cert_count": "5",
-        "first_seen": "2026-06-11T00:32:46",
+        "cert_count": "10",
+        "first_seen": "2026-08-09T01:17:53",
         "is_current": true,
         "issuers": [
           "Google Trust Services"
@@ -1663,29 +1556,19 @@
         "source": "ct"
       },
       {
-        "cert_count": "6",
-        "cname_target": "management-new.meeting.ietf.org",
-        "first_seen": "2026-07-15T06:36:49",
+        "cert_count": "12",
+        "first_seen": "2026-06-01",
         "is_current": true,
         "issuers": [
+          "Google Trust Services",
           "Let's Encrypt"
         ],
-        "name": "traefik.meeting.ietf.org",
-        "source": "ct"
+        "name": "vault.ietf.org",
+        "source": "dns"
       },
       {
-        "cert_count": "2",
-        "first_seen": "2026-07-14T14:51:32",
-        "is_current": true,
-        "issuers": [
-          "Let's Encrypt"
-        ],
-        "name": "wifimon.meeting.ietf.org",
-        "source": "ct"
-      },
-      {
-        "cert_count": "19",
-        "first_seen": "2026-05-09",
+        "cert_count": "12",
+        "first_seen": "2026-06-01",
         "is_current": true,
         "issuers": [
           "Google Trust Services",
@@ -1695,18 +1578,8 @@
         "source": "dns"
       },
       {
-        "cert_count": "2",
-        "first_seen": "2026-07-20T06:33:05",
-        "is_current": true,
-        "issuers": [
-          "Let's Encrypt"
-        ],
-        "name": "wlc-baby.meeting.ietf.org",
-        "source": "ct"
-      },
-      {
-        "cert_count": "6",
-        "first_seen": "2026-07-14T11:49:19",
+        "cert_count": "4",
+        "first_seen": "2026-07-14T11:48:41",
         "is_current": true,
         "issuers": [
           "Let's Encrypt"
@@ -1715,8 +1588,8 @@
         "source": "ct"
       },
       {
-        "cert_count": "19",
-        "first_seen": "2026-05-09",
+        "cert_count": "12",
+        "first_seen": "2026-06-01",
         "is_current": true,
         "issuers": [
           "Google Trust Services",
@@ -1726,7 +1599,7 @@
         "source": "dns"
       },
       {
-        "cert_count": "2",
+        "cert_count": "3",
         "first_seen": "2026-07-14T20:08:27",
         "is_current": true,
         "issuers": [
@@ -1736,8 +1609,8 @@
         "source": "ct"
       },
       {
-        "cert_count": "19",
-        "first_seen": "2026-05-09",
+        "cert_count": "12",
+        "first_seen": "2026-06-01",
         "is_current": true,
         "issuers": [
           "Google Trust Services",
@@ -1747,8 +1620,8 @@
         "source": "dns"
       },
       {
-        "cert_count": "5",
-        "first_seen": "2026-06-09T23:19:41",
+        "cert_count": "8",
+        "first_seen": "2026-08-07T23:43:31",
         "is_current": true,
         "issuers": [
           "Google Trust Services"
@@ -1757,175 +1630,138 @@
         "source": "ct"
       },
       {
-        "cert_count": "1",
-        "first_seen": "2025-09-13T00:00:00",
-        "is_current": true,
-        "issuers": [
-          "Amazon"
-        ],
-        "name": "wwwdev.ietf.org",
-        "source": "ct"
-      },
-      {
-        "cert_count": "3",
-        "first_seen": "2026-06-09T03:02:37",
+        "cert_count": "7",
+        "first_seen": "2026-08-07T03:42:55",
         "is_current": true,
         "issuers": [
           "Google Trust Services"
         ],
         "name": "xml2rfc.tools.ietf.org",
         "source": "ct"
-      },
-      {
-        "cert_count": "2",
-        "first_seen": "2026-05-17T12:14:34",
-        "is_current": true,
-        "issuers": [
-          "Let's Encrypt"
-        ],
-        "name": "ztp.meeting.ietf.org",
-        "source": "ct"
       }
     ],
-    "total_certs": 398,
-    "unique_certs": 231,
-    "unique_subdomains": 128,
-    "wildcard_certs": {
-      "cert_count": 19,
-      "current": true,
-      "earliest": "2026-05-09",
-      "explicit_sans": [
-        "*.mr.ietf.org"
-      ],
-      "issuers": [
-        "Google Trust Services",
-        "Let's Encrypt"
-      ],
-      "latest_expiry": "2026-10-28",
-      "pattern": "*.ietf.org",
-      "present": true,
-      "san_count": 1
-    }
+    "total_certs": 0,
+    "unique_subdomains": 93
   },
   "currency_report": {
-    "overall_grade": "adequate",
-    "overall_score": 73,
     "dimensions": [
       {
-        "dimension": "currentness",
-        "standard": "ISO/IEC 25012",
-        "grade": "excellent",
-        "score": 100,
         "details": "All record data is within its TTL validity window",
-        "record_types_evaluated": 6
-      },
-      {
-        "dimension": "ttl_compliance",
-        "standard": "RFC 8767",
+        "dimension": "currentness",
         "grade": "excellent",
-        "score": 100,
-        "details": "All resolver TTLs are within authoritative limits (RFC 8767 compliant)",
-        "record_types_evaluated": 6
-      },
-      {
-        "dimension": "completeness",
-        "standard": "NIST SP 800-53 SI-7",
-        "grade": "degraded",
-        "score": 40,
-        "details": "9 of 15 expected record types are missing TTL data",
-        "record_types_evaluated": 6
-      },
-      {
-        "dimension": "source_credibility",
-        "standard": "ISO/IEC 25012 + SPJ",
-        "grade": "excellent",
-        "score": 100,
-        "details": "All resolvers return consistent data \u2014 high source credibility",
-        "record_types_evaluated": 4
-      },
-      {
-        "dimension": "ttl_relevance",
-        "standard": "NIST SP 800-53 SI-7",
-        "grade": "degraded",
-        "score": 25,
-        "details": "Multiple TTLs significantly deviate from standards \u2014 review DNS configuration",
         "record_types_evaluated": 6,
+        "score": 100,
+        "standard": "ISO/IEC 25012"
+      },
+      {
+        "details": "All resolver TTLs are within authoritative limits (RFC 8767 compliant)",
+        "dimension": "ttl_compliance",
+        "grade": "excellent",
+        "record_types_evaluated": 6,
+        "score": 100,
+        "standard": "RFC 8767"
+      },
+      {
+        "details": "9 of 15 expected record types are missing TTL data",
+        "dimension": "completeness",
+        "grade": "degraded",
+        "record_types_evaluated": 6,
+        "score": 40,
+        "standard": "NIST SP 800-53 SI-7"
+      },
+      {
+        "details": "All resolvers return consistent data — high source credibility",
+        "dimension": "source_credibility",
+        "grade": "excellent",
+        "record_types_evaluated": 4,
+        "score": 100,
+        "standard": "ISO/IEC 25012 + SPJ"
+      },
+      {
+        "details": "Multiple TTLs significantly deviate from standards — review DNS configuration",
+        "dimension": "ttl_relevance",
         "findings": [
           {
-            "record_type": "MX",
-            "observed_ttl": 60,
-            "typical_ttl": 3600,
-            "ratio": 0.016666666666666666,
+            "observed_ttl": 300,
+            "provider_note": "This TTL (5 minutes (300s)) matches Cloudflare's fixed proxied-record TTL. If this record is proxied (orange cloud), the TTL is enforced by Cloudflare and cannot be changed. Disable proxying (gray cloud) to regain TTL control, at the cost of losing Cloudflare's DDoS protection and CDN.",
+            "ratio": 0.08333333333333333,
+            "recommendation": "A TTL is below typical — observed 5 minutes (300s), typical value is 1 hour (3600s). Short TTLs increase DNS query volume but enable faster propagation. If you are preparing for a migration or need rapid failover, this may be intentional (RFC 1035 §3.2.1). For steady-state production, consider 3600 seconds per NIST SP 800-53 SI-7 relevance guidance. Use the TTL Tuner for profile-specific recommendations.",
+            "record_type": "A",
             "severity": "high",
             "standard": "NIST SP 800-53 SI-7",
-            "recommendation": "MX TTL is below typical \u2014 observed 1 minute (60s), typical value is 1 hour (3600s). Short TTLs increase DNS query volume but enable faster propagation. If you are preparing for a migration or need rapid failover, this may be intentional (RFC 1035 \u00a73.2.1). For steady-state production, consider 3600 seconds per NIST SP 800-53 SI-7 relevance guidance. Use the TTL Tuner for profile-specific recommendations."
+            "typical_ttl": 3600
           },
           {
-            "record_type": "NS",
+            "observed_ttl": 300,
+            "ratio": 0.08333333333333333,
+            "recommendation": "TXT TTL is below typical — observed 5 minutes (300s), typical value is 1 hour (3600s). Short TTLs increase DNS query volume but enable faster propagation. If you are preparing for a migration or need rapid failover, this may be intentional (RFC 1035 §3.2.1). For steady-state production, consider 3600 seconds per NIST SP 800-53 SI-7 relevance guidance. Use the TTL Tuner for profile-specific recommendations.",
+            "record_type": "TXT",
+            "severity": "high",
+            "standard": "NIST SP 800-53 SI-7",
+            "typical_ttl": 3600
+          },
+          {
+            "observed_ttl": 300,
+            "provider_note": "This TTL (5 minutes (300s)) matches Cloudflare's fixed proxied-record TTL. If this record is proxied (orange cloud), the TTL is enforced by Cloudflare and cannot be changed. Disable proxying (gray cloud) to regain TTL control, at the cost of losing Cloudflare's DDoS protection and CDN.",
+            "ratio": 0.08333333333333333,
+            "recommendation": "AAAA TTL is below typical — observed 5 minutes (300s), typical value is 1 hour (3600s). Short TTLs increase DNS query volume but enable faster propagation. If you are preparing for a migration or need rapid failover, this may be intentional (RFC 1035 §3.2.1). For steady-state production, consider 3600 seconds per NIST SP 800-53 SI-7 relevance guidance. Use the TTL Tuner for profile-specific recommendations.",
+            "record_type": "AAAA",
+            "severity": "high",
+            "standard": "NIST SP 800-53 SI-7",
+            "typical_ttl": 3600
+          },
+          {
+            "observed_ttl": 60,
+            "ratio": 0.016666666666666666,
+            "recommendation": "MX TTL is below typical — observed 1 minute (60s), typical value is 1 hour (3600s). Short TTLs increase DNS query volume but enable faster propagation. If you are preparing for a migration or need rapid failover, this may be intentional (RFC 1035 §3.2.1). For steady-state production, consider 3600 seconds per NIST SP 800-53 SI-7 relevance guidance. Use the TTL Tuner for profile-specific recommendations.",
+            "record_type": "MX",
+            "severity": "high",
+            "standard": "NIST SP 800-53 SI-7",
+            "typical_ttl": 3600
+          },
+          {
             "observed_ttl": 21600,
-            "typical_ttl": 86400,
             "ratio": 0.25,
+            "recommendation": "NS TTL is below typical — observed 6 hours (21600s), typical value is 1 day (86400s). Short TTLs increase DNS query volume but enable faster propagation. If you are preparing for a migration or need rapid failover, this may be intentional (RFC 1035 §3.2.1). For steady-state production, consider 86400 seconds per NIST SP 800-53 SI-7 relevance guidance. Use the TTL Tuner for profile-specific recommendations.",
+            "record_type": "NS",
             "severity": "medium",
             "standard": "NIST SP 800-53 SI-7",
-            "recommendation": "NS TTL is below typical \u2014 observed 6 hours (21600s), typical value is 1 day (86400s). Short TTLs increase DNS query volume but enable faster propagation. If you are preparing for a migration or need rapid failover, this may be intentional (RFC 1035 \u00a73.2.1). For steady-state production, consider 86400 seconds per NIST SP 800-53 SI-7 relevance guidance. Use the TTL Tuner for profile-specific recommendations."
-          },
-          {
-            "record_type": "A",
-            "observed_ttl": 300,
-            "typical_ttl": 3600,
-            "ratio": 0.08333333333333333,
-            "severity": "high",
-            "standard": "NIST SP 800-53 SI-7",
-            "recommendation": "A TTL is below typical \u2014 observed 5 minutes (300s), typical value is 1 hour (3600s). Short TTLs increase DNS query volume but enable faster propagation. If you are preparing for a migration or need rapid failover, this may be intentional (RFC 1035 \u00a73.2.1). For steady-state production, consider 3600 seconds per NIST SP 800-53 SI-7 relevance guidance. Use the TTL Tuner for profile-specific recommendations.",
-            "provider_note": "This TTL (5 minutes (300s)) matches Cloudflare's fixed proxied-record TTL. If this record is proxied (orange cloud), the TTL is enforced by Cloudflare and cannot be changed. Disable proxying (gray cloud) to regain TTL control, at the cost of losing Cloudflare's DDoS protection and CDN."
-          },
-          {
-            "record_type": "AAAA",
-            "observed_ttl": 300,
-            "typical_ttl": 3600,
-            "ratio": 0.08333333333333333,
-            "severity": "high",
-            "standard": "NIST SP 800-53 SI-7",
-            "recommendation": "AAAA TTL is below typical \u2014 observed 5 minutes (300s), typical value is 1 hour (3600s). Short TTLs increase DNS query volume but enable faster propagation. If you are preparing for a migration or need rapid failover, this may be intentional (RFC 1035 \u00a73.2.1). For steady-state production, consider 3600 seconds per NIST SP 800-53 SI-7 relevance guidance. Use the TTL Tuner for profile-specific recommendations.",
-            "provider_note": "This TTL (5 minutes (300s)) matches Cloudflare's fixed proxied-record TTL. If this record is proxied (orange cloud), the TTL is enforced by Cloudflare and cannot be changed. Disable proxying (gray cloud) to regain TTL control, at the cost of losing Cloudflare's DDoS protection and CDN."
-          },
-          {
-            "record_type": "TXT",
-            "observed_ttl": 300,
-            "typical_ttl": 3600,
-            "ratio": 0.08333333333333333,
-            "severity": "high",
-            "standard": "NIST SP 800-53 SI-7",
-            "recommendation": "TXT TTL is below typical \u2014 observed 5 minutes (300s), typical value is 1 hour (3600s). Short TTLs increase DNS query volume but enable faster propagation. If you are preparing for a migration or need rapid failover, this may be intentional (RFC 1035 \u00a73.2.1). For steady-state production, consider 3600 seconds per NIST SP 800-53 SI-7 relevance guidance. Use the TTL Tuner for profile-specific recommendations."
+            "typical_ttl": 86400
           }
-        ]
+        ],
+        "grade": "degraded",
+        "record_types_evaluated": 6,
+        "score": 25,
+        "standard": "NIST SP 800-53 SI-7"
       }
     ],
-    "resolver_count": 5,
-    "record_count": 6,
-    "guidance": "DNS data shows some aging or gaps \u2014 consider re-scanning for critical decisions",
+    "guidance": "DNS data shows some aging or gaps — consider re-scanning for critical decisions",
+    "overall_grade": "adequate",
+    "overall_score": 73,
     "provider_name": "Cloudflare",
+    "record_count": 6,
+    "resolver_count": 5,
     "soa_compliance": {
-      "provider": "Cloudflare",
-      "has_soa": true,
-      "serial": "2410901519",
-      "refresh": 10000,
-      "retry": 2400,
-      "expire": 604800,
-      "min_ttl": 1800,
-      "primary_ns": "jill.ns.cloudflare.com",
       "admin_email": "dns.cloudflare.com",
+      "expire": 604800,
       "findings": [
         {
+          "explanation": "SOA Expire is 7 days (604800s). RFC 1912 §2.2 recommends 1,209,600–2,419,200 seconds (14–28 days). If the primary nameserver becomes unreachable, secondary nameservers will stop serving this zone after only 7 days (604800s). Cloudflare's anycast architecture reduces the practical risk, but this value departs from the RFC recommendation.",
           "field": "Expire",
           "observed": "7 days (604800s)",
-          "rfc_range": "14\u201328 days (1,209,600\u20132,419,200s)",
-          "rfc": "RFC 1912 \u00a72.2",
+          "rfc": "RFC 1912 §2.2",
           "rfc_link": "https://www.rfc-editor.org/rfc/rfc1912.html#section-2.2:~:text=The%20SOA%20record,expire%20interval",
-          "severity": "warning",
-          "explanation": "SOA Expire is 7 days (604800s). RFC 1912 \u00a72.2 recommends 1,209,600\u20132,419,200 seconds (14\u201328 days). If the primary nameserver becomes unreachable, secondary nameservers will stop serving this zone after only 7 days (604800s). Cloudflare's anycast architecture reduces the practical risk, but this value departs from the RFC recommendation."
+          "rfc_range": "14–28 days (1,209,600–2,419,200s)",
+          "severity": "warning"
         }
-      ]
+      ],
+      "has_soa": true,
+      "min_ttl": 1800,
+      "primary_ns": "jill.ns.cloudflare.com",
+      "provider": "Cloudflare",
+      "refresh": 10000,
+      "retry": 2400,
+      "serial": "2412430342"
     }
   },
   "dane_analysis": {
@@ -1933,11 +1769,11 @@
     "dane_state": "present",
     "dnssec_authenticated": true,
     "dnssec_chain_status": "unknown",
-    "dnssec_required_note": "DANE requires DNSSEC (RFC 6698 \u00a71). TLSA records are only validated when the zone is DNSSEC-signed.",
+    "dnssec_required_note": "DANE requires DNSSEC (RFC 6698 §1). TLSA records are only validated when the zone is DNSSEC-signed.",
     "has_dane": true,
     "indeterminate_hosts": [],
     "issues": null,
-    "message": "DANE configured \u2014 TLSA records found for all 1 MX host",
+    "message": "DANE configured — TLSA records found for all 1 MX host",
     "mx_hosts_checked": 1,
     "mx_hosts_indeterminate": 0,
     "mx_hosts_with_dane": 1,
@@ -2014,8 +1850,8 @@
       "consistent": true,
       "issues": [],
       "serials": {
-        "jill.ns.cloudflare.com": 2410901519,
-        "ken.ns.cloudflare.com": 2410901519
+        "jill.ns.cloudflare.com": 2412430342,
+        "ken.ns.cloudflare.com": 2412430342
       },
       "unique_count": 1
     },
@@ -2030,19 +1866,48 @@
     }
   },
   "dkim_analysis": {
+    "all_revoked": false,
+    "dkim_state": "present",
     "domainkey_delegation": null,
     "found_providers": null,
-    "key_issues": null,
+    "key_issues": [
+      "1024-bit key (weak, upgrade to 2048)"
+    ],
     "key_strengths": null,
-    "message": "DKIM not discoverable via common selectors (large providers use rotating selectors)",
+    "message": "Found 1 DKIM selector(s) with weak key(s) (below 2048-bit RSA)",
     "mx_legacy_note": "",
     "primary_dkim_note": "",
     "primary_has_dkim": false,
     "primary_provider": "Unknown",
+    "probe_scope": 81,
     "security_gateway": null,
-    "selectors": {},
+    "selector_source": "defaults_only",
+    "selectors": {
+      "mail._domainkey": {
+        "key_info": [
+          {
+            "issues": [
+              "1024-bit key (weak, upgrade to 2048)"
+            ],
+            "key_bits": 1024,
+            "key_strength": "weak",
+            "key_strength_label": "Weak",
+            "key_strength_observation": "1024-bit RSA — minimum per RFC 8301, upgrade to 2048-bit recommended",
+            "key_strength_rfc": "RFC 8301",
+            "key_type": "rsa",
+            "revoked": false,
+            "test_mode": false
+          }
+        ],
+        "provider": "Unknown",
+        "records": [
+          "v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCzUHYJkaZNMWB4uSaEnYPE7S4TvYk3WP90P5SeV+0YUEchKAeK+IbvrUjfWMtLd/Nvq8Gn5/V1Q+jHAW9CDyAxJeDhiL9MXPggksaXlENmU98Zcx+M8E5VAtyDv2Lztc1vJtSOYNQxeZZzcJqTWnmbTroLDsDGBhAJeMr8FFnHEQIDAQAB"
+        ],
+        "user_hint": false
+      }
+    },
     "spf_ancillary_note": "SPF authorizes Google Workspace servers, but MX records point to self-hosted infrastructure. The Google Workspace SPF include likely supports ancillary services (e.g., calendar invitations, shared documents) rather than primary mailbox hosting.",
-    "status": "info",
+    "status": "warning",
     "third_party_only": false,
     "wildcard_dkim": false
   },
@@ -2066,9 +1931,9 @@
     "rua": "mailto:dmarc_agg@vali.email,mailto:dmarc-report@ietf.org",
     "ruf": null,
     "ruf_note": {
-      "detail": "The absence of ruf= is not a gap. RFC 7489 \u00a77.3 warns that forensic reports can expose PII (full message headers or bodies). Google, Microsoft, and Yahoo do not honour ruf= requests regardless. The DMARCbis draft (draft-ietf-dmarc-dmarcbis) has formally removed ruf= from the specification, confirming its deprecation. Omitting ruf= is the recommended modern practice.",
+      "detail": "The absence of ruf= is not a gap. RFC 7489 §7.3 warns that forensic reports can expose PII (full message headers or bodies). Google, Microsoft, and Yahoo do not honour ruf= requests regardless. The DMARCbis draft (draft-ietf-dmarc-dmarcbis) has formally removed ruf= from the specification, confirming its deprecation. Omitting ruf= is the recommended modern practice.",
       "status": "absent",
-      "summary": "No forensic reporting (ruf) tag \u2014 this is correct."
+      "summary": "No forensic reporting (ruf) tag — this is correct."
     },
     "status": "warning",
     "subdomain_policy": null,
@@ -2083,9 +1948,9 @@
     "external_domains": [
       {
         "auth_domain": "ietf.org._report._dmarc.vali.email",
-        "auth_record": "",
-        "auth_state": "indeterminate",
-        "authorized": false,
+        "auth_record": "v=DMARC1;",
+        "auth_state": "authorized",
+        "authorized": true,
         "confidence": {
           "label": "Observed",
           "level": "observed",
@@ -2098,11 +1963,9 @@
       }
     ],
     "issues": [],
-    "message": "Could not verify 1 of 1 external reporting domains \u2014 DNS lookup did not complete",
-    "notices": [
-      "Could not verify external reporting authorization for vali.email \u2014 the DNS lookup for ietf.org._report._dmarc.vali.email did not complete. Treated as unverified, not a finding; re-run to confirm."
-    ],
-    "status": "indeterminate"
+    "message": "All 1 external reporting domains properly authorized",
+    "notices": [],
+    "status": "success"
   },
   "dns_infrastructure": {
     "alt_security_items": [
@@ -2120,20 +1983,39 @@
     "provider_tier": "enterprise"
   },
   "dnssec_analysis": {
+    "ad_consensus": "secure",
     "ad_flag": true,
-    "ad_resolver": "1.1.1.1",
-    "algorithm": null,
-    "algorithm_name": null,
-    "algorithm_observation": null,
-    "chain_of_trust": "inherited",
-    "dnskey_records": [],
+    "ad_resolver": "Cloudflare",
+    "algorithm": 13,
+    "algorithm_name": "ECDSA P-256/SHA-256",
+    "algorithm_observation": {
+      "label": "Modern",
+      "observation": "ECDSA P-256/SHA-256 — MUST implement, recommended default (RFC 8624 §3.1)",
+      "quantum_note": "All current DNSSEC algorithms use classical cryptography. Post-quantum DNSSEC standards are in active IETF development (draft-sheth-pqc-dnssec-strategy) but no PQC algorithms have been standardized for DNSSEC yet.",
+      "rfc": "RFC 8624 / RFC 9157",
+      "strength": "modern"
+    },
+    "chain_of_trust": "complete",
+    "display_label": "Signed",
+    "display_severity": "success",
+    "dnskey_records": [
+      "256 3 13 oJMRESz5E4gYzS/q6XDrvU1qMPYIjCWzJaOau8XNEZeqCYKD5ar0IRd8KqXXFJkqmVfRvMGPmM1x8fGAa2XhSA==",
+      "257 3 13 mdsswUyr3DPW132mOi8V9xESWE8jTo0dxCjjnopKl+GqJxpVXckHAeF+KkxLbxILfDLUT0rAK9iUzy1L53eKGQ=="
+    ],
     "dnssec_state": "present",
-    "ds_records": [],
-    "has_dnskey": false,
-    "has_ds": false,
-    "is_subdomain": true,
-    "message": "DNSSEC validated by resolver - DNS responses are authenticated",
-    "parent_zone": "",
+    "ds_records": [
+      "2371 13 2 B1AE88AFF068DDEC3F7FF662F47D6599C74134425C67106E6C203942D6227EA4"
+    ],
+    "has_dnskey": true,
+    "has_ds": true,
+    "message": "DNSSEC fully configured and validated — AD (Authenticated Data) flag set by validating resolvers confirming cryptographic chain of trust from root to zone (RFC 4035 §3.2.3)",
+    "resolver_ad": {
+      "Cloudflare": "secure",
+      "DNS4EU": "secure",
+      "Google": "secure",
+      "OpenDNS": "secure",
+      "Quad9": "secure"
+    },
     "status": "success"
   },
   "dnssec_ops": {
@@ -2141,7 +2023,7 @@
       "method": "NSEC"
     },
     "issues": [
-      "CDS/CDNSKEY automation present but only single KSK \u2014 pre-publish second KSK before rollover"
+      "CDS/CDNSKEY automation present but only single KSK — pre-publish second KSK before rollover"
     ],
     "key_count": 2,
     "keys": [
@@ -2187,12 +2069,14 @@
   "domain_status": "active",
   "domain_status_message": null,
   "edge_cdn": {
-    "cdn_indicators": [],
-    "cdn_provider": "",
-    "is_behind_cdn": false,
+    "cdn_indicators": [
+      "ASN 13335 is Cloudflare"
+    ],
+    "cdn_provider": "Cloudflare",
+    "is_behind_cdn": true,
     "issues": [],
-    "message": "Domain appears to use direct origin hosting",
-    "origin_visible": true,
+    "message": "Domain is served through Cloudflare",
+    "origin_visible": false,
     "status": "success"
   },
   "email_security_mgmt": {
@@ -2208,183 +2092,183 @@
   },
   "ewma_drift": {
     "ChainCompleteness": {
-      "Value": 48,
-      "UCL": 56,
-      "LCL": 44,
+      "LCL": 40.87734775407941,
       "OutOfControl": false,
-      "Trend": "stable",
-      "Period": 1
+      "Period": 4,
+      "Trend": "declining",
+      "UCL": 59.12265224592059,
+      "Value": 43.88266666666667
     },
     "ResolverConsensus": {
-      "Value": 45,
-      "UCL": 56,
-      "LCL": 44,
-      "OutOfControl": false,
-      "Trend": "stable",
-      "Period": 1
+      "LCL": 40.87734775407941,
+      "OutOfControl": true,
+      "Period": 4,
+      "Trend": "improving",
+      "UCL": 59.12265224592059,
+      "Value": 32.2152380952381
     },
     "SourceCredibility": {
-      "Value": 60,
-      "UCL": 56,
-      "LCL": 44,
+      "LCL": 40.87734775407941,
       "OutOfControl": true,
-      "Trend": "stable",
-      "Period": 1
+      "Period": 4,
+      "Trend": "declining",
+      "UCL": 59.12265224592059,
+      "Value": 78.72000000000001
     },
     "TTLCompliance": {
-      "Value": 60,
-      "UCL": 56,
-      "LCL": 44,
+      "LCL": 40.87734775407941,
       "OutOfControl": true,
+      "Period": 4,
       "Trend": "stable",
-      "Period": 1
+      "UCL": 59.12265224592059,
+      "Value": 79.52000000000001
     },
     "TemporalValidity": {
-      "Value": 60,
-      "UCL": 56,
-      "LCL": 44,
+      "LCL": 40.87734775407941,
       "OutOfControl": true,
+      "Period": 4,
       "Trend": "stable",
-      "Period": 1
+      "UCL": 59.12265224592059,
+      "Value": 79.52000000000001
     }
   },
   "freshness_matrix": {
     "entries": [
       {
+        "observed_ttl_seconds": 300,
+        "propagation_note": "A records typically propagate within 5 minutes. Some resolvers may cache up to the TTL value.",
         "record_type": "A",
-        "observed_ttl_seconds": 300,
-        "typical_ttl_seconds": 300,
         "rescan_after_seconds": 330,
         "rescan_label": "5 minutes",
-        "propagation_note": "A records typically propagate within 5 minutes. Some resolvers may cache up to the TTL value."
+        "typical_ttl_seconds": 300
       },
       {
+        "observed_ttl_seconds": 300,
+        "propagation_note": "AAAA records follow the same propagation pattern as A records.",
         "record_type": "AAAA",
-        "observed_ttl_seconds": 300,
-        "typical_ttl_seconds": 300,
         "rescan_after_seconds": 330,
         "rescan_label": "5 minutes",
-        "propagation_note": "AAAA records follow the same propagation pattern as A records."
+        "typical_ttl_seconds": 300
       },
       {
-        "record_type": "MX",
         "observed_ttl_seconds": 60,
-        "typical_ttl_seconds": 3600,
+        "propagation_note": "MX record changes may take up to 1 hour to propagate. Mail delivery may be affected during transition.",
+        "record_type": "MX",
         "rescan_after_seconds": 66,
         "rescan_label": "1 minute",
-        "propagation_note": "MX record changes may take up to 1 hour to propagate. Mail delivery may be affected during transition."
+        "typical_ttl_seconds": 3600
       },
       {
-        "record_type": "TXT",
         "observed_ttl_seconds": 300,
-        "typical_ttl_seconds": 3600,
+        "propagation_note": "TXT records (including SPF) typically propagate within 1 hour. Verify with multiple resolvers.",
+        "record_type": "TXT",
         "rescan_after_seconds": 330,
         "rescan_label": "5 minutes",
-        "propagation_note": "TXT records (including SPF) typically propagate within 1 hour. Verify with multiple resolvers."
+        "typical_ttl_seconds": 3600
       },
       {
-        "record_type": "NS",
         "observed_ttl_seconds": 21600,
-        "typical_ttl_seconds": 86400,
+        "propagation_note": "Nameserver changes can take 24–48 hours for full global propagation due to parent zone TTLs.",
+        "record_type": "NS",
         "rescan_after_seconds": 23761,
         "rescan_label": "6 hours",
-        "propagation_note": "Nameserver changes can take 24\u201348 hours for full global propagation due to parent zone TTLs."
+        "typical_ttl_seconds": 86400
       },
       {
-        "record_type": "CNAME",
         "observed_ttl_seconds": 0,
-        "typical_ttl_seconds": 300,
+        "propagation_note": "CNAME changes propagate quickly but downstream records inherit the CNAME TTL.",
+        "record_type": "CNAME",
         "rescan_after_seconds": 330,
         "rescan_label": "5 minutes",
-        "propagation_note": "CNAME changes propagate quickly but downstream records inherit the CNAME TTL."
+        "typical_ttl_seconds": 300
       },
       {
-        "record_type": "CAA",
         "observed_ttl_seconds": 0,
-        "typical_ttl_seconds": 3600,
+        "propagation_note": "CAA record changes take effect within TTL. Certificate authorities check at issuance time.",
+        "record_type": "CAA",
         "rescan_after_seconds": 3961,
         "rescan_label": "1 hour",
-        "propagation_note": "CAA record changes take effect within TTL. Certificate authorities check at issuance time."
+        "typical_ttl_seconds": 3600
       },
       {
-        "record_type": "SOA",
         "observed_ttl_seconds": 1800,
-        "typical_ttl_seconds": 3600,
+        "propagation_note": "SOA changes propagate to secondaries based on the Refresh interval in the SOA record.",
+        "record_type": "SOA",
         "rescan_after_seconds": 1981,
         "rescan_label": "33 minutes",
-        "propagation_note": "SOA changes propagate to secondaries based on the Refresh interval in the SOA record."
+        "typical_ttl_seconds": 3600
       },
       {
+        "observed_ttl_seconds": 0,
+        "propagation_note": "SPF record changes propagate within the TXT record TTL. Test with dig before relying on scan results.",
         "record_type": "SPF",
-        "observed_ttl_seconds": 0,
-        "typical_ttl_seconds": 3600,
         "rescan_after_seconds": 3961,
         "rescan_label": "1 hour",
-        "propagation_note": "SPF record changes propagate within the TXT record TTL. Test with dig before relying on scan results."
+        "typical_ttl_seconds": 3600
       },
       {
+        "observed_ttl_seconds": 0,
+        "propagation_note": "DMARC policy changes at _dmarc subdomain propagate within TTL. Reporting changes take 24–48h to reflect in aggregate reports.",
         "record_type": "DMARC",
-        "observed_ttl_seconds": 0,
-        "typical_ttl_seconds": 3600,
         "rescan_after_seconds": 3961,
         "rescan_label": "1 hour",
-        "propagation_note": "DMARC policy changes at _dmarc subdomain propagate within TTL. Reporting changes take 24\u201348h to reflect in aggregate reports."
+        "typical_ttl_seconds": 3600
       },
       {
+        "observed_ttl_seconds": 0,
+        "propagation_note": "DKIM selector records propagate within TTL. New selectors are available immediately once published; key rotation requires overlap period.",
         "record_type": "DKIM",
-        "observed_ttl_seconds": 0,
-        "typical_ttl_seconds": 3600,
         "rescan_after_seconds": 3961,
         "rescan_label": "1 hour",
-        "propagation_note": "DKIM selector records propagate within TTL. New selectors are available immediately once published; key rotation requires overlap period."
+        "typical_ttl_seconds": 3600
       },
       {
+        "observed_ttl_seconds": 0,
+        "propagation_note": "MTA-STS policy changes require updating both the DNS TXT record AND the policy file at /.well-known/mta-sts.txt. The max_age directive in the policy controls how long senders cache it.",
         "record_type": "MTA-STS",
-        "observed_ttl_seconds": 0,
-        "typical_ttl_seconds": 86400,
         "rescan_after_seconds": 86400,
         "rescan_label": "24 hours",
-        "propagation_note": "MTA-STS policy changes require updating both the DNS TXT record AND the policy file at /.well-known/mta-sts.txt. The max_age directive in the policy controls how long senders cache it."
+        "typical_ttl_seconds": 86400
       },
       {
+        "observed_ttl_seconds": 0,
+        "propagation_note": "TLS-RPT changes propagate within TTL. Report delivery changes take effect in the next reporting period (typically 24 hours).",
         "record_type": "TLS-RPT",
-        "observed_ttl_seconds": 0,
-        "typical_ttl_seconds": 3600,
         "rescan_after_seconds": 3961,
         "rescan_label": "1 hour",
-        "propagation_note": "TLS-RPT changes propagate within TTL. Report delivery changes take effect in the next reporting period (typically 24 hours)."
+        "typical_ttl_seconds": 3600
       },
       {
+        "observed_ttl_seconds": 0,
+        "propagation_note": "BIMI record changes propagate within TTL. VMC certificate validation by mail providers may take additional time.",
         "record_type": "BIMI",
-        "observed_ttl_seconds": 0,
-        "typical_ttl_seconds": 3600,
         "rescan_after_seconds": 3961,
         "rescan_label": "1 hour",
-        "propagation_note": "BIMI record changes propagate within TTL. VMC certificate validation by mail providers may take additional time."
+        "typical_ttl_seconds": 3600
       },
       {
+        "observed_ttl_seconds": 0,
+        "propagation_note": "TLSA/DANE records must be published BEFORE rotating TLS certificates. Premature certificate rotation breaks DANE validation.",
         "record_type": "TLSA",
-        "observed_ttl_seconds": 0,
-        "typical_ttl_seconds": 3600,
         "rescan_after_seconds": 3961,
         "rescan_label": "1 hour",
-        "propagation_note": "TLSA/DANE records must be published BEFORE rotating TLS certificates. Premature certificate rotation breaks DANE validation."
+        "typical_ttl_seconds": 3600
       },
       {
-        "record_type": "DNSSEC",
         "observed_ttl_seconds": 0,
-        "typical_ttl_seconds": 86400,
+        "propagation_note": "DNSSEC signing changes (DS record updates at registrar) can take 24–48 hours. Key rollovers require careful timing per RFC 7583.",
+        "record_type": "DNSSEC",
         "rescan_after_seconds": 86400,
         "rescan_label": "24 hours",
-        "propagation_note": "DNSSEC signing changes (DS record updates at registrar) can take 24\u201348 hours. Key rollovers require careful timing per RFC 7583."
+        "typical_ttl_seconds": 86400
       },
       {
-        "record_type": "DANE",
         "observed_ttl_seconds": 0,
-        "typical_ttl_seconds": 3600,
+        "propagation_note": "DANE/TLSA record updates follow the TLSA TTL. Coordinate with TLS certificate lifecycle.",
+        "record_type": "DANE",
         "rescan_after_seconds": 3961,
         "rescan_label": "1 hour",
-        "propagation_note": "DANE/TLSA record updates follow the TLSA TTL. Coordinate with TLS certificate lifecycle."
+        "typical_ttl_seconds": 3600
       }
     ],
     "entry_count": 17,
@@ -2400,8 +2284,12 @@
     "domain": "ietf.org",
     "email_confidence": {},
     "email_hosting": "Unknown",
-    "hosting": "Unknown",
-    "hosting_confidence": {}
+    "hosting": "Cloudflare (CDN)",
+    "hosting_confidence": {
+      "label": "Inferred",
+      "level": "inferred",
+      "method": "ASN and CNAME pattern matching"
+    }
   },
   "https_svcb": {
     "has_https": true,
@@ -2434,419 +2322,425 @@
     "svcb_records": []
   },
   "icsae_classification": {
-    "real_fix_count": 3,
-    "color": "danger",
-    "real_fixes": [
-      "DMARC_ENFORCEMENT",
-      "SPF_EFFECTIVE_POLICY",
-      "CAA_RESTRICTION_PRESENT"
-    ],
     "by_design": null,
-    "platform_limited": null,
+    "color": "danger",
     "couldnt_verify": [
       "DKIM_PRESENT",
       "DELEGATION_CONSISTENT"
     ],
     "hygiene": [
+      "MAIL_POLICY_SIGNALING",
       "SECURITY_TXT_PRESENT"
+    ],
+    "platform_limited": null,
+    "real_fix_count": 3,
+    "real_fixes": [
+      "DMARC_ENFORCEMENT",
+      "SPF_EFFECTIVE_POLICY",
+      "CAA_RESTRICTION_PRESENT"
     ]
   },
   "icsae_evaluation": {
-    "schema_version": 8,
-    "total_controls": 16,
-    "passed_count": 9,
-    "failed_count": 6,
-    "na_count": 1,
+    "failed_count": 7,
     "high_failures": [
       "DMARC_ENFORCEMENT"
     ],
+    "low_failures": [
+      "MAIL_POLICY_SIGNALING",
+      "SECURITY_TXT_PRESENT"
+    ],
+    "mapped_controls": 5,
+    "measured_controls": 15,
     "medium_failures": [
       "SPF_EFFECTIVE_POLICY",
       "DKIM_PRESENT",
       "CAA_RESTRICTION_PRESENT",
       "DELEGATION_CONSISTENT"
     ],
-    "low_failures": [
-      "SECURITY_TXT_PRESENT"
+    "na_count": 1,
+    "not_applicable": [
+      "NO_MAIL_HARDENED"
     ],
+    "not_measured": null,
+    "not_measured_count": 0,
+    "null_observations": null,
     "passed": [
       "DNSSEC_AUTHENTICATED",
       "DNSSEC_CHAIN_TRUSTED",
       "DNSSEC_KEY_ROLLOVER",
-      "MAIL_POLICY_SIGNALING",
       "DANE_DEPLOYED",
       "BIMI_CONFIGURED",
       "DANGLING_DNS_CLEAN",
       "SECRET_EXPOSURE_CLEAN",
       "HTTPS_SVCB_MODERN"
     ],
-    "not_applicable": [
-      "NO_MAIL_HARDENED"
-    ],
+    "passed_count": 8,
     "results": [
       {
         "id": "DNSSEC_AUTHENTICATED",
-        "title": "DNSSEC Authentication",
-        "status": "passed",
-        "severity": "high",
-        "standards": [
-          "ISO_27002_2022:8.24",
-          "INCITS_585_2025:PW.6"
-        ],
         "rfcs": [
           "RFC4033",
           "RFC4034",
           "RFC4035"
         ],
+        "severity": "high",
+        "standards": [
+          "ISO_27002_2022:8.24",
+          "INCITS_585_2025:PW.6"
+        ],
+        "status": "passed",
+        "title": "DNSSEC Authentication",
         "weakness_refs": {
-          "cwe": [
-            "CWE-345",
-            "CWE-300"
-          ],
           "capec": [
             "CAPEC-142",
             "CAPEC-141"
           ],
-          "vrt": [
-            "VRT:missing_dnssec"
+          "cwe": [
+            "CWE-345",
+            "CWE-300"
           ],
           "mapping_confidence": "high",
-          "mapping_rationale": "Absent DNSSEC means resolvers cannot verify the authenticity of DNS data (CWE-345), exposing the resolution path to on-path forgery (CWE-300) and cache poisoning (CAPEC-142/141). Mapping verified against MITRE CWE/CAPEC and Bugcrowd VRT."
+          "mapping_rationale": "Absent DNSSEC means resolvers cannot verify the authenticity of DNS data (CWE-345), exposing the resolution path to on-path forgery (CWE-300) and cache poisoning (CAPEC-142/141). Mapping verified against MITRE CWE/CAPEC and Bugcrowd VRT.",
+          "vrt": [
+            "VRT:missing_dnssec"
+          ]
         }
       },
       {
         "id": "DNSSEC_CHAIN_TRUSTED",
-        "title": "DNSSEC Chain of Trust Validated",
-        "status": "passed",
-        "severity": "high",
-        "standards": [
-          "ISO_27002_2022:8.24"
-        ],
         "rfcs": [
           "RFC4033",
           "RFC4035"
         ],
+        "severity": "high",
+        "standards": [
+          "ISO_27002_2022:8.24"
+        ],
+        "status": "passed",
+        "title": "DNSSEC Chain of Trust Validated",
         "weakness_refs": {
-          "cwe": [
-            "CWE-345"
-          ],
           "capec": [
             "CAPEC-142"
           ],
-          "vrt": [
-            "VRT:missing_dnssec"
+          "cwe": [
+            "CWE-345"
           ],
           "mapping_confidence": "high",
-          "mapping_rationale": "A broken or unvalidated chain of trust leaves DNS answers unauthenticated (CWE-345), the precondition for DNS cache poisoning (CAPEC-142). Mapping verified against MITRE CWE/CAPEC and Bugcrowd VRT."
+          "mapping_rationale": "A broken or unvalidated chain of trust leaves DNS answers unauthenticated (CWE-345), the precondition for DNS cache poisoning (CAPEC-142). Mapping verified against MITRE CWE/CAPEC and Bugcrowd VRT.",
+          "vrt": [
+            "VRT:missing_dnssec"
+          ]
         }
       },
       {
         "id": "DNSSEC_KEY_ROLLOVER",
-        "title": "DNSSEC Key Rollover Readiness",
-        "status": "passed",
+        "rfcs": [
+          "RFC8078"
+        ],
         "severity": "medium",
         "standards": [
           "ISO_27002_2022:8.24",
           "INCITS_585_2025:PS.3"
         ],
-        "rfcs": [
-          "RFC8078"
-        ]
+        "status": "passed",
+        "title": "DNSSEC Key Rollover Readiness"
       },
       {
         "id": "NO_MAIL_HARDENED",
-        "title": "No-Mail Domain Hardening",
-        "status": "not_applicable",
-        "severity": "medium",
-        "standards": [
-          "ISO_27002_2022:8.23",
-          "NIST_800_177:\u00a74.3"
-        ],
         "rfcs": [
           "RFC7208",
           "RFC7489",
           "RFC5321"
-        ]
-      },
-      {
-        "id": "SPF_EFFECTIVE_POLICY",
-        "title": "SPF Effective Authorization Policy",
-        "status": "failed",
+        ],
         "severity": "medium",
         "standards": [
           "ISO_27002_2022:8.23",
-          "NIST_800_177:\u00a74.3.1"
+          "NIST_800_177:§4.3"
         ],
+        "status": "not_applicable",
+        "title": "No-Mail Domain Hardening"
+      },
+      {
+        "fail_explanation": "SPF policy is permissive without DMARC enforcement. SPF softfail (~all) without DMARC p=reject or p=quarantine leaves email authorization unenforced. Per RFC 7489, DMARC provides the enforcement layer that makes SPF softfail operationally effective. Either tighten SPF to -all or deploy DMARC with an enforcement policy.",
+        "id": "SPF_EFFECTIVE_POLICY",
         "rfcs": [
           "RFC7208",
           "RFC7489"
         ],
-        "fail_explanation": "SPF policy is permissive without DMARC enforcement. SPF softfail (~all) without DMARC p=reject or p=quarantine leaves email authorization unenforced. Per RFC 7489, DMARC provides the enforcement layer that makes SPF softfail operationally effective. Either tighten SPF to -all or deploy DMARC with an enforcement policy.",
+        "severity": "medium",
+        "standards": [
+          "ISO_27002_2022:8.23",
+          "NIST_800_177:§4.3.1"
+        ],
+        "status": "failed",
+        "title": "SPF Effective Authorization Policy",
         "weakness_refs": {
-          "cwe": [
-            "CWE-290"
-          ],
           "capec": [
             "CAPEC-194",
             "CAPEC-151"
           ],
-          "vrt": null,
-          "mapping_confidence": "medium",
-          "mapping_rationale": "Permissive SPF without DMARC enforcement lets a forged sender bypass origin authentication (CWE-290) by faking the source domain (CAPEC-194/151). SPF is contributory, so confidence is medium; VRT files this failure mode under the DMARC entry. CWE/CAPEC verified against MITRE."
-        }
-      },
-      {
-        "id": "DMARC_ENFORCEMENT",
-        "title": "DMARC Policy Enforcement",
-        "status": "failed",
-        "severity": "high",
-        "standards": [
-          "ISO_27002_2022:8.23",
-          "NIST_800_177:\u00a74.6.1"
-        ],
-        "rfcs": [
-          "RFC7489"
-        ],
-        "fail_explanation": "DMARC policy is not set to reject. Per RFC 7489 \u00a76.3, only p=reject instructs receivers to discard unauthenticated messages. NIST SP 800-177 Rev. 1 \u00a74.6.1 recommends reject for all production domains.",
-        "weakness_refs": {
           "cwe": [
             "CWE-290"
           ],
+          "mapping_confidence": "medium",
+          "mapping_rationale": "Permissive SPF without DMARC enforcement lets a forged sender bypass origin authentication (CWE-290) by faking the source domain (CAPEC-194/151). SPF is contributory, so confidence is medium; VRT files this failure mode under the DMARC entry. CWE/CAPEC verified against MITRE.",
+          "vrt": null
+        }
+      },
+      {
+        "fail_explanation": "DMARC policy is not set to reject. Per RFC 7489 §6.3, only p=reject instructs receivers to discard unauthenticated messages. NIST SP 800-177 Rev. 1 §4.6.1 recommends reject for all production domains.",
+        "id": "DMARC_ENFORCEMENT",
+        "rfcs": [
+          "RFC7489"
+        ],
+        "severity": "high",
+        "standards": [
+          "ISO_27002_2022:8.23",
+          "NIST_800_177:§4.6.1"
+        ],
+        "status": "failed",
+        "title": "DMARC Policy Enforcement",
+        "weakness_refs": {
           "capec": [
             "CAPEC-151",
             "CAPEC-194",
             "CAPEC-163"
           ],
-          "vrt": [
-            "VRT:email_spoofing_to_inbox_due_to_missing_or_misconfigured_dmarc_on_email_domain"
+          "cwe": [
+            "CWE-290"
           ],
           "mapping_confidence": "high",
-          "mapping_rationale": "p=none and p=quarantine do not instruct receivers to reject unauthenticated mail, so sender authentication is effectively bypassed (CWE-290), enabling domain identity spoofing (CAPEC-151), forged-source mail (CAPEC-194) and spear phishing (CAPEC-163). This is the flagship false-green-checkmark gap: tools mark DMARC present as compliant while the domain remains spoofable. Mapping verified against MITRE CWE/CAPEC and Bugcrowd VRT."
+          "mapping_rationale": "p=none and p=quarantine do not instruct receivers to reject unauthenticated mail, so sender authentication is effectively bypassed (CWE-290), enabling domain identity spoofing (CAPEC-151), forged-source mail (CAPEC-194) and spear phishing (CAPEC-163). This is the flagship false-green-checkmark gap: tools mark DMARC present as compliant while the domain remains spoofable. Mapping verified against MITRE CWE/CAPEC and Bugcrowd VRT.",
+          "vrt": [
+            "VRT:email_spoofing_to_inbox_due_to_missing_or_misconfigured_dmarc_on_email_domain"
+          ]
         }
       },
       {
+        "fail_explanation": "DKIM not discoverable for this mail-sending domain. Per RFC 6376, DKIM provides cryptographic proof of message origin. Without DKIM, email from this domain cannot be cryptographically verified by receivers.",
         "id": "DKIM_PRESENT",
-        "title": "DKIM Signature Availability",
-        "status": "failed",
-        "severity": "medium",
-        "standards": [
-          "ISO_27002_2022:8.24",
-          "NIST_800_177:\u00a74.5"
-        ],
         "rfcs": [
           "RFC6376",
           "RFC8301"
         ],
-        "fail_explanation": "DKIM not discoverable for this mail-sending domain. Per RFC 6376, DKIM provides cryptographic proof of message origin. Without DKIM, email from this domain cannot be cryptographically verified by receivers."
+        "severity": "medium",
+        "standards": [
+          "ISO_27002_2022:8.24",
+          "NIST_800_177:§4.5"
+        ],
+        "status": "failed",
+        "title": "DKIM Signature Availability"
       },
       {
+        "fail_explanation": "No mail transport policy signaling detected. Per RFC 8461, MTA-STS allows domains to declare TLS requirements for inbound SMTP. Per RFC 8460, TLS-RPT enables monitoring of TLS delivery failures.",
         "id": "MAIL_POLICY_SIGNALING",
-        "title": "Mail Transport Policy Signaling",
-        "status": "passed",
-        "severity": "low",
-        "standards": [
-          "ISO_27002_2022:8.20",
-          "NIST_800_177:\u00a75.2"
-        ],
         "rfcs": [
           "RFC8461",
           "RFC8460"
-        ]
+        ],
+        "severity": "low",
+        "standards": [
+          "ISO_27002_2022:8.20",
+          "NIST_800_177:§5.2"
+        ],
+        "status": "failed",
+        "title": "Mail Transport Policy Signaling"
       },
       {
+        "fail_explanation": "No CAA records found — any Certificate Authority can issue certificates for this domain. Per RFC 8659 §4.2, CAs are required to check CAA records before issuance. Without CAA, misissued certificates cannot be prevented at the DNS layer.",
         "id": "CAA_RESTRICTION_PRESENT",
-        "title": "CAA Certificate Issuance Restriction",
-        "status": "failed",
-        "severity": "medium",
-        "standards": [
-          "ISO_27002_2022:8.24"
-        ],
         "rfcs": [
           "RFC8659",
           "RFC9495"
         ],
-        "fail_explanation": "No CAA records found \u2014 any Certificate Authority can issue certificates for this domain. Per RFC 8659 \u00a74.2, CAs are required to check CAA records before issuance. Without CAA, misissued certificates cannot be prevented at the DNS layer."
+        "severity": "medium",
+        "standards": [
+          "ISO_27002_2022:8.24"
+        ],
+        "status": "failed",
+        "title": "CAA Certificate Issuance Restriction"
       },
       {
         "id": "DANE_DEPLOYED",
-        "title": "DANE / TLSA Deployment",
-        "status": "passed",
+        "rfcs": [
+          "RFC6698",
+          "RFC7672"
+        ],
         "severity": "low",
         "standards": [
           "ISO_27002_2022:8.24",
           "ISO_27002_2022:8.20"
         ],
-        "rfcs": [
-          "RFC6698",
-          "RFC7672"
-        ]
+        "status": "passed",
+        "title": "DANE / TLSA Deployment"
       },
       {
         "id": "BIMI_CONFIGURED",
-        "title": "BIMI Brand Indicator",
-        "status": "passed",
+        "rfcs": [],
         "severity": "low",
         "standards": [],
-        "rfcs": []
+        "status": "passed",
+        "title": "BIMI Brand Indicator"
       },
       {
+        "fail_explanation": "No security.txt found or file has expired. Per RFC 9116, security.txt provides a standardized location for vulnerability disclosure contact information.",
         "id": "SECURITY_TXT_PRESENT",
-        "title": "security.txt Vulnerability Disclosure",
-        "status": "failed",
+        "rfcs": [],
         "severity": "low",
         "standards": [
           "ISO_27002_2022:5.5",
           "INCITS_585_2025:RV.1"
         ],
-        "rfcs": [],
-        "fail_explanation": "No security.txt found or file has expired. Per RFC 9116, security.txt provides a standardized location for vulnerability disclosure contact information."
+        "status": "failed",
+        "title": "security.txt Vulnerability Disclosure"
       },
       {
         "id": "DANGLING_DNS_CLEAN",
-        "title": "No Dangling DNS Records",
-        "status": "passed",
+        "rfcs": [
+          "RFC1035"
+        ],
         "severity": "high",
         "standards": [
           "ISO_27002_2022:8.20",
           "INCITS_585_2025:PW.4"
         ],
-        "rfcs": [
-          "RFC1035"
-        ],
+        "status": "passed",
+        "title": "No Dangling DNS Records",
         "weakness_refs": {
-          "cwe": null,
           "capec": null,
+          "cwe": null,
+          "mapping_confidence": "high",
+          "mapping_rationale": "Dangling records pointing to unclaimed infrastructure are the direct precondition for subdomain takeover. Bugcrowd VRT classifies this explicitly; no single authoritative CWE/CAPEC ID is cited to avoid an unverified mapping.",
           "vrt": [
             "VRT:subdomain_takeover"
-          ],
-          "mapping_confidence": "high",
-          "mapping_rationale": "Dangling records pointing to unclaimed infrastructure are the direct precondition for subdomain takeover. Bugcrowd VRT classifies this explicitly; no single authoritative CWE/CAPEC ID is cited to avoid an unverified mapping."
+          ]
         }
       },
       {
+        "fail_explanation": "DNS delegation inconsistency detected. Parent and child zone NS records, glue records, or SOA serials do not agree. This can cause intermittent resolution failures and makes the zone vulnerable to hijacking.",
         "id": "DELEGATION_CONSISTENT",
-        "title": "DNS Delegation Consistency",
-        "status": "failed",
+        "rfcs": [
+          "RFC1035"
+        ],
         "severity": "medium",
         "standards": [
           "ISO_27002_2022:8.20"
         ],
-        "rfcs": [
-          "RFC1035"
-        ],
-        "fail_explanation": "DNS delegation inconsistency detected. Parent and child zone NS records, glue records, or SOA serials do not agree. This can cause intermittent resolution failures and makes the zone vulnerable to hijacking."
+        "status": "failed",
+        "title": "DNS Delegation Consistency"
       },
       {
         "id": "SECRET_EXPOSURE_CLEAN",
-        "title": "No Exposed Secrets",
-        "status": "passed",
+        "rfcs": [],
         "severity": "high",
         "standards": [
           "ISO_27002_2022:8.4",
           "INCITS_585_2025:PW.6"
         ],
-        "rfcs": []
+        "status": "passed",
+        "title": "No Exposed Secrets"
       },
       {
         "id": "HTTPS_SVCB_MODERN",
-        "title": "HTTPS/SVCB Record Deployment",
-        "status": "passed",
+        "rfcs": [
+          "RFC9460"
+        ],
         "severity": "low",
         "standards": [
           "ISO_27002_2022:8.20"
         ],
-        "rfcs": [
-          "RFC9460"
-        ]
+        "status": "passed",
+        "title": "HTTPS/SVCB Record Deployment"
       }
     ],
-    "mapped_controls": 5
+    "schema_version": 9,
+    "total_controls": 16
   },
   "icsae_remediation_queue": {
     "items": [
       {
-        "rank": 1,
-        "control_id": "DMARC_ENFORCEMENT",
-        "title": "DMARC Policy Enforcement",
-        "severity": "high",
-        "exploit_class": "exploitable_now",
-        "exploit_basis": "Sender / identity spoofing requires no privileged position: an attacker forges mail or impersonates the domain with off-the-shelf tooling (CWE-290 / CAPEC identity-spoofing patterns).",
-        "blast_radius": "external",
+        "attacker_action": "DMARC policy is not set to reject. Per RFC 7489 §6.3, only p=reject instructs receivers to discard unauthenticated messages. NIST SP 800-177 Rev. 1 §4.6.1 recommends reject for all production domains.",
         "blast_basis": "Customers, partners and brand: recipients are phished using the domain's identity.",
+        "blast_radius": "external",
         "confidence": "high",
         "confidence_basis": "Directly observed DNS records (ICIE Tier 1 evidence); verdict determinate. Weakness mapping verified at high confidence (CWE/CAPEC/VRT).",
+        "control_id": "DMARC_ENFORCEMENT",
+        "exploit_basis": "Sender / identity spoofing requires no privileged position: an attacker forges mail or impersonates the domain with off-the-shelf tooling (CWE-290 / CAPEC identity-spoofing patterns).",
+        "exploit_class": "exploitable_now",
+        "priority_score": 166,
+        "rank": 1,
         "rfcs": [
           "RFC7489"
         ],
+        "severity": "high",
+        "title": "DMARC Policy Enforcement",
         "weakness_refs": {
-          "cwe": [
-            "CWE-290"
-          ],
           "capec": [
             "CAPEC-151",
             "CAPEC-194",
             "CAPEC-163"
           ],
-          "vrt": [
-            "VRT:email_spoofing_to_inbox_due_to_missing_or_misconfigured_dmarc_on_email_domain"
+          "cwe": [
+            "CWE-290"
           ],
           "mapping_confidence": "high",
-          "mapping_rationale": "p=none and p=quarantine do not instruct receivers to reject unauthenticated mail, so sender authentication is effectively bypassed (CWE-290), enabling domain identity spoofing (CAPEC-151), forged-source mail (CAPEC-194) and spear phishing (CAPEC-163). This is the flagship false-green-checkmark gap: tools mark DMARC present as compliant while the domain remains spoofable. Mapping verified against MITRE CWE/CAPEC and Bugcrowd VRT."
-        },
-        "attacker_action": "DMARC policy is not set to reject. Per RFC 7489 \u00a76.3, only p=reject instructs receivers to discard unauthenticated messages. NIST SP 800-177 Rev. 1 \u00a74.6.1 recommends reject for all production domains.",
-        "priority_score": 166
+          "mapping_rationale": "p=none and p=quarantine do not instruct receivers to reject unauthenticated mail, so sender authentication is effectively bypassed (CWE-290), enabling domain identity spoofing (CAPEC-151), forged-source mail (CAPEC-194) and spear phishing (CAPEC-163). This is the flagship false-green-checkmark gap: tools mark DMARC present as compliant while the domain remains spoofable. Mapping verified against MITRE CWE/CAPEC and Bugcrowd VRT.",
+          "vrt": [
+            "VRT:email_spoofing_to_inbox_due_to_missing_or_misconfigured_dmarc_on_email_domain"
+          ]
+        }
       },
       {
-        "rank": 2,
-        "control_id": "SPF_EFFECTIVE_POLICY",
-        "title": "SPF Effective Authorization Policy",
-        "severity": "medium",
-        "exploit_class": "exploitable_now",
-        "exploit_basis": "Sender / identity spoofing requires no privileged position: an attacker forges mail or impersonates the domain with off-the-shelf tooling (CWE-290 / CAPEC identity-spoofing patterns).",
-        "blast_radius": "external",
+        "attacker_action": "SPF policy is permissive without DMARC enforcement. SPF softfail (~all) without DMARC p=reject or p=quarantine leaves email authorization unenforced. Per RFC 7489, DMARC provides the enforcement layer that makes SPF softfail operationally effective. Either tighten SPF to -all or deploy DMARC with an enforcement policy.",
         "blast_basis": "Customers, partners and brand: recipients are phished using the domain's identity.",
+        "blast_radius": "external",
         "confidence": "moderate",
         "confidence_basis": "Directly observed DNS records (ICIE Tier 1 evidence); verdict determinate. Weakness mapping verified at medium confidence (contributory control).",
+        "control_id": "SPF_EFFECTIVE_POLICY",
+        "exploit_basis": "Sender / identity spoofing requires no privileged position: an attacker forges mail or impersonates the domain with off-the-shelf tooling (CWE-290 / CAPEC identity-spoofing patterns).",
+        "exploit_class": "exploitable_now",
+        "priority_score": 142,
+        "rank": 2,
         "rfcs": [
           "RFC7208",
           "RFC7489"
         ],
+        "severity": "medium",
+        "title": "SPF Effective Authorization Policy",
         "weakness_refs": {
-          "cwe": [
-            "CWE-290"
-          ],
           "capec": [
             "CAPEC-194",
             "CAPEC-151"
           ],
-          "vrt": null,
+          "cwe": [
+            "CWE-290"
+          ],
           "mapping_confidence": "medium",
-          "mapping_rationale": "Permissive SPF without DMARC enforcement lets a forged sender bypass origin authentication (CWE-290) by faking the source domain (CAPEC-194/151). SPF is contributory, so confidence is medium; VRT files this failure mode under the DMARC entry. CWE/CAPEC verified against MITRE."
-        },
-        "attacker_action": "SPF policy is permissive without DMARC enforcement. SPF softfail (~all) without DMARC p=reject or p=quarantine leaves email authorization unenforced. Per RFC 7489, DMARC provides the enforcement layer that makes SPF softfail operationally effective. Either tighten SPF to -all or deploy DMARC with an enforcement policy.",
-        "priority_score": 142
+          "mapping_rationale": "Permissive SPF without DMARC enforcement lets a forged sender bypass origin authentication (CWE-290) by faking the source domain (CAPEC-194/151). SPF is contributory, so confidence is medium; VRT files this failure mode under the DMARC entry. CWE/CAPEC verified against MITRE.",
+          "vrt": null
+        }
       },
       {
-        "rank": 3,
-        "control_id": "CAA_RESTRICTION_PRESENT",
-        "title": "CAA Certificate Issuance Restriction",
-        "severity": "medium",
-        "exploit_class": "unproven",
-        "exploit_basis": "No verified weakness mapping yet \u2014 exploitability is not asserted.",
-        "blast_radius": "self",
+        "attacker_action": "No CAA records found — any Certificate Authority can issue certificates for this domain. Per RFC 8659 §4.2, CAs are required to check CAA records before issuance. Without CAA, misissued certificates cannot be prevented at the DNS layer.",
         "blast_basis": "Scope limited to the operator's own posture until a weakness mapping is verified.",
+        "blast_radius": "self",
         "confidence": "moderate",
         "confidence_basis": "Directly observed DNS records (ICIE Tier 1 evidence); verdict determinate. Standards gap is certain, but the weakness/exploit lineage is not yet verified.",
+        "control_id": "CAA_RESTRICTION_PRESENT",
+        "exploit_basis": "No verified weakness mapping yet — exploitability is not asserted.",
+        "exploit_class": "unproven",
+        "priority_score": 53,
+        "rank": 3,
         "rfcs": [
           "RFC8659",
           "RFC9495"
         ],
-        "attacker_action": "No CAA records found \u2014 any Certificate Authority can issue certificates for this domain. Per RFC 8659 \u00a74.2, CAs are required to check CAA records before issuance. Without CAA, misissued certificates cannot be prevented at the DNS layer.",
-        "priority_score": 53
+        "severity": "medium",
+        "title": "CAA Certificate Issuance Restriction"
       }
     ],
-    "real_fix_count": 3,
-    "mapped_count": 2
+    "mapped_count": 2,
+    "real_fix_count": 3
   },
   "is_no_mail_domain": false,
   "is_tld": false,
@@ -2906,33 +2800,33 @@
   },
   "nmap_dns": {
     "cache_snoop": {
-      "message": "Test inconclusive",
-      "nameserver": "ken.ns.cloudflare.com",
+      "message": "Cache snooping not possible (correct configuration)",
+      "nameserver": "jill.ns.cloudflare.com",
       "vulnerable": false
     },
     "issues": [],
-    "message": "No DNS server misconfigurations found on ken.ns.cloudflare.com",
+    "message": "No DNS server misconfigurations found on jill.ns.cloudflare.com",
     "nameservers": [
-      "ken.ns.cloudflare.com",
-      "jill.ns.cloudflare.com"
+      "jill.ns.cloudflare.com",
+      "ken.ns.cloudflare.com"
     ],
     "nsid": {
       "found": false,
       "id": "",
-      "message": "Test inconclusive",
-      "nameserver": "ken.ns.cloudflare.com",
+      "message": "No nameserver identity information disclosed",
+      "nameserver": "jill.ns.cloudflare.com",
       "version": ""
     },
     "recursion": {
-      "message": "Test inconclusive",
-      "nameserver": "ken.ns.cloudflare.com",
+      "message": "Recursion disabled (correct configuration)",
+      "nameserver": "jill.ns.cloudflare.com",
       "open": false
     },
     "scan_duration_ms": 29,
     "status": "good",
     "zone_transfer": {
-      "message": "Test inconclusive",
-      "nameserver": "ken.ns.cloudflare.com",
+      "message": "Zone transfer denied (correct configuration)",
+      "nameserver": "jill.ns.cloudflare.com",
       "record_count": 0,
       "vulnerable": false
     }
@@ -2969,7 +2863,7 @@
         "Cloudflare, Inc."
       ],
       "score": "fair",
-      "score_detail": "1 ASN(s), 6 /24 prefix(es) \u2014 consider adding diversity",
+      "score_detail": "1 ASN(s), 6 /24 prefix(es) — consider adding diversity",
       "unique_asns": 1,
       "unique_operators": 1,
       "unique_prefix24s": 6
@@ -2981,20 +2875,23 @@
         "aa_flag": true,
         "as_name": "Cloudflare, Inc.",
         "asn": "13335",
-        "hostname": "ken.ns.cloudflare.com",
+        "hostname": "jill.ns.cloudflare.com",
         "ipv4": [
-          "172.64.33.127",
-          "108.162.193.127",
-          "173.245.59.127"
+          "172.64.32.122",
+          "108.162.192.122",
+          "173.245.58.122"
         ],
         "ipv6": [
-          "2a06:98c1:50::ac40:217f",
-          "2803:f800:50::6ca2:c17f",
-          "2606:4700:58::adf5:3b7f"
+          "2803:f800:50::6ca2:c07a",
+          "2606:4700:50::adf5:3a7a",
+          "2a06:98c1:50::ac40:207a"
         ],
         "is_lame": false,
+        "nsid": "3938386d3133",
+        "nsid_decoded": "988m13",
         "prefix": "172.64.32.0/20",
-        "soa_serial": 2410901519,
+        "rtt_ms": 5,
+        "soa_serial": 2412430342,
         "soa_serial_ok": true,
         "tcp_reachable": true,
         "udp_reachable": true
@@ -3003,20 +2900,23 @@
         "aa_flag": true,
         "as_name": "Cloudflare, Inc.",
         "asn": "13335",
-        "hostname": "jill.ns.cloudflare.com",
+        "hostname": "ken.ns.cloudflare.com",
         "ipv4": [
-          "173.245.58.122",
-          "172.64.32.122",
-          "108.162.192.122"
+          "173.245.59.127",
+          "108.162.193.127",
+          "172.64.33.127"
         ],
         "ipv6": [
-          "2606:4700:50::adf5:3a7a",
-          "2a06:98c1:50::ac40:207a",
-          "2803:f800:50::6ca2:c07a"
+          "2a06:98c1:50::ac40:217f",
+          "2606:4700:58::adf5:3b7f",
+          "2803:f800:50::6ca2:c17f"
         ],
         "is_lame": false,
-        "prefix": "173.245.58.0/24",
-        "soa_serial": 2410901519,
+        "nsid": "3938386d3138",
+        "nsid_decoded": "988m18",
+        "prefix": "173.245.59.0/24",
+        "rtt_ms": 5,
+        "soa_serial": 2412430342,
         "soa_serial_ok": true,
         "tcp_reachable": true,
         "udp_reachable": true
@@ -3035,35 +2935,43 @@
     "configured": [
       "SPF",
       "DMARC (with warnings)",
-      "DKIM (inferred via Unknown)",
+      "DKIM",
       "BIMI",
       "DANE",
       "DNSSEC"
     ],
+    "critical_issue_protocols": null,
     "critical_issues": null,
     "deliberate_monitoring": true,
-    "deliberate_monitoring_note": "DMARC is published at p=none with aggregate reporting enabled (RFC 7489 \u00a76.3) \u2014 authentication results are reported but no enforcement is requested. The domain separately deploys a validating DNSSEC chain and BIMI, so an unfinished rollout is the less likely reading. It's possible this organization is deliberately prioritising observation over enforcement. What this means if you receive mail from this domain: p=none blocks nothing \u2014 a spoofed message that fails authentication is delivered to the inbox exactly as it would be with no DMARC record at all. Moving to quarantine or reject adds protection while aggregate reporting continues unchanged.",
+    "deliberate_monitoring_note": "DMARC is published at p=none with aggregate reporting enabled (RFC 7489 §6.3) — authentication results are reported but no enforcement is requested. The domain separately deploys a validating DNSSEC chain and BIMI, so an unfinished rollout is the less likely reading. It's possible this organization is deliberately prioritising observation over enforcement. What this means if you receive mail from this domain: p=none blocks nothing — a spoofed message that fails authentication is delivered to the inbox exactly as it would be with no DMARC record at all. Moving to quarantine or reject adds protection while aggregate reporting continues unchanged.",
+    "dkim_inconclusive": false,
     "grade": "Medium Risk",
     "icon": "shield-alt",
     "issues": [],
     "label": "Medium Risk",
-    "message": "DMARC is in monitoring mode (p=none) with reporting enabled \u2014 no enforcement is requested, so a spoofed message is delivered as if no DMARC existed (RFC 7489 \u00a76.3)",
+    "message": "DMARC is in monitoring mode (p=none) with reporting enabled — no enforcement is requested, so a spoofed message is delivered as if no DMARC existed (RFC 7489 §6.3)",
     "monitoring": [
-      "DMARC record has configuration warnings \u2014 review recommended",
-      "DKIM signing inferred from provider \u2014 could not directly verify selector"
+      "DMARC record has configuration warnings — review recommended"
+    ],
+    "monitoring_protocols": [
+      "DMARC"
     ],
     "provider_limited": [],
+    "recommendation_protocols": [
+      "DMARC"
+    ],
     "recommendations": [
       "Move DMARC policy from 'none' to 'quarantine' or 'reject'"
     ],
-    "score": 57,
+    "score": 60,
     "spoof_door": "open",
     "state": "Medium Risk",
+    "unmeasurable": [],
     "verdicts": {
       "ai_crawler_governance": {
         "answer": "No",
         "color": "warning",
-        "reason": "robots.txt present but does not block AI crawlers \u2014 content may be freely scraped"
+        "reason": "robots.txt present but does not block AI crawlers — content may be freely scraped"
       },
       "ai_hidden_prompts": {
         "answer": "No",
@@ -3073,7 +2981,7 @@
       "ai_llms_txt": {
         "answer": "No",
         "color": "secondary",
-        "reason": "No llms.txt file detected \u2014 AI models have no structured instructions for this domain"
+        "reason": "No llms.txt file detected — AI models have no structured instructions for this domain"
       },
       "ai_poisoning": {
         "answer": "No",
@@ -3085,23 +2993,23 @@
         "color": "warning",
         "icon": "exclamation-triangle",
         "label": "Basic",
-        "reason": "DMARC is monitor-only p=none (RFC 7489 \u00a76.3) \u2014 spoofed mail is not blocked, brand faking is trivial"
+        "reason": "DMARC is monitor-only p=none (RFC 7489 §6.3) — spoofed mail is not blocked, brand faking is trivial"
       },
       "certificate_control": {
         "answer": "No",
         "color": "secondary",
         "icon": "shield-alt",
         "label": "Not Configured",
-        "reason": "No CAA records \u2014 any certificate authority may issue certificates for this domain"
+        "reason": "No CAA records — any certificate authority may issue certificates for this domain"
       },
       "dns_tampering": {
         "answer": "No",
         "color": "success",
         "icon": "shield-alt",
         "label": "Protected",
-        "reason": "DNSSEC signed; a validating resolver confirmed the cryptographic chain of trust via the AD flag (RFC 4035 \u00a73.2.3)"
+        "reason": "DNSSEC signed; a validating resolver confirmed the cryptographic chain of trust via the AD flag (RFC 4035 §3.2.3)"
       },
-      "email_answer": "Yes \u2014 DMARC requests no enforcement (p=none)",
+      "email_answer": "Yes — DMARC requests no enforcement (p=none)",
       "email_answer_color": "danger",
       "email_answer_reason": "DMARC requests no enforcement (p=none)",
       "email_answer_short": "Yes",
@@ -3110,7 +3018,7 @@
         "color": "warning",
         "icon": "shield-alt",
         "label": "Basic",
-        "reason": "SPF and DMARC are both published, but DMARC is at p=none (RFC 7489 \u00a76.3) \u2014 a monitoring policy. Authentication results are reported to the domain owner, and nothing is blocked: a spoofed message that fails is delivered to the inbox exactly as it would be with no DMARC record."
+        "reason": "SPF and DMARC are both published, but DMARC is at p=none (RFC 7489 §6.3) — a monitoring policy. Authentication results are reported to the domain owner, and nothing is blocked: a spoofed message that fails is delivered to the inbox exactly as it would be with no DMARC record."
       },
       "transport": {
         "answer": "Yes",
@@ -3178,7 +3086,17 @@
       "level": "observed",
       "method": "RDAP registry lookup"
     },
+    "delegation_signed": true,
+    "expiration_date": "2031-03-12T05:00:00Z",
+    "last_changed_date": "2026-08-12T07:21:53.402Z",
+    "lifecycle_state": "active",
+    "lifecycle_statuses": [
+      "server delete prohibited",
+      "client transfer prohibited"
+    ],
+    "rdap_update_date": "2026-08-17T20:40:04.108Z",
     "registrar": "Cloudflare, Inc.",
+    "registration_date": "1995-03-11T05:00:00.698Z",
     "source": "RDAP",
     "status": "success"
   },
@@ -3191,7 +3109,7 @@
         "dns_type": "TXT",
         "dns_value": "v=DMARC1; p=quarantine; rua=mailto:dmarc-reports@ietf.org",
         "fix": "Your DMARC policy is monitor-only (p=none). Upgrade to p=quarantine or p=reject after reviewing reports to actively prevent spoofing.",
-        "rfc": "RFC 7489 \u00a76.3",
+        "rfc": "RFC 7489 §6.3",
         "rfc_obsolete": false,
         "rfc_status": "Informational",
         "rfc_title": "Domain-based Message Authentication, Reporting, and Conformance (DMARC)",
@@ -3203,7 +3121,7 @@
       },
       {
         "dns_host": "ietf.org",
-        "dns_host_help": "(root of domain \u2014 adjust CA to match your provider)",
+        "dns_host_help": "(root of domain — adjust CA to match your provider)",
         "dns_purpose": "CAA constrains which CAs can issue certificates for this domain.",
         "dns_type": "CAA",
         "dns_value": "0 issue \"letsencrypt.org\"",
@@ -3224,7 +3142,7 @@
         "dns_purpose": "TLS-RPT sends you reports about TLS connection failures to your mail servers.",
         "dns_type": "TXT",
         "dns_value": "v=TLSRPTv1; rua=mailto:tls-reports@ietf.org",
-        "fix": "Your domain has DNSSEC + DANE \u2014 the strongest email transport security available. TLS-RPT (TLS Reporting) sends you reports about TLS connection failures when other servers try to deliver mail to your domain.",
+        "fix": "Your domain has DNSSEC + DANE — the strongest email transport security available. TLS-RPT (TLS Reporting) sends you reports about TLS connection failures when other servers try to deliver mail to your domain.",
         "rfc": "RFC 8460",
         "rfc_obsolete": false,
         "rfc_status": "Proposed Standard",
@@ -3258,7 +3176,7 @@
       "CAA": [
         {
           "dns_host": "ietf.org",
-          "dns_host_help": "(root of domain \u2014 adjust CA to match your provider)",
+          "dns_host_help": "(root of domain — adjust CA to match your provider)",
           "dns_purpose": "CAA constrains which CAs can issue certificates for this domain.",
           "dns_type": "CAA",
           "dns_value": "0 issue \"letsencrypt.org\"",
@@ -3281,9 +3199,9 @@
           "dns_type": "TXT",
           "dns_value": "v=DMARC1; p=quarantine; rua=mailto:dmarc-reports@ietf.org",
           "fix": "Your DMARC policy is monitor-only (p=none). Upgrade to p=quarantine or p=reject after reviewing reports to actively prevent spoofing.",
-          "rfc": "RFC 7489 \u00a76.3",
+          "rfc": "RFC 7489 §6.3",
           "rfc_obsolete": false,
-          "rfc_title": "RFC 7489 \u00a76.3",
+          "rfc_title": "RFC 7489 §6.3",
           "rfc_url": "https://www.rfc-editor.org/rfc/rfc7489.html#section-6.3:~:text=DMARC%20records%20follow%20the%20extensible%20%22tag-value%22%20syntax",
           "section": "DMARC",
           "severity_color": "warning",
@@ -3316,7 +3234,7 @@
           "dns_purpose": "TLS-RPT sends you reports about TLS connection failures to your mail servers.",
           "dns_type": "TXT",
           "dns_value": "v=TLSRPTv1; rua=mailto:tls-reports@ietf.org",
-          "fix": "Your domain has DNSSEC + DANE \u2014 the strongest email transport security available. TLS-RPT (TLS Reporting) sends you reports about TLS connection failures when other servers try to deliver mail to your domain.",
+          "fix": "Your domain has DNSSEC + DANE — the strongest email transport security available. TLS-RPT (TLS Reporting) sends you reports about TLS connection failures when other servers try to deliver mail to your domain.",
           "rfc": "RFC 8460",
           "rfc_obsolete": false,
           "rfc_title": "RFC 8460",
@@ -3338,7 +3256,7 @@
         "dns_type": "TXT",
         "dns_value": "v=DMARC1; p=quarantine; rua=mailto:dmarc-reports@ietf.org",
         "fix": "Your DMARC policy is monitor-only (p=none). Upgrade to p=quarantine or p=reject after reviewing reports to actively prevent spoofing.",
-        "rfc": "RFC 7489 \u00a76.3",
+        "rfc": "RFC 7489 §6.3",
         "rfc_obsolete": false,
         "rfc_status": "Informational",
         "rfc_title": "Domain-based Message Authentication, Reporting, and Conformance (DMARC)",
@@ -3350,7 +3268,7 @@
       },
       {
         "dns_host": "ietf.org",
-        "dns_host_help": "(root of domain \u2014 adjust CA to match your provider)",
+        "dns_host_help": "(root of domain — adjust CA to match your provider)",
         "dns_purpose": "CAA constrains which CAs can issue certificates for this domain.",
         "dns_type": "CAA",
         "dns_value": "0 issue \"letsencrypt.org\"",
@@ -3371,7 +3289,7 @@
         "dns_purpose": "TLS-RPT sends you reports about TLS connection failures to your mail servers.",
         "dns_type": "TXT",
         "dns_value": "v=TLSRPTv1; rua=mailto:tls-reports@ietf.org",
-        "fix": "Your domain has DNSSEC + DANE \u2014 the strongest email transport security available. TLS-RPT (TLS Reporting) sends you reports about TLS connection failures when other servers try to deliver mail to your domain.",
+        "fix": "Your domain has DNSSEC + DANE — the strongest email transport security available. TLS-RPT (TLS Reporting) sends you reports about TLS connection failures when other servers try to deliver mail to your domain.",
         "rfc": "RFC 8460",
         "rfc_obsolete": false,
         "rfc_status": "Proposed Standard",
@@ -3392,22 +3310,26 @@
       "A": {
         "consensus": true,
         "discrepancies": null,
-        "resolver_count": 4
+        "resolver_count": 5,
+        "top_votes": 5
       },
       "MX": {
         "consensus": true,
         "discrepancies": null,
-        "resolver_count": 4
+        "resolver_count": 5,
+        "top_votes": 5
       },
       "NS": {
         "consensus": true,
         "discrepancies": null,
-        "resolver_count": 4
+        "resolver_count": 5,
+        "top_votes": 5
       },
       "TXT": {
         "consensus": true,
         "discrepancies": null,
-        "resolver_count": 4
+        "resolver_count": 5,
+        "top_votes": 5
       }
     },
     "resolvers_queried": 5
@@ -3559,7 +3481,10 @@
     "finding_count": 0,
     "findings": [],
     "message": "No exposed secrets detected in public page source",
-    "scanned_urls": [],
+    "scanned_urls": [
+      "https://ietf.org/",
+      "https://ietf.org/static/dist/main.93c085ebaafe.js"
+    ],
     "status": "clear"
   },
   "section_status": {
@@ -3661,19 +3586,19 @@
     "has_openpgpkey": false,
     "has_smimea": false,
     "issues": [],
-    "message": "No SMIMEA or OPENPGPKEY records found \u2014 email encryption keys not published via DNS",
+    "message": "No SMIMEA or OPENPGPKEY records found — email encryption keys not published via DNS",
     "openpgpkey_records": [],
     "smimea_records": [],
     "status": "info"
   },
   "smtp_transport": {
     "dns_inferred": true,
-    "inference_note": "Transport security assessed via DNS policy records (MTA-STS, DANE, TLS-RPT) \u2014 the standards-aligned primary method per NIST SP 800-177 Rev. 1 and RFC 8461. Direct SMTP probing is a supplementary verification step.",
+    "inference_note": "",
     "inference_signals": [
-      "DANE/TLSA records published \u2014 mail servers pin TLS certificates via DNSSEC (RFC 7672)"
+      "DANE/TLSA records published — mail servers pin TLS certificates via DNSSEC (RFC 7672)"
     ],
     "issues": [],
-    "message": "Transport encryption enforced via DNS policy (1 signal(s))",
+    "message": "0/1 servers support STARTTLS (direct probe)",
     "policy": {
       "dane": {
         "present": true
@@ -3686,7 +3611,7 @@
         "identified": false
       },
       "signals": [
-        "DANE/TLSA records published \u2014 mail servers pin TLS certificates via DNSSEC (RFC 7672)"
+        "DANE/TLSA records published — mail servers pin TLS certificates via DNSSEC (RFC 7672)"
       ],
       "tlsrpt": {
         "present": false
@@ -3694,20 +3619,136 @@
       "verdict": "enforced"
     },
     "probe": {
-      "observations": [],
-      "probe_method": "skip",
-      "reason": "SMTP probe skipped \u2014 outbound TCP port 25 is blocked upstream. This is standard for all major cloud platforms (AWS, GCP, Azure, Replit) and most residential ISPs as an anti-spam measure. Transport security is assessed via DNS policy records above, which is the standards-aligned primary method per NIST SP 800-177 Rev. 1.",
-      "status": "skipped"
+      "multi_port": [
+        {
+          "error": "Connection timeout",
+          "host": "mail2.ietf.org",
+          "port": 465,
+          "reachable": false,
+          "tls": false
+        },
+        {
+          "error": null,
+          "host": "mail2.ietf.org",
+          "port": 587,
+          "reachable": true,
+          "tls": false
+        }
+      ],
+      "multi_probe": [
+        {
+          "elapsed": 4.01,
+          "probe_host": "measure-us-east.dnsvantage.com",
+          "probe_id": "probe-01",
+          "probe_label": "US-East (Virginia)",
+          "status": "skipped"
+        },
+        {
+          "elapsed": 4.082,
+          "probe_host": "measure-sg.dnsvantage.com",
+          "probe_id": "probe-03",
+          "probe_label": "APAC (Singapore)",
+          "status": "skipped"
+        },
+        {
+          "elapsed": 5.249919819,
+          "observations": [
+            {
+              "cert_days_remaining": null,
+              "cert_expiry": null,
+              "cert_issuer": null,
+              "cert_subject": null,
+              "cert_valid": false,
+              "cipher": null,
+              "cipher_bits": null,
+              "error": "STARTTLS not supported",
+              "host": "mail2.ietf.org",
+              "reachable": true,
+              "starttls": false,
+              "tls_version": null
+            }
+          ],
+          "probe_host": "probe-us-02",
+          "probe_id": "probe-02",
+          "probe_label": "EU (Paris)",
+          "probe_verdict": "no_tls",
+          "status": "observed",
+          "summary": {
+            "expiring_soon": 0,
+            "reachable": 1,
+            "starttls_supported": 0,
+            "tls_1_2": 0,
+            "tls_1_3": 0,
+            "total_servers": 1,
+            "valid_certs": 0
+          }
+        }
+      ],
+      "observations": [
+        {
+          "cert_days_remaining": null,
+          "cert_expiry": null,
+          "cert_issuer": null,
+          "cert_subject": null,
+          "cert_valid": false,
+          "cipher": null,
+          "cipher_bits": null,
+          "error": "STARTTLS not supported",
+          "host": "mail2.ietf.org",
+          "reachable": true,
+          "starttls": false,
+          "tls_version": null
+        }
+      ],
+      "probe_consensus": {
+        "agreement": "unanimous_no_tls",
+        "all_tls": 0,
+        "no_tls": 1,
+        "observed": 1,
+        "partial_tls": 0,
+        "total_probes": 3
+      },
+      "probe_count": 3,
+      "probe_elapsed": 5.249919819,
+      "probe_host": "probe-us-02",
+      "probe_method": "multi_remote",
+      "probe_verdict": "no_tls",
+      "reason": "",
+      "status": "observed",
+      "summary": {
+        "expiring_soon": 0,
+        "reachable": 1,
+        "starttls_supported": 0,
+        "tls_1_2": 0,
+        "tls_1_3": 0,
+        "total_servers": 1,
+        "valid_certs": 0
+      }
     },
-    "servers": [],
-    "status": "success",
+    "servers": [
+      {
+        "cert_days_remaining": null,
+        "cert_expiry": null,
+        "cert_issuer": null,
+        "cert_subject": null,
+        "cert_valid": false,
+        "cipher": null,
+        "cipher_bits": null,
+        "error": "STARTTLS not supported",
+        "host": "mail2.ietf.org",
+        "reachable": true,
+        "starttls": false,
+        "tls_version": null
+      }
+    ],
+    "status": "error",
     "summary": {
       "expiring_soon": 0,
-      "reachable": 0,
+      "reachable": 1,
       "starttls_supported": 0,
       "tls_1_2": 0,
       "tls_1_3": 0,
-      "total_servers": 0,
+      "total_servers": 1,
       "valid_certs": 0
     },
     "telemetry": {
@@ -3760,7 +3801,7 @@
       "dnssec_valid": true,
       "status": "validated"
     },
-    "dnssec_trust_note": "DNSSEC validated \u2014 DNS records are cryptographically signed, supporting trustless Web3 resolution",
+    "dnssec_trust_note": "DNSSEC validated — DNS records are cryptographically signed, supporting trustless Web3 resolution",
     "indicator_count": 0,
     "indicators": [],
     "status": "not_detected"
