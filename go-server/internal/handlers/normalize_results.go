@@ -75,6 +75,8 @@ func NormalizeResults(fullResults json.RawMessage) map[string]interface{} {
 		}
 	}
 
+	normalizeDKIMAllRevoked(results)
+
 	if posture, ok := results[mapKeyPosture].(map[string]interface{}); ok {
 		if state, ok := posture[mapKeyState].(string); ok {
 			if normalized, found := legacyPostureStates[state]; found {
@@ -287,4 +289,44 @@ func getNumValue(m map[string]interface{}, key string) float64 {
 		return float64(n)
 	}
 	return 0
+}
+
+// normalizeDKIMAllRevoked backfills dkim_analysis.all_revoked for rows
+// persisted before the field existed (#439) — map-on-read, never backfill
+// storage. The fact is derivable from what legacy rows already carry: every
+// selector's key_info marked revoked. Rows with the field keep it verbatim;
+// selectors without key_info are indeterminate and defeat the claim, the
+// same rule the analyzer applies.
+func normalizeDKIMAllRevoked(results map[string]interface{}) {
+	dk, ok := results["dkim_analysis"].(map[string]interface{})
+	if !ok || dk == nil {
+		return
+	}
+	if _, has := dk["all_revoked"]; has {
+		return
+	}
+	sels, ok := dk["selectors"].(map[string]interface{})
+	if !ok || len(sels) == 0 {
+		return
+	}
+	for _, sv := range sels {
+		sm, ok := sv.(map[string]interface{})
+		if !ok {
+			return
+		}
+		kis, ok := sm["key_info"].([]interface{})
+		if !ok || len(kis) == 0 {
+			return
+		}
+		for _, ki := range kis {
+			km, ok := ki.(map[string]interface{})
+			if !ok {
+				return
+			}
+			if rev, _ := km["revoked"].(bool); !rev {
+				return
+			}
+		}
+	}
+	dk["all_revoked"] = true
 }
