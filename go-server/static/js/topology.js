@@ -3197,8 +3197,9 @@
             verified: 'success',
             mismatch: 'failed',
             not_verifiable: 'indeterminate',
-            cert_error: 'indeterminate',
-            unreachable: 'indeterminate'
+            cert_invalid: 'indeterminate',
+            unreachable: 'indeterminate',
+            unmeasured: 'indeterminate'
         };
 
         /* Absence is protocol-dependent, and that is a scientific judgement
