@@ -314,7 +314,11 @@ func buildDNSSECResult(p dnssecParams) map[string]any {
                 case dsDenialAuthenticated:
                         msg += " (the parent zone's denial of the DS is itself DNSSEC-authenticated — a confirmed island of security)"
                 case dsDenialUnauthenticated:
-                        msg += " (absence confirmed at the parent's authoritative servers; the denial itself is not DNSSEC-provable — unsigned parent or opt-out span)"
+                        // Measurement-relative by discipline: "unauthenticated" means WE
+                        // could not establish proof (unanimity failed), never "the denial
+                        // is unprovable" — a never-AD resolver can demote a genuinely
+                        // provable denial, so a zone-level claim would overstate.
+                        msg += " (absence confirmed at the parent's authoritative servers; we could not establish DNSSEC proof of the denial — common causes: unsigned parent or NSEC3 opt-out span)"
                 }
                 return map[string]any{
                         mapKeyStatus:               "warning",
