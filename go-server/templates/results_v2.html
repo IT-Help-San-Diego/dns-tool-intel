@@ -466,6 +466,11 @@
   .v2-layer-key { display: grid; grid-template-columns: repeat(4, 1fr); gap: .45rem; margin-top: .75rem; }
   .v2-layer-key span { padding-top: .45rem; border-top: 2px solid var(--er-line-strong); color: var(--er-muted); font-size: .7rem; }
   .v2-layer-key strong { display: block; color: var(--er-text); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .v2-keys kbd { display: inline-block; min-width: 1.6em; padding: .1em .35em; text-align: center;
+    border: 1px solid var(--er-line-strong); border-bottom-width: 2px; border-radius: .3em;
+    background: var(--er-layer-1); color: var(--er-text); font-size: .95em; }
+  .v2-keys-label { color: var(--er-muted); letter-spacing: .08em; margin-right: .35em; }
+  .v2-keys-sep { margin: 0 .35em; }
   /* c2b: severity-proportional sizing — the worst finding reads largest.
      data-sev stamps 0-3 from the SHARED severity map; type scale only,
      the six-wide grid stays intact. */
@@ -590,7 +595,15 @@
       <a href="#section-dnssec"><span>DNSSEC</span><span aria-hidden="true">→</span></a>
       <a href="#section-dns-diff"><span>What changed</span><span aria-hidden="true">→</span></a>
     </div>
-    <div class="v2-keys font-monospace small text-muted">KEYS — 1–6 JUMP · ESC RETURN TO L0</div>
+    {{/* The keyboard doorway earns a real explanation (Carey, 2026-08-16:
+         "I want people to really be able to find it") — key-cap chips that
+         READ as keys, tied to the numbered sections they drive. */}}
+    <div class="v2-keys font-monospace small text-muted">
+        <span class="v2-keys-label">KEYBOARD</span>
+        <kbd>1</kbd>–<kbd>6</kbd> jump to that numbered section below
+        <span class="v2-keys-sep">·</span>
+        <kbd>Esc</kbd> back to the verdict
+    </div>
   </div>
 </section>
 
