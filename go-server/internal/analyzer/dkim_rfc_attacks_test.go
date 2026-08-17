@@ -6,16 +6,15 @@ import (
         "testing"
 )
 
-type mockDKIMDNS struct {
-        responses map[string][]string
-}
-
-func (m *mockDKIMDNS) QueryDNS(ctx context.Context, recordType, domain string) []string {
-        key := recordType + ":" + domain
-        if r, ok := m.responses[key]; ok {
-                return r
+// mockFromResponses builds a full MockDNSClient from "TYPE:fqdn" → records
+// entries (the shape the selector-check tables below use).
+func mockFromResponses(responses map[string][]string) *MockDNSClient {
+        mock := NewMockDNSClient()
+        for key, recs := range responses {
+                parts := strings.SplitN(key, ":", 2)
+                mock.AddResponse(parts[0], parts[1], recs)
         }
-        return nil
+        return mock
 }
 
 func TestDKIMRFCAttackMalformedPublicKey(t *testing.T) {
@@ -414,8 +413,8 @@ func TestDKIMRFCAttackCheckDKIMSelector(t *testing.T) {
 
         for _, tt := range tests {
                 t.Run(tt.name, func(t *testing.T) {
-                        dns := &mockDKIMDNS{responses: tt.responses}
-                        sel, recs := checkDKIMSelector(context.Background(), dns, tt.selector, tt.domain)
+                        a := &Analyzer{DNS: mockFromResponses(tt.responses)}
+                        sel, recs, _ := a.checkDKIMSelectorWithStatus(context.Background(), tt.selector, tt.domain)
                         if sel != tt.wantSel {
                                 t.Errorf("selector = %q, want %q", sel, tt.wantSel)
                         }
@@ -635,15 +634,13 @@ func TestDKIMRFCAttackBuildSelectorListCustomPrepend(t *testing.T) {
 }
 
 func TestDKIMRFCAttackMultipleDKIMRecordsSameSelector(t *testing.T) {
-        dns := &mockDKIMDNS{
-                responses: map[string][]string{
-                        "TXT:selector1._domainkey.example.com": {
-                                "v=DKIM1; k=rsa; p=AAAA",
-                                "v=DKIM1; k=ed25519; p=BBBB",
-                        },
+        a := &Analyzer{DNS: mockFromResponses(map[string][]string{
+                "TXT:selector1._domainkey.example.com": {
+                        "v=DKIM1; k=rsa; p=AAAA",
+                        "v=DKIM1; k=ed25519; p=BBBB",
                 },
-        }
-        sel, recs := checkDKIMSelector(context.Background(), dns, "selector1._domainkey", "example.com")
+        })}
+        sel, recs, _ := a.checkDKIMSelectorWithStatus(context.Background(), "selector1._domainkey", "example.com")
         if sel != "selector1._domainkey" {
                 t.Fatalf("expected selector name, got %q", sel)
         }
