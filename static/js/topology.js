@@ -1698,6 +1698,26 @@
                     if (ctx.measureText(head + ' \u2014 ' + q).width > budget) q = '';
                     let text = head + (q ? ' \u2014 ' + q : '');
                     let tw = ctx.measureText(text).width;
+                    // Anchor the caption to the CENTROID of its member nodes,
+                    // not the zone's left corner \u2014 a label points at its
+                    // contents, not at a rectangle. The corner anchor is what
+                    // floated 01 over the arc channel and left 04 beside its
+                    // cluster (Carey's 2026-08-16 frames, root-caused by
+                    // Science). Membership comes from each node's own zone
+                    // field \u2014 never a hand list, so 02 lands on the hub it
+                    // actually names.
+                    let capCx = z.bounds.x1 + tw / 2 + 6;
+                    let mSum = 0, mN = 0;
+                    for (let mi = 0; mi < allLayoutNodes.length; mi++) {
+                        let mnd = allLayoutNodes[mi];
+                        if (mnd.zone === st.zone && mnd.shape !== 'caption') { mSum += mnd.targetX; mN++; }
+                    }
+                    if (mN > 0) {
+                        // Clamp inside the zone so a skewed centroid cannot
+                        // re-author the FIX-1 caption-past-column collision.
+                        capCx = Math.max(z.bounds.x1 + tw / 2 + 6,
+                                         Math.min(mSum / mN, z.bounds.x2 - tw / 2 - 6));
+                    }
                     if (st.zone === 'storage') {
                         // Storage is the measured-tight foundation row (the
                         // 236px-in-211px history): stealing a strip from its
@@ -1705,7 +1725,7 @@
                         // fixed. The caption sits ABOVE the band, in the
                         // inter-band gap, claiming no interior space.
                         mkCap('rlmemory', head, q,
-                            z.bounds.x1 + tw / 2 + 6, z.bounds.y1 - capH / 2 - 4, null);
+                            capCx, z.bounds.y1 - capH / 2 - 4, null);
                     } else {
                         // Reserve the caption strip in EVERY zone whose x-range
                         // the caption spans — zones share x at narrow widths,
@@ -1714,7 +1734,7 @@
                         // failure the verifier caught at 1024px. Space always
                         // comes from zone interiors, never from the caption.
                         reserveStrip(mkCap('rl' + st.num, head, q,
-                            z.bounds.x1 + tw / 2 + 6, z.bounds.y1 + capH / 2 + 4, st.zone));
+                            capCx, z.bounds.y1 + capH / 2 + 4, st.zone));
                     }
                 });
                 // 00 VANTAGE anchors to the globe itself — there is no
@@ -1744,8 +1764,32 @@
                 if (consoleReserve > 0) {
                     let head5 = '05 \u00b7 YOUR REPORT \u2192';
                     let t5w = ctx.measureText(head5).width;
-                    reserveStrip(mkCap('rl05', head5, '',
-                        W - consoleReserve - t5w / 2 - 10, titleSafe + 10 * SCL, null));
+                    // The arrow points at the thing it names: the flagship
+                    // report card, measured from the DOM the way the popover
+                    // measures the console edge (Carey's ruling 2026-08-16 \u2014
+                    // "drop the 05 to point directly at the pulsating
+                    // engineer's report"). Unmeasurable card (first paint,
+                    // hidden console variants) falls back to the top-line
+                    // home with its strip.
+                    let y5 = 0;
+                    let cardEl = document.querySelector('.topo-scan-cta--flagship');
+                    let cvs5 = ctx.canvas.getBoundingClientRect();
+                    if (cardEl && cvs5.height > 0) {
+                        let cr5 = cardEl.getBoundingClientRect();
+                        if (cr5.height > 0 && cr5.bottom > cvs5.top && cr5.top < cvs5.bottom) {
+                            y5 = (cr5.top + cr5.height / 2 - cvs5.top) * (H / cvs5.height);
+                        }
+                    }
+                    let x5 = W - consoleReserve - t5w / 2 - 10;
+                    if (y5 > titleSafe + capH) {
+                        // Mid-height caption: a plain anchored rect. The strip
+                        // reservation would push every x-overlapping zone's
+                        // TOP below this y \u2014 the 04/05 collision inverted \u2014
+                        // so separation is the pairwise solve's job here.
+                        mkCap('rl05', head5, '', x5, y5, null);
+                    } else {
+                        reserveStrip(mkCap('rl05', head5, '', x5, titleSafe + 10 * SCL, null));
+                    }
                 }
                 ctx.restore();
             }
@@ -3957,6 +4001,12 @@
             recon.textContent = '\u25b6 Recon Report \u00b7 Red Team \u00b7 Scotopic';
             recon.title = 'Covert Recon Report \u2014 red-team perspective in the scotopic-preserving covert interface';
             scanEls.links.appendChild(recon);
+            // The rl05 caption anchors to the flagship card's MEASURED rect,
+            // and that card did not exist when the last layout ran \u2014 without
+            // this kick the caption freezes wherever the half-built console
+            // happened to put it (observed: pointing at the owl row). Same
+            // wrap-changed-without-resize class the observer below handles.
+            requestAnimationFrame(relayout);
             fetch('/api/analysis/' + analysisID, { headers: { 'Accept': 'application/json' } }).then(function(resp) {
                 return resp.ok ? resp.json() : null;
             }).then(function(data) {
@@ -3969,6 +4019,12 @@
                     scanEls.note.textContent = 'Verdict summary unavailable \u2014 open the full report for results.';
                     setHidden(scanEls.note, false);
                 }
+                // Owls + chips render ABOVE the report cards, so this fetch
+                // moves the flagship card rl05 is anchored to \u2014 the first
+                // kick (after the CTA block) measured a console still under
+                // construction: observed 103px low. Re-anchor now that the
+                // console has its final shape.
+                requestAnimationFrame(relayout);
             }).catch(function() {
                 if (scanState.gen !== myGen) return;
                 scanEls.note.textContent = 'Verdict summary unavailable \u2014 open the full report for results.';
