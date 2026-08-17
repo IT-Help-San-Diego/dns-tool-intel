@@ -509,6 +509,10 @@
     box-shadow: 0 10px 32px rgba(0,0,0,.38); backdrop-filter: blur(18px);
   }
   .v2-nav a { display: grid; grid-template-columns: auto 1fr; gap: .55rem; align-items: center; min-height: 52px; padding: .55rem .7rem; color: var(--er-muted); text-decoration: none; background: var(--er-layer-1); }
+  /* c2c read-state badges: a hollow dot waits, a check has been reviewed —
+     quiet enough to ignore, present enough to audit your own coverage. */
+  .v2-nav a[data-rs]::after { content: '\25CB'; margin-left: auto; font-size: .7rem; color: var(--er-muted); opacity: .55; }
+  .v2-nav a.v2-nav--seen::after { content: '\2713'; color: var(--er-gold); opacity: .9; }
   .v2-nav a:hover, .v2-nav a:focus-visible, .v2-nav a[aria-current="location"] { color: var(--er-text); background: var(--er-layer-3); box-shadow: inset 0 -2px var(--er-gold); }
   .v2-nav-index { color: var(--er-gold-soft); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .72rem; }
   .v2-nav-label { font-size: .76rem; font-weight: 600; line-height: 1.25; }
@@ -668,8 +672,40 @@
       if(a.getAttribute('href')==='#'+current) a.setAttribute('aria-current','location');
       else a.removeAttribute('aria-current');
     }
+    if(current) rsMark(current);
   }
   var GROUPS=['email-security','domain-security','transport-security','brand-trust','infrastructure-intel','evidence-verification'];
+  /* c2c read-state: the report remembers which sections THIS engineer has
+     actually viewed — per analysis, in this browser only. "Viewed" means the
+     section was current while scrolling, or the engineer opened it; the
+     print cycle NEVER counts (Chrome force-toggles details for printing, so
+     the beforeprint guard is load-bearing, not decoration). */
+  var rsWrap=document.querySelector('.v2-workspace');
+  var RS_ID=rsWrap?rsWrap.getAttribute('data-analysis-id'):'';
+  var RS_KEY='erv2-rev-'+RS_ID;
+  var rsPrinting=false;
+  globalThis.addEventListener('beforeprint',function(){rsPrinting=true;});
+  globalThis.addEventListener('afterprint',function(){rsPrinting=false;});
+  function rsLoad(){ try{ return JSON.parse(localStorage.getItem(RS_KEY)||'{}'); }catch(e){ return {}; } }
+  function rsPaint(){
+    var seen=rsLoad();
+    for(var a of document.querySelectorAll('.v2-nav a')){
+      var id=(a.getAttribute('href')||'').slice(1);
+      if(GROUPS.indexOf(id)>=0){
+        var isSeen=!!seen[id];
+        a.classList.toggle('v2-nav--seen',isSeen);
+        a.setAttribute('data-rs',isSeen?'reviewed':'unreviewed');
+      }
+    }
+  }
+  function rsMark(id){
+    if(rsPrinting||!RS_ID||GROUPS.indexOf(id)<0) return;
+    try{ var seen=rsLoad(); if(!seen[id]){ seen[id]=Date.now(); localStorage.setItem(RS_KEY,JSON.stringify(seen)); rsPaint(); } }catch(e){}
+  }
+  for(var rg of document.querySelectorAll('details.v2-group[id]')){
+    rg.addEventListener('toggle',(function(gg){return function(){ if(gg.open&&!rsPrinting) rsMark(gg.id); };})(rg));
+  }
+  rsPaint();
   document.addEventListener('keydown',function(e){
     if(e.ctrlKey||e.metaKey||e.altKey) return;
     var t=e.target;
