@@ -1197,15 +1197,56 @@
             let storeBandH = storeRowH + 20 * SCL;
             let storeBandY1 = legendSafe - storeBandH;
             let storeY = storeBandY1 + storeBandH / 2;
+            // The console is a RECT, not a full-height strip: measure its
+            // real extent (the popover/rl05 pattern; the post-restore
+            // relayout kicks guarantee a settled console by the final pass).
+            // consoleReserve is a proxy that overclaims everything BELOW the
+            // console's actual bottom — at 1180 it starved this row into the
+            // postgres×fixtures pile-up and called wayback's legal position
+            // an intrusion at two widths (probe-measured, baseline-matched).
+            let consoleBox = null;
+            if (consoleReserve > 0) {
+                let cEl2 = document.getElementById('topoScanConsole');
+                let cvs2 = ctx.canvas.getBoundingClientRect();
+                if (cEl2 && cvs2.width > 0 && cvs2.height > 0) {
+                    let cb = cEl2.getBoundingClientRect();
+                    if (cb.width > 0 && cb.height > 0) {
+                        consoleBox = {
+                            x1: (cb.left - cvs2.left) * (W / cvs2.width),
+                            y1: (cb.top - cvs2.top) * (H / cvs2.height),
+                            x2: (cb.right - cvs2.left) * (W / cvs2.width),
+                            y2: (cb.bottom - cvs2.top) * (H / cvs2.height)
+                        };
+                    }
+                }
+                // Unmeasurable console: the strip stands, fail-conservative.
+                if (!consoleBox) {
+                    consoleBox = { x1: W - consoleReserve, y1: titleSafe, x2: W, y2: legendSafe };
+                }
+            }
+            // When the console's bottom clears this band, the band may use
+            // the full pipe width — the space under the console is real.
+            let storeRight = col4R;
+            if (consoleBox && consoleBox.y2 + 24 * SCL < storeBandY1) {
+                storeRight = W * 0.99;
+            }
             // Centre the row on the processing column, but keep it clear of
             // the source column: col1 runs the full height, so a row that
             // starts west of col1R lands on the bottom source tag (measured:
             // root <-> postgres, 98px x 37px).
-            let storeRowL = Math.max(col1R + storeGap, Math.min(col4R - storeRowW, procCx - storeRowW / 2));
+            let storeRowL = Math.max(col1R + storeGap, Math.min(storeRight - storeRowW, procCx - storeRowW / 2));
             let storeCursor = storeRowL;
             STORAGE.forEach(function(s) {
                 s.targetX = storeCursor + s._boxW / 2;
                 s.targetY = storeY;
+                // The foundation row is deterministic SUBSTRATE — it is
+                // already exempt from solver mapping, but the pairwise solve
+                // could still jiggle it: at 1180 the source column's bottom
+                // node pushed postgres into fixtures at the row's packed
+                // minimum (probe-measured). Anchored, the row never moves and
+                // intruders yield — space comes from the graph, never the
+                // foundation.
+                s._anchored = true;
                 storeCursor += s._boxW + storeGap;
             });
             let storeBandX1 = storeRowL - storeGap;
@@ -1896,10 +1937,17 @@
                     }
                 }
                 let intrusions = [];
-                if (consoleReserve > 0) {
-                    let cx1 = W - consoleReserve;
+                if (consoleReserve > 0 && consoleBox) {
+                    // Rect-vs-rect: an intrusion needs overlap in BOTH axes
+                    // with the console's MEASURED extent. The old x-only
+                    // strip test reported nodes sitting in the empty space
+                    // BELOW the console (wayback at two widths) — a proxy
+                    // asserting occupancy it never measured.
                     rects.forEach(function(r) {
-                        if (r.x + r.hw > cx1) intrusions.push(r.id);
+                        if (r.x + r.hw > consoleBox.x1 && r.x - r.hw < consoleBox.x2 &&
+                            r.y + r.hh > consoleBox.y1 && r.y - r.hh < consoleBox.y2) {
+                            intrusions.push(r.id);
+                        }
                     });
                 }
                 return { overlaps: pairs.length, pairs: pairs.slice(0, 24),
@@ -3056,14 +3104,32 @@
             indeterminate: 'indeterminate', info: 'indeterminate',
             observed: 'indeterminate', not_applicable: 'indeterminate',
             skipped: 'indeterminate', unknown: 'indeterminate', custom: 'indeterminate',
-            clear: 'indeterminate'
+            clear: 'indeterminate',
+            // DANE verification vocabulary (probe /probe/dane-verify via the
+            // analyzer's dane_verification field, PRs #406-#408): a measured
+            // match is affirmative, a measured digest mismatch is adverse,
+            // and every couldn't-measure flavor stays out of both. no_tlsa
+            // is measured absence and lives in the absence set below.
+            // (Do not name that set here: the drift test bounds each map by
+            // the FIRST occurrence of its identifier, so naming it inside
+            // this object breaks the parse — measured 2026-08-16.)
+            // ⚠ 'error' above maps to 'failed' for legacy producers, but the
+            // DANE lane's 'error' means could-not-measure — when the DANE
+            // ring consumes dane_verification, it must canonicalize through
+            // a DANE-specific table, never this generic map, or a transport
+            // failure renders as an adverse verdict.
+            verified: 'success',
+            mismatch: 'failed',
+            not_verifiable: 'indeterminate',
+            cert_error: 'indeterminate',
+            unreachable: 'indeterminate'
         };
 
         /* Absence is protocol-dependent, and that is a scientific judgement
            rather than a rendering detail — a domain with no DMARC has a real
            gap; a domain with no DANE is unremarkable. So absence maps per
            protocol instead of by one global rule. Tunable on purpose. */
-        let ABSENCE_STATUSES = { missing: 1, absent: 1, not_found: 1, not_configured: 1, no_key: 1, none: 1 };
+        let ABSENCE_STATUSES = { missing: 1, absent: 1, not_found: 1, not_configured: 1, no_key: 1, none: 1, no_tlsa: 1 };
         let ABSENCE_IS_GAP = { spf: 1, dmarc: 1, dkim: 1, dnssec: 1, caa: 1 };
 
         // Which nodes reached their state by being ABSENT rather than by a
