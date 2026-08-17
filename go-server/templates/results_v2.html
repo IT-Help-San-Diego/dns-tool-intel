@@ -589,9 +589,13 @@
   .v2-nav-index { border-radius: .3rem; animation: v2-beckon 2.2s ease-in-out .8s 3;
     border: 1px solid var(--er-line-strong); border-bottom-width: 2px;
     background: var(--er-layer-1); padding: .1em .4em; }
-  .v2-skey { display: block; width: fit-content; margin-top: .3rem; padding: 0 .35em;
-    border: 1px solid var(--er-line-strong); border-bottom-width: 2px; border-radius: .3em;
-    background: var(--er-layer-1); color: var(--er-muted); font-size: .68rem; line-height: 1.5; }
+  /* The pictured key is the REAL number-row cap (Carey, on his own
+     Keychron): shift-symbol riding above the digit, like the physical key. */
+  .v2-skey { display: block; width: fit-content; min-width: 1.7em; margin-top: .35rem;
+    padding: .18em .42em .14em; border: 1px solid var(--er-line-strong);
+    border-bottom-width: 3px; border-radius: .34em; background: var(--er-layer-1);
+    color: var(--er-text); font-size: .82rem; line-height: 1.05; text-align: center; }
+  .v2-skey-sym { display: block; font-size: .66em; color: var(--er-muted); line-height: 1.1; }
   .v2-hurry a { animation: v2-beckon 2.2s ease-in-out .8s 3; }
   @media (prefers-reduced-motion: reduce) { .v2-summary-toggle { transition: none; } .v2-nav-index, .v2-hurry a { animation: none; } }
   @media print {
@@ -1301,7 +1305,7 @@
 <div class="v2-groups">
 <details class="v2-group" id="email-security" data-v2-level="L1" open>
 <summary>
-<span class="v2-summary-index">01<kbd class="v2-skey" aria-hidden="true">1</kbd></span>
+<span class="v2-summary-index">01<kbd class="v2-skey" aria-hidden="true"><span class="v2-skey-sym">!</span>1</kbd></span>
 <span class="v2-summary-copy">
 <span class="v2-summary-eyebrow">Identity & policy · L1</span>
 <span class="v2-summary-title">Email Security</span>
@@ -2373,7 +2377,7 @@
 </details>
 <details class="v2-group" id="domain-security" data-v2-level="L1">
 <summary>
-<span class="v2-summary-index">02<kbd class="v2-skey" aria-hidden="true">2</kbd></span>
+<span class="v2-summary-index">02<kbd class="v2-skey" aria-hidden="true"><span class="v2-skey-sym">@</span>2</kbd></span>
 <span class="v2-summary-copy">
 <span class="v2-summary-eyebrow">Chain of authority · L1</span>
 <span class="v2-summary-title">Domain Security</span>
@@ -3400,7 +3404,7 @@
 </details>
 <details class="v2-group" id="transport-security" data-v2-level="L1">
 <summary>
-<span class="v2-summary-index">03<kbd class="v2-skey" aria-hidden="true">3</kbd></span>
+<span class="v2-summary-index">03<kbd class="v2-skey" aria-hidden="true"><span class="v2-skey-sym">#</span>3</kbd></span>
 <span class="v2-summary-copy">
 <span class="v2-summary-eyebrow">Delivery path · L1</span>
 <span class="v2-summary-title">Transport Security</span>
@@ -3785,7 +3789,7 @@
 </details>
 <details class="v2-group" id="brand-trust" data-v2-level="L1">
 <summary>
-<span class="v2-summary-index">04<kbd class="v2-skey" aria-hidden="true">4</kbd></span>
+<span class="v2-summary-index">04<kbd class="v2-skey" aria-hidden="true"><span class="v2-skey-sym">$</span>4</kbd></span>
 <span class="v2-summary-copy">
 <span class="v2-summary-eyebrow">Human-visible identity · L1</span>
 <span class="v2-summary-title">Brand & Trust</span>
@@ -4003,7 +4007,7 @@
 </details>
 <details class="v2-group" id="infrastructure-intel" data-v2-level="L1">
 <summary>
-<span class="v2-summary-index">05<kbd class="v2-skey" aria-hidden="true">5</kbd></span>
+<span class="v2-summary-index">05<kbd class="v2-skey" aria-hidden="true"><span class="v2-skey-sym">%</span>5</kbd></span>
 <span class="v2-summary-copy">
 <span class="v2-summary-eyebrow">Ownership & attack surface · L1</span>
 <span class="v2-summary-title">Infrastructure Intelligence</span>
@@ -5850,7 +5854,7 @@
 </details>
 <details class="v2-group" id="evidence-verification" data-v2-level="L2–L3">
 <summary>
-<span class="v2-summary-index">06<kbd class="v2-skey" aria-hidden="true">6</kbd></span>
+<span class="v2-summary-index">06<kbd class="v2-skey" aria-hidden="true"><span class="v2-skey-sym">^</span>6</kbd></span>
 <span class="v2-summary-copy">
 <span class="v2-summary-eyebrow">Raw records & reproducibility · L2–L3</span>
 <span class="v2-summary-title">Evidence & Verification</span>
