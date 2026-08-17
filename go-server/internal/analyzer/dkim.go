@@ -571,21 +571,9 @@ func filterDKIMRecords(records []string) []string {
 	return dkimRecords
 }
 
-func checkDKIMSelector(ctx context.Context, dns interface {
-	QueryDNS(ctx context.Context, recordType, domain string) []string
-}, selector, domain string) (string, []string) {
-	fqdn := fmt.Sprintf("%s.%s", selector, domain)
-	records := dns.QueryDNS(ctx, "TXT", fqdn)
-	if len(records) == 0 {
-		return "", nil
-	}
-	if dkimRecords := filterDKIMRecords(records); len(dkimRecords) > 0 {
-		return selector, dkimRecords
-	}
-	return "", nil
-}
-
-// checkDKIMSelectorWithStatus is the census-path variant of checkDKIMSelector.
+// checkDKIMSelectorWithStatus resolves one selector through the status-aware
+// path shared by the census AND the wildcard probe (the flat QueryDNS has no
+// CD salvage and no absent/failed distinction — see AnalyzeDKIM's probe note).
 // The flat QueryDNS returns an empty slice for BOTH "record absent" and
 // "lookup failed", so a scan whose probes transiently failed was
 // indistinguishable from one that authoritatively found nothing — flipping the
@@ -1286,16 +1274,19 @@ func (a *Analyzer) AnalyzeDKIM(ctx context.Context, domain string, mxRecords, cu
 	// The wildcard probe runs WITH the census, never after it: on a
 	// wildcard zone every census name answers — slowly, with CD fallbacks
 	// on bogus zones — and a probe sequenced after wg.Wait() pays its
-	// round-trip from an exhausted budget. The detector was starved by the
-	// thing it detects (measured on the evil fixture 2026-08-16: 81/81
-	// census answers, probe dead, wildcard_dkim false while the zone
-	// wildcards live).
+	// round-trip from an exhausted budget. It must also share the census's
+	// QUERY PATH, not just its schedule: the flat QueryDNS has no CD
+	// salvage, so on a bogus zone a flat-path probe is deterministically
+	// blind while every census name resolves through QueryDNSWithStatus
+	// (measured twice on the evil fixture, 2026-08-16: census 81/81,
+	// probe dead both times — first starved by sequencing, then blinded
+	// by path on prod row 18418).
 	var wildcardProbeName string
 	var wildcardProbeRecords []string
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		n, r := checkDKIMSelector(ctx, a.DNS, dkimWildcardProbe, domain)
+		n, r, _ := a.checkDKIMSelectorWithStatus(ctx, dkimWildcardProbe, domain)
 		mu.Lock()
 		wildcardProbeName, wildcardProbeRecords = n, r
 		mu.Unlock()
