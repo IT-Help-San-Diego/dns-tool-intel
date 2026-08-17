@@ -1,12 +1,15 @@
 {
   "domain": "it-help.tech",
-  "source": "dns-intelligence-it-help.tech.json",
-  "evaluated_at": "2026-06-07T18:57:37.108183+00:00",
-  "schema_version": 8,
+  "source": "dns-intelligence-it-help.tech.input.json",
+  "evaluated_at": "2026-08-17T17:35:19.599861+00:00",
+  "schema_version": 9,
   "total_controls": 16,
   "passed_count": 11,
   "failed_count": 4,
   "na_count": 1,
+  "not_measured_count": 0,
+  "measured_controls": 15,
+  "null_observations": [],
   "high_failures": [],
   "medium_failures": [
     "DNSSEC_KEY_ROLLOVER",
@@ -32,6 +35,7 @@
   "not_applicable": [
     "NO_MAIL_HARDENED"
   ],
+  "not_measured": [],
   "results": [
     {
       "id": "DNSSEC_AUTHENTICATED",

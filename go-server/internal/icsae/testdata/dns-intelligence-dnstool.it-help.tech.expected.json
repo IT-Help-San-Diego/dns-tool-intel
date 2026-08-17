@@ -1,12 +1,15 @@
 {
   "domain": "dnstool.it-help.tech",
-  "source": "dns-intelligence-dnstool.it-help.tech.json",
-  "evaluated_at": "2026-06-07T18:57:36.519641+00:00",
-  "schema_version": 8,
+  "source": "dns-intelligence-dnstool.it-help.tech.input.json",
+  "evaluated_at": "2026-08-17T17:35:19.499190+00:00",
+  "schema_version": 9,
   "total_controls": 16,
   "passed_count": 10,
   "failed_count": 3,
   "na_count": 3,
+  "not_measured_count": 0,
+  "measured_controls": 13,
+  "null_observations": [],
   "high_failures": [],
   "medium_failures": [
     "DNSSEC_KEY_ROLLOVER",
@@ -32,6 +35,7 @@
     "DANE_DEPLOYED",
     "BIMI_CONFIGURED"
   ],
+  "not_measured": [],
   "results": [
     {
       "id": "DNSSEC_AUTHENTICATED",
