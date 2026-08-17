@@ -556,6 +556,63 @@ func TestAnalyzeDNSSEC_ConfirmedNoDS_IslandOfSecurity(t *testing.T) {
         if got, _ := result[mapKeyHasDs].(bool); got {
                 t.Fatalf("has_ds = %v, want false", result[mapKeyHasDs])
         }
+        // No CD=0 entry registered: the ds_denial probe falls back to the CD=1
+        // shape (absent, AD protocol-zeroed) -> unauthenticated.
+        if got := result[mapKeyDsDenial]; got != dsDenialUnauthenticated {
+                t.Fatalf("ds_denial = %v, want %s", got, dsDenialUnauthenticated)
+        }
+}
+
+// TestAnalyzeDNSSEC_IslandDenialQualifier pins the resolutionscope specimen
+// pair (measured live 2026-08-17): two zones in the SAME island-of-security
+// configuration (DNSKEY present, DS confirmed absent at the parent) must
+// DIFFER on ds_denial when the parents differ — a signed parent (.dev)
+// authenticates its denial (CD=0 answer carries AD), an unsigned/opt-out
+// parent (.com) cannot. Both keep dnssec_state=partial and
+// chain_of_trust=broken: the qualifier differentiates, never relabels.
+func TestAnalyzeDNSSEC_IslandDenialQualifier(t *testing.T) {
+        cases := []struct {
+                name       string
+                cd0        dnsclient.RecordWithTTL
+                cd0Status  dnsclient.LookupStatus
+                wantDenial string
+        }{
+                {"signed parent authenticates the denial (.dev shape)",
+                        dnsclient.RecordWithTTL{Authenticated: true}, dnsclient.LookupAbsent, dsDenialAuthenticated},
+                {"unsigned parent cannot authenticate (.com shape)",
+                        dnsclient.RecordWithTTL{Authenticated: false}, dnsclient.LookupAbsent, dsDenialUnauthenticated},
+                {"probe failure is unmeasured, never a claim",
+                        dnsclient.RecordWithTTL{}, dnsclient.LookupError, dsDenialUnmeasured},
+        }
+        for _, c := range cases {
+                t.Run(c.name, func(t *testing.T) {
+                        mockDNS := NewMockDNSClient()
+                        mockDNS.AddTTLStatusResponse("DNSKEY", triStateDomain,
+                                dnsclient.RecordWithTTL{Records: []string{"257 3 13 mIIBI..."}},
+                                dnsclient.LookupResolved)
+                        // CD=1 lookup: absent (an Authenticated bit here would be
+                        // protocol-impossible; the mock zeroes it regardless).
+                        mockDNS.AddTTLStatusResponseCD("DS", triStateDomain, true,
+                                dnsclient.RecordWithTTL{}, dnsclient.LookupAbsent)
+                        // CD=0 denial probe: the per-case shape under test.
+                        mockDNS.AddTTLStatusResponseCD("DS", triStateDomain, false, c.cd0, c.cd0Status)
+                        addParentNS(mockDNS)
+                        mockDNS.AddSpecificResolverResponse("DS", triStateDomain, triStateParentIP, []string{})
+                        a := &Analyzer{DNS: mockDNS}
+
+                        result := a.AnalyzeDNSSEC(context.Background(), triStateDomain)
+
+                        if got := result[mapKeyDnssecState]; got != dnssecStatePartial {
+                                t.Fatalf("dnssec_state = %v, want %s (the qualifier must not relabel the state)", got, dnssecStatePartial)
+                        }
+                        if got := result[mapKeyChainOfTrust]; got != "broken" {
+                                t.Fatalf("chain_of_trust = %v, want broken (the qualifier must not relabel the chain)", got)
+                        }
+                        if got := result[mapKeyDsDenial]; got != c.wantDenial {
+                                t.Fatalf("ds_denial = %v, want %s", got, c.wantDenial)
+                        }
+                })
+        }
 }
 
 // TestAnalyzeDNSSEC_DSUnconfirmable_Indeterminate locks the honesty rule: DNSKEY

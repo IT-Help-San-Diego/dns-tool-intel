@@ -652,7 +652,17 @@ func (c *Client) QueryDNSWithTTLStatus(ctx context.Context, recordType, domain s
         case consensusResolved:
                 return results[idx].rec, LookupResolved
         case consensusAbsent:
-                return RecordWithTTL{}, LookupAbsent
+                // Carry the denial's own authentication out of the fold: with CD=0,
+                // a validating resolver that sets AD on an empty answer has PROVEN
+                // the record absent (RFC 4035 §3.2.3) — one AD-bearing absent vote
+                // is positive evidence (the hasSecureNoBogus doctrine's shape).
+                // CD=1 queries can never carry it: CD disables validation, so AD is
+                // protocol-zeroed. Records stays empty — absence semantics unchanged.
+                auth := make([]bool, len(results))
+                for i := range results {
+                        auth[i] = results[i].rec.Authenticated
+                }
+                return RecordWithTTL{Authenticated: absentDenialAD(outcomes, auth)}, LookupAbsent
         case consensusConflict:
                 return RecordWithTTL{}, LookupConflict
         }
@@ -663,6 +673,18 @@ func (c *Client) QueryDNSWithTTLStatus(ctx context.Context, recordType, domain s
                 return doh, LookupResolved
         }
         return RecordWithTTL{}, LookupError
+}
+
+// absentDenialAD reports whether any absent-voting resolver's answer carried
+// the AD bit — positive evidence the denial itself was validated. Meaningful
+// only for CD=0 queries (CD=1 protocol-zeroes AD, RFC 4035 §3.2.2).
+func absentDenialAD(outcomes []resolverOutcome, authenticated []bool) bool {
+        for i, oc := range outcomes {
+                if oc == outcomeAbsent && i < len(authenticated) && authenticated[i] {
+                        return true
+                }
+        }
+        return false
 }
 
 func (c *Client) querySingleResolver(ctx context.Context, domain, recordType, resolverIP string) (string, []string, string) {
