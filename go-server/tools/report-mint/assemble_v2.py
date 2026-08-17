@@ -1,13 +1,32 @@
 #!/usr/bin/env python3
-"""Assemble the Engineer's Report workspace from the canonical report source.
+"""RETIRED GENERATOR — results_v2.html is HAND-OWNED. Do not run this.
 
-results.html remains the content authority. This generator relocates every
-source line exactly once into a navigable disclosure gradient; it never edits
-or abbreviates protocol evidence. The output is an independently-rendered
-candidate at /analysis/:id/v2 until the information architecture is ratified.
+The information architecture WAS ratified: /analysis/:id/v2 became the
+default workspace, and since PR #373 results_v2.html is hand-owned — this
+generator no longer reproduces it (v2-native work lives only in the output
+file: the hoisted label vars, the 6-cell severity-ordered posture strip, the
+TRACE row, and their CSS). The authority relationship in the ORIGINAL
+docstring is inverted: results.html is no longer the content authority for
+v2, and regenerating silently DELETES the v2-native work (it happened on
+2026-08-17 — a lane trusted this docstring, regenerated, and every
+template-rendering test went red).
+
+The hand-ownership contract is pinned in report_v2_render_test.go. This
+guard exits before touching any file; it stays because a ruling the
+apparatus enforces beats a ruling a memory note carries.
 """
 
 from __future__ import annotations
+
+import sys
+
+sys.exit(
+    "REFUSING TO RUN: results_v2.html is HAND-OWNED (since PR #373) and this "
+    "generator no longer reproduces it — regenerating deletes v2-native work "
+    "(6-cell posture strip, TRACE row, hoisted labels, strip CSS). Edit "
+    "results_v2.html directly; contract pins live in report_v2_render_test.go. "
+    "See the docstring above and dns-tool-open-threads memory for the ruling."
+)
 
 import re
 from dataclasses import dataclass
