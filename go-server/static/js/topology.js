@@ -2156,8 +2156,12 @@
             for (let pi = 0; pi < PROTOCOLS.length; pi++) {
                 let pn = PROTOCOLS[pi];
                 if (pn.id === from.id || pn.id === to.id) continue;
-                let dx2 = pn.x - mx;
-                let dy2 = pn.y - my;
+                // Solved positions: the offset choice is a decision, and
+                // wobble here flipped curve sides frame-to-frame.
+                let pnx = (pn.targetX !== undefined ? pn.targetX : pn.x);
+                let pny = (pn.targetY !== undefined ? pn.targetY : pn.y);
+                let dx2 = pnx - mx;
+                let dy2 = pny - my;
                 let distToMid = Math.sqrt(dx2 * dx2 + dy2 * dy2);
                 if (distToMid < pn.radius + 50 && distToMid < closestDist) {
                     closestDist = distToMid;
@@ -2244,13 +2248,31 @@
 
             if (e.label && (isHL || e.type !== 'flow')) {
                 let t = e.labelT || 0.5;
+                // The label SEED is a placement decision too: seeding from the
+                // animated curve left "requires" bistable at phone density —
+                // the wobble crossed an avoidance threshold and the 3-pass
+                // escape flung the pill to a distant slot (simulator burst,
+                // 2026-08-16: top-left one frame, beside CAA the next). Seed
+                // from the SOLVED endpoints through the same curve function,
+                // so the whole placement chain reads one stable geometry.
+                let sFrom = { id: from.id,
+                              x: (from.targetX !== undefined ? from.targetX : from.x),
+                              y: (from.targetY !== undefined ? from.targetY : from.y),
+                              radius: from.radius, _halfW: from._halfW, _halfH: from._halfH,
+                              _boxW: from._boxW, _boxH: from._boxH, shape: from.shape, zone: from.zone };
+                let sTo = { id: to.id,
+                            x: (to.targetX !== undefined ? to.targetX : to.x),
+                            y: (to.targetY !== undefined ? to.targetY : to.y),
+                            radius: to.radius, _halfW: to._halfW, _halfH: to._halfH,
+                            _boxW: to._boxW, _boxH: to._boxH, shape: to.shape, zone: to.zone };
+                let sCurve = findEdgeCurveOffset(sFrom, sTo, e.type);
                 let lx, ly;
-                if (curve) {
-                    lx = (1 - t) * (1 - t) * from.x + 2 * (1 - t) * t * curve.cx + t * t * to.x;
-                    ly = (1 - t) * (1 - t) * from.y + 2 * (1 - t) * t * curve.cy + t * t * to.y;
+                if (sCurve) {
+                    lx = (1 - t) * (1 - t) * sFrom.x + 2 * (1 - t) * t * sCurve.cx + t * t * sTo.x;
+                    ly = (1 - t) * (1 - t) * sFrom.y + 2 * (1 - t) * t * sCurve.cy + t * t * sTo.y;
                 } else {
-                    lx = from.x + (to.x - from.x) * t;
-                    ly = from.y + (to.y - from.y) * t;
+                    lx = sFrom.x + (sTo.x - sFrom.x) * t;
+                    ly = sFrom.y + (sTo.y - sFrom.y) * t;
                 }
                 ly -= 8 * SCL;
 
@@ -2258,23 +2280,28 @@
                     let nn = allLayoutNodes[nri];
                     let nhw = (nn._halfW || nn._boxW / 2 || nn.radius) + 12;
                     let nhh = (nn._halfH || nn._boxH / 2 || nn.radius) + 12;
+                    // Solved positions here too — same rule as the obstacle
+                    // set above: the avoidance PUSH is a decision, and wobble
+                    // in its inputs is what flipped pills between rows.
+                    let nsx = (nn.targetX !== undefined ? nn.targetX : nn.x);
+                    let nsy = (nn.targetY !== undefined ? nn.targetY : nn.y);
                     if (nn.shape === 'circle') {
-                        let ldx = lx - nn.x;
-                        let ldy = ly - nn.y;
+                        let ldx = lx - nsx;
+                        let ldy = ly - nsy;
                         let ldist = Math.sqrt(ldx * ldx + ldy * ldy);
                         if (ldist < nn.radius + 24 && ldist > 0.1) {
                             let lnorm = (nn.radius + 28) / ldist;
-                            lx = nn.x + ldx * lnorm;
-                            ly = nn.y + ldy * lnorm;
+                            lx = nsx + ldx * lnorm;
+                            ly = nsy + ldy * lnorm;
                         }
                     } else {
-                        let ndx = lx - nn.x;
-                        let ndy = ly - nn.y;
+                        let ndx = lx - nsx;
+                        let ndy = ly - nsy;
                         if (Math.abs(ndx) < nhw && Math.abs(ndy) < nhh) {
                             if (Math.abs(ndx) / nhw > Math.abs(ndy) / nhh) {
-                                lx = nn.x + (ndx >= 0 ? 1 : -1) * (nhw + 6);
+                                lx = nsx + (ndx >= 0 ? 1 : -1) * (nhw + 6);
                             } else {
-                                ly = nn.y + (ndy >= 0 ? 1 : -1) * (nhh + 6);
+                                ly = nsy + (ndy >= 0 ? 1 : -1) * (nhh + 6);
                             }
                         }
                     }
@@ -2950,7 +2977,16 @@
             edgeLabelObstacles = [];
             allLayoutNodes.forEach(function(n) {
                 let hw = n._halfW || n.radius, hh = n._halfH || n.radius;
-                edgeLabelObstacles.push({ x: n.x, y: n.y, w: hw * 2 + 12, h: hh * 2 + 12 });
+                // Obstacles use the SOLVED position, not the animated one:
+                // label placement is a per-frame decision, and feeding it the
+                // ±1.5px ambient wobble put dense phone layouts on a decision
+                // boundary — the pills teleported between candidate slots
+                // every few frames (caught on the iPhone simulator, 2026-08-16,
+                // two frames 600ms apart with "requires" in different rows).
+                // Paint wobbles; decisions don't.
+                let sx = (n.targetX !== undefined ? n.targetX : n.x);
+                let sy = (n.targetY !== undefined ? n.targetY : n.y);
+                edgeLabelObstacles.push({ x: sx, y: sy, w: hw * 2 + 12, h: hh * 2 + 12 });
             });
             FLOW_EDGES.forEach(function(e) { drawFlowEdge(e); });
             PROTO_EDGES.forEach(function(e) { drawFlowEdge(e); });
