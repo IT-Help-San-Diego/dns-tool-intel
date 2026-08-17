@@ -118,7 +118,7 @@ The Covert Recon Mode UI references three authoritative military/defense sources
 | Identifier | Title | URL | Our Use |
 |------------|-------|-----|---------|
 | AD0639176 | Scotopic Adaptation Research (DTIC Technical Report) | https://apps.dtic.mil/sti/citations/tr/AD0639176 | Authoritative citation for red-spectrum preservation of dark-adapted (scotopic) vision |
-| ADA148883 | MIL-STD-3009 — Lighting, Aircraft, Night Vision Imaging System Compatible | https://apps.dtic.mil/sti/tr/pdf/ADA148883.pdf | Military standard for NVG-compatible tactical lighting; Class B minimum luminance reference for submarine environment preset |
+| ADA148883 | The Relative Effectiveness of Red and White Light for Subsequent Dark-Adaptation (NSMRL Report 1036) | /static/references/Luria-Kobus-Red-White-Light-Dark-Adaptation-1984.pdf | Luria & Kobus (1984) literature review: red superior to white for dark-adaptation; advantage shrinks at low ambient levels |
 | MIL-STD-1472G | Human Engineering (Dept. of Defense Design Criteria Standard) | https://cvgstrategy.com/wp-content/uploads/2023/04/MIL-STD-1472G.pdf | DoD human factors standard governing display lighting, color usage, and operator interface design for tactical environments |
 
 ## Public Repo Safety
