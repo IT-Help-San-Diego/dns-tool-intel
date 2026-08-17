@@ -3197,7 +3197,7 @@
             verified: 'success',
             mismatch: 'failed',
             not_verifiable: 'indeterminate',
-            cert_invalid: 'indeterminate',
+            cert_invalid: 'warning',
             unreachable: 'indeterminate',
             unmeasured: 'indeterminate'
         };
