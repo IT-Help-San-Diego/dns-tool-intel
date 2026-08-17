@@ -399,7 +399,7 @@ NAV = '<nav class="v2-nav screen-only" aria-label="Engineer report workspace">\n
 # renders below, but the workspace/navigation now owns the first decision frame.
 out = [seg(1, 355), CSS, ORIENTATION, NAV, SCRIPT, seg(356, 962), '<div class="v2-groups">']
 out.extend(group_markup(group) for group in GROUPS)
-out.extend(("</div>", seg(6329, SOURCE_LINE_COUNT)))
+out.extend(("</div>", seg(6345, SOURCE_LINE_COUNT)))
 html = "\n".join(out)
 html = html.replace('<main id="main-content" class="container my-4"', '<main id="main-content" class="container my-4 v2-workspace"', 1)
 html = html.replace("<title>", "<title>[ENGINEER WORKSPACE] ", 1)

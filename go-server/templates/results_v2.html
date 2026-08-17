@@ -195,12 +195,78 @@
         {{$tlsrptState := mapGetStr "tlsrpt_state" $tlsrpt}}
         {{$bimiState := mapGetStr "bimi_state" $bimi}}
         {{$posture := mapGetMap "posture" $results}}
+        {{/* Pill vars hoisted (2026-08-16): the risk pill now ALSO renders
+             beside the domain name, so the derivation lives at top scope —
+             defined once, consumed by header pill + posture panel. */}}
+        {{$postureColor := mapGetStr "color" $posture}}
+        {{$postureState := mapGetStr "state" $posture}}
         {{$remediation := mapGetMap "remediation" $results}}
         {{$hosting := mapGetMap "hosting_summary" $results}}
         {{$registrar := mapGetMap "registrar_info" $results}}
         {{$basic := mapGetMap "basic_records" $results}}
         {{$ns := mapGetMap "ns_delegation_analysis" $results}}
         {{$dns_infra := mapGetMap "dns_infrastructure" $results}}
+        {{/* Executive Scorecard labels, hoisted to top scope: computed ONCE
+             from producer fields and consumed by the L0 strip, the TRACE row,
+             and the group-summary collapsed-state badges — single source,
+             never re-derived (the severity map ranks these labels; raw
+             "success"/"danger" strings would hit the WARN fallback). */}}
+        {{$spfStatus := mapGetStr "status" $spf}}
+        {{$dmarcStatus := mapGetStr "status" $dmarc}}
+        {{$dmarcPolicy := mapGetStr "policy" $dmarc}}
+        {{$dnssecStatus := mapGetStr "status" $dnssec}}
+        {{$esLabel := ""}}{{$esClass := ""}}{{$esTip := false}}
+                            {{if .IsTLD}}{{$esLabel = "N/A — Registry"}}{{$esClass = "bg-secondary"}}
+                            {{else if or (eq (mapGetStr "spf_state" $spf) "indeterminate") (eq (mapGetStr "dmarc_state" $dmarc) "indeterminate")}}{{$esLabel = "Inconclusive"}}{{$esClass = "bg-secondary"}}{{$esTip = true}}
+                            {{else if and (eq $spfStatus "success") (eq $dmarcStatus "success") (or (eq $dmarcPolicy "reject") (eq $dmarcPolicy "quarantine"))}}{{$esLabel = "Protected"}}{{$esClass = "bg-success"}}
+                            {{else if and (eq $spfStatus "success") (eq $dmarcStatus "success") (eq $dmarcPolicy "none")}}{{$esLabel = "Monitoring"}}{{$esClass = "bg-info"}}
+                            {{else if or (eq $spfStatus "success") (eq $dmarcStatus "success")}}{{$esLabel = "Partial"}}{{$esClass = "bg-warning text-dark"}}
+                            {{else}}{{$esLabel = "Vulnerable"}}{{$esClass = "bg-danger"}}{{end}}
+        {{$biLabel := ""}}{{$biClass := ""}}
+                            {{if .IsTLD}}{{$biLabel = "N/A — Registry"}}{{$biClass = "bg-secondary"}}
+                            {{else if and $bimi (eq (mapGetStr "status" $bimi) "success") (mapGetBool "vmc_valid" $bimi)}}{{$biLabel = "Protected"}}{{$biClass = "bg-success"}}
+                            {{else if and $bimi (eq (mapGetStr "status" $bimi) "success")}}{{$biLabel = "Basic"}}{{$biClass = "bg-info"}}
+                            {{else if eq $bimiState "indeterminate"}}{{$biLabel = "Inconclusive"}}{{$biClass = "bg-secondary"}}
+                            {{else}}{{$biLabel = "Not Setup"}}{{$biClass = "bg-secondary"}}{{end}}
+        {{$dtLabel := ""}}{{$dtClass := ""}}
+                            {{if eq $dnssecStatus "success"}}{{$dtLabel = "Protected"}}{{$dtClass = "bg-success"}}
+                            {{else if and (eq (mapGetStr "dnssec_state" $dnssec) "absent_confirmed") $dns_infra (eq (mapGetStr "provider_tier" $dns_infra) "enterprise")}}{{$dtLabel = "Enterprise"}}{{$dtClass = "bg-info"}}
+                            {{else}}{{$dtLabel = mapGetStr "display_label" $dnssec}}{{$dtClass = printf "bg-%s" (mapGetStr "display_severity" $dnssec)}}{{end}}
+        {{$ccLabel := ""}}{{$ccClass := ""}}
+                            {{if .IsTLD}}{{$ccLabel = "N/A — Registry"}}{{$ccClass = "bg-secondary"}}
+                            {{else if and $caa (eq (mapGetStr "status" $caa) "success")}}{{$ccLabel = "Configured"}}{{$ccClass = "bg-success"}}
+                            {{else if eq $caaState "indeterminate"}}{{$ccLabel = "Inconclusive"}}{{$ccClass = "bg-secondary"}}
+                            {{else}}{{$ccLabel = "Open"}}{{$ccClass = "bg-secondary"}}{{end}}
+        {{/* c2b: Monitoring — would the owner SEE attacks and failures?
+             Channels: DMARC aggregate reports (rua) + TLS-RPT delivery
+             reports. One measured channel outranks an indeterminate sibling;
+             both absent-confirmed = Not Setup; unproven absence stays
+             Inconclusive. */}}
+        {{$tlsrptStatusSC := mapGetStr "status" $tlsrpt}}
+        {{$dmarcRua := mapGetStr "rua" $dmarc}}
+        {{$moLabel := ""}}{{$moClass := ""}}
+                            {{if .IsTLD}}{{$moLabel = "N/A — Registry"}}{{$moClass = "bg-secondary"}}
+                            {{else if and (ne $dmarcRua "") (eq $tlsrptStatusSC "success")}}{{$moLabel = "Configured"}}{{$moClass = "bg-success"}}
+                            {{else if or (ne $dmarcRua "") (eq $tlsrptStatusSC "success")}}{{$moLabel = "Partial"}}{{$moClass = "bg-warning text-dark"}}
+                            {{else if or (eq (mapGetStr "dmarc_state" $dmarc) "indeterminate") (eq $tlsrptState "indeterminate")}}{{$moLabel = "Inconclusive"}}{{$moClass = "bg-secondary"}}
+                            {{else}}{{$moLabel = "Not Setup"}}{{$moClass = "bg-secondary"}}{{end}}
+        {{/* c2b: DANE — the first consumer of dane_verification (#406-#408).
+             The status maps through THIS chain, never the generic severity
+             map: DANE's "error" means could-not-measure, and the generic
+             error→FAIL would render a transport failure as a broken domain
+             (the collision documented when the aliases landed). Absent field
+             (legacy rows, no probe, all-transport-failed) falls back to
+             measured PRESENCE at the honest tier: present-but-unverified is
+             Unconfirmed, never Configured. */}}
+        {{$daneVerSC := mapGetMap "dane_verification" $dane}}
+        {{$dvLabel := ""}}{{$dvClass := ""}}
+                            {{if .IsTLD}}{{$dvLabel = "N/A — Registry"}}{{$dvClass = "bg-secondary"}}
+                            {{else if $daneVerSC}}{{$dvs := mapGetStr "status" $daneVerSC}}{{if eq $dvs "mismatch"}}{{$dvLabel = "Broken"}}{{$dvClass = "bg-danger"}}{{else if eq $dvs "verified"}}{{$dvLabel = "Verified"}}{{$dvClass = "bg-success"}}{{else if eq $dvs "no_tlsa"}}{{$dvLabel = "Not Deployed"}}{{$dvClass = "bg-secondary"}}{{else}}{{$dvLabel = "Could Not Verify"}}{{$dvClass = "bg-secondary"}}{{end}}
+                            {{else if eq (mapGetStr "dane_state" $dane) "indeterminate"}}{{$dvLabel = "Inconclusive"}}{{$dvClass = "bg-secondary"}}
+                            {{else if eq (mapGetStr "dane_deployable" $dane) "false"}}{{$dvLabel = "Unavailable on Provider"}}{{$dvClass = "bg-secondary"}}
+                            {{else if mapGetBool "has_dane" $dane}}{{$dvLabel = "Unconfirmed"}}{{$dvClass = "bg-secondary"}}
+                            {{else}}{{$dvLabel = "Not Deployed"}}{{$dvClass = "bg-secondary"}}{{end}}
+        {{$dsLabel := $dtLabel}}{{if lt (severityRank $ccLabel) (severityRank $dtLabel)}}{{$dsLabel = $ccLabel}}{{end}}
         {{$esm := mapGetMap "email_security_mgmt" $results}}
         {{$mp := mapGetMap "mail_posture" $results}}
         {{$resolver_consensus := mapGetMap "resolver_consensus" $results}}
@@ -231,6 +297,12 @@
         {{$delegation_consistency := mapGetMap "delegation_consistency" $results}}
         {{$ns_fleet := mapGetMap "ns_fleet" $results}}
         {{$dnssec_ops := mapGetMap "dnssec_ops" $results}}
+        {{/* Web3 section visibility, hoisted so the ToC chip and the section
+             share ONE condition — a link must never outlive its target
+             (Science's anchor-integrity finding, 2026-08-16). */}}
+        {{$showWeb3Section := false}}
+        {{if and $web3 (mapGetBool "detected" $web3) (not .IsPublicSuffix)}}{{$showWeb3Section = true}}{{end}}
+        {{if and $web3res (mapGetBool "is_web3_input" $web3res) (not .IsPublicSuffix)}}{{$showWeb3Section = true}}{{end}}
         {{$dns_history := mapGetMap "dns_history" $results}}
         {{$dns_history_available := and $dns_history (mapGetBool "has_changes" $dns_history)}}
 
@@ -301,6 +373,7 @@
                 <h1 class="h3 mb-1">{{if .IsPublicSuffix}}Registry Zone Health Report{{else}}Engineer's DNS Intelligence Report{{end}}</h1>
                 <div class="domain-display">
                     <span class="domain-name-prominent">{{.Domain}}</span>
+                    {{if and .DomainExists $postureState (not .IsPublicSuffix)}}<a href="#posture-panel" class="text-decoration-none"><span class="badge bg-{{$postureColor}} ms-2 align-middle" title="DNS Security &amp; Trust Posture — the mission-critical verdict, up front (details below)">{{$postureState}}</span></a>{{end}}
                     {{if ne .AsciiDomain .Domain}}
                         <span class="badge bg-secondary ms-2">ASCII: {{.AsciiDomain}}</span>
                     {{end}}
@@ -382,6 +455,12 @@
   }
   .v2-workspace .results-header-info h1 { color: var(--er-muted); font-size: .78rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; }
   .v2-workspace .domain-name-prominent { color: var(--er-text); font-size: clamp(1.85rem, 4vw, 3.1rem); font-weight: 400; letter-spacing: -.035em; line-height: 1.05; }
+  /* The verdict pill and the display type share one flex row on the
+     Fibonacci gap (13px): the pill centers on the type's optical middle at
+     every width instead of riding the baseline (Carey's alignment frame,
+     2026-08-16). flex-wrap keeps long domains honest on phones. */
+  .v2-workspace .domain-display { display: flex; align-items: center; flex-wrap: wrap; gap: 13px; }
+  .v2-workspace .domain-display .badge { margin-left: 0 !important; }
   .v2-workspace .results-meta { color: var(--er-muted) !important; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .73rem !important; margin-top: .7rem; }
   .v2-workspace .results-header-actions { align-content: flex-start; justify-content: flex-end; }
   .v2-workspace .results-header-actions .btn { min-height: 40px; }
@@ -400,6 +479,27 @@
   .v2-layer-key { display: grid; grid-template-columns: repeat(4, 1fr); gap: .45rem; margin-top: .75rem; }
   .v2-layer-key span { padding-top: .45rem; border-top: 2px solid var(--er-line-strong); color: var(--er-muted); font-size: .7rem; }
   .v2-layer-key strong { display: block; color: var(--er-text); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  /* The key, Apple-documentation grade: geometrically SQUARE
+     (aspect-ratio 1), legends centered, cap-top highlight, heavy bottom
+     edge. One class everywhere a key appears, so the lesson transfers. */
+  .v2-key { display: inline-flex; flex-direction: column; align-items: center;
+    justify-content: center; aspect-ratio: 1; min-width: 2.1em; padding: .15em;
+    border: 1px solid var(--er-line-strong); border-bottom-width: 3px;
+    border-radius: .4em; background: var(--er-layer-1); color: var(--er-text);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.07);
+    font-size: .95em; line-height: 1.05; text-align: center; vertical-align: middle; }
+  .v2-key-sym { display: block; font-size: .64em; color: var(--er-muted); line-height: 1.15; }
+  .v2-key--esc { aspect-ratio: auto; min-width: 2.6em; font-size: .8em; padding: .35em .3em; }
+  .v2-keys-row { display: inline-flex; gap: .3em; vertical-align: middle; margin: 0 .35em; }
+  .v2-keys-label { color: var(--er-muted); letter-spacing: .08em; margin-right: .35em; }
+  .v2-keys-sep { margin: 0 .35em; }
+  /* c2b: severity-proportional sizing — the worst finding reads largest.
+     data-sev stamps 0-3 from the SHARED severity map; type scale only,
+     the six-wide grid stays intact. */
+  .v2-posture-strip [data-sev="0"] .badge { font-size: 1rem; }
+  .v2-posture-strip [data-sev="1"] .badge { font-size: .9rem; }
+  .v2-posture-strip [data-sev="2"] .badge { font-size: .78rem; }
+  .v2-posture-strip [data-sev="3"] .badge { font-size: .78rem; }
   .v2-hurry { display: grid; gap: .55rem; }
   .v2-hurry a { display: flex; align-items: center; justify-content: space-between; min-height: 42px; padding: .55rem .75rem; color: var(--er-text); text-decoration: none; background: var(--er-layer-2); border-left: 3px solid var(--er-gold); }
   .v2-hurry a:hover, .v2-hurry a:focus-visible { background: var(--er-layer-3); color: #fff; }
@@ -409,6 +509,10 @@
     box-shadow: 0 10px 32px rgba(0,0,0,.38); backdrop-filter: blur(18px);
   }
   .v2-nav a { display: grid; grid-template-columns: auto 1fr; gap: .55rem; align-items: center; min-height: 52px; padding: .55rem .7rem; color: var(--er-muted); text-decoration: none; background: var(--er-layer-1); }
+  /* c2c read-state badges: a hollow dot waits, a check has been reviewed —
+     quiet enough to ignore, present enough to audit your own coverage. */
+  .v2-nav a[data-rs]::after { content: '\25CB'; margin-left: auto; font-size: .7rem; color: var(--er-muted); opacity: .55; }
+  .v2-nav a.v2-nav--seen::after { content: '\2713'; color: var(--er-gold); opacity: .9; }
   .v2-nav a:hover, .v2-nav a:focus-visible, .v2-nav a[aria-current="location"] { color: var(--er-text); background: var(--er-layer-3); box-shadow: inset 0 -2px var(--er-gold); }
   .v2-nav-index { color: var(--er-gold-soft); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .72rem; }
   .v2-nav-label { font-size: .76rem; font-weight: 600; line-height: 1.25; }
@@ -442,6 +546,26 @@
   .v2-workspace .v2-posture-strip > [class*="col-"] { width: auto; max-width: none; flex: none; padding: 0 !important; margin: 0 !important; display: inline-flex; align-items: center; gap: .5rem; }
   .v2-workspace .v2-posture-strip .small { margin: 0 !important; font-size: .68rem !important; letter-spacing: .05em; }
   .v2-workspace .v2-posture-strip .badge { padding: .28rem .6rem !important; font-size: .72rem !important; }
+  /* Severity order stamped server-side from the shared map (severityRank):
+     FAIL 0 renders first, INFO above PASS. Visual order only — DOM stays canonical. */
+  .v2-posture-strip .sev-order-0 { order: 0; }
+  .v2-posture-strip .sev-order-1 { order: 1; }
+  .v2-posture-strip .sev-order-2 { order: 2; }
+  .v2-posture-strip .sev-order-3 { order: 3; }
+  /* TRACE row: the citation path of the page's worst finding, L0 verdict down
+     to the reproduce commands. Chips are plain anchors — the goHash handler
+     opens the containing <details> on the way down. */
+  .v2-trace { display: flex; flex-wrap: wrap; align-items: center; gap: .45rem; margin-top: .8rem; }
+  .v2-trace-chip { border: 1px solid rgba(148,163,184,.3); border-radius: 4px; padding: .14rem .55rem; color: var(--er-text, #e6edf3); text-decoration: none; }
+  a.v2-trace-chip:hover, a.v2-trace-chip:focus-visible { border-color: var(--er-gold, #e3b341); color: var(--er-gold, #e3b341); }
+  /* Collapsed-state badges: colour = verdict tier from the shared map.
+     Clean = green outline; findings = filled; info = blue outline. */
+  .v2-sum-badge { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; border-radius: 999px; padding: 5px 13px; border: 1px solid; align-self: center; white-space: nowrap; }
+  .v2-sum-badge-pass { color: #3fb950; border-color: rgba(63,185,80,.5); }
+  .v2-sum-badge-warn { color: #e3b341; border-color: rgba(227,179,65,.5); background: rgba(227,179,65,.12); }
+  .v2-sum-badge-fail { color: #ef5350; border-color: rgba(239,83,80,.5); background: rgba(239,83,80,.12); }
+  .v2-sum-badge-info { color: #78a9d4; border-color: rgba(120,169,212,.5); }
+  .v2-keys { margin-top: 13px; }
   /* Priority-action DNS record tables: let long values wrap instead of squinting mid-token. */
   .v2-workspace .table-dark td code { overflow-wrap: anywhere; word-break: break-word; white-space: normal; }
   .v2-workspace .u-col-label-70 { width: 3.4rem; }
@@ -468,7 +592,19 @@
     .v2-group-body { padding: .65rem; }
     .v2-workspace .domain-summary-row { grid-template-columns: 1fr 1fr; }
   }
-  @media (prefers-reduced-motion: reduce) { .v2-summary-toggle { transition: none; } }
+  /* Beckon (Carey 2026-08-16): the numbered jump points and the hurry path
+     draw the eye for three gentle cycles after load, then rest. Discovery
+     cue only — never a constant motion. */
+  @keyframes v2-beckon {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(240, 185, 11, 0); }
+    50% { box-shadow: 0 0 9px 1px rgba(240, 185, 11, .38); }
+  }
+  .v2-nav-index { border-radius: .3rem; animation: v2-beckon 2.2s ease-in-out .8s 3;
+    border: 1px solid var(--er-line-strong); border-bottom-width: 2px;
+    background: var(--er-layer-1); padding: .1em .4em; }
+  .v2-skey { margin-top: .4rem; font-size: .92rem; }
+  .v2-hurry a { animation: v2-beckon 2.2s ease-in-out .8s 3; }
+  @media (prefers-reduced-motion: reduce) { .v2-summary-toggle { transition: none; } .v2-nav-index, .v2-hurry a { animation: none; } }
   @media print {
     .v2-orientation, .v2-nav, .v2-summary-toggle, .screen-only { display: none !important; }
     details.v2-group { border: 0; }
@@ -497,6 +633,20 @@
       <a href="#section-dnssec"><span>DNSSEC</span><span aria-hidden="true">→</span></a>
       <a href="#section-dns-diff"><span>What changed</span><span aria-hidden="true">→</span></a>
     </div>
+    {{/* The keyboard doorway earns a real explanation (Carey, 2026-08-16:
+         "I want people to really be able to find it") — key-cap chips that
+         READ as keys, tied to the numbered sections they drive. */}}
+    {{/* The teaching row (Carey, 2026-08-16): the FULL number-row caps,
+         Apple-documentation grade — square, centered, unmistakable — right
+         where the beckon draws the eye. Learn the keys here, find them
+         again on every section below. */}}
+    <div class="v2-keys font-monospace small text-muted">
+        <span class="v2-keys-label">KEYBOARD</span>
+        <span class="v2-keys-row" aria-label="Keys 1 through 6"><kbd class="v2-key"><span class="v2-key-sym">!</span>1</kbd><kbd class="v2-key"><span class="v2-key-sym">@</span>2</kbd><kbd class="v2-key"><span class="v2-key-sym">#</span>3</kbd><kbd class="v2-key"><span class="v2-key-sym">$</span>4</kbd><kbd class="v2-key"><span class="v2-key-sym">%</span>5</kbd><kbd class="v2-key"><span class="v2-key-sym">^</span>6</kbd></span>
+        <span class="text-nowrap">jump to that section</span>
+        <span class="v2-keys-sep">·</span>
+        <span class="text-nowrap"><kbd class="v2-key v2-key--esc">esc</kbd> back to the verdict</span>
+    </div>
   </div>
 </section>
 
@@ -522,7 +672,53 @@
       if(a.getAttribute('href')==='#'+current) a.setAttribute('aria-current','location');
       else a.removeAttribute('aria-current');
     }
+    if(current) rsMark(current);
   }
+  var GROUPS=['email-security','domain-security','transport-security','brand-trust','infrastructure-intel','evidence-verification'];
+  /* c2c read-state: the report remembers which sections THIS engineer has
+     actually viewed — per analysis, in this browser only. "Viewed" means the
+     section was current while scrolling, or the engineer opened it; the
+     print cycle NEVER counts (Chrome force-toggles details for printing, so
+     the beforeprint guard is load-bearing, not decoration). */
+  var rsWrap=document.querySelector('.v2-workspace');
+  var RS_ID=rsWrap?rsWrap.getAttribute('data-analysis-id'):'';
+  var RS_KEY='erv2-rev-'+RS_ID;
+  var rsPrinting=false;
+  globalThis.addEventListener('beforeprint',function(){rsPrinting=true;});
+  globalThis.addEventListener('afterprint',function(){rsPrinting=false;});
+  function rsLoad(){ try{ return JSON.parse(localStorage.getItem(RS_KEY)||'{}'); }catch(e){ return {}; } }
+  function rsPaint(){
+    var seen=rsLoad();
+    for(var a of document.querySelectorAll('.v2-nav a')){
+      var id=(a.getAttribute('href')||'').slice(1);
+      if(GROUPS.indexOf(id)>=0){
+        var isSeen=!!seen[id];
+        a.classList.toggle('v2-nav--seen',isSeen);
+        a.setAttribute('data-rs',isSeen?'reviewed':'unreviewed');
+      }
+    }
+  }
+  function rsMark(id){
+    if(rsPrinting||!RS_ID||GROUPS.indexOf(id)<0) return;
+    try{ var seen=rsLoad(); if(!seen[id]){ seen[id]=Date.now(); localStorage.setItem(RS_KEY,JSON.stringify(seen)); rsPaint(); } }catch(e){}
+  }
+  for(var rg of document.querySelectorAll('details.v2-group[id]')){
+    rg.addEventListener('toggle',(function(gg){return function(){ if(gg.open&&!rsPrinting) rsMark(gg.id); };})(rg));
+  }
+  rsPaint();
+  document.addEventListener('keydown',function(e){
+    if(e.ctrlKey||e.metaKey||e.altKey) return;
+    var t=e.target;
+    if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.tagName==='SELECT'||t.isContentEditable)) return;
+    if(e.key>='1'&&e.key<='6'){
+      var id=GROUPS[Number(e.key)-1];
+      if(!id||!document.getElementById(id)) return;
+      if('#'+id===location.hash){ goHash(); } else { location.hash=id; }
+    } else if(e.key==='Escape'){
+      for(var d of document.querySelectorAll('details.v2-group')){ d.open = d.id==='email-security'; }
+      window.scrollTo({top:0,behavior:'smooth'});
+    }
+  });
   window.addEventListener('hashchange', goHash);
   window.addEventListener('scroll', updateCurrent, {passive:true});
   if(location.hash) setTimeout(goHash,0);
@@ -704,9 +900,7 @@
             </div>
         </div>
         {{else}}
-        {{$postureColor := mapGetStr "color" $posture}}
-        {{$postureIcon := mapGetStr "icon" $posture}}
-        {{$postureState := mapGetStr "state" $posture}}
+
         {{$postureMsg := mapGetStr "message" $posture}}
         {{$postureCritical := mapGetSlice "critical_issues" $posture}}
         {{$postureRecs := mapGetSlice "recommendations" $posture}}
@@ -714,15 +908,15 @@
         {{$postureAbsent := mapGetSlice "absent" $posture}}
         <div class="row mb-4" id="command-card">
             <div class="col-12">
-                <div class="card border-{{$postureColor}} bg-{{$postureColor}} bg-opacity-10">
+                <div class="card border-{{$postureColor}} bg-{{$postureColor}} bg-opacity-10" id="posture-panel">
                     <div class="card-body py-3">
                         <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
                             <div class="d-flex align-items-center">
-                                {{icon $postureIcon "icon-2x" (printf "text-%s me-3" $postureColor)}}
                                 <div>
                                     <span class="text-uppercase text-muted fw-bold d-block u-fs-070rem">DNS Security &amp; Trust Posture</span>
-                                    <span class="fw-semibold me-2">Risk Level:</span>
-                                    <span class="badge bg-{{$postureColor}} fs-6 px-3 py-2">{{$postureState}}</span>
+                                    {{/* Risk verdict lives beside the domain name (2026-08-16);
+                                         repeating it here read as redundancy on Carey's frame. The
+                                         panel leads with what the header cannot carry: findings. */}}
                                 </div>
                             </div>
                             {{if .UnifiedConfidence}}
@@ -732,7 +926,7 @@
                             {{end}}
                         </div>
                         <div class="mt-2">
-                            <small class="d-block">{{$postureConfiguredCount := len (mapGetSlice "configured" $posture)}}{{$postureAbsentCount := len (mapGetSlice "absent" $posture)}}{{$postureProviderLimitedCount := len (mapGetSlice "provider_limited" $posture)}}{{if gt $postureConfiguredCount 0}}<span class="text-success">{{$postureConfiguredCount}} protocols configured</span>{{end}}{{if and (gt $postureConfiguredCount 0) (gt $postureAbsentCount 0)}}, {{end}}{{if gt $postureAbsentCount 0}}{{$absentItems := mapGetSlice "absent" $posture}}<a href="{{if eq $postureAbsentCount 1}}{{$singleAbsent := index $absentItems 0}}{{if eq $singleAbsent "DANE"}}#section-dane{{else if or (eq $singleAbsent "SPF") (eq $singleAbsent "DMARC") (eq $singleAbsent "DKIM") (eq $singleAbsent "MTA-STS") (eq $singleAbsent "TLS-RPT")}}#section-email{{else if or (eq $singleAbsent "BIMI") (eq $singleAbsent "CAA")}}#section-brand{{else if eq $singleAbsent "DNSSEC"}}#section-dnssec{{else}}#findings-summary{{end}}{{else}}#findings-summary{{end}}" class="text-warning text-decoration-none" id="posture-absent-link">{{$postureAbsentCount}} not configured</a>{{end}}{{if gt $postureProviderLimitedCount 0}}{{if or (gt $postureConfiguredCount 0) (gt $postureAbsentCount 0)}}, {{end}}{{$plItems := mapGetSlice "provider_limited" $posture}}<a href="{{if eq $postureProviderLimitedCount 1}}{{$singlePL := index $plItems 0}}{{if eq $singlePL "DANE"}}#section-dane{{else}}#findings-summary{{end}}{{else}}#findings-summary{{end}}" class="text-muted text-decoration-none">{{$postureProviderLimitedCount}} unavailable on provider</a>{{end}}</small>
+                            <small class="d-block">{{$postureConfiguredCount := len (mapGetSlice "configured" $posture)}}{{$postureAbsentCount := len (mapGetSlice "absent" $posture)}}{{$postureProviderLimitedCount := len (mapGetSlice "provider_limited" $posture)}}{{if gt $postureConfiguredCount 0}}<span class="text-success">{{$postureConfiguredCount}} protocols configured</span>{{end}}{{if and (gt $postureConfiguredCount 0) (gt $postureAbsentCount 0)}}, {{end}}{{if gt $postureAbsentCount 0}}{{$absentItems := mapGetSlice "absent" $posture}}<a href="{{if eq $postureAbsentCount 1}}{{protocolAnchor (index $absentItems 0)}}{{else}}#findings-summary{{end}}" class="text-warning text-decoration-none" id="posture-absent-link">{{$postureAbsentCount}} not configured</a>{{end}}{{if gt $postureProviderLimitedCount 0}}{{if or (gt $postureConfiguredCount 0) (gt $postureAbsentCount 0)}}, {{end}}{{$plItems := mapGetSlice "provider_limited" $posture}}<a href="{{if eq $postureProviderLimitedCount 1}}{{protocolAnchor (index $plItems 0)}}{{else}}#findings-summary{{end}}" class="text-muted text-decoration-none">{{$postureProviderLimitedCount}} unavailable on provider</a>{{end}}</small>
                             {{$postureUnmeasurable := mapGetSlice "unmeasurable" $posture}}{{if gt (len $postureUnmeasurable) 0}}
                             <small class="text-danger d-block mt-1 fw-semibold">{{icon "exclamation-triangle" "me-1"}}Score excludes {{len $postureUnmeasurable}} unmeasurable control{{if gt (len $postureUnmeasurable) 1}}s{{end}} ({{range $i, $u := $postureUnmeasurable}}{{if $i}}, {{end}}{{$u}}{{end}}) &mdash; this verdict covers only what we could measure{{$att := mapGetInt "attainable" $posture}}{{if gt $att 0}} (attainable {{$att}}/100){{$wc := mapGetInt "score_worst_case" $posture}} &mdash; worst-case bound if the unmeasurable controls were broken: {{$wc}}/100{{end}}.</small>
                             {{end}}
@@ -752,14 +946,21 @@
                         {{if or $postureCritical $postureRecs $postureMonitoring}}
                         <div class="mt-3 pt-3 border-top border-{{$postureColor}} border-opacity-25">
                             <span class="text-uppercase fw-bold d-block u-fs-070rem mb-2 text-{{$postureColor}}">{{icon "exclamation-triangle" "me-1"}}What&rsquo;s Wrong</span>
-                            {{range $issue := $postureCritical}}
-                            <a href="#findings-summary" class="d-block text-danger text-decoration-none small mb-1">{{icon "times-circle" "me-2"}}{{$issue}}</a>
+                            {{/* Each finding links its OWN protocol card via the producer's
+                                 index-aligned protocol slice — never parsed from the prose, and
+                                 the links range over the same arrays the counters len() (the
+                                 same-array requirement). Legacy rows fall back per item. */}}
+                            {{$criticalProtos := mapGetSlice "critical_issue_protocols" $posture}}
+                            {{$recProtos := mapGetSlice "recommendation_protocols" $posture}}
+                            {{$monProtos := mapGetSlice "monitoring_protocols" $posture}}
+                            {{range $i, $issue := $postureCritical}}
+                            <a href="{{protocolAnchorAt $criticalProtos $i}}" class="d-block text-danger text-decoration-none small mb-1">{{icon "times-circle" "me-2"}}{{$issue}}</a>
                             {{end}}
-                            {{range $rec := $postureRecs}}
-                            <a href="#findings-summary" class="d-block text-warning text-decoration-none small mb-1">{{icon "lightbulb" "me-2"}}{{$rec}}</a>
+                            {{range $i, $rec := $postureRecs}}
+                            <a href="{{protocolAnchorAt $recProtos $i}}" class="d-block text-warning text-decoration-none small mb-1">{{icon "lightbulb" "me-2"}}{{$rec}}</a>
                             {{end}}
-                            {{range $mon := $postureMonitoring}}
-                            <a href="#findings-summary" class="d-block text-info text-decoration-none small mb-1">{{icon "eye" "me-2"}}{{$mon}}</a>
+                            {{range $i, $mon := $postureMonitoring}}
+                            <a href="{{protocolAnchorAt $monProtos $i}}" class="d-block text-info text-decoration-none small mb-1">{{icon "eye" "me-2"}}{{$mon}}</a>
                             {{end}}
                             {{if mapGetBool "dkim_inconclusive" $posture}}
                             <a href="/topology?domain={{.AsciiDomain | urlquery}}&amp;dkim=1" class="d-block text-info text-decoration-none small mb-1">{{icon "key" "me-2"}}DKIM inconclusive &mdash; provide your selector to verify</a>
@@ -770,7 +971,7 @@
                         <div class="mt-2 d-flex align-items-center flex-wrap gap-2 screen-only">
                             <span class="text-uppercase text-muted fw-bold u-fs-070rem">Jump To:</span>
                             {{range $p := $postureAbsent}}
-                            <a href="{{if eq $p "DANE"}}#section-dane{{else if or (eq $p "SPF") (eq $p "DMARC") (eq $p "DKIM") (eq $p "MTA-STS") (eq $p "TLS-RPT")}}#section-email{{else if or (eq $p "BIMI") (eq $p "CAA")}}#section-brand{{else if eq $p "DNSSEC"}}#section-dnssec{{else}}#findings-summary{{end}}" class="badge bg-{{$postureColor}} bg-opacity-25 border border-{{$postureColor}} border-opacity-50 text-{{$postureColor}} text-decoration-none">{{$p}} {{icon "arrow-right" "ms-1"}}</a>
+                            <a href="{{protocolAnchor $p}}" class="badge bg-{{$postureColor}} bg-opacity-25 border border-{{$postureColor}} border-opacity-50 text-{{$postureColor}} text-decoration-none">{{$p}} {{icon "arrow-right" "ms-1"}}</a>
                             {{end}}
                         </div>
                         {{end}}
@@ -833,67 +1034,59 @@
 
         <!-- Executive Scorecard - At-a-Glance Security Status -->
         {{if $posture}}
-        {{$spfStatus := mapGetStr "status" $spf}}
-        {{$dmarcStatus := mapGetStr "status" $dmarc}}
-        {{$dmarcPolicy := mapGetStr "policy" $dmarc}}
-        {{$dnssecStatus := mapGetStr "status" $dnssec}}
         <div class="row mb-3">
             <div class="col-12">
                 <div class="card bg-dark bg-opacity-25 u-border-soft">
                     <div class="card-body py-3 px-3">
+                        <!-- Each cell hoists its badge label/class into variables so the
+                             flex order can be stamped from the SHARED severity map
+                             (internal/severity via severityRank) — FAIL 0 renders first,
+                             unmeasurables above passes. Single source; never a local rank. -->
+                        <div class="small text-muted text-uppercase mb-2">Sorted by severity — worst first</div>
                         <div class="row g-3 text-center v2-posture-strip">
-                            <div class="col-6 col-md-3">
+                            <div class="col-6 col-md-2 sev-order-{{severityRank $esLabel}}" data-sev="{{severityRank $esLabel}}">
                                 <div class="small text-muted text-uppercase mb-1">Email Spoofing</div>
-                                {{if .IsTLD}}
-                                <span class="badge bg-secondary px-3 py-2">N/A — Registry</span>
-                                {{else if or (eq (mapGetStr "spf_state" $spf) "indeterminate") (eq (mapGetStr "dmarc_state" $dmarc) "indeterminate")}}
-                                <span class="badge bg-secondary px-3 py-2" data-bs-toggle="tooltip" title="A TXT lookup did not complete (transient SERVFAIL/timeout). Re-run before concluding.">Inconclusive</span>
-                                {{else if and (eq $spfStatus "success") (eq $dmarcStatus "success") (or (eq $dmarcPolicy "reject") (eq $dmarcPolicy "quarantine"))}}
-                                <span class="badge bg-success px-3 py-2">Protected</span>
-                                {{else if and (eq $spfStatus "success") (eq $dmarcStatus "success") (eq $dmarcPolicy "none")}}
-                                <span class="badge bg-info px-3 py-2">Monitoring</span>
-                                {{else if or (eq $spfStatus "success") (eq $dmarcStatus "success")}}
-                                <span class="badge bg-warning text-dark px-3 py-2">Partial</span>
-                                {{else}}
-                                <span class="badge bg-danger px-3 py-2">Vulnerable</span>
-                                {{end}}
+                                <span class="badge {{$esClass}} px-3 py-2"{{if $esTip}} data-bs-toggle="tooltip" title="A TXT lookup did not complete (transient SERVFAIL/timeout). Re-run before concluding."{{end}}>{{$esLabel}}</span>
                             </div>
-                            <div class="col-6 col-md-3">
+                            <div class="col-6 col-md-2 sev-order-{{severityRank $biLabel}}" data-sev="{{severityRank $biLabel}}">
                                 <div class="small text-muted text-uppercase mb-1">Brand Impersonation</div>
-                                {{if .IsTLD}}
-                                <span class="badge bg-secondary px-3 py-2">N/A — Registry</span>
-                                {{else if and $bimi (eq (mapGetStr "status" $bimi) "success") (mapGetBool "vmc_valid" $bimi)}}
-                                <span class="badge bg-success px-3 py-2">Protected</span>
-                                {{else if and $bimi (eq (mapGetStr "status" $bimi) "success")}}
-                                <span class="badge bg-info px-3 py-2">Basic</span>
-                                {{else if eq $bimiState "indeterminate"}}
-                                <span class="badge bg-secondary px-3 py-2">Inconclusive</span>
-                                {{else}}
-                                <span class="badge bg-secondary px-3 py-2">Not Setup</span>
-                                {{end}}
+                                <span class="badge {{$biClass}} px-3 py-2">{{$biLabel}}</span>
                             </div>
-                            <div class="col-6 col-md-3">
+                            <div class="col-6 col-md-2 sev-order-{{severityRank $dtLabel}}" data-sev="{{severityRank $dtLabel}}">
                                 <div class="small text-muted text-uppercase mb-1">DNS Tampering</div>
-                                {{if eq $dnssecStatus "success"}}
-                                <span class="badge bg-success px-3 py-2">Protected</span>
-                                {{else if and (eq (mapGetStr "dnssec_state" $dnssec) "absent_confirmed") $dns_infra (eq (mapGetStr "provider_tier" $dns_infra) "enterprise")}}
-                                <span class="badge bg-info px-3 py-2">Enterprise</span>
-                                {{else}}
-                                <span class="badge bg-{{mapGetStr "display_severity" $dnssec}} px-3 py-2">{{mapGetStr "display_label" $dnssec}}</span>
-                                {{end}}
+                                <span class="badge {{$dtClass}} px-3 py-2">{{$dtLabel}}</span>
                             </div>
-                            <div class="col-6 col-md-3">
+                            <div class="col-6 col-md-2 sev-order-{{severityRank $ccLabel}}" data-sev="{{severityRank $ccLabel}}">
                                 <div class="small text-muted text-uppercase mb-1">Certificate Control</div>
-                                {{if .IsTLD}}
-                                <span class="badge bg-secondary px-3 py-2">N/A — Registry</span>
-                                {{else if and $caa (eq (mapGetStr "status" $caa) "success")}}
-                                <span class="badge bg-success px-3 py-2">Configured</span>
-                                {{else if eq $caaState "indeterminate"}}
-                                <span class="badge bg-secondary px-3 py-2">Inconclusive</span>
-                                {{else}}
-                                <span class="badge bg-secondary px-3 py-2">Open</span>
-                                {{end}}
+                                <span class="badge {{$ccClass}} px-3 py-2">{{$ccLabel}}</span>
                             </div>
+                            <div class="col-6 col-md-2 sev-order-{{severityRank $moLabel}}" data-sev="{{severityRank $moLabel}}">
+                                <div class="small text-muted text-uppercase mb-1">Monitoring</div>
+                                <span class="badge {{$moClass}} px-3 py-2">{{$moLabel}}</span>
+                            </div>
+                            <div class="col-6 col-md-2 sev-order-{{severityRank $dvLabel}}" data-sev="{{severityRank $dvLabel}}">
+                                <div class="small text-muted text-uppercase mb-1">DANE</div>
+                                <span class="badge {{$dvClass}} px-3 py-2">{{$dvLabel}}</span>
+                            </div>
+                        </div>
+                        {{/* TRACE row (V2.1): the citation path of the WORST cell — the same
+                             severityRank values that order the strip pick the finding, so the
+                             trace can never disagree with the visual order. Strict lt keeps
+                             the earlier cell on ties, matching the strip's DOM tie order. */}}
+                        {{$esR := severityRank $esLabel}}{{$biR := severityRank $biLabel}}{{$dtR := severityRank $dtLabel}}{{$ccR := severityRank $ccLabel}}{{$moR := severityRank $moLabel}}{{$dvR := severityRank $dvLabel}}
+                        {{$tN := "Email Spoofing"}}{{$tL := $esLabel}}{{$tR := $esR}}{{$tCard := "#section-email"}}{{$tG := "01 · Email Security · SPF/DMARC"}}
+                        {{if lt $biR $tR}}{{$tN = "Brand Impersonation"}}{{$tL = $biLabel}}{{$tR = $biR}}{{$tCard = "#section-brand"}}{{$tG = "04 · Brand & Trust · BIMI"}}{{end}}
+                        {{if lt $dtR $tR}}{{$tN = "DNS Tampering"}}{{$tL = $dtLabel}}{{$tR = $dtR}}{{$tCard = "#section-dnssec"}}{{$tG = "02 · Domain Security · DNSSEC"}}{{end}}
+                        {{if lt $ccR $tR}}{{$tN = "Certificate Control"}}{{$tL = $ccLabel}}{{$tR = $ccR}}{{$tCard = "#section-caa"}}{{$tG = "02 · Domain Security · CAA"}}{{end}}
+                        {{if lt $moR $tR}}{{$tN = "Monitoring"}}{{$tL = $moLabel}}{{$tR = $moR}}{{$tCard = "#section-email"}}{{$tG = "01 · Email Security · DMARC rua / TLS-RPT"}}{{end}}
+                        {{if lt $dvR $tR}}{{$tN = "DANE"}}{{$tL = $dvLabel}}{{$tR = $dvR}}{{$tCard = "#section-dane"}}{{$tG = "03 · Transport Security · DANE"}}{{end}}
+                        <div class="v2-trace font-monospace small" data-trace-sev="{{$tR}}">
+                            <span class="text-muted">TRACE</span>
+                            <span class="v2-trace-chip">L0 · {{$tN}} — {{$tL}}</span>
+                            <span class="text-muted" aria-hidden="true">→</span>
+                            <a class="v2-trace-chip" href="{{$tCard}}">L1 · {{$tG}}</a>
+                            <span class="text-muted" aria-hidden="true">→</span>
+                            <a class="v2-trace-chip" href="#verify-commands">L3 · Reproduce commands</a>
                         </div>
                     </div>
                 </div>
@@ -915,10 +1108,22 @@
                         <div class="row g-3 align-items-start u-fs-088rem">
                             {{$criticalIssues := mapGetSlice "critical_issues" $posture}}
                             {{$postureRecs := mapGetSlice "recommendations" $posture}}
+                            {{$postureProviderLimited := mapGetSlice "provider_limited" $posture}}
+                            {{/* Bucket order follows the shared severity map (internal/severity):
+                                 FAIL (Action Required, Not Configured) → WARN (Recommended,
+                                 Monitoring) → INFO (Unavailable on Provider) → PASS (Configured).
+                                 The old order rendered Configured above Not Configured — passes
+                                 above fails, the inversion the map exists to prevent. */}}
                             {{if $criticalIssues}}
                             <div class="col-6 col-lg-3">
                                 <span class="text-danger fw-bold">{{icon "times-circle" "me-1"}}Action Required</span>
                                 <div class="mt-1 u-color-coral">{{range $i, $issue := $criticalIssues}}{{if $i}}, {{end}}{{$issue}}{{end}}</div>
+                            </div>
+                            {{end}}
+                            {{if $postureAbsent}}
+                            <div class="col-6 col-lg-3">
+                                <span class="text-muted fw-bold">{{icon "minus-circle" "me-1"}}Not Configured</span>
+                                <div class="mt-1 text-muted posture-protocol-list">{{range $i, $item := $postureAbsent}}{{if $i}}, {{end}}<span class="protocol-link" data-protocol="{{$item}}">{{$item}}</span>{{end}}</div>
                             </div>
                             {{end}}
                             {{if $postureRecs}}
@@ -933,23 +1138,16 @@
                                 <div class="mt-1 u-color-sky">{{range $i, $item := $postureMonitoringF}}{{if $i}}, {{end}}{{$item}}{{end}}</div>
                             </div>
                             {{end}}
-                            {{if $postureConfigured}}
-                            <div class="col-6 col-lg-3">
-                                <span class="text-success fw-bold">{{icon "check-circle" "me-1"}}Configured</span>
-                                <div class="mt-1 u-color-green-soft posture-protocol-list">{{range $i, $item := $postureConfigured}}{{if $i}}, {{end}}<span class="protocol-link" data-protocol="{{$item}}">{{$item}}</span>{{end}}</div>
-                            </div>
-                            {{end}}
-                            {{if $postureAbsent}}
-                            <div class="col-6 col-lg-3">
-                                <span class="text-muted fw-bold">{{icon "minus-circle" "me-1"}}Not Configured</span>
-                                <div class="mt-1 text-muted posture-protocol-list">{{range $i, $item := $postureAbsent}}{{if $i}}, {{end}}<span class="protocol-link" data-protocol="{{$item}}">{{$item}}</span>{{end}}</div>
-                            </div>
-                            {{end}}
-                            {{$postureProviderLimited := mapGetSlice "provider_limited" $posture}}
                             {{if $postureProviderLimited}}
                             <div class="col-6 col-lg-3">
                                 <span class="text-muted fw-bold">{{icon "ban" "me-1"}}Unavailable on Provider</span>
                                 <div class="mt-1 text-muted posture-protocol-list">{{range $i, $item := $postureProviderLimited}}{{if $i}}, {{end}}<span class="protocol-link" data-protocol="{{$item}}">{{$item}}</span>{{end}}</div>
+                            </div>
+                            {{end}}
+                            {{if $postureConfigured}}
+                            <div class="col-6 col-lg-3">
+                                <span class="text-success fw-bold">{{icon "check-circle" "me-1"}}Configured</span>
+                                <div class="mt-1 u-color-green-soft posture-protocol-list">{{range $i, $item := $postureConfigured}}{{if $i}}, {{end}}<span class="protocol-link" data-protocol="{{$item}}">{{$item}}</span>{{end}}</div>
                             </div>
                             {{end}}
                         </div>
@@ -1151,13 +1349,14 @@
 <div class="v2-groups">
 <details class="v2-group" id="email-security" data-v2-level="L1" open>
 <summary>
-<span class="v2-summary-index">01</span>
+<span class="v2-summary-index">01<kbd class="v2-key v2-skey" aria-hidden="true"><span class="v2-key-sym">!</span>1</kbd></span>
 <span class="v2-summary-copy">
 <span class="v2-summary-eyebrow">Identity & policy · L1</span>
 <span class="v2-summary-title">Email Security</span>
 <span class="v2-summary-question">Can this domain be impersonated by email?</span>
 </span>
 <span class="v2-toc"><a class="v2-toc-chip" href="#section-email">SPF</a> <a class="v2-toc-chip" href="#section-email">DMARC</a> <a class="v2-toc-chip" href="#section-email">DKIM</a> <a class="v2-toc-chip" href="#section-email">MTA-STS</a> <a class="v2-toc-chip" href="#section-email">TLS-RPT</a> <a class="v2-toc-chip" href="#section-traffic">MX & Routing</a></span>
+<span class="v2-sum-badge v2-sum-badge-{{severityTier $esLabel}}">{{$esLabel}}</span>
 <span class="v2-summary-toggle" aria-hidden="true">⌄</span>
 </summary>
 <div class="v2-group-body">
@@ -1870,7 +2069,33 @@
                                     </div>
                                 {{end}}
                                 {{$selectors := mapGetMap "selectors" $dkim}}
-                                {{if $selectors}}
+                                {{/* Wildcard *._domainkey: one revoked stub answers EVERY probe,
+                                     so per-selector rows and provider badges would be wildcard
+                                     artifacts presented as measurements (81 green-checked phantoms
+                                     on the evil fixture, Carey's frame 2026-08-16). The analyzer
+                                     already detects this (wildcard_dkim) — the census collapses to
+                                     the honest sentence instead. */}}
+                                {{if mapGetBool "wildcard_dkim" $dkim}}
+                                    <div class="alert alert-secondary py-2 px-3 small mb-2">
+                                        {{icon "asterisk" "me-1"}}<strong>Wildcard <code>*._domainkey</code> detected</strong> —
+                                        a single revoked stub (<code>v=DKIM1; p=</code>) answers <em>every</em> selector probe
+                                        ({{len $selectors}} census names matched). Per-selector listings and provider
+                                        attributions would be wildcard artifacts, not measurements, so the census is
+                                        collapsed. RFC 6376 §3.6.1: an empty <code>p=</code> revokes the key — paired with
+                                        a no-mail posture this is deliberate DKIM lockdown.
+                                    </div>
+                                {{else if and (mapGetBool "all_revoked" $dkim) (gt (len $selectors) 8)}}
+                                    {{/* Legacy rows scanned before the probe ran concurrently, and
+                                         explicit-list zones: every key revoked across a census-scale
+                                         selector count is one fact repeated N times, not N facts. */}}
+                                    <div class="alert alert-secondary py-2 px-3 small mb-2">
+                                        {{icon "ban" "me-1"}}<strong>All {{len $selectors}} discovered keys are revoked</strong>
+                                        (<code>v=DKIM1; p=</code>, RFC 6376 §3.6.1) — one revocation stub repeated across the
+                                        selector census. Per-selector rows and provider attributions carry no additional
+                                        information, so the census is collapsed. With a no-mail posture this is deliberate
+                                        DKIM lockdown.
+                                    </div>
+                                {{else if $selectors}}
                                     {{range $selector, $sval := $selectors}}
                                         {{$sdata := toMap $sval}}
                                         {{if $sdata}}
@@ -1893,6 +2118,9 @@
                                                         {{$keyBits := mapGetFloat "key_bits" $kiMap}}
                                                         {{if gt $keyBits 0}}
                                                             <span class="badge bg-{{if lt $keyBits 2048}}warning{{else}}success{{end}} ms-1">{{formatFloat 0 $keyBits}}-bit</span>
+                                                        {{end}}
+                                                        {{if mapGetBool "revoked" $kiMap}}
+                                                            <span class="badge bg-warning text-dark ms-1" data-bs-toggle="tooltip" title="Empty p= tag — RFC 6376 §3.6.1 declares this key revoked; it cannot verify mail.">revoked</span>
                                                         {{end}}
                                                         {{$ksLabel := mapGetStr "key_strength_label" $kiMap}}
                                                         {{if $ksLabel}}
@@ -2222,13 +2450,14 @@
 </details>
 <details class="v2-group" id="domain-security" data-v2-level="L1">
 <summary>
-<span class="v2-summary-index">02</span>
+<span class="v2-summary-index">02<kbd class="v2-key v2-skey" aria-hidden="true"><span class="v2-key-sym">@</span>2</kbd></span>
 <span class="v2-summary-copy">
 <span class="v2-summary-eyebrow">Chain of authority · L1</span>
 <span class="v2-summary-title">Domain Security</span>
 <span class="v2-summary-question">Can DNS answers and certificate issuance be trusted?</span>
 </span>
-<span class="v2-toc"><a class="v2-toc-chip" href="#section-dane">DANE / TLSA</a> <a class="v2-toc-chip" href="#section-caa">CAA</a> <a class="v2-toc-chip" href="#section-delegation-consistency">Delegation</a> <a class="v2-toc-chip" href="#section-dnssec-ops">DNSSEC Operations</a> <a class="v2-toc-chip" href="#section-dnssec">DNSSEC & NS</a></span>
+<span class="v2-toc"><a class="v2-toc-chip" href="#section-dane">DANE / TLSA</a> <a class="v2-toc-chip" href="#section-caa">CAA</a> <a class="v2-toc-chip" href="#section-delegation-consistency">Delegation</a> {{if and $dnssec_ops (ne (mapGetStr "status" $dnssec_ops) "info")}}<a class="v2-toc-chip" href="#section-dnssec-ops">DNSSEC Operations</a>{{end}} <a class="v2-toc-chip" href="#section-dnssec">DNSSEC & NS</a></span>
+<span class="v2-sum-badge v2-sum-badge-{{severityTier $dsLabel}}">{{$dsLabel}}</span>
 <span class="v2-summary-toggle" aria-hidden="true">⌄</span>
 </summary>
 <div class="v2-group-body">
@@ -3248,7 +3477,7 @@
 </details>
 <details class="v2-group" id="transport-security" data-v2-level="L1">
 <summary>
-<span class="v2-summary-index">03</span>
+<span class="v2-summary-index">03<kbd class="v2-key v2-skey" aria-hidden="true"><span class="v2-key-sym">#</span>3</kbd></span>
 <span class="v2-summary-copy">
 <span class="v2-summary-eyebrow">Delivery path · L1</span>
 <span class="v2-summary-title">Transport Security</span>
@@ -3633,13 +3862,14 @@
 </details>
 <details class="v2-group" id="brand-trust" data-v2-level="L1">
 <summary>
-<span class="v2-summary-index">04</span>
+<span class="v2-summary-index">04<kbd class="v2-key v2-skey" aria-hidden="true"><span class="v2-key-sym">$</span>4</kbd></span>
 <span class="v2-summary-copy">
 <span class="v2-summary-eyebrow">Human-visible identity · L1</span>
 <span class="v2-summary-title">Brand & Trust</span>
 <span class="v2-summary-question">Can this brand be convincingly faked?</span>
 </span>
 <span class="v2-toc"><a class="v2-toc-chip" href="#section-brand">BIMI & VMC</a> <a class="v2-toc-chip" data-edge="see-also" href="#section-caa">CAA · see Domain Security</a></span>
+<span class="v2-sum-badge v2-sum-badge-{{severityTier $biLabel}}">{{$biLabel}}</span>
 <span class="v2-summary-toggle" aria-hidden="true">⌄</span>
 </summary>
 <div class="v2-group-body">
@@ -3850,13 +4080,13 @@
 </details>
 <details class="v2-group" id="infrastructure-intel" data-v2-level="L1">
 <summary>
-<span class="v2-summary-index">05</span>
+<span class="v2-summary-index">05<kbd class="v2-key v2-skey" aria-hidden="true"><span class="v2-key-sym">%</span>5</kbd></span>
 <span class="v2-summary-copy">
 <span class="v2-summary-eyebrow">Ownership & attack surface · L1</span>
 <span class="v2-summary-title">Infrastructure Intelligence</span>
 <span class="v2-summary-question">Who operates this domain, and what is exposed?</span>
 </span>
-<span class="v2-toc"><a class="v2-toc-chip" href="#section-infra">Registrar / RDAP</a> <a class="v2-toc-chip" href="#section-securitytxt">security.txt</a> <a class="v2-toc-chip" href="#section-web-exposure">Web Exposure</a> <a class="v2-toc-chip" href="#section-ai">AI Surface</a> <a class="v2-toc-chip" href="#section-web3">Web3</a> <a class="v2-toc-chip" href="#section-subdomains">Subdomains</a></span>
+<span class="v2-toc"><a class="v2-toc-chip" href="#section-infra">Registrar / RDAP</a> <a class="v2-toc-chip" href="#section-securitytxt">security.txt</a> {{if $web_exposure}}<a class="v2-toc-chip" href="#section-web-exposure">Web Exposure</a>{{end}} <a class="v2-toc-chip" href="#section-ai">AI Surface</a> {{if $showWeb3Section}}<a class="v2-toc-chip" href="#section-web3">Web3</a>{{end}} <a class="v2-toc-chip" href="#section-subdomains">Subdomains</a></span>
 <span class="v2-summary-toggle" aria-hidden="true">⌄</span>
 </summary>
 <div class="v2-group-body">
@@ -4091,9 +4321,6 @@
         {{end}}
 
         <!-- Web3 Domain Analysis Section — shown when detected OR when input is ENS/HNS -->
-        {{$showWeb3Section := false}}
-        {{if and $web3 (mapGetBool "detected" $web3) (not .IsPublicSuffix)}}{{$showWeb3Section = true}}{{end}}
-        {{if and $web3res (mapGetBool "is_web3_input" $web3res) (not .IsPublicSuffix)}}{{$showWeb3Section = true}}{{end}}
         {{if $showWeb3Section}}
         <div class="row section-web3" id="section-web3">
             <div class="col-12 mb-4">
@@ -5700,7 +5927,7 @@
 </details>
 <details class="v2-group" id="evidence-verification" data-v2-level="L2–L3">
 <summary>
-<span class="v2-summary-index">06</span>
+<span class="v2-summary-index">06<kbd class="v2-key v2-skey" aria-hidden="true"><span class="v2-key-sym">^</span>6</kbd></span>
 <span class="v2-summary-copy">
 <span class="v2-summary-eyebrow">Raw records & reproducibility · L2–L3</span>
 <span class="v2-summary-title">Evidence & Verification</span>
@@ -6616,22 +6843,6 @@
 </div>
 </details>
 </div>
-                </div>
-                <div class="icae-maturity-legend mt-3">
-                    <span class="icae-legend-label">Maturity:</span>
-                    <span class="icae-legend-item"><span class="icae-legend-dot icae-dot-dev"></span>Development</span>
-                    <span class="icae-legend-sep">→</span>
-                    <span class="icae-legend-item"><span class="icae-legend-dot icae-dot-verified"></span>Verified</span>
-                    <span class="icae-legend-sep">→</span>
-                    <span class="icae-legend-item"><span class="icae-legend-dot icae-dot-consistent"></span>Consistent</span>
-                    <span class="icae-legend-sep">→</span>
-                    <span class="icae-legend-item"><span class="icae-legend-dot icae-dot-gold"></span>Gold</span>
-                    <span class="icae-legend-sep">→</span>
-                    <span class="icae-legend-item"><span class="icae-legend-dot icae-dot-gold-master"></span>Gold Master</span>
-                </div>
-            </div>
-        </div>
-        {{end}}
 
         <!-- Screen Footer -->
         <footer class="text-center mt-5 mb-4 text-muted small screen-only" aria-label="Site footer">
