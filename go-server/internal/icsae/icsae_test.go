@@ -22,18 +22,22 @@ func TestCatalogInSyncWithCanonical(t *testing.T) {
         }
 }
 
-// pyResult mirrors the summary emitted by dns-eval/Mappings/evaluate.py.
+// pyResult mirrors the summary emitted by dns-eval/Mappings/evaluate.py
+// (tri-state, schema v9).
 type pyResult struct {
-        TotalControls  int      `json:"total_controls"`
-        PassedCount    int      `json:"passed_count"`
-        FailedCount    int      `json:"failed_count"`
-        NACount        int      `json:"na_count"`
-        HighFailures   []string `json:"high_failures"`
-        MediumFailures []string `json:"medium_failures"`
-        LowFailures    []string `json:"low_failures"`
-        Passed         []string `json:"passed"`
-        NotApplicable  []string `json:"not_applicable"`
-        Results        []struct {
+        TotalControls    int      `json:"total_controls"`
+        PassedCount      int      `json:"passed_count"`
+        FailedCount      int      `json:"failed_count"`
+        NACount          int      `json:"na_count"`
+        NotMeasuredCount int      `json:"not_measured_count"`
+        MeasuredControls int      `json:"measured_controls"`
+        HighFailures     []string `json:"high_failures"`
+        MediumFailures   []string `json:"medium_failures"`
+        LowFailures      []string `json:"low_failures"`
+        Passed           []string `json:"passed"`
+        NotApplicable    []string `json:"not_applicable"`
+        NotMeasured      []string `json:"not_measured"`
+        Results          []struct {
                 ID     string `json:"id"`
                 Status string `json:"status"`
         } `json:"results"`
@@ -82,10 +86,12 @@ func TestCrossCheckPython(t *testing.T) {
                         if got.TotalControls != want.TotalControls ||
                                 got.PassedCount != want.PassedCount ||
                                 got.FailedCount != want.FailedCount ||
-                                got.NACount != want.NACount {
-                                t.Fatalf("count mismatch: got total=%d pass=%d fail=%d na=%d, want total=%d pass=%d fail=%d na=%d",
-                                        got.TotalControls, got.PassedCount, got.FailedCount, got.NACount,
-                                        want.TotalControls, want.PassedCount, want.FailedCount, want.NACount)
+                                got.NACount != want.NACount ||
+                                got.NotMeasuredCount != want.NotMeasuredCount ||
+                                got.MeasuredControls != want.MeasuredControls {
+                                t.Fatalf("count mismatch: got total=%d pass=%d fail=%d na=%d nm=%d measured=%d, want total=%d pass=%d fail=%d na=%d nm=%d measured=%d",
+                                        got.TotalControls, got.PassedCount, got.FailedCount, got.NACount, got.NotMeasuredCount, got.MeasuredControls,
+                                        want.TotalControls, want.PassedCount, want.FailedCount, want.NACount, want.NotMeasuredCount, want.MeasuredControls)
                         }
 
                         wantStatus := map[string]string{}
@@ -108,6 +114,7 @@ func TestCrossCheckPython(t *testing.T) {
                         assertSameSet(t, "low_failures", got.LowFailures, want.LowFailures)
                         assertSameSet(t, "passed", got.Passed, want.Passed)
                         assertSameSet(t, "not_applicable", got.NotApplicable, want.NotApplicable)
+                        assertSameSet(t, "not_measured", got.NotMeasured, want.NotMeasured)
                 })
         }
 }
@@ -160,9 +167,58 @@ func TestDeriveObservationsNativeCAA(t *testing.T) {
                 },
         }
         obs := deriveObservations(fr)
-        if !obs["CAA_PRESENT"] {
-                t.Error("CAA_PRESENT = false with native []string records; want true (live-type parity)")
+        if v := obs["CAA_PRESENT"]; v == nil || !*v {
+                t.Error("CAA_PRESENT != measured-true with native []string records; want true (live-type parity)")
         }
+}
+
+// TestEmptyScanGradesNothing pins the tri-state contract at its extreme: with
+// nothing measured, the engine claims nothing. Every control is not_measured,
+// the denominator is zero, and — the load-bearing half — NOTHING is failed.
+// The pre-tri-state engine graded an empty scan as all-failed; this test makes
+// that regression impossible to reintroduce silently.
+func TestEmptyScanGradesNothing(t *testing.T) {
+        res := Evaluate(map[string]any{})
+        if res.FailedCount != 0 || res.PassedCount != 0 || res.NACount != 0 {
+                t.Fatalf("empty scan graded controls: pass=%d fail=%d na=%d (want 0/0/0)",
+                        res.PassedCount, res.FailedCount, res.NACount)
+        }
+        if res.MeasuredControls != 0 {
+                t.Errorf("empty scan MeasuredControls=%d, want 0", res.MeasuredControls)
+        }
+        if res.NotMeasuredCount != res.TotalControls || res.TotalControls == 0 {
+                t.Errorf("empty scan: not_measured=%d of total=%d, want all of a non-empty catalog",
+                        res.NotMeasuredCount, res.TotalControls)
+        }
+}
+
+// TestMeasuredAbsenceVsUnmeasured pins the distinction the tri-state port
+// exists for, on the MTA-STS observation that carried the original defect:
+// the producer's status "warning" means "No MTA-STS record found" — a MEASURED
+// absence, graded false — while a missing section is NOT MEASURED, graded nil.
+// The pre-tri-state engine mapped "warning" to true (absent graded present).
+func TestMeasuredAbsenceVsUnmeasured(t *testing.T) {
+        absent := deriveObservations(map[string]any{
+                "mta_sts_analysis": map[string]any{"status": "warning"},
+        })
+        if v := absent["MTA_STS_DNS"]; v == nil || *v {
+                t.Errorf("MTA-STS status=warning derived %v, want measured false (absence is measured, never present)", ptrState(v))
+        }
+
+        unmeasured := deriveObservations(map[string]any{})
+        if v := unmeasured["MTA_STS_DNS"]; v != nil {
+                t.Errorf("MTA-STS with no section derived %v, want nil (unmeasured is never a verdict)", ptrState(v))
+        }
+}
+
+func ptrState(v *bool) string {
+        if v == nil {
+                return "nil"
+        }
+        if *v {
+                return "true"
+        }
+        return "false"
 }
 
 // TestEvaluateNativeVsJSONParity is the strongest drift guard: a representative

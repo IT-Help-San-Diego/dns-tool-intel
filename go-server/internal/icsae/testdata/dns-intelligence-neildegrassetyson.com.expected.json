@@ -1,12 +1,15 @@
 {
   "domain": "neildegrassetyson.com",
-  "source": "dns-intelligence-neildegrassetyson.com.json",
-  "evaluated_at": "2026-06-07T18:57:37.504204+00:00",
-  "schema_version": 8,
+  "source": "dns-intelligence-neildegrassetyson.com.input.json",
+  "evaluated_at": "2026-08-17T17:35:19.697835+00:00",
+  "schema_version": 9,
   "total_controls": 16,
-  "passed_count": 6,
-  "failed_count": 9,
+  "passed_count": 5,
+  "failed_count": 10,
   "na_count": 1,
+  "not_measured_count": 0,
+  "measured_controls": 15,
+  "null_observations": [],
   "high_failures": [
     "DMARC_ENFORCEMENT"
   ],
@@ -17,6 +20,7 @@
     "DELEGATION_CONSISTENT"
   ],
   "low_failures": [
+    "MAIL_POLICY_SIGNALING",
     "DANE_DEPLOYED",
     "BIMI_CONFIGURED",
     "SECURITY_TXT_PRESENT",
@@ -26,13 +30,13 @@
     "DNSSEC_AUTHENTICATED",
     "DNSSEC_CHAIN_TRUSTED",
     "DNSSEC_KEY_ROLLOVER",
-    "MAIL_POLICY_SIGNALING",
     "DANGLING_DNS_CLEAN",
     "SECRET_EXPOSURE_CLEAN"
   ],
   "not_applicable": [
     "NO_MAIL_HARDENED"
   ],
+  "not_measured": [],
   "results": [
     {
       "id": "DNSSEC_AUTHENTICATED",
@@ -148,7 +152,7 @@
     {
       "id": "MAIL_POLICY_SIGNALING",
       "title": "Mail Transport Policy Signaling",
-      "status": "passed",
+      "status": "failed",
       "severity": "low",
       "standards": [
         "ISO_27002_2022:8.20",
@@ -159,7 +163,7 @@
         "RFC8460"
       ],
       "rationale": "RFC 8461 defines MTA-STS for declaring SMTP TLS requirements. RFC 8460 defines TLS-RPT for monitoring TLS delivery failures. Together they signal transport security policy and enable failure detection. ISO/IEC 27002:2022 \u00a78.20 requires network monitoring and control.",
-      "fail_explanation": ""
+      "fail_explanation": "No mail transport policy signaling detected. Per RFC 8461, MTA-STS allows domains to declare TLS requirements for inbound SMTP. Per RFC 8460, TLS-RPT enables monitoring of TLS delivery failures."
     },
     {
       "id": "CAA_RESTRICTION_PRESENT",
