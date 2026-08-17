@@ -19,11 +19,12 @@ func TestRankExactMatches(t *testing.T) {
 		"error": TierFail, "none": TierFail, "absent": TierFail,
 		"no record": TierFail, "unsigned": TierFail,
 		"broken": TierFail, "bogus": TierFail, "vulnerable": TierFail,
+		"mismatch": TierFail,
 		// WARN
 		"basic": TierWarn, "partial": TierWarn, "partially signed": TierWarn,
 		"warning": TierWarn, "warn": TierWarn, "incomplete": TierWarn,
 		"soft fail": TierWarn, "softfail": TierWarn, "neutral": TierWarn,
-		"degraded": TierWarn,
+		"degraded": TierWarn, "cert_invalid": TierWarn,
 		// INFO
 		"unavailable on provider": TierInfo, "unavailable_on_provider": TierInfo,
 		"provider unsupported": TierInfo, "not applicable": TierInfo,
@@ -31,6 +32,7 @@ func TestRankExactMatches(t *testing.T) {
 		"could not verify": TierInfo, "indeterminate": TierInfo,
 		"unmeasured": TierInfo, "not measured": TierInfo,
 		"unconfirmed": TierInfo, "inconclusive": TierInfo, "not deployed": TierInfo,
+		"not_verifiable": TierInfo, "unreachable": TierInfo, "no_tlsa": TierInfo,
 		// PASS
 		"configured": TierPass, "enabled": TierPass, "protected": TierPass,
 		"strongly protected": TierPass, "enterprise": TierPass,

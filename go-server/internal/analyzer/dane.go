@@ -539,8 +539,20 @@ func verifyDANEHosts(ctx context.Context, a *Analyzer, hosts []string) map[strin
                         continue
                 }
                 status, _ := resp[mapKeyStatus].(string)
-                if status == "" {
-                        status = "error"
+                // Normalize the probe's raw status into the DANE-verification
+                // vocabulary before it reaches severity.Rank. The probe emits
+                // "error" for "could not measure" (dig transport error, unparseable
+                // reply) and "cert_error" for a certificate fetch/inspection failure.
+                // Neither may pass through as-is: "error" is an exact key at TierFail
+                // and "cert_error" contains the "error" substring, so the fragment
+                // matcher drags both to FAIL. Couldn't-measure is "unmeasured"
+                // (Info); a bad certificate is a real finding about that host,
+                // "cert_invalid" (Warn).
+                switch status {
+                case "", "error":
+                        status = "unmeasured"
+                case "cert_error":
+                        status = "cert_invalid"
                 }
                 anyMeasurement = true
                 counts[status]++
@@ -563,30 +575,30 @@ func verifyDANEHosts(ctx context.Context, a *Analyzer, hosts []string) map[strin
                 "verified":       counts["verified"],
                 "mismatch":       counts["mismatch"],
                 "not_verifiable": counts["not_verifiable"],
-                "cert_error":     counts["cert_error"],
-                "error":          counts["error"],
+                "cert_invalid":   counts["cert_invalid"],
+                "unmeasured":     counts["unmeasured"],
                 "no_tlsa":        counts["no_tlsa"],
                 "unreachable":    counts["unreachable"],
         }
 }
 
 // daneVerificationOverall folds per-host verification counts into one overall
-// verdict, worst honest state first: a measured digest mismatch outranks any
-// verified host (one healthy MX must not mask a sibling's real finding), then
-// verified, then the couldn't-measure states (not_verifiable, cert_error,
-// error, no_tlsa, unreachable).
+// verdict, worst honest state first: a measured digest mismatch (FAIL) outranks a
+// bad-certificate finding (cert_invalid, WARN), which outranks a verified host
+// (PASS) — one healthy MX must not mask a sibling's real finding. Then the
+// couldn't-measure states (not_verifiable, unmeasured, no_tlsa, unreachable).
 func daneVerificationOverall(counts map[string]int) string {
         switch {
         case counts["mismatch"] > 0:
                 return "mismatch"
+        case counts["cert_invalid"] > 0:
+                return "cert_invalid"
         case counts["verified"] > 0:
                 return "verified"
         case counts["not_verifiable"] > 0:
                 return "not_verifiable"
-        case counts["cert_error"] > 0:
-                return "cert_error"
-        case counts["error"] > 0:
-                return "error"
+        case counts["unmeasured"] > 0:
+                return "unmeasured"
         case counts["no_tlsa"] > 0:
                 return "no_tlsa"
         default:

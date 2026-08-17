@@ -649,7 +649,7 @@ func handleDANEVerify(w http.ResponseWriter, r *http.Request) {
         response["cert"] = certInfo
 
         if certInfo[mapKeyError] != nil {
-                response[mapKeyStatus] = "cert_error"
+                response[mapKeyStatus] = "cert_invalid"
         } else {
                 leafDER, _ := certInfo["cert_der_hex"].(string)
                 leafSPKI, _ := certInfo["spki_der_hex"].(string)

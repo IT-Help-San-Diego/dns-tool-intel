@@ -87,6 +87,7 @@ var statusTier = map[string]Tier{
 	"broken":         TierFail,
 	"bogus":          TierFail,
 	"vulnerable":     TierFail,
+	"mismatch":       TierFail,
 
 	// WARN — measured qualified
 	"basic":            TierWarn,
@@ -99,6 +100,7 @@ var statusTier = map[string]Tier{
 	"softfail":         TierWarn,
 	"neutral":          TierWarn,
 	"degraded":         TierWarn,
+	"cert_invalid":     TierWarn,
 
 	// INFO — could not be measured
 	"unavailable on provider": TierInfo,
@@ -117,7 +119,10 @@ var statusTier = map[string]Tier{
 	// absence is unremarkable (most of the internet). Every pre-existing
 	// absence word ("absent", "missing", "none") ranks FAIL because for
 	// SPF/DMARC absence IS the finding — DANE needs its own word at INFO.
-	"not deployed": TierInfo,
+	"not deployed":    TierInfo,
+	"not_verifiable":  TierInfo,
+	"unreachable":     TierInfo,
+	"no_tlsa":         TierInfo,
 
 	// PASS — measured affirmative
 	"configured":         TierPass,
