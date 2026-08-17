@@ -24,7 +24,7 @@ type AuthoritativeDSTTL struct {
 	TTL       uint32 `json:"ttl"`                  // authoritative DS TTL in seconds
 	Present   bool   `json:"present"`              // a DS RRset was returned carrying an authoritative TTL
 	ParentNS  string `json:"parent_ns,omitempty"`  // parent nameserver IP that answered (provenance)
-	SampledNS int    `json:"sampled_ns,omitempty"` // 1 or 2 parent nameservers queried for the DS
+	SampledNS int    `json:"sampled_ns,omitempty"` // 1 or 2 parent nameservers resolved and attempted (IPs found, not all necessarily answered)
 	Agreed    bool   `json:"agreed,omitempty"`     // 2 sampled + same TTL
 	Disagreed bool   `json:"disagreed,omitempty"`  // 2 sampled + different TTL (the finding)
 }
