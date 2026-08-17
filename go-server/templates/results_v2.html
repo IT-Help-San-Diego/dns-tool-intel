@@ -455,6 +455,12 @@
   }
   .v2-workspace .results-header-info h1 { color: var(--er-muted); font-size: .78rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; }
   .v2-workspace .domain-name-prominent { color: var(--er-text); font-size: clamp(1.85rem, 4vw, 3.1rem); font-weight: 400; letter-spacing: -.035em; line-height: 1.05; }
+  /* The verdict pill and the display type share one flex row on the
+     Fibonacci gap (13px): the pill centers on the type's optical middle at
+     every width instead of riding the baseline (Carey's alignment frame,
+     2026-08-16). flex-wrap keeps long domains honest on phones. */
+  .v2-workspace .domain-display { display: flex; align-items: center; flex-wrap: wrap; gap: 13px; }
+  .v2-workspace .domain-display .badge { margin-left: 0 !important; }
   .v2-workspace .results-meta { color: var(--er-muted) !important; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .73rem !important; margin-top: .7rem; }
   .v2-workspace .results-header-actions { align-content: flex-start; justify-content: flex-end; }
   .v2-workspace .results-header-actions .btn { min-height: 40px; }
@@ -580,7 +586,12 @@
     0%, 100% { box-shadow: 0 0 0 0 rgba(240, 185, 11, 0); }
     50% { box-shadow: 0 0 9px 1px rgba(240, 185, 11, .38); }
   }
-  .v2-nav-index { border-radius: .25rem; animation: v2-beckon 2.2s ease-in-out .8s 3; }
+  .v2-nav-index { border-radius: .3rem; animation: v2-beckon 2.2s ease-in-out .8s 3;
+    border: 1px solid var(--er-line-strong); border-bottom-width: 2px;
+    background: var(--er-layer-1); padding: .1em .4em; }
+  .v2-skey { display: block; width: fit-content; margin-top: .3rem; padding: 0 .35em;
+    border: 1px solid var(--er-line-strong); border-bottom-width: 2px; border-radius: .3em;
+    background: var(--er-layer-1); color: var(--er-muted); font-size: .68rem; line-height: 1.5; }
   .v2-hurry a { animation: v2-beckon 2.2s ease-in-out .8s 3; }
   @media (prefers-reduced-motion: reduce) { .v2-summary-toggle { transition: none; } .v2-nav-index, .v2-hurry a { animation: none; } }
   @media print {
@@ -616,9 +627,9 @@
          READ as keys, tied to the numbered sections they drive. */}}
     <div class="v2-keys font-monospace small text-muted">
         <span class="v2-keys-label">KEYBOARD</span>
-        <kbd>1</kbd>–<kbd>6</kbd> jump to that numbered section below
+        <span class="text-nowrap"><kbd>1</kbd>–<kbd>6</kbd> jump to a numbered section</span>
         <span class="v2-keys-sep">·</span>
-        <kbd>Esc</kbd> back to the verdict
+        <span class="text-nowrap"><kbd>Esc</kbd> back to the verdict</span>
     </div>
   </div>
 </section>
@@ -855,8 +866,9 @@
                             <div class="d-flex align-items-center">
                                 <div>
                                     <span class="text-uppercase text-muted fw-bold d-block u-fs-070rem">DNS Security &amp; Trust Posture</span>
-                                    <span class="fw-semibold me-2">Risk Level:</span>
-                                    <span class="badge bg-{{$postureColor}} fs-6 px-3 py-2">{{$postureState}}</span>
+                                    {{/* Risk verdict lives beside the domain name (2026-08-16);
+                                         repeating it here read as redundancy on Carey's frame. The
+                                         panel leads with what the header cannot carry: findings. */}}
                                 </div>
                             </div>
                             {{if .UnifiedConfidence}}
@@ -1289,7 +1301,7 @@
 <div class="v2-groups">
 <details class="v2-group" id="email-security" data-v2-level="L1" open>
 <summary>
-<span class="v2-summary-index">01</span>
+<span class="v2-summary-index">01<kbd class="v2-skey" aria-hidden="true">1</kbd></span>
 <span class="v2-summary-copy">
 <span class="v2-summary-eyebrow">Identity & policy · L1</span>
 <span class="v2-summary-title">Email Security</span>
@@ -2361,7 +2373,7 @@
 </details>
 <details class="v2-group" id="domain-security" data-v2-level="L1">
 <summary>
-<span class="v2-summary-index">02</span>
+<span class="v2-summary-index">02<kbd class="v2-skey" aria-hidden="true">2</kbd></span>
 <span class="v2-summary-copy">
 <span class="v2-summary-eyebrow">Chain of authority · L1</span>
 <span class="v2-summary-title">Domain Security</span>
@@ -3388,7 +3400,7 @@
 </details>
 <details class="v2-group" id="transport-security" data-v2-level="L1">
 <summary>
-<span class="v2-summary-index">03</span>
+<span class="v2-summary-index">03<kbd class="v2-skey" aria-hidden="true">3</kbd></span>
 <span class="v2-summary-copy">
 <span class="v2-summary-eyebrow">Delivery path · L1</span>
 <span class="v2-summary-title">Transport Security</span>
@@ -3773,7 +3785,7 @@
 </details>
 <details class="v2-group" id="brand-trust" data-v2-level="L1">
 <summary>
-<span class="v2-summary-index">04</span>
+<span class="v2-summary-index">04<kbd class="v2-skey" aria-hidden="true">4</kbd></span>
 <span class="v2-summary-copy">
 <span class="v2-summary-eyebrow">Human-visible identity · L1</span>
 <span class="v2-summary-title">Brand & Trust</span>
@@ -3991,7 +4003,7 @@
 </details>
 <details class="v2-group" id="infrastructure-intel" data-v2-level="L1">
 <summary>
-<span class="v2-summary-index">05</span>
+<span class="v2-summary-index">05<kbd class="v2-skey" aria-hidden="true">5</kbd></span>
 <span class="v2-summary-copy">
 <span class="v2-summary-eyebrow">Ownership & attack surface · L1</span>
 <span class="v2-summary-title">Infrastructure Intelligence</span>
@@ -5838,7 +5850,7 @@
 </details>
 <details class="v2-group" id="evidence-verification" data-v2-level="L2–L3">
 <summary>
-<span class="v2-summary-index">06</span>
+<span class="v2-summary-index">06<kbd class="v2-skey" aria-hidden="true">6</kbd></span>
 <span class="v2-summary-copy">
 <span class="v2-summary-eyebrow">Raw records & reproducibility · L2–L3</span>
 <span class="v2-summary-title">Evidence & Verification</span>
