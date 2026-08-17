@@ -557,6 +557,15 @@ func verifyDANEHosts(ctx context.Context, a *Analyzer, hosts []string) map[strin
                 if deadline, ok := ctx.Deadline(); ok {
                         if per := perHostBudget(deadline, len(hosts)-i); per > 0 {
                                 hostCtx, cancel = context.WithTimeout(ctx, per)
+                        } else {
+                                // The shared budget is already spent before this
+                                // host — a couldn't-measure of OUR instrument, not
+                                // a probe failure. Record it as unmeasured, never
+                                // unreachable (which would blame the probe for a
+                                // deadline we imposed).
+                                perHost = append(perHost, map[string]any{mapKeyMxHost: host, mapKeyStatus: "unmeasured"})
+                                counts["unmeasured"]++
+                                continue
                         }
                 }
                 resp, ok := probeDANEVerify(hostCtx, ep.URL, ep.Key, host)
