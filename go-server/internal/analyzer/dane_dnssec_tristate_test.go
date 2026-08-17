@@ -611,6 +611,15 @@ func TestAnalyzeDNSSEC_IslandDenialQualifier(t *testing.T) {
                         if got := result[mapKeyDsDenial]; got != c.wantDenial {
                                 t.Fatalf("ds_denial = %v, want %s", got, c.wantDenial)
                         }
+                        // Reading discipline (Science's caveat): "unauthenticated" must
+                        // describe OUR measurement, never the zone — the fold can demote
+                        // a provable denial when unanimity fails.
+                        if c.wantDenial == dsDenialUnauthenticated {
+                                msg, _ := result[mapKeyMessage].(string)
+                                if !strings.Contains(msg, "we could not establish DNSSEC proof") {
+                                        t.Fatalf("unauthenticated message is not measurement-relative: %q", msg)
+                                }
+                        }
                 })
         }
 }
