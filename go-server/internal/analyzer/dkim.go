@@ -1203,11 +1203,11 @@ func (a *Analyzer) detectDKIMDelegation(ctx context.Context, domain string) DKIM
 // revoked (empty-p) key and, if so, probes a nonce selector to detect a
 // wildcard *._domainkey record answering every query. Returns
 // (allRevoked, wildcardDKIM, wildcardRecords).
-func (a *Analyzer) detectDKIMWildcardLockdown(ctx context.Context, domain string, foundSelectors map[string]map[string]any) (bool, bool, []string) {
+func detectDKIMWildcardLockdown(probeName string, probeRecords []string, foundSelectors map[string]map[string]any) (bool, bool, []string) {
 	if !allDKIMKeysRevoked(foundSelectors) {
 		return false, false, nil
 	}
-	if probeName, probeRecords := checkDKIMSelector(ctx, a.DNS, dkimWildcardProbe, domain); probeName != "" {
+	if probeName != "" {
 		return true, true, probeRecords
 	}
 	return true, false, nil
@@ -1283,6 +1283,23 @@ func (a *Analyzer) AnalyzeDKIM(ctx context.Context, domain string, mxRecords, cu
 	var mu sync.Mutex
 	var wg sync.WaitGroup
 
+	// The wildcard probe runs WITH the census, never after it: on a
+	// wildcard zone every census name answers — slowly, with CD fallbacks
+	// on bogus zones — and a probe sequenced after wg.Wait() pays its
+	// round-trip from an exhausted budget. The detector was starved by the
+	// thing it detects (measured on the evil fixture 2026-08-16: 81/81
+	// census answers, probe dead, wildcard_dkim false while the zone
+	// wildcards live).
+	var wildcardProbeName string
+	var wildcardProbeRecords []string
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		n, r := checkDKIMSelector(ctx, a.DNS, dkimWildcardProbe, domain)
+		mu.Lock()
+		wildcardProbeName, wildcardProbeRecords = n, r
+		mu.Unlock()
+	}()
 	for _, sel := range selectors {
 		wg.Add(1)
 		go func(s string) {
@@ -1322,7 +1339,7 @@ func (a *Analyzer) AnalyzeDKIM(ctx context.Context, domain string, mxRecords, cu
 
 	status, message := buildDKIMVerdict(foundSelectors, keyIssues, keyStrengths, res.Primary, primaryHasDKIM, thirdPartyOnly)
 
-	allRevoked, wildcardDKIM, wildcardRecords := a.detectDKIMWildcardLockdown(ctx, domain, foundSelectors)
+	allRevoked, wildcardDKIM, wildcardRecords := detectDKIMWildcardLockdown(wildcardProbeName, wildcardProbeRecords, foundSelectors)
 	lockdownCollapse := wildcardDKIM && allRevoked
 	noMail := hasNullMXRecords(mxRecords) || isSPFHardFailOnly(spfRecord)
 	status, message = applyDKIMLockdownVerdict(status, message, allRevoked, wildcardDKIM, noMail, len(foundSelectors))
@@ -1386,6 +1403,7 @@ func (a *Analyzer) AnalyzeDKIM(ctx context.Context, domain string, mxRecords, cu
 		"primary_dkim_note":    primaryDKIMNote,
 		"found_providers":      sortedProviders,
 		"wildcard_dkim":        wildcardDKIM,
+		"all_revoked":          allRevoked,
 		"spf_ancillary_note":   res.SPFAncillaryNote,
 		"mx_legacy_note":       res.MXLegacyNote,
 		"domainkey_delegation": delegationMap,

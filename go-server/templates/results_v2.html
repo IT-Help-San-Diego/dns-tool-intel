@@ -2069,7 +2069,33 @@
                                     </div>
                                 {{end}}
                                 {{$selectors := mapGetMap "selectors" $dkim}}
-                                {{if $selectors}}
+                                {{/* Wildcard *._domainkey: one revoked stub answers EVERY probe,
+                                     so per-selector rows and provider badges would be wildcard
+                                     artifacts presented as measurements (81 green-checked phantoms
+                                     on the evil fixture, Carey's frame 2026-08-16). The analyzer
+                                     already detects this (wildcard_dkim) — the census collapses to
+                                     the honest sentence instead. */}}
+                                {{if mapGetBool "wildcard_dkim" $dkim}}
+                                    <div class="alert alert-secondary py-2 px-3 small mb-2">
+                                        {{icon "asterisk" "me-1"}}<strong>Wildcard <code>*._domainkey</code> detected</strong> —
+                                        a single revoked stub (<code>v=DKIM1; p=</code>) answers <em>every</em> selector probe
+                                        ({{len $selectors}} census names matched). Per-selector listings and provider
+                                        attributions would be wildcard artifacts, not measurements, so the census is
+                                        collapsed. RFC 6376 §3.6.1: an empty <code>p=</code> revokes the key — paired with
+                                        a no-mail posture this is deliberate DKIM lockdown.
+                                    </div>
+                                {{else if and (mapGetBool "all_revoked" $dkim) (gt (len $selectors) 8)}}
+                                    {{/* Legacy rows scanned before the probe ran concurrently, and
+                                         explicit-list zones: every key revoked across a census-scale
+                                         selector count is one fact repeated N times, not N facts. */}}
+                                    <div class="alert alert-secondary py-2 px-3 small mb-2">
+                                        {{icon "ban" "me-1"}}<strong>All {{len $selectors}} discovered keys are revoked</strong>
+                                        (<code>v=DKIM1; p=</code>, RFC 6376 §3.6.1) — one revocation stub repeated across the
+                                        selector census. Per-selector rows and provider attributions carry no additional
+                                        information, so the census is collapsed. With a no-mail posture this is deliberate
+                                        DKIM lockdown.
+                                    </div>
+                                {{else if $selectors}}
                                     {{range $selector, $sval := $selectors}}
                                         {{$sdata := toMap $sval}}
                                         {{if $sdata}}
@@ -2092,6 +2118,9 @@
                                                         {{$keyBits := mapGetFloat "key_bits" $kiMap}}
                                                         {{if gt $keyBits 0}}
                                                             <span class="badge bg-{{if lt $keyBits 2048}}warning{{else}}success{{end}} ms-1">{{formatFloat 0 $keyBits}}-bit</span>
+                                                        {{end}}
+                                                        {{if mapGetBool "revoked" $kiMap}}
+                                                            <span class="badge bg-warning text-dark ms-1" data-bs-toggle="tooltip" title="Empty p= tag — RFC 6376 §3.6.1 declares this key revoked; it cannot verify mail.">revoked</span>
                                                         {{end}}
                                                         {{$ksLabel := mapGetStr "key_strength_label" $kiMap}}
                                                         {{if $ksLabel}}
