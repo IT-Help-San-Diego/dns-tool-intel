@@ -1,0 +1,22 @@
+LicenseRef-ThirdPartyReference
+
+The files in the following locations are third-party reference material that
+is retained in this repository solely for citation and provenance purposes:
+
+  go-server/static/references/**
+  docs/standards/**
+
+These are works authored and owned by their respective publishers — for
+example, United States Government publications (FBI IC3 reports, ODNI
+Intelligence Community Directive 203, Department of Defense data item
+descriptions and military standards, DTIC technical reports) and purchased
+consensus standards (ISO/IEC 27001, ISO/IEC 27002, INCITS 585).
+
+IT Help San Diego Inc. does NOT assert copyright over these files and does not
+relicense them under BUSL-1.1 or any other license. Each document is governed
+by its own terms, stated in its own front matter. Before redistributing any of
+these files, consult the document's own copyright notice and terms of use.
+
+This LicenseRef identifier exists so that SPDX/REUSE tooling can represent the
+"third-party, see front matter" status of these files without falsely
+attributing them to the repository owner.

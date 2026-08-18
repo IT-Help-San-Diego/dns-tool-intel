@@ -211,6 +211,10 @@ jobs:
       - name: Quality ratchets — gofmt / gocyclo / file-size
         run: bash scripts/ci-ratchets.sh
 
+      - name: REUSE compliance — SPDX license annotations
+        run: |
+          pipx run reuse lint
+
   handler-tests-db-integration:
     name: Handler Tests — dbtest + integration
     runs-on: ubuntu-latest
