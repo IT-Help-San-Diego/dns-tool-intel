@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { readFileSync, statSync, existsSync } from 'fs';
+import { readFileSync, statSync, existsSync, readdirSync } from 'fs';
 import { createHash } from 'crypto';
 import { execSync } from 'child_process';
 
@@ -207,14 +207,23 @@ async function verifyFigmaLayer(config) {
 function verifyMinifiedAssets() {
   heading('Asset Freshness (Minified Files)');
 
-  const pairs = [
-    ['static/css/custom.css', 'static/css/custom.min.css'],
-    ['static/js/main.js', 'static/js/main.min.js'],
-    ['static/js/foundation.js', 'static/js/foundation.min.js'],
-  ];
+  // Pairs are DERIVED by globbing the min bundles, never hand-listed: a
+  // hand-listed pair set missed topology.min.js while its source carried a
+  // removed function the served bundle kept executing (2026-08-18, the #462
+  // repair). A min bundle with no sibling source is vendored (e.g.
+  // bootstrap.bundle.min.js) and exempt by construction.
+  const pairs = [];
+  for (const dir of ['static/css', 'static/js']) {
+    if (!existsSync(dir)) continue;
+    for (const f of readdirSync(dir)) {
+      const m = f.match(/^(.+)\.min\.(css|js)$/);
+      if (!m) continue;
+      const src = `${dir}/${m[1]}.${m[2]}`;
+      if (existsSync(src)) pairs.push([src, `${dir}/${f}`]);
+    }
+  }
 
   for (const [src, min] of pairs) {
-    if (!existsSync(src)) { warn(`Source missing: ${src}`); continue; }
     if (!existsSync(min)) { fail(`Minified missing: ${min}`); continue; }
 
     const srcMtime = fileMtime(src);
