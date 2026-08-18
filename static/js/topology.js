@@ -3210,41 +3210,10 @@
         let ABSENCE_STATUSES = { missing: 1, absent: 1, not_found: 1, not_configured: 1, no_key: 1, none: 1, no_tlsa: 1 };
         let ABSENCE_IS_GAP = { spf: 1, dmarc: 1, dkim: 1, dnssec: 1, caa: 1 };
 
-        // Which nodes reached their state by being ABSENT rather than by a
-        // unsigned zone and a BROKEN DNSSEC chain both surface as amber, and
-        // only the first can be a deliberate architectural choice.
-        let _absentThisScan = {};
-
-        // DNSSEC absence is not unconditionally a gap. Rendering it amber is
-        // the exact error this file's own comment warns about — "a domain with
-        // no DMARC has a real gap; a domain with no DANE is unremarkable" —
-        // applied to a protocol the list never reconsidered.
-        //
-        // Measured 2026-07-31: gmail.com and google.com publish ZERO DNSKEY
-        // records AND a valid MTA-STS policy (v=STSv1) plus TLS-RPT. MTA-STS
-        // is the PKI-anchored substitute for what DANE obtains via DNSSEC, so
-        // unsigned-with-MTA-STS is a documented architectural choice, not a
-        // deficiency. A population survey (n=339) put MTA-STS at 36% for
-        // mailbox providers versus 10.7% for tenant domains — providers chose
-        // the PKI-anchored path at roughly 3x the rate, which is the measured
-        // basis for this conditional.
-        //
-        // Unsigned with NO transport substitute stays amber. apple.com is that
-        // case, and it is also why presence must come from the analyzer's own
-        // mtasts verdict rather than a raw lookup: _mta-sts.apple.com answers
-        // with a wildcard SPF TXT, so "some TXT exists there" would have
-        // excused a genuine gap.
-        //
-        // DANE is deliberately not consulted: DANE REQUIRES DNSSEC, so
-        // DANE-absent is entailed by DNSSEC-absent and counting it would
-        // report one fact twice.
-        }
-
         function canonicalVerdict(nodeId, status) {
             if (typeof status !== 'string' || !status) return 'indeterminate';
             let s = status.toLowerCase();
             if (ABSENCE_STATUSES[s]) {
-                _absentThisScan[nodeId] = true;
                 return ABSENCE_IS_GAP[nodeId] ? 'warning' : 'indeterminate';
             }
             // An unrecognised string means this client does not know what the
@@ -3978,7 +3947,6 @@
         }
 
         function scanBuildChips(fr) {
-            _absentThisScan = {};
             scanState.verdicts = {};
             scanState.verdictDetails = {};
             scanState.verdictRings = {};
@@ -4399,7 +4367,6 @@
                 scanState.verdicts = {};
                 // Replay statuses come from the same analyzer vocabulary, so
                 // they need the same canonicalisation as a live scan.
-                _absentThisScan = {};
                 for (let k in d.verdicts) scanState.verdicts[k] = canonicalVerdict(k, d.verdicts[k]);
                 // verdict_detail carries the producer's display derivation
                 // (analysis_replay.go), so the ring construction holds even
