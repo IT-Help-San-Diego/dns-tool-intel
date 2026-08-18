@@ -32,5 +32,29 @@
       "cia.gov"
     ],
     "reason": "cia.gov was the one genuinely stale file among the four 2026-07-31 retentions: its defect-era capture reported an unsigned posture while the zone is signed and validating (measured live: 4 DS / 3 DNSKEY at the parent, AD set). Recaptured through production v26.51.0-116 (analysis 18447), cross-checked against live protocol first-hand. After this refresh the remaining 2026-07-31 captures are google.com, red.com, and thisdoesnotexist-xz9q.com — google.com and red.com re-verified unsigned live (0 DS / 0 DNSKEY, 2026-08-18), so their frozen unsigned posture is correct, and the NXDOMAIN control has no DNSSEC surface to go stale."
+  },
+  "partial_refresh_3": {
+    "at": "2026-08-18T07:10:00Z",
+    "tool_version": "26.51.0-116-gd9ee700d9",
+    "domains": [
+      "google.com",
+      "example.com",
+      "whitehouse.gov",
+      "cloudflare.com",
+      "red.com",
+      "ietf.org"
+    ],
+    "analyses": {
+      "google.com": 18449,
+      "example.com": 18450,
+      "whitehouse.gov": 18451,
+      "cloudflare.com": 18452,
+      "red.com": 18453,
+      "ietf.org": 18454
+    },
+    "reason": "Batch recapture through production after #458 named the local Docker embedded-DNS artifact (127.0.0.11 answers A/AAAA but drops DS/DNSKEY, silently corrupting DNSSEC verdicts in local captures): every remaining capture whose provenance included the local environment is retired. Scans fired from a real browser session (scan_source=human on every row), persistence verified by DB census (never the page, per the botverify doctrine), verdicts cross-checked against live protocol (google.com/red.com 0 DS / 0 DNSKEY unsigned; example/whitehouse/cloudflare/ietf present+complete+secure). With cia.gov (analysis 18447, partial_refresh_2), 7 of 8 fixtures now carry the same production instrument, 26.51.0-116.",
+    "not_refreshed": {
+      "thisdoesnotexist-xz9q.com": "NOT REFRESHABLE THROUGH PRODUCTION, BY DESIGN — production never persists a scan of a nonexistent domain (zero domain_analyses rows for this name in the database's entire history; a 2026-08-18 scan completed on-page in 1.1s and correctly wrote nothing). The domain-absent state this file pins is environment-independent, so its 2026-07-31 local capture stands. Any future refresh of this file is necessarily a local capture and must be labeled as such."
+    }
   }
 }
