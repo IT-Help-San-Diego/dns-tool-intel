@@ -4,22 +4,22 @@
     "input_kind": "dns_domain"
   },
   "_icae_snapshot": {
-    "overall_maturity": "development",
+    "overall_maturity": "gold",
     "unified_confidence": {
-      "accuracy_factor": 63,
-      "currency_factor": 73.8,
-      "explanation": "The measurement system is still accumulating scan history. Accuracy and currency are adequate but the system has not yet reached full maturity.",
+      "accuracy_factor": 64.8,
+      "currency_factor": 74,
+      "explanation": "Resolver agreement is inconsistent for some protocols, limiting confidence. Data currency and system maturity are adequate.",
       "level": "MODERATE",
-      "maturity_ceiling": 60,
-      "maturity_level": "development",
+      "maturity_ceiling": 95,
+      "maturity_level": "gold",
       "protocol_count": 9,
-      "score": 60,
-      "weakest_detail": "System maturity is capping the confidence score \u2014 the scan data is strong but more scan history is needed to unlock higher tiers",
-      "weakest_link": "maturity"
+      "score": 69.2,
+      "weakest_detail": "Resolver agreement is low for this scan \u2014 some protocols returned inconsistent results across resolvers",
+      "weakest_link": "accuracy"
     }
   },
   "_schema_version": 2,
-  "_tool_version": "dev",
+  "_tool_version": "26.51.0-116-gd9ee700d9",
   "ai_surface": {
     "evidence": [
       {
@@ -88,66 +88,51 @@
   "asn_info": {
     "ipv4_asn": [
       {
-        "as_name": "Amazon.com, Inc.",
-        "asn": "16509",
         "confidence": {
           "label": "Third-party data",
           "level": "third_party",
           "method": "Team Cymru DNS-based ASN lookup"
         },
-        "country": "US",
-        "ip": "18.65.3.108",
-        "prefix": "18.65.2.0/23"
+        "error": "no ASN data",
+        "ip": "18.161.6.104"
       },
       {
-        "as_name": "Amazon.com, Inc.",
-        "asn": "16509",
         "confidence": {
           "label": "Third-party data",
           "level": "third_party",
           "method": "Team Cymru DNS-based ASN lookup"
         },
-        "country": "US",
-        "ip": "18.65.3.121",
-        "prefix": "18.65.2.0/23"
+        "error": "no ASN data",
+        "ip": "18.161.6.115"
       },
       {
-        "as_name": "Amazon.com, Inc.",
-        "asn": "16509",
         "confidence": {
           "label": "Third-party data",
           "level": "third_party",
           "method": "Team Cymru DNS-based ASN lookup"
         },
-        "country": "US",
-        "ip": "18.65.3.125",
-        "prefix": "18.65.2.0/23"
+        "error": "no ASN data",
+        "ip": "18.161.6.6"
       },
       {
-        "as_name": "Amazon.com, Inc.",
-        "asn": "16509",
         "confidence": {
           "label": "Third-party data",
           "level": "third_party",
           "method": "Team Cymru DNS-based ASN lookup"
         },
-        "country": "US",
-        "ip": "18.65.3.41",
-        "prefix": "18.65.2.0/23"
+        "error": "no ASN data",
+        "ip": "18.161.6.93"
       }
     ],
     "ipv6_asn": [
       {
-        "as_name": "Amazon.com, Inc.",
-        "asn": "16509",
         "confidence": {
           "label": "Third-party data",
           "level": "third_party",
           "method": "Team Cymru DNS-based ASN lookup"
         },
-        "country": "US",
-        "ip": "2600:9000:2366:1600:b:6af6:b080:93a1",
-        "prefix": "2600:9000:2366::/48"
+        "error": "no ASN data",
+        "ip": "2600:9000:2475:0:b:6af6:b080:93a1"
       },
       {
         "confidence": {
@@ -156,7 +141,7 @@
           "method": "Team Cymru DNS-based ASN lookup"
         },
         "error": "no ASN data",
-        "ip": "2600:9000:2366:1e00:b:6af6:b080:93a1"
+        "ip": "2600:9000:2475:1a00:b:6af6:b080:93a1"
       },
       {
         "confidence": {
@@ -165,7 +150,7 @@
           "method": "Team Cymru DNS-based ASN lookup"
         },
         "error": "no ASN data",
-        "ip": "2600:9000:2366:2000:b:6af6:b080:93a1"
+        "ip": "2600:9000:2475:2200:b:6af6:b080:93a1"
       },
       {
         "confidence": {
@@ -174,7 +159,7 @@
           "method": "Team Cymru DNS-based ASN lookup"
         },
         "error": "no ASN data",
-        "ip": "2600:9000:2366:6800:b:6af6:b080:93a1"
+        "ip": "2600:9000:2475:3200:b:6af6:b080:93a1"
       },
       {
         "confidence": {
@@ -183,7 +168,7 @@
           "method": "Team Cymru DNS-based ASN lookup"
         },
         "error": "no ASN data",
-        "ip": "2600:9000:2366:8a00:b:6af6:b080:93a1"
+        "ip": "2600:9000:2475:4600:b:6af6:b080:93a1"
       },
       {
         "confidence": {
@@ -192,7 +177,7 @@
           "method": "Team Cymru DNS-based ASN lookup"
         },
         "error": "no ASN data",
-        "ip": "2600:9000:2366:9c00:b:6af6:b080:93a1"
+        "ip": "2600:9000:2475:7800:b:6af6:b080:93a1"
       },
       {
         "confidence": {
@@ -201,7 +186,7 @@
           "method": "Team Cymru DNS-based ASN lookup"
         },
         "error": "no ASN data",
-        "ip": "2600:9000:2366:bc00:b:6af6:b080:93a1"
+        "ip": "2600:9000:2475:ae00:b:6af6:b080:93a1"
       },
       {
         "confidence": {
@@ -210,19 +195,13 @@
           "method": "Team Cymru DNS-based ASN lookup"
         },
         "error": "no ASN data",
-        "ip": "2600:9000:2366:f400:b:6af6:b080:93a1"
+        "ip": "2600:9000:2475:b000:b:6af6:b080:93a1"
       }
     ],
     "issues": [],
-    "message": "Resolved 1 unique ASN(s) across 12 IP address(es)",
+    "message": "Resolved 0 unique ASN(s) across 12 IP address(es)",
     "status": "success",
-    "unique_asns": [
-      {
-        "as_name": "Amazon.com, Inc.",
-        "asn": "16509",
-        "country": "US"
-      }
-    ]
+    "unique_asns": null
   },
   "auth_query_status": {},
   "auth_ttl": {
@@ -235,20 +214,20 @@
   },
   "authoritative_records": {
     "A": [
-      "18.65.3.121",
-      "18.65.3.41",
-      "18.65.3.125",
-      "18.65.3.108"
+      "18.161.6.93",
+      "18.161.6.104",
+      "18.161.6.115",
+      "18.161.6.6"
     ],
     "AAAA": [
-      "2600:9000:2366:1600:b:6af6:b080:93a1",
-      "2600:9000:2366:2a00:b:6af6:b080:93a1",
-      "2600:9000:2366:4400:b:6af6:b080:93a1",
-      "2600:9000:2366:ce00:b:6af6:b080:93a1",
-      "2600:9000:2366:fc00:b:6af6:b080:93a1",
-      "2600:9000:2366:de00:b:6af6:b080:93a1",
-      "2600:9000:2366:9000:b:6af6:b080:93a1",
-      "2600:9000:2366:1800:b:6af6:b080:93a1"
+      "2600:9000:2475:5000:b:6af6:b080:93a1",
+      "2600:9000:2475:1a00:b:6af6:b080:93a1",
+      "2600:9000:2475:6000:b:6af6:b080:93a1",
+      "2600:9000:2475:9a00:b:6af6:b080:93a1",
+      "2600:9000:2475:ca00:b:6af6:b080:93a1",
+      "2600:9000:2475:f200:b:6af6:b080:93a1",
+      "2600:9000:2475:3600:b:6af6:b080:93a1",
+      "2600:9000:2475:8c00:b:6af6:b080:93a1"
     ],
     "CAA": [
       "0 iodef \"mailto:iodef@red.com\"",
@@ -279,27 +258,27 @@
   },
   "basic_records": {
     "A": [
-      "18.65.3.108",
-      "18.65.3.121",
-      "18.65.3.125",
-      "18.65.3.41"
+      "18.161.6.104",
+      "18.161.6.115",
+      "18.161.6.6",
+      "18.161.6.93"
     ],
     "AAAA": [
-      "2600:9000:2366:1600:b:6af6:b080:93a1",
-      "2600:9000:2366:1e00:b:6af6:b080:93a1",
-      "2600:9000:2366:2000:b:6af6:b080:93a1",
-      "2600:9000:2366:6800:b:6af6:b080:93a1",
-      "2600:9000:2366:8a00:b:6af6:b080:93a1",
-      "2600:9000:2366:9c00:b:6af6:b080:93a1",
-      "2600:9000:2366:bc00:b:6af6:b080:93a1",
-      "2600:9000:2366:f400:b:6af6:b080:93a1"
+      "2600:9000:2475:0:b:6af6:b080:93a1",
+      "2600:9000:2475:1a00:b:6af6:b080:93a1",
+      "2600:9000:2475:2200:b:6af6:b080:93a1",
+      "2600:9000:2475:3200:b:6af6:b080:93a1",
+      "2600:9000:2475:4600:b:6af6:b080:93a1",
+      "2600:9000:2475:7800:b:6af6:b080:93a1",
+      "2600:9000:2475:ae00:b:6af6:b080:93a1",
+      "2600:9000:2475:b000:b:6af6:b080:93a1"
     ],
     "CAA": [
       "0 issue \"sectigo.com\"",
-      "0 issue \"amazon.com\"",
-      "0 issue \"letsencrypt.org\"",
       "0 issue \"www.digicert.com\"",
-      "0 iodef \"mailto:iodef@red.com\""
+      "0 iodef \"mailto:iodef@red.com\"",
+      "0 issue \"letsencrypt.org\"",
+      "0 issue \"amazon.com\""
     ],
     "CNAME": null,
     "DMARC": [
@@ -382,15 +361,15 @@
     "wildcard_issuers": null
   },
   "calibrated_confidence": {
-    "BIMI": 0.71125,
-    "CAA": 0.528125,
-    "DANE": 0.521875,
-    "DKIM": 0.525,
-    "DMARC": 0.716875,
-    "DNSSEC": 0.71375,
-    "MTA_STS": 0.7125,
-    "SPF": 0.528125,
-    "TLS_RPT": 0.714375
+    "BIMI": 0.709,
+    "CAA": 0.5225,
+    "DANE": 0.5175,
+    "DKIM": 0.71,
+    "DMARC": 0.7134999999999999,
+    "DNSSEC": 0.711,
+    "MTA_STS": 0.71,
+    "SPF": 0.5225,
+    "TLS_RPT": 0.7115
   },
   "cds_cdnskey": {
     "automation": "none",
@@ -408,41 +387,41 @@
         {
           "match": "match",
           "our_records": [
-            "18.65.3.108",
-            "18.65.3.121",
-            "18.65.3.125",
-            "18.65.3.41"
+            "18.161.6.104",
+            "18.161.6.115",
+            "18.161.6.6",
+            "18.161.6.93"
           ],
           "record_type": "A",
           "their_records": [
-            "18.65.3.108",
-            "18.65.3.121",
-            "18.65.3.125",
-            "18.65.3.41"
+            "18.161.6.104",
+            "18.161.6.115",
+            "18.161.6.6",
+            "18.161.6.93"
           ]
         },
         {
-          "match": "partial",
+          "match": "mismatch",
           "our_records": [
-            "2600:9000:2366:1600:b:6af6:b080:93a1",
-            "2600:9000:2366:1e00:b:6af6:b080:93a1",
-            "2600:9000:2366:2000:b:6af6:b080:93a1",
-            "2600:9000:2366:6800:b:6af6:b080:93a1",
-            "2600:9000:2366:8a00:b:6af6:b080:93a1",
-            "2600:9000:2366:9c00:b:6af6:b080:93a1",
-            "2600:9000:2366:bc00:b:6af6:b080:93a1",
-            "2600:9000:2366:f400:b:6af6:b080:93a1"
+            "2600:9000:2475:0:b:6af6:b080:93a1",
+            "2600:9000:2475:1a00:b:6af6:b080:93a1",
+            "2600:9000:2475:2200:b:6af6:b080:93a1",
+            "2600:9000:2475:3200:b:6af6:b080:93a1",
+            "2600:9000:2475:4600:b:6af6:b080:93a1",
+            "2600:9000:2475:7800:b:6af6:b080:93a1",
+            "2600:9000:2475:ae00:b:6af6:b080:93a1",
+            "2600:9000:2475:b000:b:6af6:b080:93a1"
           ],
           "record_type": "AAAA",
           "their_records": [
-            "2600:9000:2366:1600:b:6af6:b080:93a1",
-            "2600:9000:2366:1e00:b:6af6:b080:93a1",
-            "2600:9000:2366:2400:b:6af6:b080:93a1",
-            "2600:9000:2366:6000:b:6af6:b080:93a1",
-            "2600:9000:2366:6400:b:6af6:b080:93a1",
-            "2600:9000:2366:a000:b:6af6:b080:93a1",
-            "2600:9000:2366:dc00:b:6af6:b080:93a1",
-            "2600:9000:2366:e00:b:6af6:b080:93a1"
+            "2600:9000:2475:1c00:b:6af6:b080:93a1",
+            "2600:9000:2475:3800:b:6af6:b080:93a1",
+            "2600:9000:2475:400:b:6af6:b080:93a1",
+            "2600:9000:2475:5800:b:6af6:b080:93a1",
+            "2600:9000:2475:6a00:b:6af6:b080:93a1",
+            "2600:9000:2475:8000:b:6af6:b080:93a1",
+            "2600:9000:2475:9c00:b:6af6:b080:93a1",
+            "2600:9000:2475:f800:b:6af6:b080:93a1"
           ]
         },
         {
@@ -520,7 +499,7 @@
           ]
         },
         {
-          "match": "match",
+          "match": "absent",
           "our_records": null,
           "record_type": "CNAME",
           "their_records": []
@@ -530,41 +509,41 @@
         {
           "match": "match",
           "our_records": [
-            "18.65.3.108",
-            "18.65.3.121",
-            "18.65.3.125",
-            "18.65.3.41"
+            "18.161.6.104",
+            "18.161.6.115",
+            "18.161.6.6",
+            "18.161.6.93"
           ],
           "record_type": "A",
           "their_records": [
-            "18.65.3.108",
-            "18.65.3.121",
-            "18.65.3.125",
-            "18.65.3.41"
+            "18.161.6.104",
+            "18.161.6.115",
+            "18.161.6.6",
+            "18.161.6.93"
           ]
         },
         {
           "match": "mismatch",
           "our_records": [
-            "2600:9000:2366:1600:b:6af6:b080:93a1",
-            "2600:9000:2366:1e00:b:6af6:b080:93a1",
-            "2600:9000:2366:2000:b:6af6:b080:93a1",
-            "2600:9000:2366:6800:b:6af6:b080:93a1",
-            "2600:9000:2366:8a00:b:6af6:b080:93a1",
-            "2600:9000:2366:9c00:b:6af6:b080:93a1",
-            "2600:9000:2366:bc00:b:6af6:b080:93a1",
-            "2600:9000:2366:f400:b:6af6:b080:93a1"
+            "2600:9000:2475:0:b:6af6:b080:93a1",
+            "2600:9000:2475:1a00:b:6af6:b080:93a1",
+            "2600:9000:2475:2200:b:6af6:b080:93a1",
+            "2600:9000:2475:3200:b:6af6:b080:93a1",
+            "2600:9000:2475:4600:b:6af6:b080:93a1",
+            "2600:9000:2475:7800:b:6af6:b080:93a1",
+            "2600:9000:2475:ae00:b:6af6:b080:93a1",
+            "2600:9000:2475:b000:b:6af6:b080:93a1"
           ],
           "record_type": "AAAA",
           "their_records": [
-            "2600:9000:2366:2c00:b:6af6:b080:93a1",
-            "2600:9000:2366:4c00:b:6af6:b080:93a1",
-            "2600:9000:2366:6e00:b:6af6:b080:93a1",
-            "2600:9000:2366:7800:b:6af6:b080:93a1",
-            "2600:9000:2366:9e00:b:6af6:b080:93a1",
-            "2600:9000:2366:a600:b:6af6:b080:93a1",
-            "2600:9000:2366:a800:b:6af6:b080:93a1",
-            "2600:9000:2366:d000:b:6af6:b080:93a1"
+            "2600:9000:2475:1c00:b:6af6:b080:93a1",
+            "2600:9000:2475:3a00:b:6af6:b080:93a1",
+            "2600:9000:2475:6400:b:6af6:b080:93a1",
+            "2600:9000:2475:9400:b:6af6:b080:93a1",
+            "2600:9000:2475:aa00:b:6af6:b080:93a1",
+            "2600:9000:2475:ea00:b:6af6:b080:93a1",
+            "2600:9000:2475:f200:b:6af6:b080:93a1",
+            "2600:9000:2475:f400:b:6af6:b080:93a1"
           ]
         },
         {
@@ -642,7 +621,7 @@
           ]
         },
         {
-          "match": "match",
+          "match": "absent",
           "our_records": null,
           "record_type": "CNAME",
           "their_records": []
@@ -650,7 +629,7 @@
       ]
     },
     "domain": "red.com",
-    "generated_at": "2026-07-31T04:48:53Z",
+    "generated_at": "2026-08-18T06:54:27Z",
     "manual_verify": {
       "cloudflare_doh": "https://cloudflare-dns.com/dns-query?name=red.com&type=A",
       "google_dig_a": "https://toolbox.googleapps.com/apps/dig/#A/red.com",
@@ -662,7 +641,7 @@
     "providers": {
       "cloudflare": {
         "endpoint": "https://cloudflare-dns.com/dns-query",
-        "latency_ms": 952,
+        "latency_ms": 258,
         "name": "cloudflare",
         "query_urls": {
           "A": "https://cloudflare-dns.com/dns-query?name=red.com&type=A",
@@ -674,20 +653,20 @@
         },
         "records": {
           "A": [
-            "18.65.3.108",
-            "18.65.3.121",
-            "18.65.3.125",
-            "18.65.3.41"
+            "18.161.6.104",
+            "18.161.6.115",
+            "18.161.6.6",
+            "18.161.6.93"
           ],
           "AAAA": [
-            "2600:9000:2366:1600:b:6af6:b080:93a1",
-            "2600:9000:2366:1e00:b:6af6:b080:93a1",
-            "2600:9000:2366:2400:b:6af6:b080:93a1",
-            "2600:9000:2366:6000:b:6af6:b080:93a1",
-            "2600:9000:2366:6400:b:6af6:b080:93a1",
-            "2600:9000:2366:a000:b:6af6:b080:93a1",
-            "2600:9000:2366:dc00:b:6af6:b080:93a1",
-            "2600:9000:2366:e00:b:6af6:b080:93a1"
+            "2600:9000:2475:1c00:b:6af6:b080:93a1",
+            "2600:9000:2475:3800:b:6af6:b080:93a1",
+            "2600:9000:2475:400:b:6af6:b080:93a1",
+            "2600:9000:2475:5800:b:6af6:b080:93a1",
+            "2600:9000:2475:6a00:b:6af6:b080:93a1",
+            "2600:9000:2475:8000:b:6af6:b080:93a1",
+            "2600:9000:2475:9c00:b:6af6:b080:93a1",
+            "2600:9000:2475:f800:b:6af6:b080:93a1"
           ],
           "CNAME": [],
           "MX": [
@@ -726,7 +705,7 @@
       },
       "google": {
         "endpoint": "https://dns.google/resolve",
-        "latency_ms": 1077,
+        "latency_ms": 268,
         "name": "google",
         "query_urls": {
           "A": "https://dns.google/resolve?name=red.com&type=A",
@@ -738,20 +717,20 @@
         },
         "records": {
           "A": [
-            "18.65.3.108",
-            "18.65.3.121",
-            "18.65.3.125",
-            "18.65.3.41"
+            "18.161.6.104",
+            "18.161.6.115",
+            "18.161.6.6",
+            "18.161.6.93"
           ],
           "AAAA": [
-            "2600:9000:2366:2c00:b:6af6:b080:93a1",
-            "2600:9000:2366:4c00:b:6af6:b080:93a1",
-            "2600:9000:2366:6e00:b:6af6:b080:93a1",
-            "2600:9000:2366:7800:b:6af6:b080:93a1",
-            "2600:9000:2366:9e00:b:6af6:b080:93a1",
-            "2600:9000:2366:a600:b:6af6:b080:93a1",
-            "2600:9000:2366:a800:b:6af6:b080:93a1",
-            "2600:9000:2366:d000:b:6af6:b080:93a1"
+            "2600:9000:2475:1c00:b:6af6:b080:93a1",
+            "2600:9000:2475:3a00:b:6af6:b080:93a1",
+            "2600:9000:2475:6400:b:6af6:b080:93a1",
+            "2600:9000:2475:9400:b:6af6:b080:93a1",
+            "2600:9000:2475:aa00:b:6af6:b080:93a1",
+            "2600:9000:2475:ea00:b:6af6:b080:93a1",
+            "2600:9000:2475:f200:b:6af6:b080:93a1",
+            "2600:9000:2475:f400:b:6af6:b080:93a1"
           ],
           "CNAME": [],
           "MX": [
@@ -799,25 +778,46 @@
     ],
     "schema_version": "1.0",
     "summary": {
-      "matched": 11,
-      "mismatched": 1,
+      "absent": 2,
+      "matched": 7,
+      "mismatched": 2,
+      "partial": 1,
       "total_checks": 12,
       "unavailable": 0,
       "verdict": "discrepancy_detected"
     }
   },
   "ct_subdomains": {
+    "ca_summary": [
+      {
+        "active": true,
+        "cert_count": 21,
+        "first_seen": "2025-10-19",
+        "last_seen": "2026-08-10",
+        "name": ""
+      }
+    ],
     "caveat": "Subdomains discovered via CT logs (RFC 6962), DNS probing of common service names, and CNAME chain traversal.",
-    "cname_count": 8,
+    "cname_count": 7,
+    "cname_discovered_count": 0,
     "ct_available": true,
-    "ct_source": "cache",
-    "current_count": "28",
-    "displayed_count": 28,
+    "ct_source": "live",
+    "ct_source_fallback": "certspotter",
+    "current_count": "65",
+    "displayed_count": 65,
     "expired_count": "0",
     "providers_found": 0,
     "source": "Certificate Transparency + DNS Intelligence",
     "status": "success",
     "subdomains": [
+      {
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
+        "name": "128197-fw1.red.com",
+        "source": "external_tools"
+      },
       {
         "cert_count": "1",
         "first_seen": "2025-11-21T00:00:00Z",
@@ -827,6 +827,22 @@
         ],
         "name": "2a57j78hsrstljvqlux8inqlkmoufug.rdcmetadata.red.com",
         "source": "ct"
+      },
+      {
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
+        "name": "argocd.red.com",
+        "source": "external_tools"
+      },
+      {
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
+        "name": "argocdtest.red.com",
+        "source": "external_tools"
       },
       {
         "cert_count": "7",
@@ -842,7 +858,31 @@
         "first_seen": "\u2014",
         "is_current": true,
         "issuers": [],
+        "name": "click.mailer.red.com",
+        "source": "external_tools"
+      },
+      {
+        "cert_count": "7",
+        "first_seen": "2025-11-17",
+        "is_current": true,
+        "issuers": [],
         "name": "cms.red.com",
+        "source": "dns"
+      },
+      {
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
+        "name": "cn.red.com",
+        "source": "external_tools"
+      },
+      {
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
+        "name": "communigate.red.com",
         "source": "external_tools"
       },
       {
@@ -865,6 +905,30 @@
         "source": "dns"
       },
       {
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
+        "name": "de.red.com",
+        "source": "external_tools"
+      },
+      {
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
+        "name": "demo-rancher-2.red.com",
+        "source": "external_tools"
+      },
+      {
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
+        "name": "demo-rancher.red.com",
+        "source": "external_tools"
+      },
+      {
         "cert_count": "7",
         "cname_target": "d251ynbmdsa2xe.cloudfront.net",
         "first_seen": "2025-11-17",
@@ -883,13 +947,13 @@
         "source": "dns"
       },
       {
-        "cert_count": "\u2014",
+        "cert_count": "7",
         "cname_target": "d8qd7ihwepkly.cloudfront.net",
-        "first_seen": "\u2014",
+        "first_seen": "2025-11-17",
         "is_current": true,
         "issuers": [],
         "name": "eu.red.com",
-        "source": "external_tools"
+        "source": "dns"
       },
       {
         "cert_count": "1",
@@ -902,8 +966,8 @@
         "source": "ct"
       },
       {
-        "cert_count": "2",
-        "first_seen": "2025-07-03T00:00:00Z",
+        "cert_count": "1",
+        "first_seen": "2026-08-10T16:34:08Z",
         "is_current": true,
         "issuers": [
           ""
@@ -920,6 +984,30 @@
         "source": "dns"
       },
       {
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
+        "name": "in.red.com",
+        "source": "external_tools"
+      },
+      {
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
+        "name": "iselb01.red.com",
+        "source": "external_tools"
+      },
+      {
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
+        "name": "jp.red.com",
+        "source": "external_tools"
+      },
+      {
         "cert_count": "1",
         "first_seen": "2026-06-01T12:28:29Z",
         "is_current": true,
@@ -930,14 +1018,30 @@
         "source": "ct"
       },
       {
-        "cert_count": "2",
-        "first_seen": "2025-07-03T00:00:00Z",
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
+        "name": "kr.red.com",
+        "source": "external_tools"
+      },
+      {
+        "cert_count": "1",
+        "first_seen": "2026-08-10T16:34:08Z",
         "is_current": true,
         "issuers": [
           ""
         ],
         "name": "lassises01.red.com",
         "source": "ct"
+      },
+      {
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
+        "name": "littleredbarn.red.com",
+        "source": "external_tools"
       },
       {
         "cert_count": "1",
@@ -950,6 +1054,30 @@
         "source": "ct"
       },
       {
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
+        "name": "mta.mailer.red.com",
+        "source": "external_tools"
+      },
+      {
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
+        "name": "nateandsean.red.com",
+        "source": "external_tools"
+      },
+      {
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
+        "name": "netbox.red.com",
+        "source": "external_tools"
+      },
+      {
         "cert_count": "1",
         "first_seen": "2025-10-19T00:00:00Z",
         "is_current": true,
@@ -958,6 +1086,14 @@
         ],
         "name": "netsuite.red.com",
         "source": "ct"
+      },
+      {
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
+        "name": "oldmail.red.com",
+        "source": "external_tools"
       },
       {
         "cert_count": "7",
@@ -979,15 +1115,94 @@
         "source": "ct"
       },
       {
-        "cert_count": "6",
-        "cname_target": "capi.rdc.services",
-        "first_seen": "2025-07-14T00:00:00Z",
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
+        "name": "password.red.com",
+        "source": "external_tools"
+      },
+      {
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
+        "name": "productionportal.red.com",
+        "source": "external_tools"
+      },
+      {
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
+        "name": "rancher.red.com",
+        "source": "external_tools"
+      },
+      {
+        "cert_count": "5",
+        "first_seen": "2025-11-21T00:00:00Z",
         "is_current": true,
         "issuers": [
           ""
         ],
         "name": "rdcmetadata.red.com",
         "source": "ct"
+      },
+      {
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
+        "name": "redoem.red.com",
+        "source": "external_tools"
+      },
+      {
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
+        "name": "redrental.red.com",
+        "source": "external_tools"
+      },
+      {
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
+        "name": "rojo.red.com",
+        "source": "external_tools"
+      },
+      {
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
+        "name": "ru.red.com",
+        "source": "external_tools"
+      },
+      {
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
+        "name": "semaphore.red.com",
+        "source": "external_tools"
+      },
+      {
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
+        "name": "server2.red.com",
+        "source": "external_tools"
+      },
+      {
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
+        "name": "snipeit-test.red.com",
+        "source": "external_tools"
       },
       {
         "cert_count": "1",
@@ -998,6 +1213,14 @@
         ],
         "name": "snipeit.red.com",
         "source": "ct"
+      },
+      {
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
+        "name": "static.red.com",
+        "source": "external_tools"
       },
       {
         "cert_count": "7",
@@ -1012,7 +1235,47 @@
         "first_seen": "\u2014",
         "is_current": true,
         "issuers": [],
+        "name": "test-argocd.red.com",
+        "source": "external_tools"
+      },
+      {
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
+        "name": "test-cows.red.com",
+        "source": "external_tools"
+      },
+      {
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
+        "name": "test-zabbix.red.com",
+        "source": "external_tools"
+      },
+      {
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
+        "name": "tttasdft.red.com",
+        "source": "external_tools"
+      },
+      {
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
         "name": "ui.red.com",
+        "source": "external_tools"
+      },
+      {
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
+        "name": "us.red.com",
         "source": "external_tools"
       },
       {
@@ -1057,6 +1320,22 @@
         "source": "external_tools"
       },
       {
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
+        "name": "whoami.red.com",
+        "source": "external_tools"
+      },
+      {
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
+        "name": "wordpress-route-gsd-project.apps.test-cluster.dedalus.red.com",
+        "source": "external_tools"
+      },
+      {
         "cert_count": "1",
         "first_seen": "2026-06-18T22:05:49Z",
         "is_current": true,
@@ -1065,6 +1344,14 @@
         ],
         "name": "www.red.com",
         "source": "ct"
+      },
+      {
+        "cert_count": "\u2014",
+        "first_seen": "\u2014",
+        "is_current": true,
+        "issuers": [],
+        "name": "zabbix-test.red.com",
+        "source": "external_tools"
       },
       {
         "cert_count": "2",
@@ -1077,12 +1364,24 @@
         "source": "ct"
       }
     ],
-    "total_certs": 0,
-    "unique_subdomains": 28
+    "total_certs": 21,
+    "unique_certs": 21,
+    "unique_subdomains": 65,
+    "wildcard_certs": {
+      "cert_count": 7,
+      "current": true,
+      "earliest": "2025-11-17",
+      "issuers": [
+        ""
+      ],
+      "latest_expiry": "2027-02-11",
+      "pattern": "*.red.com",
+      "present": true
+    }
   },
   "currency_report": {
     "overall_grade": "adequate",
-    "overall_score": 73.79761904761904,
+    "overall_score": 74.04761904761904,
     "dimensions": [
       {
         "dimension": "currentness",
@@ -1112,7 +1411,7 @@
         "dimension": "source_credibility",
         "standard": "ISO/IEC 25012 + SPJ",
         "grade": "excellent",
-        "score": 93.75,
+        "score": 95,
         "details": "All resolvers return consistent data \u2014 high source credibility",
         "record_types_evaluated": 4
       },
@@ -1153,15 +1452,6 @@
             "recommendation": "NS TTL is below typical \u2014 observed 6 hours (21600s), typical value is 1 day (86400s). Short TTLs increase DNS query volume but enable faster propagation. If you are preparing for a migration or need rapid failover, this may be intentional (RFC 1035 \u00a73.2.1). For steady-state production, consider 86400 seconds per NIST SP 800-53 SI-7 relevance guidance. Use the TTL Tuner for profile-specific recommendations."
           },
           {
-            "record_type": "MX",
-            "observed_ttl": 300,
-            "typical_ttl": 3600,
-            "ratio": 0.08333333333333333,
-            "severity": "high",
-            "standard": "NIST SP 800-53 SI-7",
-            "recommendation": "MX TTL is below typical \u2014 observed 5 minutes (300s), typical value is 1 hour (3600s). Short TTLs increase DNS query volume but enable faster propagation. If you are preparing for a migration or need rapid failover, this may be intentional (RFC 1035 \u00a73.2.1). For steady-state production, consider 3600 seconds per NIST SP 800-53 SI-7 relevance guidance. Use the TTL Tuner for profile-specific recommendations."
-          },
-          {
             "record_type": "AAAA",
             "observed_ttl": 60,
             "typical_ttl": 3600,
@@ -1170,6 +1460,15 @@
             "standard": "NIST SP 800-53 SI-7",
             "recommendation": "AAAA TTL is below typical \u2014 observed 1 minute (60s), typical value is 1 hour (3600s). Short TTLs increase DNS query volume but enable faster propagation. If you are preparing for a migration or need rapid failover, this may be intentional (RFC 1035 \u00a73.2.1). For steady-state production, consider 3600 seconds per NIST SP 800-53 SI-7 relevance guidance. Use the TTL Tuner for profile-specific recommendations.",
             "provider_note": "AWS Route 53 alias records have a fixed TTL of 60 seconds when pointing to AWS resources (ELB, CloudFront, S3). This is an AWS-specific extension, not part of DNS RFCs. To set a custom TTL, use a standard A/AAAA record or CNAME instead of an alias \u2014 but note this loses automatic IP tracking."
+          },
+          {
+            "record_type": "MX",
+            "observed_ttl": 300,
+            "typical_ttl": 3600,
+            "ratio": 0.08333333333333333,
+            "severity": "high",
+            "standard": "NIST SP 800-53 SI-7",
+            "recommendation": "MX TTL is below typical \u2014 observed 5 minutes (300s), typical value is 1 hour (3600s). Short TTLs increase DNS query volume but enable faster propagation. If you are preparing for a migration or need rapid failover, this may be intentional (RFC 1035 \u00a73.2.1). For steady-state production, consider 3600 seconds per NIST SP 800-53 SI-7 relevance guidance. Use the TTL Tuner for profile-specific recommendations."
           },
           {
             "record_type": "CAA",
@@ -1222,10 +1521,10 @@
         "full_record": "3 1 1 321f694ead3a2e733d857fd7e79d811fc79ca120cc5ccc7b6bcd072be35f1b6a",
         "matching_name": "SHA-256",
         "matching_type": 1,
-        "mx_host": "mx1.forwardemail.net",
+        "mx_host": "mx2.forwardemail.net",
         "selector": 1,
         "selector_name": "Public key only (SubjectPublicKeyInfo)",
-        "tlsa_name": "_25._tcp.mx1.forwardemail.net",
+        "tlsa_name": "_25._tcp.mx2.forwardemail.net",
         "usage": 3,
         "usage_name": "DANE-EE (Domain-issued certificate)"
       },
@@ -1235,10 +1534,10 @@
         "full_record": "3 1 1 5e81da1af16df20b13e667ad6d9c2b65b95bfcd95150caffe7116c1707b4dd2c",
         "matching_name": "SHA-256",
         "matching_type": 1,
-        "mx_host": "mx1.forwardemail.net",
+        "mx_host": "mx2.forwardemail.net",
         "selector": 1,
         "selector_name": "Public key only (SubjectPublicKeyInfo)",
-        "tlsa_name": "_25._tcp.mx1.forwardemail.net",
+        "tlsa_name": "_25._tcp.mx2.forwardemail.net",
         "usage": 3,
         "usage_name": "DANE-EE (Domain-issued certificate)"
       },
@@ -1248,10 +1547,10 @@
         "full_record": "3 1 1 321f694ead3a2e733d857fd7e79d811fc79ca120cc5ccc7b6bcd072be35f1b6a",
         "matching_name": "SHA-256",
         "matching_type": 1,
-        "mx_host": "mx2.forwardemail.net",
+        "mx_host": "mx1.forwardemail.net",
         "selector": 1,
         "selector_name": "Public key only (SubjectPublicKeyInfo)",
-        "tlsa_name": "_25._tcp.mx2.forwardemail.net",
+        "tlsa_name": "_25._tcp.mx1.forwardemail.net",
         "usage": 3,
         "usage_name": "DANE-EE (Domain-issued certificate)"
       },
@@ -1261,10 +1560,10 @@
         "full_record": "3 1 1 5e81da1af16df20b13e667ad6d9c2b65b95bfcd95150caffe7116c1707b4dd2c",
         "matching_name": "SHA-256",
         "matching_type": 1,
-        "mx_host": "mx2.forwardemail.net",
+        "mx_host": "mx1.forwardemail.net",
         "selector": 1,
         "selector_name": "Public key only (SubjectPublicKeyInfo)",
-        "tlsa_name": "_25._tcp.mx2.forwardemail.net",
+        "tlsa_name": "_25._tcp.mx1.forwardemail.net",
         "usage": 3,
         "usage_name": "DANE-EE (Domain-issued certificate)"
       }
@@ -1349,27 +1648,34 @@
     }
   },
   "dkim_analysis": {
+    "all_revoked": false,
+    "dkim_state": "present",
     "domainkey_delegation": null,
     "found_providers": null,
-    "key_issues": null,
-    "key_strengths": [
-      "2048-bit"
+    "key_issues": [
+      "1024-bit key (weak, upgrade to 2048)",
+      "1024-bit key (weak, upgrade to 2048)"
     ],
-    "message": "Found DKIM for 2 selector(s) with strong keys (2048-bit)",
+    "key_strengths": null,
+    "message": "Found 2 DKIM selector(s) with weak key(s) (below 2048-bit RSA)",
     "mx_legacy_note": "",
     "primary_dkim_note": "",
     "primary_has_dkim": false,
     "primary_provider": "Unknown",
+    "probe_scope": 81,
     "security_gateway": null,
+    "selector_source": "defaults_only",
     "selectors": {
       "mail._domainkey": {
         "key_info": [
           {
-            "issues": [],
-            "key_bits": 2048,
-            "key_strength": "adequate",
-            "key_strength_label": "Adequate",
-            "key_strength_observation": "2048-bit RSA \u2014 recommended standard (RFC 8301, NIST guidance)",
+            "issues": [
+              "1024-bit key (weak, upgrade to 2048)"
+            ],
+            "key_bits": 1024,
+            "key_strength": "weak",
+            "key_strength_label": "Weak",
+            "key_strength_observation": "1024-bit RSA \u2014 minimum per RFC 8301, upgrade to 2048-bit recommended",
             "key_strength_rfc": "RFC 8301",
             "key_type": "rsa",
             "revoked": false,
@@ -1385,11 +1691,13 @@
       "selector2._domainkey": {
         "key_info": [
           {
-            "issues": [],
-            "key_bits": 2048,
-            "key_strength": "adequate",
-            "key_strength_label": "Adequate",
-            "key_strength_observation": "2048-bit RSA \u2014 recommended standard (RFC 8301, NIST guidance)",
+            "issues": [
+              "1024-bit key (weak, upgrade to 2048)"
+            ],
+            "key_bits": 1024,
+            "key_strength": "weak",
+            "key_strength_label": "Weak",
+            "key_strength_observation": "1024-bit RSA \u2014 minimum per RFC 8301, upgrade to 2048-bit recommended",
             "key_strength_rfc": "RFC 8301",
             "key_type": "rsa",
             "revoked": false,
@@ -1404,7 +1712,7 @@
       }
     },
     "spf_ancillary_note": "SPF authorizes Microsoft 365 servers, but MX records point to self-hosted infrastructure. The Microsoft 365 SPF include likely supports ancillary services (e.g., calendar invitations, shared documents) rather than primary mailbox hosting.",
-    "status": "success",
+    "status": "warning",
     "third_party_only": false,
     "wildcard_dkim": false
   },
@@ -1445,9 +1753,9 @@
     "external_domains": [
       {
         "auth_domain": "red.com._report._dmarc.forwardemail.net",
-        "auth_record": "v=DMARC1;",
-        "auth_state": "authorized",
-        "authorized": true,
+        "auth_record": "",
+        "auth_state": "indeterminate",
+        "authorized": false,
         "confidence": {
           "label": "Observed",
           "level": "observed",
@@ -1460,9 +1768,11 @@
       }
     ],
     "issues": [],
-    "message": "All 1 external reporting domains properly authorized",
-    "notices": [],
-    "status": "success"
+    "message": "Could not verify 1 of 1 external reporting domains \u2014 DNS lookup did not complete",
+    "notices": [
+      "Could not verify external reporting authorization for forwardemail.net \u2014 the DNS lookup for red.com._report._dmarc.forwardemail.net did not complete. Treated as unverified, not a finding; re-run to confirm."
+    ],
+    "status": "indeterminate"
   },
   "dns_infrastructure": {
     "alt_security_items": [
@@ -1480,18 +1790,28 @@
     "provider_tier": "enterprise"
   },
   "dnssec_analysis": {
+    "ad_consensus": "ad_absent",
     "ad_flag": false,
     "ad_resolver": null,
     "algorithm": null,
     "algorithm_name": null,
     "algorithm_observation": null,
     "chain_of_trust": "none",
+    "display_label": "Unsigned",
+    "display_severity": "warning",
     "dnskey_records": [],
     "dnssec_state": "absent_confirmed",
     "ds_records": [],
     "has_dnskey": false,
     "has_ds": false,
     "message": "DNSSEC not configured - DNS responses are unsigned",
+    "resolver_ad": {
+      "Cloudflare": "ad_absent",
+      "DNS4EU": "ad_absent",
+      "Google": "ad_absent",
+      "OpenDNS": "ad_absent",
+      "Quad9": "ad_absent"
+    },
     "status": "warning"
   },
   "dnssec_ops": {
@@ -1522,13 +1842,11 @@
   "domain_status": "active",
   "domain_status_message": null,
   "edge_cdn": {
-    "cdn_indicators": [
-      "ASN 16509 is Amazon CloudFront"
-    ],
-    "cdn_provider": "Amazon CloudFront",
-    "is_behind_cdn": true,
+    "cdn_indicators": [],
+    "cdn_provider": "",
+    "is_behind_cdn": false,
     "issues": [],
-    "message": "Domain is served through Amazon CloudFront",
+    "message": "Domain appears to use direct origin hosting",
     "origin_visible": true,
     "status": "success"
   },
@@ -1545,44 +1863,44 @@
   },
   "ewma_drift": {
     "ChainCompleteness": {
-      "Value": 49.333333333333336,
-      "UCL": 56,
-      "LCL": 44,
-      "OutOfControl": false,
+      "Value": 42.886334354773346,
+      "UCL": 56.84948494444469,
+      "LCL": 43.15051505555531,
+      "OutOfControl": true,
       "Trend": "stable",
-      "Period": 1
+      "Period": 12
     },
     "ResolverConsensus": {
-      "Value": 45.714285714285715,
-      "UCL": 56,
-      "LCL": 44,
-      "OutOfControl": false,
-      "Trend": "stable",
-      "Period": 1
+      "Value": 27.865055895161913,
+      "UCL": 70.05591343648089,
+      "LCL": 29.944086563519114,
+      "OutOfControl": true,
+      "Trend": "declining",
+      "Period": 12
     },
     "SourceCredibility": {
-      "Value": 58.75,
-      "UCL": 56,
-      "LCL": 44,
+      "Value": 92.09924106240001,
+      "UCL": 78.12372875994993,
+      "LCL": 21.876271240050073,
       "OutOfControl": true,
-      "Trend": "stable",
-      "Period": 1
+      "Trend": "improving",
+      "Period": 12
     },
     "TTLCompliance": {
-      "Value": 60,
-      "UCL": 56,
-      "LCL": 44,
+      "Value": 93.145032704,
+      "UCL": 65.01484145623171,
+      "LCL": 34.98515854376829,
       "OutOfControl": true,
-      "Trend": "stable",
-      "Period": 1
+      "Trend": "improving",
+      "Period": 12
     },
     "TemporalValidity": {
-      "Value": 60,
-      "UCL": 56,
-      "LCL": 44,
+      "Value": 96.56402616320001,
+      "UCL": 50,
+      "LCL": 50,
       "OutOfControl": true,
       "Trend": "stable",
-      "Period": 1
+      "Period": 12
     }
   },
   "freshness_matrix": {
@@ -1769,17 +2087,21 @@
       "DELEGATION_CONSISTENT"
     ],
     "hygiene": [
+      "MAIL_POLICY_SIGNALING",
       "BIMI_CONFIGURED",
       "SECURITY_TXT_PRESENT",
       "HTTPS_SVCB_MODERN"
     ]
   },
   "icsae_evaluation": {
-    "schema_version": 8,
+    "schema_version": 9,
     "total_controls": 16,
-    "passed_count": 5,
-    "failed_count": 10,
+    "passed_count": 4,
+    "failed_count": 11,
     "na_count": 1,
+    "not_measured_count": 0,
+    "measured_controls": 15,
+    "null_observations": null,
     "high_failures": [
       "DNSSEC_AUTHENTICATED",
       "DNSSEC_CHAIN_TRUSTED",
@@ -1792,12 +2114,12 @@
       "DELEGATION_CONSISTENT"
     ],
     "low_failures": [
+      "MAIL_POLICY_SIGNALING",
       "BIMI_CONFIGURED",
       "SECURITY_TXT_PRESENT",
       "HTTPS_SVCB_MODERN"
     ],
     "passed": [
-      "MAIL_POLICY_SIGNALING",
       "CAA_RESTRICTION_PRESENT",
       "DANE_DEPLOYED",
       "DANGLING_DNS_CLEAN",
@@ -1806,6 +2128,7 @@
     "not_applicable": [
       "NO_MAIL_HARDENED"
     ],
+    "not_measured": null,
     "results": [
       {
         "id": "DNSSEC_AUTHENTICATED",
@@ -1968,7 +2291,7 @@
       {
         "id": "MAIL_POLICY_SIGNALING",
         "title": "Mail Transport Policy Signaling",
-        "status": "passed",
+        "status": "failed",
         "severity": "low",
         "standards": [
           "ISO_27002_2022:8.20",
@@ -1977,7 +2300,8 @@
         "rfcs": [
           "RFC8461",
           "RFC8460"
-        ]
+        ],
+        "fail_explanation": "No mail transport policy signaling detected. Per RFC 8461, MTA-STS allows domains to declare TLS requirements for inbound SMTP. Per RFC 8460, TLS-RPT enables monitoring of TLS delivery failures."
       },
       {
         "id": "CAA_RESTRICTION_PRESENT",
@@ -2215,35 +2539,35 @@
   },
   "nmap_dns": {
     "cache_snoop": {
-      "message": "Test inconclusive",
-      "nameserver": "ns-738.awsdns-28.net",
+      "message": "Cache snooping not possible (correct configuration)",
+      "nameserver": "ns-1449.awsdns-53.org",
       "vulnerable": false
     },
     "issues": [],
-    "message": "No DNS server misconfigurations found on ns-738.awsdns-28.net",
+    "message": "No DNS server misconfigurations found on ns-1449.awsdns-53.org",
     "nameservers": [
-      "ns-738.awsdns-28.net",
-      "ns-1827.awsdns-36.co.uk",
+      "ns-1449.awsdns-53.org",
       "ns-193.awsdns-24.com",
-      "ns-1449.awsdns-53.org"
+      "ns-738.awsdns-28.net",
+      "ns-1827.awsdns-36.co.uk"
     ],
     "nsid": {
       "found": false,
       "id": "",
-      "message": "Test inconclusive",
-      "nameserver": "ns-738.awsdns-28.net",
+      "message": "No nameserver identity information disclosed",
+      "nameserver": "ns-1449.awsdns-53.org",
       "version": ""
     },
     "recursion": {
-      "message": "Test inconclusive",
-      "nameserver": "ns-738.awsdns-28.net",
+      "message": "Recursion disabled (correct configuration)",
+      "nameserver": "ns-1449.awsdns-53.org",
       "open": false
     },
-    "scan_duration_ms": 94,
+    "scan_duration_ms": 23,
     "status": "good",
     "zone_transfer": {
-      "message": "Test inconclusive",
-      "nameserver": "ns-738.awsdns-28.net",
+      "message": "Zone transfer denied (correct configuration)",
+      "nameserver": "ns-1449.awsdns-53.org",
       "record_count": 0,
       "vulnerable": false
     }
@@ -2289,30 +2613,29 @@
       "unique_operators": 1,
       "unique_prefix24s": 4
     },
-    "issues": [
-      "ns-1449.awsdns-53.org: UDP unreachable on port 53",
-      "ns-193.awsdns-24.com: UDP unreachable on port 53",
-      "ns-1827.awsdns-36.co.uk: UDP unreachable on port 53"
-    ],
+    "issues": null,
     "message": "Analyzed 4 nameserver(s) for red.com",
     "nameservers": [
       {
         "aa_flag": true,
         "as_name": "Amazon.com, Inc.",
         "asn": "16509",
-        "hostname": "ns-1449.awsdns-53.org",
+        "hostname": "ns-1827.awsdns-36.co.uk",
         "ipv4": [
-          "205.251.197.169"
+          "205.251.199.35"
         ],
         "ipv6": [
-          "2600:9000:5305:a900::1"
+          "2600:9000:5307:2300::1"
         ],
         "is_lame": false,
-        "prefix": "205.251.192.0/18",
+        "nsid": "",
+        "nsid_decoded": "",
+        "prefix": "205.251.198.0/23",
+        "rtt_ms": 2000,
         "soa_serial": 1,
         "soa_serial_ok": true,
         "tcp_reachable": true,
-        "udp_reachable": false
+        "udp_reachable": true
       },
       {
         "aa_flag": true,
@@ -2326,29 +2649,14 @@
           "2600:9000:5300:c100::1"
         ],
         "is_lame": false,
-        "prefix": "205.251.192.0/24",
+        "nsid": "",
+        "nsid_decoded": "",
+        "prefix": "205.251.192.0/18",
+        "rtt_ms": 2000,
         "soa_serial": 1,
         "soa_serial_ok": true,
         "tcp_reachable": true,
-        "udp_reachable": false
-      },
-      {
-        "aa_flag": true,
-        "as_name": "Amazon.com, Inc.",
-        "asn": "16509",
-        "hostname": "ns-1827.awsdns-36.co.uk",
-        "ipv4": [
-          "205.251.199.35"
-        ],
-        "ipv6": [
-          "2600:9000:5307:2300::1"
-        ],
-        "is_lame": false,
-        "prefix": "205.251.199.0/24",
-        "soa_serial": 1,
-        "soa_serial_ok": true,
-        "tcp_reachable": true,
-        "udp_reachable": false
+        "udp_reachable": true
       },
       {
         "aa_flag": true,
@@ -2362,7 +2670,31 @@
           "2600:9000:5302:e200::1"
         ],
         "is_lame": false,
+        "nsid": "",
+        "nsid_decoded": "",
         "prefix": "205.251.194.0/24",
+        "rtt_ms": 19,
+        "soa_serial": 1,
+        "soa_serial_ok": true,
+        "tcp_reachable": true,
+        "udp_reachable": true
+      },
+      {
+        "aa_flag": true,
+        "as_name": "Amazon.com, Inc.",
+        "asn": "16509",
+        "hostname": "ns-1449.awsdns-53.org",
+        "ipv4": [
+          "205.251.197.169"
+        ],
+        "ipv6": [
+          "2600:9000:5305:a900::1"
+        ],
+        "is_lame": false,
+        "nsid": "",
+        "nsid_decoded": "",
+        "prefix": "205.251.197.0/24",
+        "rtt_ms": 18,
         "soa_serial": 1,
         "soa_serial_ok": true,
         "tcp_reachable": true,
@@ -2370,7 +2702,7 @@
       }
     ],
     "serial_consensus": true,
-    "status": "warning"
+    "status": "success"
   },
   "posture": {
     "absent": [
@@ -2379,6 +2711,7 @@
       "BIMI",
       "DNSSEC"
     ],
+    "attainable": 100,
     "color": "danger",
     "configured": [
       "SPF",
@@ -2387,9 +2720,11 @@
       "DANE",
       "CAA"
     ],
+    "critical_issue_protocols": null,
     "critical_issues": null,
     "deliberate_monitoring": false,
     "deliberate_monitoring_note": "",
+    "dkim_inconclusive": false,
     "grade": "Medium Risk",
     "icon": "shield-alt",
     "issues": [],
@@ -2398,13 +2733,21 @@
     "monitoring": [
       "DMARC record has configuration warnings \u2014 review recommended"
     ],
+    "monitoring_protocols": [
+      "DMARC"
+    ],
     "provider_limited": [],
+    "recommendation_protocols": [
+      "DMARC"
+    ],
     "recommendations": [
       "Move DMARC policy from 'none' to 'quarantine' or 'reject'"
     ],
     "score": 50,
+    "score_worst_case": 50,
     "spoof_door": "open",
     "state": "Medium Risk",
+    "unmeasurable": [],
     "verdicts": {
       "ai_crawler_governance": {
         "answer": "No",
@@ -2524,7 +2867,18 @@
       "level": "observed",
       "method": "RDAP registry lookup"
     },
+    "delegation_signed": false,
+    "expiration_date": "2026-10-26T04:00:00Z",
+    "last_changed_date": "2024-11-01T00:32:30Z",
+    "lifecycle_state": "active",
+    "lifecycle_statuses": [
+      "client delete prohibited",
+      "client transfer prohibited",
+      "client update prohibited"
+    ],
+    "rdap_update_date": "2026-08-18T06:53:14Z",
     "registrar": "SafeNames Ltd.",
+    "registration_date": "1992-10-27T05:00:00Z",
     "source": "RDAP",
     "status": "success"
   },
@@ -2739,30 +3093,34 @@
     "checks_performed": 4,
     "consensus_reached": false,
     "discrepancies": [
-      "A: DNS4EU returned different results: [143.204.194.103 143.204.194.111 143.204.194.118 143.204.194.54]"
+      "A: DNS4EU returned different results: [52.222.132.23 52.222.132.40 52.222.132.71 52.222.132.87]"
     ],
     "per_record_consensus": {
       "A": {
         "consensus": false,
         "discrepancies": [
-          "DNS4EU returned different results: [143.204.194.103 143.204.194.111 143.204.194.118 143.204.194.54]"
+          "DNS4EU returned different results: [52.222.132.23 52.222.132.40 52.222.132.71 52.222.132.87]"
         ],
-        "resolver_count": 4
+        "resolver_count": 5,
+        "top_votes": 4
       },
       "MX": {
         "consensus": true,
         "discrepancies": null,
-        "resolver_count": 4
+        "resolver_count": 5,
+        "top_votes": 5
       },
       "NS": {
         "consensus": true,
         "discrepancies": null,
-        "resolver_count": 4
+        "resolver_count": 5,
+        "top_votes": 5
       },
       "TXT": {
         "consensus": true,
         "discrepancies": null,
-        "resolver_count": 4
+        "resolver_count": 5,
+        "top_votes": 5
       }
     },
     "resolvers_queried": 5
@@ -3017,9 +3375,6 @@
     "smimea_openpgpkey": {
       "status": "ok"
     },
-    "smtp_transport": {
-      "status": "ok"
-    },
     "spf": {
       "status": "ok"
     },
@@ -3056,12 +3411,12 @@
   },
   "smtp_transport": {
     "dns_inferred": true,
-    "inference_note": "Transport security assessed via DNS policy records (MTA-STS, DANE, TLS-RPT) \u2014 the standards-aligned primary method per NIST SP 800-177 Rev. 1 and RFC 8461. Direct SMTP probing is a supplementary verification step.",
+    "inference_note": "",
     "inference_signals": [
       "DANE/TLSA records published \u2014 mail servers pin TLS certificates via DNSSEC (RFC 7672)"
     ],
     "issues": [],
-    "message": "Transport encryption enforced via DNS policy (1 signal(s))",
+    "message": "All 2 server(s) verified: encrypted transport confirmed via direct SMTP probe and DNS policy",
     "policy": {
       "dane": {
         "present": true
@@ -3082,21 +3437,193 @@
       "verdict": "enforced"
     },
     "probe": {
-      "observations": [],
-      "probe_method": "skip",
-      "reason": "SMTP probe skipped \u2014 outbound TCP port 25 is blocked upstream. This is standard for all major cloud platforms (AWS, GCP, Azure, Replit) and most residential ISPs as an anti-spam measure. Transport security is assessed via DNS policy records above, which is the standards-aligned primary method per NIST SP 800-177 Rev. 1.",
-      "status": "skipped"
+      "multi_port": [
+        {
+          "error": "Connection timeout",
+          "host": "mx1.forwardemail.net",
+          "port": 465,
+          "reachable": false,
+          "tls": false
+        },
+        {
+          "error": "Connection timeout",
+          "host": "mx1.forwardemail.net",
+          "port": 587,
+          "reachable": false,
+          "tls": false
+        },
+        {
+          "error": "Connection timeout",
+          "host": "mx2.forwardemail.net",
+          "port": 465,
+          "reachable": false,
+          "tls": false
+        },
+        {
+          "error": "Connection timeout",
+          "host": "mx2.forwardemail.net",
+          "port": 587,
+          "reachable": false,
+          "tls": false
+        }
+      ],
+      "multi_probe": [
+        {
+          "elapsed": 8.016,
+          "probe_host": "measure-us-east.dnsvantage.com",
+          "probe_id": "probe-01",
+          "probe_label": "US-East (Virginia)",
+          "status": "skipped"
+        },
+        {
+          "elapsed": 8.016,
+          "probe_host": "measure-sg.dnsvantage.com",
+          "probe_id": "probe-03",
+          "probe_label": "APAC (Singapore)",
+          "status": "skipped"
+        },
+        {
+          "elapsed": 14.036618314,
+          "observations": [
+            {
+              "cert_days_remaining": 155,
+              "cert_expiry": "2027-01-20",
+              "cert_issuer": "Sectigo Limited",
+              "cert_subject": "*.forwardemail.net",
+              "cert_valid": true,
+              "cipher": "TLS_AES_256_GCM_SHA384",
+              "cipher_bits": 256,
+              "error": null,
+              "host": "mx2.forwardemail.net",
+              "reachable": true,
+              "starttls": true,
+              "tls_version": "TLSv1.3"
+            },
+            {
+              "cert_days_remaining": 155,
+              "cert_expiry": "2027-01-20",
+              "cert_issuer": "Sectigo Limited",
+              "cert_subject": "*.forwardemail.net",
+              "cert_valid": true,
+              "cipher": "TLS_AES_256_GCM_SHA384",
+              "cipher_bits": 256,
+              "error": null,
+              "host": "mx1.forwardemail.net",
+              "reachable": true,
+              "starttls": true,
+              "tls_version": "TLSv1.3"
+            }
+          ],
+          "probe_host": "probe-us-02",
+          "probe_id": "probe-02",
+          "probe_label": "EU (Paris)",
+          "probe_verdict": "all_tls",
+          "status": "observed",
+          "summary": {
+            "expiring_soon": 0,
+            "reachable": 2,
+            "starttls_supported": 2,
+            "tls_1_2": 0,
+            "tls_1_3": 2,
+            "total_servers": 2,
+            "valid_certs": 2
+          }
+        }
+      ],
+      "observations": [
+        {
+          "cert_days_remaining": 155,
+          "cert_expiry": "2027-01-20",
+          "cert_issuer": "Sectigo Limited",
+          "cert_subject": "*.forwardemail.net",
+          "cert_valid": true,
+          "cipher": "TLS_AES_256_GCM_SHA384",
+          "cipher_bits": 256,
+          "error": null,
+          "host": "mx2.forwardemail.net",
+          "reachable": true,
+          "starttls": true,
+          "tls_version": "TLSv1.3"
+        },
+        {
+          "cert_days_remaining": 155,
+          "cert_expiry": "2027-01-20",
+          "cert_issuer": "Sectigo Limited",
+          "cert_subject": "*.forwardemail.net",
+          "cert_valid": true,
+          "cipher": "TLS_AES_256_GCM_SHA384",
+          "cipher_bits": 256,
+          "error": null,
+          "host": "mx1.forwardemail.net",
+          "reachable": true,
+          "starttls": true,
+          "tls_version": "TLSv1.3"
+        }
+      ],
+      "probe_consensus": {
+        "agreement": "unanimous_tls",
+        "all_tls": 1,
+        "no_tls": 0,
+        "observed": 1,
+        "partial_tls": 0,
+        "total_probes": 3
+      },
+      "probe_count": 3,
+      "probe_elapsed": 14.036618314,
+      "probe_host": "probe-us-02",
+      "probe_method": "multi_remote",
+      "probe_verdict": "all_tls",
+      "reason": "",
+      "status": "observed",
+      "summary": {
+        "expiring_soon": 0,
+        "reachable": 2,
+        "starttls_supported": 2,
+        "tls_1_2": 0,
+        "tls_1_3": 2,
+        "total_servers": 2,
+        "valid_certs": 2
+      }
     },
-    "servers": [],
+    "servers": [
+      {
+        "cert_days_remaining": 155,
+        "cert_expiry": "2027-01-20",
+        "cert_issuer": "Sectigo Limited",
+        "cert_subject": "*.forwardemail.net",
+        "cert_valid": true,
+        "cipher": "TLS_AES_256_GCM_SHA384",
+        "cipher_bits": 256,
+        "error": null,
+        "host": "mx2.forwardemail.net",
+        "reachable": true,
+        "starttls": true,
+        "tls_version": "TLSv1.3"
+      },
+      {
+        "cert_days_remaining": 155,
+        "cert_expiry": "2027-01-20",
+        "cert_issuer": "Sectigo Limited",
+        "cert_subject": "*.forwardemail.net",
+        "cert_valid": true,
+        "cipher": "TLS_AES_256_GCM_SHA384",
+        "cipher_bits": 256,
+        "error": null,
+        "host": "mx1.forwardemail.net",
+        "reachable": true,
+        "starttls": true,
+        "tls_version": "TLSv1.3"
+      }
+    ],
     "status": "success",
     "summary": {
       "expiring_soon": 0,
-      "reachable": 0,
-      "starttls_supported": 0,
+      "reachable": 2,
+      "starttls_supported": 2,
       "tls_1_2": 0,
-      "tls_1_3": 0,
-      "total_servers": 0,
-      "valid_certs": 0
+      "tls_1_3": 2,
+      "total_servers": 2,
+      "valid_certs": 2
     },
     "telemetry": {
       "observability": false,
