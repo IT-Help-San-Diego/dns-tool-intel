@@ -963,7 +963,7 @@
                             <a href="{{protocolAnchorAt $monProtos $i}}" class="d-block text-info text-decoration-none small mb-1">{{icon "eye" "me-2"}}{{$mon}}</a>
                             {{end}}
                             {{if mapGetBool "dkim_inconclusive" $posture}}
-                            <a href="/topology?domain={{.AsciiDomain | urlquery}}&amp;dkim=1" class="d-block text-info text-decoration-none small mb-1">{{icon "key" "me-2"}}DKIM inconclusive &mdash; provide your selector to verify</a>
+                            <a href="/topology?domain={{.AsciiDomain | urlquery}}&amp;dkim=1" class="d-block text-info text-decoration-none small mb-1">{{icon "key" "me-2"}}DKIM not found with 81 default selectors &mdash; provide a selector to verify (find it in the s= tag of any DKIM-Signature header)</a>
                             {{end}}
                         </div>
                         {{end}}
