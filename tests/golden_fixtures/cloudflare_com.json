@@ -9888,7 +9888,7 @@
       "DNSSEC validated"
     ],
     "assessment": "Enterprise-grade DNS infrastructure",
-    "explains_no_dnssec": false,
+    "enterprise_dns_recognized": false,
     "is_government": false,
     "provider": "Cloudflare",
     "provider_features": [

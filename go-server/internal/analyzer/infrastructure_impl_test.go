@@ -152,15 +152,15 @@ func TestAnalyzeDNSInfrastructure_DNSSECExplains(t *testing.T) {
                 },
         }
         got := a.AnalyzeDNSInfrastructure("example.com", results)
-        if got["explains_no_dnssec"] != true {
-                t.Error("expected explains_no_dnssec=true when DNSSEC status is not success")
+        if got["enterprise_dns_recognized"] != true {
+                t.Error("expected enterprise_dns_recognized=true when DNSSEC status is not success")
         }
 }
 
 func TestAnalyzeDNSInfrastructure_DNSSECExplainsCanonicalKey(t *testing.T) {
         // Production structure: the orchestrator attaches the DNSSEC result under
         // "dnssec_analysis", NOT "dnssec". Reading only the bare key left this signal
-        // dead in real scans; assert the canonical key drives explains_no_dnssec.
+        // dead in real scans; assert the canonical key drives enterprise_dns_recognized.
         a := &Analyzer{}
         results := map[string]any{
                 "basic_records": map[string]any{
@@ -171,8 +171,8 @@ func TestAnalyzeDNSInfrastructure_DNSSECExplainsCanonicalKey(t *testing.T) {
                 },
         }
         got := a.AnalyzeDNSInfrastructure("example.com", results)
-        if got["explains_no_dnssec"] != true {
-                t.Error("expected explains_no_dnssec=true from canonical dnssec_analysis key")
+        if got["enterprise_dns_recognized"] != true {
+                t.Error("expected enterprise_dns_recognized=true from canonical dnssec_analysis key")
         }
 }
 
