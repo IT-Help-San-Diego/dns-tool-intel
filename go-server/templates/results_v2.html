@@ -935,7 +935,7 @@
                             {{end}}
                             {{/* Surface the enterprise-DNS recognition (already shown in the deep DNSSEC section) at the top-level verdict, so operators running dedicated / multi-provider / recognized enterprise DNS are not framed like a small operator who simply forgot to enable DNSSEC. Mirrors the vetted gating at #section-dnssec: $dns_infra.enterprise_dns_recognized (recognized provider) OR $ns.enterprise_pattern (dedicated/mixed/multi-provider). Only fires when DNSSEC is actually absent. */}}
                             {{$entPattern := mapGetStr "enterprise_pattern" $ns}}
-                            {{$entProviderRecognized := and $dns_infra (mapGetBool "enterprise_dns_recognized" $dns_infra)}}
+                            {{$entProviderRecognized := and $dns_infra (or (mapGetBool "enterprise_dns_recognized" $dns_infra) (mapGetBool "explains_no_dnssec" $dns_infra))}}
                             {{$dnssecAbsent := false}}
                             {{range $p := $postureAbsent}}{{if eq $p "DNSSEC"}}{{$dnssecAbsent = true}}{{end}}{{end}}
                             {{if and $dnssecAbsent (or $entProviderRecognized (eq $entPattern "dedicated") (eq $entPattern "mixed") (eq $entPattern "multi-provider"))}}
@@ -3156,7 +3156,7 @@
                                     </div>
                                 {{else}}
                                     {{$enterpriseDNSPattern := mapGetStr "enterprise_pattern" $ns}}
-                                    {{if and $dns_infra (mapGetBool "enterprise_dns_recognized" $dns_infra)}}
+                                    {{if and $dns_infra (or (mapGetBool "enterprise_dns_recognized" $dns_infra) (mapGetBool "explains_no_dnssec" $dns_infra))}}
                                     <div class="small text-info mb-2">
                                         {{icon "shield-alt" "me-1"}}
                                         <strong>Alternative Security:</strong> {{mapGetStr "provider" $dns_infra}} provides enterprise-grade DNS with DDoS protection and monitoring.
@@ -3169,6 +3169,13 @@
                                     </div>
                                     {{end}}
                                     {{/* "mixed" is included here so every pattern that surfaces the top-level "Enterprise DNS Posture" note (dedicated/mixed/multi-provider) also has matching DNS-layer detail at this anchor — keeping the note's "see DNS-layer detail" link valid. "managed" is shown here (deep detail, fully caveated) but deliberately NOT at the top-level verdict, where a single managed-DNS provider should not read as an enterprise posture claim. */}}
+                                    {{/* MTA-STS + DNSSEC-absent: a genuine operational signal. The reconcileDNSSECAbsence function (removed in #462) used to overrule the DNSSEC verdict here; the replacement is a NOTE, never an edit. */}}
+                                    {{if and (eq (mapGetStr "mta_sts_state" $mta_sts) "success") (eq $dnssecState "absent_confirmed")}}
+                                    <div class="small text-warning mb-2">
+                                        {{icon "info-circle" "me-1"}}
+                                        <strong>Unusual combination:</strong> MTA-STS is configured for inbound mail security but DNSSEC is not signed. Most operators who enforce MTA-STS also sign their zone — this combination warrants review.
+                                    </div>
+                                    {{end}}
                                     {{else if or (eq $enterpriseDNSPattern "dedicated") (eq $enterpriseDNSPattern "mixed") (eq $enterpriseDNSPattern "managed") (eq $enterpriseDNSPattern "multi-provider")}}
                                     <div class="small text-info mb-2">
                                         {{icon "building" "me-1"}}

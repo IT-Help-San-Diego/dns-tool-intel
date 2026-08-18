@@ -268,7 +268,7 @@ func enterpriseDeliberateUnsignedDNSSEC(fr map[string]any) bool {
         if getString(getMap(fr, "dnssec_analysis"), "dnssec_state") != "absent_confirmed" {
                 return false
         }
-        if getBoolDefault(getMap(fr, "dns_infrastructure"), "enterprise_dns_recognized", false) {
+        if getBoolDefault(getMap(fr, "dns_infrastructure"), "enterprise_dns_recognized", false) || getBoolDefault(getMap(fr, "dns_infrastructure"), "explains_no_dnssec", false) {
                 return true
         }
         switch getString(getMap(fr, "ns_delegation_analysis"), "enterprise_pattern") {
