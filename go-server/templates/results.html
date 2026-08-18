@@ -4897,6 +4897,13 @@
                                     </div>
                                     {{end}}
                                     {{/* "mixed" is included here so every pattern that surfaces the top-level "Enterprise DNS Posture" note (dedicated/mixed/multi-provider) also has matching DNS-layer detail at this anchor — keeping the note's "see DNS-layer detail" link valid. "managed" is shown here (deep detail, fully caveated) but deliberately NOT at the top-level verdict, where a single managed-DNS provider should not read as an enterprise posture claim. */}}
+                                    {{/* MTA-STS + DNSSEC-absent: a genuine operational signal. The reconcileDNSSECAbsence function (removed in #462) used to overrule the DNSSEC verdict here; the replacement is a NOTE, never an edit. */}}
+                                    {{if and (eq (mapGetStr "mta_sts_state" $mta_sts) "success") (eq $dnssecState "absent_confirmed")}}
+                                    <div class="small text-warning mb-2">
+                                        {{icon "info-circle" "me-1"}}
+                                        <strong>Unusual combination:</strong> MTA-STS is configured for inbound mail security but DNSSEC is not signed. Most operators who enforce MTA-STS also sign their zone — this combination warrants review.
+                                    </div>
+                                    {{end}}
                                     {{else if or (eq $enterpriseDNSPattern "dedicated") (eq $enterpriseDNSPattern "mixed") (eq $enterpriseDNSPattern "managed") (eq $enterpriseDNSPattern "multi-provider")}}
                                     <div class="small text-info mb-2">
                                         {{icon "building" "me-1"}}
