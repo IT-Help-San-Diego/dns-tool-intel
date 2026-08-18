@@ -3,6 +3,7 @@ package dnsclient
 import (
 	"context"
 	"io"
+	"sync/atomic"
 	"testing"
 
 	"codeberg.org/miekg/dns"
@@ -79,11 +80,14 @@ func TestFoldADVotes(t *testing.T) {
 // casts no vote. This is the mechanism that stops a transient SERVFAIL from
 // counting as a bogus vote in the fold.
 func TestCDConfirmedBogus(t *testing.T) {
-	var failCD bool // when true, the mock SERVFAILs even on CD=1
+	// failCD is read by the mock-DNS handler goroutines and written by this
+	// test goroutine between phases — an atomic keeps the two sides race-free
+	// under `go test -race`.
+	var failCD atomic.Bool // when true, the mock SERVFAILs even on CD=1
 	dns.HandleFunc(".", func(_ context.Context, w dns.ResponseWriter, req *dns.Msg) {
 		m := new(dns.Msg)
 		dnsutil.SetReply(m, req)
-		if failCD {
+		if failCD.Load() {
 			m.Rcode = dns.RcodeServerFailure
 		} else {
 			m.Rcode = dns.RcodeSuccess
@@ -102,13 +106,13 @@ func TestCDConfirmedBogus(t *testing.T) {
 	ctx := context.Background()
 
 	// CD=1 answers NOERROR -> the original SERVFAIL was validation (genuine bogus).
-	failCD = false
+	failCD.Store(false)
 	if !c.cdConfirmedBogus(ctx, addr, "example.com.") {
 		t.Error("CD=1 NOERROR should confirm a genuine bogus vote")
 	}
 
 	// CD=1 also SERVFAILs -> transport failure, the resolver casts no vote.
-	failCD = true
+	failCD.Store(true)
 	if c.cdConfirmedBogus(ctx, addr, "example.com.") {
 		t.Error("CD=1 SERVFAIL must NOT confirm bogus (transport, not validation)")
 	}
