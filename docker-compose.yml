@@ -68,6 +68,16 @@ services:
     # `Server: AirTunes` header, so localhost:5000 never reaches this container.
     # Verified 2026-07-26 via `lsof -iTCP:5000 -sTCP:LISTEN`.
     # Container side stays 5000 (PORT default).
+    # Docker's embedded DNS stub (127.0.0.11) answers A/AAAA but drops larger
+    # DNSSEC responses (DS/DNSKEY) — measured 2026-08-18: cia.gov DS returns
+    # "No answer" inside the container while live resolvers return 4. That
+    # silently corrupts any DNSSEC verdict (a local scan sees has_ds=false).
+    # Point the app at real public resolvers so local scans are honest.
+    # (Discovery/measurement concern only — no privacy/data-leak implication.)
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
+      - 9.9.9.9
     ports:
       - "5055:5000"
 
