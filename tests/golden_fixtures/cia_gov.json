@@ -4,22 +4,22 @@
     "input_kind": "dns_domain"
   },
   "_icae_snapshot": {
-    "overall_maturity": "development",
+    "overall_maturity": "gold",
     "unified_confidence": {
-      "accuracy_factor": 60.9,
-      "currency_factor": 76.7,
-      "explanation": "The measurement system is still accumulating scan history. Accuracy and currency are adequate but the system has not yet reached full maturity.",
+      "accuracy_factor": 62.6,
+      "currency_factor": 76.9,
+      "explanation": "Resolver agreement is inconsistent for some protocols, limiting confidence. Data currency and system maturity are adequate.",
       "level": "MODERATE",
-      "maturity_ceiling": 60,
-      "maturity_level": "development",
+      "maturity_ceiling": 95,
+      "maturity_level": "gold",
       "protocol_count": 9,
-      "score": 60,
-      "weakest_detail": "System maturity is capping the confidence score \u2014 the scan data is strong but more scan history is needed to unlock higher tiers",
-      "weakest_link": "maturity"
+      "score": 69.4,
+      "weakest_detail": "Resolver agreement is low for this scan \u2014 some protocols returned inconsistent results across resolvers",
+      "weakest_link": "accuracy"
     }
   },
   "_schema_version": 2,
-  "_tool_version": "dev",
+  "_tool_version": "26.51.0-116-gd9ee700d9",
   "ai_surface": {
     "evidence": [
       {
@@ -94,7 +94,7 @@
           "method": "Team Cymru DNS-based ASN lookup"
         },
         "error": "no ASN data",
-        "ip": "173.223.234.143"
+        "ip": "23.59.88.231"
       },
       {
         "confidence": {
@@ -103,7 +103,7 @@
           "method": "Team Cymru DNS-based ASN lookup"
         },
         "error": "no ASN data",
-        "ip": "173.223.234.147"
+        "ip": "23.59.88.239"
       }
     ],
     "ipv6_asn": [
@@ -114,7 +114,7 @@
           "method": "Team Cymru DNS-based ASN lookup"
         },
         "error": "no ASN data",
-        "ip": "2600:1406:5e00:9f::17d2:d890"
+        "ip": "2600:1409:9800:ac::172e:e4a8"
       },
       {
         "confidence": {
@@ -123,7 +123,7 @@
           "method": "Team Cymru DNS-based ASN lookup"
         },
         "error": "no ASN data",
-        "ip": "2600:1406:5e00:9f::17d2:d89c"
+        "ip": "2600:1409:9800:ac::172e:e4b0"
       }
     ],
     "issues": [],
@@ -143,31 +143,31 @@
   },
   "authoritative_records": {
     "A": [
-      "173.223.234.147",
-      "173.223.234.143"
+      "23.59.88.239",
+      "23.59.88.231"
     ],
     "AAAA": [
-      "2600:1406:5e00:9f::17d2:d890",
-      "2600:1406:5e00:9f::17d2:d89c"
+      "2600:1409:9800:ac::172e:e4b0",
+      "2600:1409:9800:ac::172e:e4a8"
     ],
     "CAA": [
-      "0 iodef \"mailto:caanotices@uce.cia.gov\"",
-      "0 issue \"digicert.com\""
+      "0 issue \"digicert.com\"",
+      "0 iodef \"mailto:caanotices@uce.cia.gov\""
     ],
     "DMARC": [
       "v=DMARC1; p=quarantine; sp=quarantine; pct=100; rua=mailto:demarcreports@uce.cia.gov; ruf=mailto:demarcfailures@uce.cia.gov; ri=86400; aspf=s; adkim=s; fo=1"
     ],
     "MTA-STS": [],
     "MX": [
-      "10 mail3.cia.gov.",
-      "10 mail4.cia.gov."
+      "10 mail4.cia.gov.",
+      "10 mail3.cia.gov."
     ],
     "NS": [
-      "a1-22.akam.net.",
-      "a3-64.akam.net.",
+      "a16-67.akam.net.",
       "a22-66.akam.net.",
       "a13-65.akam.net.",
-      "a16-67.akam.net.",
+      "a1-22.akam.net.",
+      "a3-64.akam.net.",
       "a12-65.akam.net."
     ],
     "SOA": [
@@ -180,16 +180,16 @@
   },
   "basic_records": {
     "A": [
-      "173.223.234.143",
-      "173.223.234.147"
+      "23.59.88.231",
+      "23.59.88.239"
     ],
     "AAAA": [
-      "2600:1406:5e00:9f::17d2:d890",
-      "2600:1406:5e00:9f::17d2:d89c"
+      "2600:1409:9800:ac::172e:e4a8",
+      "2600:1409:9800:ac::172e:e4b0"
     ],
     "CAA": [
-      "0 issue \"digicert.com\"",
-      "0 iodef \"mailto:caanotices@uce.cia.gov\""
+      "0 iodef \"mailto:caanotices@uce.cia.gov\"",
+      "0 issue \"digicert.com\""
     ],
     "CNAME": null,
     "DMARC": [
@@ -247,15 +247,15 @@
     "wildcard_issuers": null
   },
   "calibrated_confidence": {
-    "BIMI": 0.71125,
-    "CAA": 0.528125,
-    "DANE": 0.709375,
-    "DKIM": 0.525,
-    "DMARC": 0.529375,
-    "DNSSEC": 0.52625,
-    "MTA_STS": 0.7125,
-    "SPF": 0.528125,
-    "TLS_RPT": 0.714375
+    "BIMI": 0.709,
+    "CAA": 0.5225,
+    "DANE": 0.7074999999999999,
+    "DKIM": 0.71,
+    "DMARC": 0.5235,
+    "DNSSEC": 0.521,
+    "MTA_STS": 0.71,
+    "SPF": 0.5225,
+    "TLS_RPT": 0.7115
   },
   "cds_cdnskey": {
     "automation": "none",
@@ -273,25 +273,25 @@
         {
           "match": "mismatch",
           "our_records": [
-            "173.223.234.143",
-            "173.223.234.147"
+            "23.59.88.231",
+            "23.59.88.239"
           ],
           "record_type": "A",
           "their_records": [
-            "23.32.152.108",
-            "23.32.152.110"
+            "23.214.22.228",
+            "23.214.22.229"
           ]
         },
         {
           "match": "mismatch",
           "our_records": [
-            "2600:1406:5e00:9f::17d2:d890",
-            "2600:1406:5e00:9f::17d2:d89c"
+            "2600:1409:9800:ac::172e:e4a8",
+            "2600:1409:9800:ac::172e:e4b0"
           ],
           "record_type": "AAAA",
           "their_records": [
-            "2600:1406:5400::170f:f15a",
-            "2600:1406:5400::170f:f161"
+            "2600:1405:1000:9::17d6:16e4",
+            "2600:1405:1000:9::17d6:16e5"
           ]
         },
         {
@@ -337,7 +337,7 @@
           ]
         },
         {
-          "match": "match",
+          "match": "absent",
           "our_records": null,
           "record_type": "CNAME",
           "their_records": []
@@ -347,25 +347,25 @@
         {
           "match": "match",
           "our_records": [
-            "173.223.234.143",
-            "173.223.234.147"
+            "23.59.88.231",
+            "23.59.88.239"
           ],
           "record_type": "A",
           "their_records": [
-            "173.223.234.143",
-            "173.223.234.147"
+            "23.59.88.231",
+            "23.59.88.239"
           ]
         },
         {
           "match": "match",
           "our_records": [
-            "2600:1406:5e00:9f::17d2:d890",
-            "2600:1406:5e00:9f::17d2:d89c"
+            "2600:1409:9800:ac::172e:e4a8",
+            "2600:1409:9800:ac::172e:e4b0"
           ],
           "record_type": "AAAA",
           "their_records": [
-            "2600:1406:5e00:9f::17d2:d890",
-            "2600:1406:5e00:9f::17d2:d89c"
+            "2600:1409:9800:ac::172e:e4a8",
+            "2600:1409:9800:ac::172e:e4b0"
           ]
         },
         {
@@ -411,7 +411,7 @@
           ]
         },
         {
-          "match": "match",
+          "match": "absent",
           "our_records": null,
           "record_type": "CNAME",
           "their_records": []
@@ -419,7 +419,7 @@
       ]
     },
     "domain": "cia.gov",
-    "generated_at": "2026-07-31T06:08:11Z",
+    "generated_at": "2026-08-18T06:25:02Z",
     "manual_verify": {
       "cloudflare_doh": "https://cloudflare-dns.com/dns-query?name=cia.gov&type=A",
       "google_dig_a": "https://toolbox.googleapps.com/apps/dig/#A/cia.gov",
@@ -431,7 +431,7 @@
     "providers": {
       "cloudflare": {
         "endpoint": "https://cloudflare-dns.com/dns-query",
-        "latency_ms": 4419,
+        "latency_ms": 184,
         "name": "cloudflare",
         "query_urls": {
           "A": "https://cloudflare-dns.com/dns-query?name=cia.gov&type=A",
@@ -443,12 +443,12 @@
         },
         "records": {
           "A": [
-            "23.32.152.108",
-            "23.32.152.110"
+            "23.214.22.228",
+            "23.214.22.229"
           ],
           "AAAA": [
-            "2600:1406:5400::170f:f15a",
-            "2600:1406:5400::170f:f161"
+            "2600:1405:1000:9::17d6:16e4",
+            "2600:1405:1000:9::17d6:16e5"
           ],
           "CNAME": [],
           "MX": [
@@ -471,7 +471,7 @@
       },
       "google": {
         "endpoint": "https://dns.google/resolve",
-        "latency_ms": 3972,
+        "latency_ms": 279,
         "name": "google",
         "query_urls": {
           "A": "https://dns.google/resolve?name=cia.gov&type=A",
@@ -483,12 +483,12 @@
         },
         "records": {
           "A": [
-            "173.223.234.143",
-            "173.223.234.147"
+            "23.59.88.231",
+            "23.59.88.239"
           ],
           "AAAA": [
-            "2600:1406:5e00:9f::17d2:d890",
-            "2600:1406:5e00:9f::17d2:d89c"
+            "2600:1409:9800:ac::172e:e4a8",
+            "2600:1409:9800:ac::172e:e4b0"
           ],
           "CNAME": [],
           "MX": [
@@ -520,8 +520,10 @@
     ],
     "schema_version": "1.0",
     "summary": {
-      "matched": 10,
+      "absent": 2,
+      "matched": 8,
       "mismatched": 2,
+      "partial": 0,
       "total_checks": 12,
       "unavailable": 0,
       "verdict": "discrepancy_detected"
@@ -531,8 +533,8 @@
     "ca_summary": [
       {
         "active": true,
-        "cert_count": 7,
-        "first_seen": "2025-08-13",
+        "cert_count": 5,
+        "first_seen": "2026-03-26",
         "last_seen": "2026-07-29",
         "name": "DigiCert Inc"
       }
@@ -666,8 +668,7 @@
         "source": "external_tools"
       },
       {
-        "cert_count": "6",
-        "cname_target": "cia.gov.edgekey.net",
+        "cert_count": "3",
         "first_seen": "2026-07-29T00:00:00",
         "is_current": true,
         "issuers": [
@@ -677,115 +678,115 @@
         "source": "ct"
       }
     ],
-    "total_certs": 8,
-    "unique_certs": 7,
+    "total_certs": 5,
+    "unique_certs": 5,
     "unique_subdomains": 15
   },
   "currency_report": {
-    "overall_grade": "good",
-    "overall_score": 76.6547619047619,
     "dimensions": [
       {
-        "dimension": "currentness",
-        "standard": "ISO/IEC 25012",
-        "grade": "excellent",
-        "score": 100,
         "details": "All record data is within its TTL validity window",
-        "record_types_evaluated": 7
-      },
-      {
-        "dimension": "ttl_compliance",
-        "standard": "RFC 8767",
+        "dimension": "currentness",
         "grade": "excellent",
-        "score": 100,
-        "details": "All resolver TTLs are within authoritative limits (RFC 8767 compliant)",
-        "record_types_evaluated": 7
-      },
-      {
-        "dimension": "completeness",
-        "standard": "NIST SP 800-53 SI-7",
-        "grade": "degraded",
-        "score": 46.666666666666664,
-        "details": "8 of 15 expected record types are missing TTL data",
-        "record_types_evaluated": 7
-      },
-      {
-        "dimension": "source_credibility",
-        "standard": "ISO/IEC 25012 + SPJ",
-        "grade": "excellent",
-        "score": 93.75,
-        "details": "All resolvers return consistent data \u2014 high source credibility",
-        "record_types_evaluated": 4
-      },
-      {
-        "dimension": "ttl_relevance",
-        "standard": "NIST SP 800-53 SI-7",
-        "grade": "degraded",
-        "score": 42.857142857142854,
-        "details": "Multiple TTLs significantly deviate from standards \u2014 review DNS configuration",
         "record_types_evaluated": 7,
+        "score": 100,
+        "standard": "ISO/IEC 25012"
+      },
+      {
+        "details": "All resolver TTLs are within authoritative limits (RFC 8767 compliant)",
+        "dimension": "ttl_compliance",
+        "grade": "excellent",
+        "record_types_evaluated": 7,
+        "score": 100,
+        "standard": "RFC 8767"
+      },
+      {
+        "details": "8 of 15 expected record types are missing TTL data",
+        "dimension": "completeness",
+        "grade": "degraded",
+        "record_types_evaluated": 7,
+        "score": 46.666666666666664,
+        "standard": "NIST SP 800-53 SI-7"
+      },
+      {
+        "details": "All resolvers return consistent data \u2014 high source credibility",
+        "dimension": "source_credibility",
+        "grade": "excellent",
+        "record_types_evaluated": 4,
+        "score": 95,
+        "standard": "ISO/IEC 25012 + SPJ"
+      },
+      {
+        "details": "Multiple TTLs significantly deviate from standards \u2014 review DNS configuration",
+        "dimension": "ttl_relevance",
         "findings": [
           {
-            "record_type": "TXT",
-            "observed_ttl": 300,
-            "typical_ttl": 3600,
-            "ratio": 0.08333333333333333,
-            "severity": "high",
-            "standard": "NIST SP 800-53 SI-7",
-            "recommendation": "TXT TTL is below typical \u2014 observed 5 minutes (300s), typical value is 1 hour (3600s). Short TTLs increase DNS query volume but enable faster propagation. If you are preparing for a migration or need rapid failover, this may be intentional (RFC 1035 \u00a73.2.1). For steady-state production, consider 3600 seconds per NIST SP 800-53 SI-7 relevance guidance. Use the TTL Tuner for profile-specific recommendations."
-          },
-          {
-            "record_type": "NS",
-            "observed_ttl": 21600,
-            "typical_ttl": 86400,
-            "ratio": 0.25,
-            "severity": "medium",
-            "standard": "NIST SP 800-53 SI-7",
-            "recommendation": "NS TTL is below typical \u2014 observed 6 hours (21600s), typical value is 1 day (86400s). Short TTLs increase DNS query volume but enable faster propagation. If you are preparing for a migration or need rapid failover, this may be intentional (RFC 1035 \u00a73.2.1). For steady-state production, consider 86400 seconds per NIST SP 800-53 SI-7 relevance guidance. Use the TTL Tuner for profile-specific recommendations."
-          },
-          {
+            "observed_ttl": 20,
+            "ratio": 0.005555555555555556,
+            "recommendation": "AAAA TTL is below typical \u2014 observed 20s, typical value is 1 hour (3600s). Short TTLs increase DNS query volume but enable faster propagation. If you are preparing for a migration or need rapid failover, this may be intentional (RFC 1035 \u00a73.2.1). For steady-state production, consider 3600 seconds per NIST SP 800-53 SI-7 relevance guidance. Use the TTL Tuner for profile-specific recommendations.",
             "record_type": "AAAA",
-            "observed_ttl": 20,
-            "typical_ttl": 3600,
-            "ratio": 0.005555555555555556,
             "severity": "high",
             "standard": "NIST SP 800-53 SI-7",
-            "recommendation": "AAAA TTL is below typical \u2014 observed 20s, typical value is 1 hour (3600s). Short TTLs increase DNS query volume but enable faster propagation. If you are preparing for a migration or need rapid failover, this may be intentional (RFC 1035 \u00a73.2.1). For steady-state production, consider 3600 seconds per NIST SP 800-53 SI-7 relevance guidance. Use the TTL Tuner for profile-specific recommendations."
+            "typical_ttl": 3600
           },
           {
+            "observed_ttl": 300,
+            "ratio": 0.08333333333333333,
+            "recommendation": "TXT TTL is below typical \u2014 observed 5 minutes (300s), typical value is 1 hour (3600s). Short TTLs increase DNS query volume but enable faster propagation. If you are preparing for a migration or need rapid failover, this may be intentional (RFC 1035 \u00a73.2.1). For steady-state production, consider 3600 seconds per NIST SP 800-53 SI-7 relevance guidance. Use the TTL Tuner for profile-specific recommendations.",
+            "record_type": "TXT",
+            "severity": "high",
+            "standard": "NIST SP 800-53 SI-7",
+            "typical_ttl": 3600
+          },
+          {
+            "observed_ttl": 20,
+            "ratio": 0.005555555555555556,
+            "recommendation": "A TTL is below typical \u2014 observed 20s, typical value is 1 hour (3600s). Short TTLs increase DNS query volume but enable faster propagation. If you are preparing for a migration or need rapid failover, this may be intentional (RFC 1035 \u00a73.2.1). For steady-state production, consider 3600 seconds per NIST SP 800-53 SI-7 relevance guidance. Use the TTL Tuner for profile-specific recommendations.",
             "record_type": "A",
-            "observed_ttl": 20,
-            "typical_ttl": 3600,
-            "ratio": 0.005555555555555556,
             "severity": "high",
             "standard": "NIST SP 800-53 SI-7",
-            "recommendation": "A TTL is below typical \u2014 observed 20s, typical value is 1 hour (3600s). Short TTLs increase DNS query volume but enable faster propagation. If you are preparing for a migration or need rapid failover, this may be intentional (RFC 1035 \u00a73.2.1). For steady-state production, consider 3600 seconds per NIST SP 800-53 SI-7 relevance guidance. Use the TTL Tuner for profile-specific recommendations."
+            "typical_ttl": 3600
           },
           {
-            "record_type": "SOA",
             "observed_ttl": 14400,
-            "typical_ttl": 3600,
             "ratio": 4,
+            "recommendation": "SOA TTL is above typical \u2014 observed 4 hours (14400s), typical value is 1 hour (3600s). Long TTLs reduce DNS query volume but slow propagation when records change. Consider 3600 seconds for a balance of performance and flexibility per NIST SP 800-53 SI-7 relevance guidance.",
+            "record_type": "SOA",
             "severity": "medium",
             "standard": "NIST SP 800-53 SI-7",
-            "recommendation": "SOA TTL is above typical \u2014 observed 4 hours (14400s), typical value is 1 hour (3600s). Long TTLs reduce DNS query volume but slow propagation when records change. Consider 3600 seconds for a balance of performance and flexibility per NIST SP 800-53 SI-7 relevance guidance."
+            "typical_ttl": 3600
+          },
+          {
+            "observed_ttl": 21600,
+            "ratio": 0.25,
+            "recommendation": "NS TTL is below typical \u2014 observed 6 hours (21600s), typical value is 1 day (86400s). Short TTLs increase DNS query volume but enable faster propagation. If you are preparing for a migration or need rapid failover, this may be intentional (RFC 1035 \u00a73.2.1). For steady-state production, consider 86400 seconds per NIST SP 800-53 SI-7 relevance guidance. Use the TTL Tuner for profile-specific recommendations.",
+            "record_type": "NS",
+            "severity": "medium",
+            "standard": "NIST SP 800-53 SI-7",
+            "typical_ttl": 86400
           }
-        ]
+        ],
+        "grade": "degraded",
+        "record_types_evaluated": 7,
+        "score": 42.857142857142854,
+        "standard": "NIST SP 800-53 SI-7"
       }
     ],
-    "resolver_count": 5,
-    "record_count": 7,
     "guidance": "DNS data is mostly current with minor gaps \u2014 good intelligence currency",
+    "overall_grade": "good",
+    "overall_score": 76.9047619047619,
+    "record_count": 7,
+    "resolver_count": 5,
     "soa_compliance": {
-      "provider": "",
-      "has_soa": true,
-      "serial": "2015111813",
-      "refresh": 7200,
-      "retry": 3600,
+      "admin_email": "monrpt.cia.gov",
       "expire": 2419200,
+      "has_soa": true,
       "min_ttl": 14400,
       "primary_ns": "a1-22.akam.net",
-      "admin_email": "monrpt.cia.gov"
+      "provider": "",
+      "refresh": 7200,
+      "retry": 3600,
+      "serial": "2015111813"
     }
   },
   "dane_analysis": {
@@ -929,27 +930,33 @@
     }
   },
   "dkim_analysis": {
+    "all_revoked": false,
+    "dkim_state": "present",
     "domainkey_delegation": null,
     "found_providers": null,
-    "key_issues": null,
-    "key_strengths": [
-      "2048-bit"
+    "key_issues": [
+      "1024-bit key (weak, upgrade to 2048)"
     ],
-    "message": "Found DKIM for 1 selector(s) with strong keys (2048-bit)",
+    "key_strengths": null,
+    "message": "Found 1 DKIM selector(s) with weak key(s) (below 2048-bit RSA)",
     "mx_legacy_note": "",
     "primary_dkim_note": "",
     "primary_has_dkim": false,
     "primary_provider": "Unknown",
+    "probe_scope": 81,
     "security_gateway": null,
+    "selector_source": "defaults_only",
     "selectors": {
       "s1._domainkey": {
         "key_info": [
           {
-            "issues": [],
-            "key_bits": 2048,
-            "key_strength": "adequate",
-            "key_strength_label": "Adequate",
-            "key_strength_observation": "2048-bit RSA \u2014 recommended standard (RFC 8301, NIST guidance)",
+            "issues": [
+              "1024-bit key (weak, upgrade to 2048)"
+            ],
+            "key_bits": 1024,
+            "key_strength": "weak",
+            "key_strength_label": "Weak",
+            "key_strength_observation": "1024-bit RSA \u2014 minimum per RFC 8301, upgrade to 2048-bit recommended",
             "key_strength_rfc": "RFC 8301",
             "key_type": "rsa",
             "revoked": false,
@@ -964,7 +971,7 @@
       }
     },
     "spf_ancillary_note": "",
-    "status": "success",
+    "status": "warning",
     "third_party_only": false,
     "wildcard_dkim": false
   },
@@ -986,9 +993,10 @@
     "rua": "mailto:demarcreports@uce.cia.gov",
     "ruf": "mailto:demarcfailures@uce.cia.gov",
     "ruf_note": {
-      "detail": "RFC 7489 \u00a77.3 warns that forensic reports can expose PII (full message headers or bodies). Google, Microsoft, and Yahoo do not honour ruf= requests. The DMARCbis draft (draft-ietf-dmarc-dmarcbis) has formally removed ruf= from the specification. Consider removing this tag to simplify your record.",
+      "detail": "This record pairs p=quarantine with both rua= and ruf=, which is not a default configuration. DMARCbis (draft-ietf-dmarc-dmarcbis) removed ruf= from the specification, and Google, Microsoft, and Yahoo do not honour ruf= requests, so publishing it collects from a minority of receivers at a known PII cost (RFC 7489 \u00a77.3). Analysis of alternatives: the conventional reading is incomplete enforcement, but a competing hypothesis fits this evidence at least as well \u2014 the operator may value visibility into spoofing attempts over maximal blocking. Quarantine keeps failing mail inside the delivery path (RFC 7489 \u00a76.3) rather than refusing it, and returns no SMTP failure to the sender, so a spoofing campaign is not told it has been caught and continues to run \u2014 and continues to be reported through rua=. This tool cannot observe intent and does not assert it; it reports that the configuration is consistent with deliberate collection, and on that basis does not recommend removing ruf= or raising the policy from the record alone. What this means if you receive mail from this domain: under quarantine, messages that fail DMARC are still delivered \u2014 typically to a spam or junk folder \u2014 not refused. A domain at p=quarantine is not a domain from which spoofed mail cannot reach you.",
+      "posture": "deliberate_collection",
       "status": "present",
-      "summary": "Forensic reporting (ruf) is configured, but most major providers do not send forensic reports."
+      "summary": "Forensic reporting (ruf) is published with aggregate reporting under a quarantine policy \u2014 a combination consistent with deliberate intelligence collection."
     },
     "status": "success",
     "subdomain_policy": "quarantine",
@@ -1022,32 +1030,42 @@
     "provider_tier": "enterprise"
   },
   "dnssec_analysis": {
+    "ad_consensus": "secure",
     "ad_flag": true,
-    "ad_resolver": "1.1.1.1",
-    "algorithm": 3597,
-    "algorithm_name": "Algorithm 3597",
+    "ad_resolver": "Cloudflare",
+    "algorithm": 8,
+    "algorithm_name": "RSA/SHA-256",
     "algorithm_observation": {
       "label": "Adequate",
-      "observation": "Algorithm 3597 \u2014 not classified in RFC 8624",
+      "observation": "RSA/SHA-256 \u2014 MUST implement, widely deployed (RFC 8624 \u00a73.1)",
       "quantum_note": "All current DNSSEC algorithms use classical cryptography. Post-quantum DNSSEC standards are in active IETF development (draft-sheth-pqc-dnssec-strategy) but no PQC algorithms have been standardized for DNSSEC yet.",
       "rfc": "RFC 8624 / RFC 9157",
       "strength": "adequate"
     },
     "chain_of_trust": "complete",
+    "display_label": "Signed",
+    "display_severity": "success",
     "dnskey_records": [
-      "cia.gov.\t7200\tIN\tDNSKEY\t256 3 8 AwEAAZwSq7zzwVQPSvdAEScPc6XhZkmKY2FI2RqSIe4zCFO6tu9mBgLKnZh3wTKnGomk...",
-      "cia.gov.\t7200\tIN\tDNSKEY\t256 3 8 AwEAAbMJzW7lEPwhmzXxqXATt9vbAX49qji3fDnK55EyI+VRVzv2kzUoQeyc5dgY7+5N...",
-      "cia.gov.\t7200\tIN\tDNSKEY\t257 3 8 AwEAAbKbY60FP57sJs5TPohdiRc3JgR9Ge3RNmMuAI5KNHBR54Kfcjsc17OYfjne0hyD..."
+      "256 3 8 AwEAAcB9zpeFm/TvNQ1TWYN4UrYGDwFGKvYHRdFPMtbm/Lhj8ExKsMTI3R/ZO6WP8eq1MH+ZZHG5oGZWFS0srzxSS1HO...",
+      "256 3 8 AwEAAdhLJuzxgT+LZm/7p/FAS316m7qNgGyONgVIiEq1vBJ/gTKPaiMpFHKqu9DkVxRA/kUFUgYR4gWTc615E27B6O2a...",
+      "257 3 8 AwEAAbKbY60FP57sJs5TPohdiRc3JgR9Ge3RNmMuAI5KNHBR54Kfcjsc17OYfjne0hyDWcR2wUatJeMDKh9CPq0w+CYc..."
     ],
     "dnssec_state": "present",
     "ds_records": [
-      "cia.gov.\t3597\tIN\tDS\t1015 8 2 66B64EA16CD54EEC14BDEF2ECA16E1BCC62A2DD7A95FE64A24CBAF2A7E411436",
-      "cia.gov.\t3597\tIN\tDS\t48959 8 2 DEB2A237884DDCFD20BDFF8E8FA81F4A4B7ED069E1E4E2ED79CAE7707D1CFFFC",
-      "cia.gov.\t3597\tIN\tDS\t62599 8 2 E51AE54018E41619F97076A56C969D10A71B4D0050DBF1E6AB8DE2F8CF023AE5"
+      "25534 8 2 4F6E9F886A649976127D3A4746108C2461E2D9198F1D24C869CFD9E91E2CF5B3",
+      "48959 8 2 DEB2A237884DDCFD20BDFF8E8FA81F4A4B7ED069E1E4E2ED79CAE7707D1CFFFC",
+      "62599 8 2 E51AE54018E41619F97076A56C969D10A71B4D0050DBF1E6AB8DE2F8CF023AE5"
     ],
     "has_dnskey": true,
     "has_ds": true,
-    "message": "DNSSEC fully configured and validated \u2014 AD (Authenticated Data) flag set by resolver 1.1.1.1 confirming cryptographic chain of trust from root to zone (RFC 4035 \u00a73.2.3)",
+    "message": "DNSSEC fully configured and validated \u2014 AD (Authenticated Data) flag set by validating resolvers confirming cryptographic chain of trust from root to zone (RFC 4035 \u00a73.2.3)",
+    "resolver_ad": {
+      "Cloudflare": "secure",
+      "DNS4EU": "secure",
+      "Google": "secure",
+      "OpenDNS": "secure",
+      "Quad9": "secure"
+    },
     "status": "success"
   },
   "dnssec_ops": {
@@ -1060,7 +1078,7 @@
       "nsec3_salt_length": 0
     },
     "issues": [
-      "RRSIG for NS (key tag 33780) expires in 58h30m0s \u2014 less than the time resolvers may keep it cached (TTL 86400s)",
+      "RRSIG for NS (key tag 38898) expires in 70h13m0s \u2014 less than the time resolvers may keep it cached (TTL 86400s)",
       "Single KSK with no CDS/CDNSKEY automation \u2014 manual rollover required"
     ],
     "key_count": 3,
@@ -1071,7 +1089,7 @@
         "flags": 256,
         "key_role": "ZSK",
         "key_size": 1056,
-        "key_tag": 33780,
+        "key_tag": 38898,
         "protocol": 3
       },
       {
@@ -1080,7 +1098,7 @@
         "flags": 256,
         "key_role": "ZSK",
         "key_size": 1056,
-        "key_tag": 45988,
+        "key_tag": 59074,
         "protocol": 3
       },
       {
@@ -1108,94 +1126,94 @@
     "signatures": [
       {
         "algorithm": 8,
-        "expiration": "2026-08-02T16:37:05Z",
+        "expiration": "2026-08-21T04:37:11Z",
         "expired": false,
         "expiring_soon": false,
-        "inception": "2026-07-30T15:37:05Z",
-        "key_tag": 33780,
+        "inception": "2026-08-18T03:37:11Z",
+        "key_tag": 38898,
         "labels": 2,
         "signer": "cia.gov.",
-        "time_to_expiry": "58h29m49.434843s",
-        "ttl": 14400,
-        "type_covered": "NSEC3PARAM"
+        "time_to_expiry": "70h13m7.653389324s",
+        "ttl": 86400,
+        "type_covered": "NS"
       },
       {
         "algorithm": 8,
-        "expiration": "2026-08-02T16:37:05Z",
+        "expiration": "2026-08-21T04:37:11Z",
         "expired": false,
         "expiring_soon": false,
-        "inception": "2026-07-30T15:37:05Z",
-        "key_tag": 33780,
-        "labels": 2,
-        "signer": "cia.gov.",
-        "time_to_expiry": "58h29m49.434843s",
-        "ttl": 1800,
-        "type_covered": "CAA"
-      },
-      {
-        "algorithm": 8,
-        "expiration": "2026-08-02T16:37:05Z",
-        "expired": false,
-        "expiring_soon": false,
-        "inception": "2026-07-30T15:37:05Z",
-        "key_tag": 33780,
-        "labels": 2,
-        "signer": "cia.gov.",
-        "time_to_expiry": "58h29m49.434843s",
-        "ttl": 300,
-        "type_covered": "TXT"
-      },
-      {
-        "algorithm": 8,
-        "expiration": "2026-08-02T16:37:05Z",
-        "expired": false,
-        "expiring_soon": false,
-        "inception": "2026-07-30T15:37:05Z",
-        "key_tag": 33780,
-        "labels": 2,
-        "signer": "cia.gov.",
-        "time_to_expiry": "58h29m49.434843s",
-        "ttl": 14400,
-        "type_covered": "SOA"
-      },
-      {
-        "algorithm": 8,
-        "expiration": "2026-08-02T16:37:05Z",
-        "expired": false,
-        "expiring_soon": false,
-        "inception": "2026-07-30T15:37:05Z",
+        "inception": "2026-08-18T03:37:11Z",
         "key_tag": 1015,
         "labels": 2,
         "signer": "cia.gov.",
-        "time_to_expiry": "58h29m49.434843s",
+        "time_to_expiry": "70h13m7.653389324s",
         "ttl": 7200,
         "type_covered": "DNSKEY"
       },
       {
         "algorithm": 8,
-        "expiration": "2026-08-02T16:37:05Z",
+        "expiration": "2026-08-21T04:37:11Z",
         "expired": false,
         "expiring_soon": false,
-        "inception": "2026-07-30T15:37:05Z",
-        "key_tag": 33780,
+        "inception": "2026-08-18T03:37:11Z",
+        "key_tag": 38898,
         "labels": 2,
         "signer": "cia.gov.",
-        "time_to_expiry": "58h29m49.434843s",
+        "time_to_expiry": "70h13m7.653389324s",
+        "ttl": 1800,
+        "type_covered": "CAA"
+      },
+      {
+        "algorithm": 8,
+        "expiration": "2026-08-21T04:37:11Z",
+        "expired": false,
+        "expiring_soon": false,
+        "inception": "2026-08-18T03:37:11Z",
+        "key_tag": 38898,
+        "labels": 2,
+        "signer": "cia.gov.",
+        "time_to_expiry": "70h13m7.653389324s",
         "ttl": 7200,
         "type_covered": "MX"
       },
       {
         "algorithm": 8,
-        "expiration": "2026-08-02T16:37:05Z",
+        "expiration": "2026-08-21T04:37:11Z",
         "expired": false,
         "expiring_soon": false,
-        "inception": "2026-07-30T15:37:05Z",
-        "key_tag": 33780,
+        "inception": "2026-08-18T03:37:11Z",
+        "key_tag": 38898,
         "labels": 2,
         "signer": "cia.gov.",
-        "time_to_expiry": "58h29m49.434843s",
-        "ttl": 86400,
-        "type_covered": "NS"
+        "time_to_expiry": "70h13m7.653389324s",
+        "ttl": 300,
+        "type_covered": "TXT"
+      },
+      {
+        "algorithm": 8,
+        "expiration": "2026-08-21T04:37:11Z",
+        "expired": false,
+        "expiring_soon": false,
+        "inception": "2026-08-18T03:37:11Z",
+        "key_tag": 38898,
+        "labels": 2,
+        "signer": "cia.gov.",
+        "time_to_expiry": "70h13m7.653389324s",
+        "ttl": 14400,
+        "type_covered": "SOA"
+      },
+      {
+        "algorithm": 8,
+        "expiration": "2026-08-21T04:37:11Z",
+        "expired": false,
+        "expiring_soon": false,
+        "inception": "2026-08-18T03:37:11Z",
+        "key_tag": 38898,
+        "labels": 2,
+        "signer": "cia.gov.",
+        "time_to_expiry": "70h13m7.653389324s",
+        "ttl": 14400,
+        "type_covered": "NSEC3PARAM"
       }
     ],
     "status": "warning",
@@ -1230,183 +1248,183 @@
   },
   "ewma_drift": {
     "ChainCompleteness": {
-      "Value": 47.733333333333334,
-      "UCL": 57.68374908491942,
-      "LCL": 42.31625091508058,
+      "LCL": 40.349712318982405,
       "OutOfControl": false,
-      "Trend": "stable",
-      "Period": 2
+      "Period": 6,
+      "Trend": "improving",
+      "UCL": 59.650287681017595,
+      "Value": 44.693760000000005
     },
     "ResolverConsensus": {
-      "Value": 44.57142857142858,
-      "UCL": 57.68374908491942,
-      "LCL": 42.31625091508058,
-      "OutOfControl": false,
-      "Trend": "stable",
-      "Period": 2
+      "LCL": 40.349712318982405,
+      "OutOfControl": true,
+      "Period": 6,
+      "Trend": "improving",
+      "UCL": 59.650287681017595,
+      "Value": 37.622552380952385
     },
     "SourceCredibility": {
-      "Value": 66.75,
-      "UCL": 57.68374908491942,
-      "LCL": 42.31625091508058,
+      "LCL": 40.349712318982405,
       "OutOfControl": true,
-      "Trend": "stable",
-      "Period": 2
+      "Period": 6,
+      "Trend": "improving",
+      "UCL": 59.650287681017595,
+      "Value": 78.92960000000001
     },
     "TTLCompliance": {
-      "Value": 68,
-      "UCL": 57.68374908491942,
-      "LCL": 42.31625091508058,
+      "LCL": 40.349712318982405,
       "OutOfControl": true,
-      "Trend": "stable",
-      "Period": 2
+      "Period": 6,
+      "Trend": "improving",
+      "UCL": 59.650287681017595,
+      "Value": 83.61600000000001
     },
     "TemporalValidity": {
-      "Value": 68,
-      "UCL": 57.68374908491942,
-      "LCL": 42.31625091508058,
+      "LCL": 40.349712318982405,
       "OutOfControl": true,
+      "Period": 6,
       "Trend": "stable",
-      "Period": 2
+      "UCL": 59.650287681017595,
+      "Value": 86.89280000000001
     }
   },
   "freshness_matrix": {
     "entries": [
       {
+        "observed_ttl_seconds": 20,
+        "propagation_note": "A records typically propagate within 5 minutes. Some resolvers may cache up to the TTL value.",
         "record_type": "A",
-        "observed_ttl_seconds": 20,
-        "typical_ttl_seconds": 300,
         "rescan_after_seconds": 30,
         "rescan_label": "30 seconds",
-        "propagation_note": "A records typically propagate within 5 minutes. Some resolvers may cache up to the TTL value."
+        "typical_ttl_seconds": 300
       },
       {
+        "observed_ttl_seconds": 20,
+        "propagation_note": "AAAA records follow the same propagation pattern as A records.",
         "record_type": "AAAA",
-        "observed_ttl_seconds": 20,
-        "typical_ttl_seconds": 300,
         "rescan_after_seconds": 30,
         "rescan_label": "30 seconds",
-        "propagation_note": "AAAA records follow the same propagation pattern as A records."
+        "typical_ttl_seconds": 300
       },
       {
-        "record_type": "MX",
         "observed_ttl_seconds": 7200,
-        "typical_ttl_seconds": 3600,
+        "propagation_note": "MX record changes may take up to 1 hour to propagate. Mail delivery may be affected during transition.",
+        "record_type": "MX",
         "rescan_after_seconds": 7921,
         "rescan_label": "2 hours",
-        "propagation_note": "MX record changes may take up to 1 hour to propagate. Mail delivery may be affected during transition."
+        "typical_ttl_seconds": 3600
       },
       {
-        "record_type": "TXT",
         "observed_ttl_seconds": 300,
-        "typical_ttl_seconds": 3600,
+        "propagation_note": "TXT records (including SPF) typically propagate within 1 hour. Verify with multiple resolvers.",
+        "record_type": "TXT",
         "rescan_after_seconds": 330,
         "rescan_label": "5 minutes",
-        "propagation_note": "TXT records (including SPF) typically propagate within 1 hour. Verify with multiple resolvers."
+        "typical_ttl_seconds": 3600
       },
       {
-        "record_type": "NS",
         "observed_ttl_seconds": 21600,
-        "typical_ttl_seconds": 86400,
+        "propagation_note": "Nameserver changes can take 24\u201348 hours for full global propagation due to parent zone TTLs.",
+        "record_type": "NS",
         "rescan_after_seconds": 23761,
         "rescan_label": "6 hours",
-        "propagation_note": "Nameserver changes can take 24\u201348 hours for full global propagation due to parent zone TTLs."
+        "typical_ttl_seconds": 86400
       },
       {
-        "record_type": "CNAME",
         "observed_ttl_seconds": 0,
-        "typical_ttl_seconds": 300,
+        "propagation_note": "CNAME changes propagate quickly but downstream records inherit the CNAME TTL.",
+        "record_type": "CNAME",
         "rescan_after_seconds": 330,
         "rescan_label": "5 minutes",
-        "propagation_note": "CNAME changes propagate quickly but downstream records inherit the CNAME TTL."
+        "typical_ttl_seconds": 300
       },
       {
-        "record_type": "CAA",
         "observed_ttl_seconds": 1800,
-        "typical_ttl_seconds": 3600,
+        "propagation_note": "CAA record changes take effect within TTL. Certificate authorities check at issuance time.",
+        "record_type": "CAA",
         "rescan_after_seconds": 1981,
         "rescan_label": "33 minutes",
-        "propagation_note": "CAA record changes take effect within TTL. Certificate authorities check at issuance time."
+        "typical_ttl_seconds": 3600
       },
       {
-        "record_type": "SOA",
         "observed_ttl_seconds": 14400,
-        "typical_ttl_seconds": 3600,
+        "propagation_note": "SOA changes propagate to secondaries based on the Refresh interval in the SOA record.",
+        "record_type": "SOA",
         "rescan_after_seconds": 15841,
         "rescan_label": "4 hours",
-        "propagation_note": "SOA changes propagate to secondaries based on the Refresh interval in the SOA record."
+        "typical_ttl_seconds": 3600
       },
       {
+        "observed_ttl_seconds": 0,
+        "propagation_note": "SPF record changes propagate within the TXT record TTL. Test with dig before relying on scan results.",
         "record_type": "SPF",
-        "observed_ttl_seconds": 0,
-        "typical_ttl_seconds": 3600,
         "rescan_after_seconds": 3961,
         "rescan_label": "1 hour",
-        "propagation_note": "SPF record changes propagate within the TXT record TTL. Test with dig before relying on scan results."
+        "typical_ttl_seconds": 3600
       },
       {
+        "observed_ttl_seconds": 0,
+        "propagation_note": "DMARC policy changes at _dmarc subdomain propagate within TTL. Reporting changes take 24\u201348h to reflect in aggregate reports.",
         "record_type": "DMARC",
-        "observed_ttl_seconds": 0,
-        "typical_ttl_seconds": 3600,
         "rescan_after_seconds": 3961,
         "rescan_label": "1 hour",
-        "propagation_note": "DMARC policy changes at _dmarc subdomain propagate within TTL. Reporting changes take 24\u201348h to reflect in aggregate reports."
+        "typical_ttl_seconds": 3600
       },
       {
+        "observed_ttl_seconds": 0,
+        "propagation_note": "DKIM selector records propagate within TTL. New selectors are available immediately once published; key rotation requires overlap period.",
         "record_type": "DKIM",
-        "observed_ttl_seconds": 0,
-        "typical_ttl_seconds": 3600,
         "rescan_after_seconds": 3961,
         "rescan_label": "1 hour",
-        "propagation_note": "DKIM selector records propagate within TTL. New selectors are available immediately once published; key rotation requires overlap period."
+        "typical_ttl_seconds": 3600
       },
       {
+        "observed_ttl_seconds": 0,
+        "propagation_note": "MTA-STS policy changes require updating both the DNS TXT record AND the policy file at /.well-known/mta-sts.txt. The max_age directive in the policy controls how long senders cache it.",
         "record_type": "MTA-STS",
-        "observed_ttl_seconds": 0,
-        "typical_ttl_seconds": 86400,
         "rescan_after_seconds": 86400,
         "rescan_label": "24 hours",
-        "propagation_note": "MTA-STS policy changes require updating both the DNS TXT record AND the policy file at /.well-known/mta-sts.txt. The max_age directive in the policy controls how long senders cache it."
+        "typical_ttl_seconds": 86400
       },
       {
+        "observed_ttl_seconds": 0,
+        "propagation_note": "TLS-RPT changes propagate within TTL. Report delivery changes take effect in the next reporting period (typically 24 hours).",
         "record_type": "TLS-RPT",
-        "observed_ttl_seconds": 0,
-        "typical_ttl_seconds": 3600,
         "rescan_after_seconds": 3961,
         "rescan_label": "1 hour",
-        "propagation_note": "TLS-RPT changes propagate within TTL. Report delivery changes take effect in the next reporting period (typically 24 hours)."
+        "typical_ttl_seconds": 3600
       },
       {
+        "observed_ttl_seconds": 0,
+        "propagation_note": "BIMI record changes propagate within TTL. VMC certificate validation by mail providers may take additional time.",
         "record_type": "BIMI",
-        "observed_ttl_seconds": 0,
-        "typical_ttl_seconds": 3600,
         "rescan_after_seconds": 3961,
         "rescan_label": "1 hour",
-        "propagation_note": "BIMI record changes propagate within TTL. VMC certificate validation by mail providers may take additional time."
+        "typical_ttl_seconds": 3600
       },
       {
+        "observed_ttl_seconds": 0,
+        "propagation_note": "TLSA/DANE records must be published BEFORE rotating TLS certificates. Premature certificate rotation breaks DANE validation.",
         "record_type": "TLSA",
-        "observed_ttl_seconds": 0,
-        "typical_ttl_seconds": 3600,
         "rescan_after_seconds": 3961,
         "rescan_label": "1 hour",
-        "propagation_note": "TLSA/DANE records must be published BEFORE rotating TLS certificates. Premature certificate rotation breaks DANE validation."
+        "typical_ttl_seconds": 3600
       },
       {
-        "record_type": "DNSSEC",
         "observed_ttl_seconds": 0,
-        "typical_ttl_seconds": 86400,
+        "propagation_note": "DNSSEC signing changes (DS record updates at registrar) can take 24\u201348 hours. Key rollovers require careful timing per RFC 7583.",
+        "record_type": "DNSSEC",
         "rescan_after_seconds": 86400,
         "rescan_label": "24 hours",
-        "propagation_note": "DNSSEC signing changes (DS record updates at registrar) can take 24\u201348 hours. Key rollovers require careful timing per RFC 7583."
+        "typical_ttl_seconds": 86400
       },
       {
-        "record_type": "DANE",
         "observed_ttl_seconds": 0,
-        "typical_ttl_seconds": 3600,
+        "propagation_note": "DANE/TLSA record updates follow the TLSA TTL. Coordinate with TLS certificate lifecycle.",
+        "record_type": "DANE",
         "rescan_after_seconds": 3961,
         "rescan_label": "1 hour",
-        "propagation_note": "DANE/TLSA record updates follow the TLSA TTL. Coordinate with TLS certificate lifecycle."
+        "typical_ttl_seconds": 3600
       }
     ],
     "entry_count": 17,
@@ -1437,375 +1455,381 @@
     "svcb_records": []
   },
   "icsae_classification": {
-    "real_fix_count": 1,
-    "color": "danger",
-    "real_fixes": [
-      "DMARC_ENFORCEMENT"
-    ],
     "by_design": null,
-    "platform_limited": null,
+    "color": "danger",
     "couldnt_verify": [
       "DKIM_PRESENT",
       "DELEGATION_CONSISTENT"
     ],
     "hygiene": [
       "DNSSEC_KEY_ROLLOVER",
+      "MAIL_POLICY_SIGNALING",
       "DANE_DEPLOYED",
       "BIMI_CONFIGURED",
       "SECURITY_TXT_PRESENT",
       "HTTPS_SVCB_MODERN"
+    ],
+    "platform_limited": null,
+    "real_fix_count": 1,
+    "real_fixes": [
+      "DMARC_ENFORCEMENT"
     ]
   },
   "icsae_evaluation": {
-    "schema_version": 8,
-    "total_controls": 16,
-    "passed_count": 7,
-    "failed_count": 8,
-    "na_count": 1,
+    "failed_count": 9,
     "high_failures": [
       "DMARC_ENFORCEMENT"
     ],
+    "low_failures": [
+      "MAIL_POLICY_SIGNALING",
+      "DANE_DEPLOYED",
+      "BIMI_CONFIGURED",
+      "SECURITY_TXT_PRESENT",
+      "HTTPS_SVCB_MODERN"
+    ],
+    "mapped_controls": 5,
+    "measured_controls": 15,
     "medium_failures": [
       "DNSSEC_KEY_ROLLOVER",
       "DKIM_PRESENT",
       "DELEGATION_CONSISTENT"
     ],
-    "low_failures": [
-      "DANE_DEPLOYED",
-      "BIMI_CONFIGURED",
-      "SECURITY_TXT_PRESENT",
-      "HTTPS_SVCB_MODERN"
+    "na_count": 1,
+    "not_applicable": [
+      "NO_MAIL_HARDENED"
     ],
+    "not_measured": null,
+    "not_measured_count": 0,
+    "null_observations": null,
     "passed": [
       "DNSSEC_AUTHENTICATED",
       "DNSSEC_CHAIN_TRUSTED",
       "SPF_EFFECTIVE_POLICY",
-      "MAIL_POLICY_SIGNALING",
       "CAA_RESTRICTION_PRESENT",
       "DANGLING_DNS_CLEAN",
       "SECRET_EXPOSURE_CLEAN"
     ],
-    "not_applicable": [
-      "NO_MAIL_HARDENED"
-    ],
+    "passed_count": 6,
     "results": [
       {
         "id": "DNSSEC_AUTHENTICATED",
-        "title": "DNSSEC Authentication",
-        "status": "passed",
-        "severity": "high",
-        "standards": [
-          "ISO_27002_2022:8.24",
-          "INCITS_585_2025:PW.6"
-        ],
         "rfcs": [
           "RFC4033",
           "RFC4034",
           "RFC4035"
         ],
+        "severity": "high",
+        "standards": [
+          "ISO_27002_2022:8.24",
+          "INCITS_585_2025:PW.6"
+        ],
+        "status": "passed",
+        "title": "DNSSEC Authentication",
         "weakness_refs": {
-          "cwe": [
-            "CWE-345",
-            "CWE-300"
-          ],
           "capec": [
             "CAPEC-142",
             "CAPEC-141"
           ],
-          "vrt": [
-            "VRT:missing_dnssec"
+          "cwe": [
+            "CWE-345",
+            "CWE-300"
           ],
           "mapping_confidence": "high",
-          "mapping_rationale": "Absent DNSSEC means resolvers cannot verify the authenticity of DNS data (CWE-345), exposing the resolution path to on-path forgery (CWE-300) and cache poisoning (CAPEC-142/141). Mapping verified against MITRE CWE/CAPEC and Bugcrowd VRT."
+          "mapping_rationale": "Absent DNSSEC means resolvers cannot verify the authenticity of DNS data (CWE-345), exposing the resolution path to on-path forgery (CWE-300) and cache poisoning (CAPEC-142/141). Mapping verified against MITRE CWE/CAPEC and Bugcrowd VRT.",
+          "vrt": [
+            "VRT:missing_dnssec"
+          ]
         }
       },
       {
         "id": "DNSSEC_CHAIN_TRUSTED",
-        "title": "DNSSEC Chain of Trust Validated",
-        "status": "passed",
-        "severity": "high",
-        "standards": [
-          "ISO_27002_2022:8.24"
-        ],
         "rfcs": [
           "RFC4033",
           "RFC4035"
         ],
+        "severity": "high",
+        "standards": [
+          "ISO_27002_2022:8.24"
+        ],
+        "status": "passed",
+        "title": "DNSSEC Chain of Trust Validated",
         "weakness_refs": {
-          "cwe": [
-            "CWE-345"
-          ],
           "capec": [
             "CAPEC-142"
           ],
-          "vrt": [
-            "VRT:missing_dnssec"
+          "cwe": [
+            "CWE-345"
           ],
           "mapping_confidence": "high",
-          "mapping_rationale": "A broken or unvalidated chain of trust leaves DNS answers unauthenticated (CWE-345), the precondition for DNS cache poisoning (CAPEC-142). Mapping verified against MITRE CWE/CAPEC and Bugcrowd VRT."
+          "mapping_rationale": "A broken or unvalidated chain of trust leaves DNS answers unauthenticated (CWE-345), the precondition for DNS cache poisoning (CAPEC-142). Mapping verified against MITRE CWE/CAPEC and Bugcrowd VRT.",
+          "vrt": [
+            "VRT:missing_dnssec"
+          ]
         }
       },
       {
+        "fail_explanation": "No CDS/CDNSKEY automation \u2014 DNSSEC key rollover requires manual registrar coordination. Per RFC 8078, CDS and CDNSKEY records enable automated, authenticated DS updates at the parent.",
         "id": "DNSSEC_KEY_ROLLOVER",
-        "title": "DNSSEC Key Rollover Readiness",
-        "status": "failed",
+        "rfcs": [
+          "RFC8078"
+        ],
         "severity": "medium",
         "standards": [
           "ISO_27002_2022:8.24",
           "INCITS_585_2025:PS.3"
         ],
-        "rfcs": [
-          "RFC8078"
-        ],
-        "fail_explanation": "No CDS/CDNSKEY automation \u2014 DNSSEC key rollover requires manual registrar coordination. Per RFC 8078, CDS and CDNSKEY records enable automated, authenticated DS updates at the parent."
+        "status": "failed",
+        "title": "DNSSEC Key Rollover Readiness"
       },
       {
         "id": "NO_MAIL_HARDENED",
-        "title": "No-Mail Domain Hardening",
-        "status": "not_applicable",
+        "rfcs": [
+          "RFC7208",
+          "RFC7489",
+          "RFC5321"
+        ],
         "severity": "medium",
         "standards": [
           "ISO_27002_2022:8.23",
           "NIST_800_177:\u00a74.3"
         ],
-        "rfcs": [
-          "RFC7208",
-          "RFC7489",
-          "RFC5321"
-        ]
+        "status": "not_applicable",
+        "title": "No-Mail Domain Hardening"
       },
       {
         "id": "SPF_EFFECTIVE_POLICY",
-        "title": "SPF Effective Authorization Policy",
-        "status": "passed",
+        "rfcs": [
+          "RFC7208",
+          "RFC7489"
+        ],
         "severity": "medium",
         "standards": [
           "ISO_27002_2022:8.23",
           "NIST_800_177:\u00a74.3.1"
         ],
-        "rfcs": [
-          "RFC7208",
-          "RFC7489"
-        ],
+        "status": "passed",
+        "title": "SPF Effective Authorization Policy",
         "weakness_refs": {
-          "cwe": [
-            "CWE-290"
-          ],
           "capec": [
             "CAPEC-194",
             "CAPEC-151"
           ],
-          "vrt": null,
+          "cwe": [
+            "CWE-290"
+          ],
           "mapping_confidence": "medium",
-          "mapping_rationale": "Permissive SPF without DMARC enforcement lets a forged sender bypass origin authentication (CWE-290) by faking the source domain (CAPEC-194/151). SPF is contributory, so confidence is medium; VRT files this failure mode under the DMARC entry. CWE/CAPEC verified against MITRE."
+          "mapping_rationale": "Permissive SPF without DMARC enforcement lets a forged sender bypass origin authentication (CWE-290) by faking the source domain (CAPEC-194/151). SPF is contributory, so confidence is medium; VRT files this failure mode under the DMARC entry. CWE/CAPEC verified against MITRE.",
+          "vrt": null
         }
       },
       {
+        "fail_explanation": "DMARC policy is not set to reject. Per RFC 7489 \u00a76.3, only p=reject instructs receivers to discard unauthenticated messages. NIST SP 800-177 Rev. 1 \u00a74.6.1 recommends reject for all production domains.",
         "id": "DMARC_ENFORCEMENT",
-        "title": "DMARC Policy Enforcement",
-        "status": "failed",
+        "rfcs": [
+          "RFC7489"
+        ],
         "severity": "high",
         "standards": [
           "ISO_27002_2022:8.23",
           "NIST_800_177:\u00a74.6.1"
         ],
-        "rfcs": [
-          "RFC7489"
-        ],
-        "fail_explanation": "DMARC policy is not set to reject. Per RFC 7489 \u00a76.3, only p=reject instructs receivers to discard unauthenticated messages. NIST SP 800-177 Rev. 1 \u00a74.6.1 recommends reject for all production domains.",
+        "status": "failed",
+        "title": "DMARC Policy Enforcement",
         "weakness_refs": {
-          "cwe": [
-            "CWE-290"
-          ],
           "capec": [
             "CAPEC-151",
             "CAPEC-194",
             "CAPEC-163"
           ],
-          "vrt": [
-            "VRT:email_spoofing_to_inbox_due_to_missing_or_misconfigured_dmarc_on_email_domain"
+          "cwe": [
+            "CWE-290"
           ],
           "mapping_confidence": "high",
-          "mapping_rationale": "p=none and p=quarantine do not instruct receivers to reject unauthenticated mail, so sender authentication is effectively bypassed (CWE-290), enabling domain identity spoofing (CAPEC-151), forged-source mail (CAPEC-194) and spear phishing (CAPEC-163). This is the flagship false-green-checkmark gap: tools mark DMARC present as compliant while the domain remains spoofable. Mapping verified against MITRE CWE/CAPEC and Bugcrowd VRT."
+          "mapping_rationale": "p=none and p=quarantine do not instruct receivers to reject unauthenticated mail, so sender authentication is effectively bypassed (CWE-290), enabling domain identity spoofing (CAPEC-151), forged-source mail (CAPEC-194) and spear phishing (CAPEC-163). This is the flagship false-green-checkmark gap: tools mark DMARC present as compliant while the domain remains spoofable. Mapping verified against MITRE CWE/CAPEC and Bugcrowd VRT.",
+          "vrt": [
+            "VRT:email_spoofing_to_inbox_due_to_missing_or_misconfigured_dmarc_on_email_domain"
+          ]
         }
       },
       {
+        "fail_explanation": "DKIM not discoverable for this mail-sending domain. Per RFC 6376, DKIM provides cryptographic proof of message origin. Without DKIM, email from this domain cannot be cryptographically verified by receivers.",
         "id": "DKIM_PRESENT",
-        "title": "DKIM Signature Availability",
-        "status": "failed",
+        "rfcs": [
+          "RFC6376",
+          "RFC8301"
+        ],
         "severity": "medium",
         "standards": [
           "ISO_27002_2022:8.24",
           "NIST_800_177:\u00a74.5"
         ],
-        "rfcs": [
-          "RFC6376",
-          "RFC8301"
-        ],
-        "fail_explanation": "DKIM not discoverable for this mail-sending domain. Per RFC 6376, DKIM provides cryptographic proof of message origin. Without DKIM, email from this domain cannot be cryptographically verified by receivers."
+        "status": "failed",
+        "title": "DKIM Signature Availability"
       },
       {
+        "fail_explanation": "No mail transport policy signaling detected. Per RFC 8461, MTA-STS allows domains to declare TLS requirements for inbound SMTP. Per RFC 8460, TLS-RPT enables monitoring of TLS delivery failures.",
         "id": "MAIL_POLICY_SIGNALING",
-        "title": "Mail Transport Policy Signaling",
-        "status": "passed",
+        "rfcs": [
+          "RFC8461",
+          "RFC8460"
+        ],
         "severity": "low",
         "standards": [
           "ISO_27002_2022:8.20",
           "NIST_800_177:\u00a75.2"
         ],
-        "rfcs": [
-          "RFC8461",
-          "RFC8460"
-        ]
+        "status": "failed",
+        "title": "Mail Transport Policy Signaling"
       },
       {
         "id": "CAA_RESTRICTION_PRESENT",
-        "title": "CAA Certificate Issuance Restriction",
-        "status": "passed",
+        "rfcs": [
+          "RFC8659",
+          "RFC9495"
+        ],
         "severity": "medium",
         "standards": [
           "ISO_27002_2022:8.24"
         ],
-        "rfcs": [
-          "RFC8659",
-          "RFC9495"
-        ]
+        "status": "passed",
+        "title": "CAA Certificate Issuance Restriction"
       },
       {
+        "fail_explanation": "DANE/TLSA not deployed. Per RFC 6698, DANE binds TLS server certificates to DNS names using DNSSEC, providing authentication independent of the Certificate Authority system.",
         "id": "DANE_DEPLOYED",
-        "title": "DANE / TLSA Deployment",
-        "status": "failed",
+        "rfcs": [
+          "RFC6698",
+          "RFC7672"
+        ],
         "severity": "low",
         "standards": [
           "ISO_27002_2022:8.24",
           "ISO_27002_2022:8.20"
         ],
-        "rfcs": [
-          "RFC6698",
-          "RFC7672"
-        ],
-        "fail_explanation": "DANE/TLSA not deployed. Per RFC 6698, DANE binds TLS server certificates to DNS names using DNSSEC, providing authentication independent of the Certificate Authority system."
+        "status": "failed",
+        "title": "DANE / TLSA Deployment"
       },
       {
+        "fail_explanation": "BIMI not configured or logo invalid. BIMI requires DMARC p=reject and a valid SVG logo to display brand indicators in supporting email clients.",
         "id": "BIMI_CONFIGURED",
-        "title": "BIMI Brand Indicator",
-        "status": "failed",
+        "rfcs": [],
         "severity": "low",
         "standards": [],
-        "rfcs": [],
-        "fail_explanation": "BIMI not configured or logo invalid. BIMI requires DMARC p=reject and a valid SVG logo to display brand indicators in supporting email clients."
+        "status": "failed",
+        "title": "BIMI Brand Indicator"
       },
       {
+        "fail_explanation": "No security.txt found or file has expired. Per RFC 9116, security.txt provides a standardized location for vulnerability disclosure contact information.",
         "id": "SECURITY_TXT_PRESENT",
-        "title": "security.txt Vulnerability Disclosure",
-        "status": "failed",
+        "rfcs": [],
         "severity": "low",
         "standards": [
           "ISO_27002_2022:5.5",
           "INCITS_585_2025:RV.1"
         ],
-        "rfcs": [],
-        "fail_explanation": "No security.txt found or file has expired. Per RFC 9116, security.txt provides a standardized location for vulnerability disclosure contact information."
+        "status": "failed",
+        "title": "security.txt Vulnerability Disclosure"
       },
       {
         "id": "DANGLING_DNS_CLEAN",
-        "title": "No Dangling DNS Records",
-        "status": "passed",
+        "rfcs": [
+          "RFC1035"
+        ],
         "severity": "high",
         "standards": [
           "ISO_27002_2022:8.20",
           "INCITS_585_2025:PW.4"
         ],
-        "rfcs": [
-          "RFC1035"
-        ],
+        "status": "passed",
+        "title": "No Dangling DNS Records",
         "weakness_refs": {
-          "cwe": null,
           "capec": null,
+          "cwe": null,
+          "mapping_confidence": "high",
+          "mapping_rationale": "Dangling records pointing to unclaimed infrastructure are the direct precondition for subdomain takeover. Bugcrowd VRT classifies this explicitly; no single authoritative CWE/CAPEC ID is cited to avoid an unverified mapping.",
           "vrt": [
             "VRT:subdomain_takeover"
-          ],
-          "mapping_confidence": "high",
-          "mapping_rationale": "Dangling records pointing to unclaimed infrastructure are the direct precondition for subdomain takeover. Bugcrowd VRT classifies this explicitly; no single authoritative CWE/CAPEC ID is cited to avoid an unverified mapping."
+          ]
         }
       },
       {
+        "fail_explanation": "DNS delegation inconsistency detected. Parent and child zone NS records, glue records, or SOA serials do not agree. This can cause intermittent resolution failures and makes the zone vulnerable to hijacking.",
         "id": "DELEGATION_CONSISTENT",
-        "title": "DNS Delegation Consistency",
-        "status": "failed",
+        "rfcs": [
+          "RFC1035"
+        ],
         "severity": "medium",
         "standards": [
           "ISO_27002_2022:8.20"
         ],
-        "rfcs": [
-          "RFC1035"
-        ],
-        "fail_explanation": "DNS delegation inconsistency detected. Parent and child zone NS records, glue records, or SOA serials do not agree. This can cause intermittent resolution failures and makes the zone vulnerable to hijacking."
+        "status": "failed",
+        "title": "DNS Delegation Consistency"
       },
       {
         "id": "SECRET_EXPOSURE_CLEAN",
-        "title": "No Exposed Secrets",
-        "status": "passed",
+        "rfcs": [],
         "severity": "high",
         "standards": [
           "ISO_27002_2022:8.4",
           "INCITS_585_2025:PW.6"
         ],
-        "rfcs": []
+        "status": "passed",
+        "title": "No Exposed Secrets"
       },
       {
+        "fail_explanation": "No HTTPS or SVCB records found. Per RFC 9460, these records enable clients to discover HTTP/3, ECH, and alternative endpoints via DNS, improving connection performance and privacy.",
         "id": "HTTPS_SVCB_MODERN",
-        "title": "HTTPS/SVCB Record Deployment",
-        "status": "failed",
+        "rfcs": [
+          "RFC9460"
+        ],
         "severity": "low",
         "standards": [
           "ISO_27002_2022:8.20"
         ],
-        "rfcs": [
-          "RFC9460"
-        ],
-        "fail_explanation": "No HTTPS or SVCB records found. Per RFC 9460, these records enable clients to discover HTTP/3, ECH, and alternative endpoints via DNS, improving connection performance and privacy."
+        "status": "failed",
+        "title": "HTTPS/SVCB Record Deployment"
       }
     ],
-    "mapped_controls": 5
+    "schema_version": 9,
+    "total_controls": 16
   },
   "icsae_remediation_queue": {
     "items": [
       {
-        "rank": 1,
-        "control_id": "DMARC_ENFORCEMENT",
-        "title": "DMARC Policy Enforcement",
-        "severity": "high",
-        "exploit_class": "exploitable_now",
-        "exploit_basis": "Sender / identity spoofing requires no privileged position: an attacker forges mail or impersonates the domain with off-the-shelf tooling (CWE-290 / CAPEC identity-spoofing patterns).",
-        "blast_radius": "external",
+        "attacker_action": "DMARC policy is not set to reject. Per RFC 7489 \u00a76.3, only p=reject instructs receivers to discard unauthenticated messages. NIST SP 800-177 Rev. 1 \u00a74.6.1 recommends reject for all production domains.",
         "blast_basis": "Customers, partners and brand: recipients are phished using the domain's identity.",
+        "blast_radius": "external",
         "confidence": "high",
         "confidence_basis": "Directly observed DNS records (ICIE Tier 1 evidence); verdict determinate. Weakness mapping verified at high confidence (CWE/CAPEC/VRT).",
+        "control_id": "DMARC_ENFORCEMENT",
+        "exploit_basis": "Sender / identity spoofing requires no privileged position: an attacker forges mail or impersonates the domain with off-the-shelf tooling (CWE-290 / CAPEC identity-spoofing patterns).",
+        "exploit_class": "exploitable_now",
+        "priority_score": 166,
+        "rank": 1,
         "rfcs": [
           "RFC7489"
         ],
+        "severity": "high",
+        "title": "DMARC Policy Enforcement",
         "weakness_refs": {
-          "cwe": [
-            "CWE-290"
-          ],
           "capec": [
             "CAPEC-151",
             "CAPEC-194",
             "CAPEC-163"
           ],
-          "vrt": [
-            "VRT:email_spoofing_to_inbox_due_to_missing_or_misconfigured_dmarc_on_email_domain"
+          "cwe": [
+            "CWE-290"
           ],
           "mapping_confidence": "high",
-          "mapping_rationale": "p=none and p=quarantine do not instruct receivers to reject unauthenticated mail, so sender authentication is effectively bypassed (CWE-290), enabling domain identity spoofing (CAPEC-151), forged-source mail (CAPEC-194) and spear phishing (CAPEC-163). This is the flagship false-green-checkmark gap: tools mark DMARC present as compliant while the domain remains spoofable. Mapping verified against MITRE CWE/CAPEC and Bugcrowd VRT."
-        },
-        "attacker_action": "DMARC policy is not set to reject. Per RFC 7489 \u00a76.3, only p=reject instructs receivers to discard unauthenticated messages. NIST SP 800-177 Rev. 1 \u00a74.6.1 recommends reject for all production domains.",
-        "priority_score": 166
+          "mapping_rationale": "p=none and p=quarantine do not instruct receivers to reject unauthenticated mail, so sender authentication is effectively bypassed (CWE-290), enabling domain identity spoofing (CAPEC-151), forged-source mail (CAPEC-194) and spear phishing (CAPEC-163). This is the flagship false-green-checkmark gap: tools mark DMARC present as compliant while the domain remains spoofable. Mapping verified against MITRE CWE/CAPEC and Bugcrowd VRT.",
+          "vrt": [
+            "VRT:email_spoofing_to_inbox_due_to_missing_or_misconfigured_dmarc_on_email_domain"
+          ]
+        }
       }
     ],
-    "real_fix_count": 1,
-    "mapped_count": 1
+    "mapped_count": 1,
+    "real_fix_count": 1
   },
   "is_no_mail_domain": false,
   "is_tld": false,
@@ -1865,37 +1889,37 @@
   },
   "nmap_dns": {
     "cache_snoop": {
-      "message": "Test inconclusive",
-      "nameserver": "a13-65.akam.net",
+      "message": "Cache snooping not possible (correct configuration)",
+      "nameserver": "a12-65.akam.net",
       "vulnerable": false
     },
     "issues": [],
-    "message": "No DNS server misconfigurations found on a13-65.akam.net",
+    "message": "No DNS server misconfigurations found on a12-65.akam.net",
     "nameservers": [
-      "a13-65.akam.net",
-      "a22-66.akam.net",
       "a12-65.akam.net",
       "a3-64.akam.net",
+      "a13-65.akam.net",
+      "a22-66.akam.net",
       "a16-67.akam.net",
       "a1-22.akam.net"
     ],
     "nsid": {
       "found": false,
       "id": "",
-      "message": "Test inconclusive",
-      "nameserver": "a13-65.akam.net",
+      "message": "No nameserver identity information disclosed",
+      "nameserver": "a12-65.akam.net",
       "version": ""
     },
     "recursion": {
-      "message": "Test inconclusive",
-      "nameserver": "a13-65.akam.net",
+      "message": "Recursion disabled (correct configuration)",
+      "nameserver": "a12-65.akam.net",
       "open": false
     },
-    "scan_duration_ms": 104,
+    "scan_duration_ms": 37,
     "status": "good",
     "zone_transfer": {
-      "message": "Test inconclusive",
-      "nameserver": "a13-65.akam.net",
+      "message": "Zone transfer denied (correct configuration)",
+      "nameserver": "a12-65.akam.net",
       "record_count": 0,
       "vulnerable": false
     }
@@ -1934,13 +1958,16 @@
   "ns_fleet": {
     "diversity": {
       "asn_list": [
+        "20940",
         "21342"
       ],
-      "operator_list": null,
-      "score": "fair",
-      "score_detail": "1 ASN(s), 6 /24 prefix(es) \u2014 consider adding diversity",
-      "unique_asns": 1,
-      "unique_operators": 0,
+      "operator_list": [
+        "Akamai International B.V."
+      ],
+      "score": "good",
+      "score_detail": "2 ASNs, 6 /24 prefixes across 6 nameservers",
+      "unique_asns": 2,
+      "unique_operators": 1,
       "unique_prefix24s": 6
     },
     "issues": null,
@@ -1948,8 +1975,8 @@
     "nameservers": [
       {
         "aa_flag": true,
-        "as_name": "",
-        "asn": "21342",
+        "as_name": "Akamai International B.V.",
+        "asn": "20940",
         "hostname": "a1-22.akam.net",
         "ipv4": [
           "193.108.91.22"
@@ -1958,25 +1985,10 @@
           "2600:1401:2::16"
         ],
         "is_lame": false,
-        "prefix": "193.108.91.0/24",
-        "soa_serial": 2015111813,
-        "soa_serial_ok": true,
-        "tcp_reachable": true,
-        "udp_reachable": true
-      },
-      {
-        "aa_flag": true,
-        "as_name": "",
-        "asn": "21342",
-        "hostname": "a13-65.akam.net",
-        "ipv4": [
-          "2.22.230.65"
-        ],
-        "ipv6": [
-          "2600:1480:800::41"
-        ],
-        "is_lame": false,
-        "prefix": "2.22.230.0/24",
+        "nsid": "",
+        "nsid_decoded": "",
+        "prefix": "193.108.88.0/21",
+        "rtt_ms": 9,
         "soa_serial": 2015111813,
         "soa_serial_ok": true,
         "tcp_reachable": true,
@@ -1994,7 +2006,10 @@
           "2600:1406:1b::43"
         ],
         "is_lame": false,
+        "nsid": "",
+        "nsid_decoded": "",
         "prefix": "23.211.132.0/24",
+        "rtt_ms": 14,
         "soa_serial": 2015111813,
         "soa_serial_ok": true,
         "tcp_reachable": true,
@@ -2004,33 +2019,18 @@
         "aa_flag": true,
         "as_name": "",
         "asn": "21342",
-        "hostname": "a12-65.akam.net",
+        "hostname": "a13-65.akam.net",
         "ipv4": [
-          "184.26.160.65"
+          "2.22.230.65"
         ],
         "ipv6": [
-          "2600:1480:f000::41"
+          "2600:1480:800::41"
         ],
         "is_lame": false,
-        "prefix": "184.26.160.0/24",
-        "soa_serial": 2015111813,
-        "soa_serial_ok": true,
-        "tcp_reachable": true,
-        "udp_reachable": true
-      },
-      {
-        "aa_flag": true,
-        "as_name": "",
-        "asn": "21342",
-        "hostname": "a22-66.akam.net",
-        "ipv4": [
-          "23.211.61.66"
-        ],
-        "ipv6": [
-          "2600:1480:7800::42"
-        ],
-        "is_lame": false,
-        "prefix": "23.211.61.0/24",
+        "nsid": "",
+        "nsid_decoded": "",
+        "prefix": "2.22.230.0/24",
+        "rtt_ms": 23,
         "soa_serial": 2015111813,
         "soa_serial_ok": true,
         "tcp_reachable": true,
@@ -2048,7 +2048,52 @@
           "2600:1408:1c::40"
         ],
         "is_lame": false,
+        "nsid": "",
+        "nsid_decoded": "",
         "prefix": "96.7.49.0/24",
+        "rtt_ms": 5,
+        "soa_serial": 2015111813,
+        "soa_serial_ok": true,
+        "tcp_reachable": true,
+        "udp_reachable": true
+      },
+      {
+        "aa_flag": true,
+        "as_name": "",
+        "asn": "21342",
+        "hostname": "a22-66.akam.net",
+        "ipv4": [
+          "23.211.61.66"
+        ],
+        "ipv6": [
+          "2600:1480:7800::42"
+        ],
+        "is_lame": false,
+        "nsid": "",
+        "nsid_decoded": "",
+        "prefix": "23.211.61.0/24",
+        "rtt_ms": 24,
+        "soa_serial": 2015111813,
+        "soa_serial_ok": true,
+        "tcp_reachable": true,
+        "udp_reachable": true
+      },
+      {
+        "aa_flag": true,
+        "as_name": "",
+        "asn": "21342",
+        "hostname": "a12-65.akam.net",
+        "ipv4": [
+          "184.26.160.65"
+        ],
+        "ipv6": [
+          "2600:1480:f000::41"
+        ],
+        "is_lame": false,
+        "nsid": "",
+        "nsid_decoded": "",
+        "prefix": "184.26.160.0/24",
+        "rtt_ms": 6,
         "soa_serial": 2015111813,
         "soa_serial_ok": true,
         "tcp_reachable": true,
@@ -2065,6 +2110,7 @@
       "BIMI",
       "DANE"
     ],
+    "attainable": 100,
     "color": "success",
     "configured": [
       "SPF (hard fail)",
@@ -2073,22 +2119,30 @@
       "DNSSEC",
       "CAA"
     ],
+    "critical_issue_protocols": null,
     "critical_issues": null,
     "deliberate_monitoring": true,
     "deliberate_monitoring_note": "DMARC quarantine is fully enforced (100%) with aggregate reporting (RFC 7489 \u00a76.3). Unlike p=reject, which refuses unauthenticated mail at delivery, quarantine still accepts it for inspection. This is not a default configuration: the record also carries forensic reporting (ruf=), which DMARCbis removed and most large receivers no longer honour and strict alignment on both SPF and DKIM, where relaxed is the default, and the domain separately deploys a validating DNSSEC chain, CAA, and an SPF -all hard fail. It's possible this organization values that retained message-level visibility over pure rejection. What this means if you receive mail from this domain: messages that fail authentication are still delivered \u2014 typically to a spam or junk folder \u2014 not refused. A domain at p=quarantine is not a domain from which spoofed mail cannot reach you. p=reject remains the strongest anti-spoofing posture if message-level inspection is not a deliberate requirement; aggregate reporting is unaffected by either policy.",
+    "dkim_inconclusive": false,
     "grade": "Low Risk",
     "icon": "shield-alt",
     "issues": [],
     "label": "Low Risk",
     "message": "5 protocols configured, 4 not configured",
     "monitoring": [],
+    "monitoring_protocols": null,
     "provider_limited": [],
+    "recommendation_protocols": [
+      "DMARC"
+    ],
     "recommendations": [
       "Upgrade DMARC policy from quarantine to reject (p=reject) for maximum spoofing protection"
     ],
     "score": 75,
+    "score_worst_case": 75,
     "spoof_door": "closed",
     "state": "Low Risk",
+    "unmeasurable": [],
     "verdicts": {
       "ai_crawler_governance": {
         "answer": "No",
@@ -2208,7 +2262,17 @@
       "level": "observed",
       "method": "RDAP registry lookup"
     },
+    "delegation_signed": true,
+    "expiration_date": "2026-09-09T15:55:48.217Z",
+    "last_changed_date": "2026-08-14T16:46:17.557Z",
+    "lifecycle_state": "active",
+    "lifecycle_statuses": [
+      "server transfer prohibited"
+    ],
+    "rdap_update_date": "2026-08-18T06:24:03.377Z",
     "registrar": "get.gov (Registrant: REDACTED FOR PRIVACY)",
+    "registration_date": "1998-06-26T13:50:31.000Z",
+    "reregistration_date": "2025-09-09T15:55:48.217Z",
     "source": "RDAP",
     "status": "success"
   },
@@ -2358,7 +2422,7 @@
         }
       ]
     },
-    "posture_achievable": "Secure",
+    "posture_achievable": "Hardened",
     "rfc_metadata_enriched": true,
     "top_fixes": [
       {
@@ -2418,32 +2482,38 @@
     "checks_performed": 4,
     "consensus_reached": false,
     "discrepancies": [
-      "A: Cloudflare returned different results: [23.32.152.108 23.32.152.110]",
+      "A: Quad9 returned different results: [23.214.22.229 23.214.22.235]",
+      "A: Cloudflare returned different results: [23.214.22.228 23.214.22.229]",
       "A: DNS4EU returned different results: [23.47.144.140 23.47.144.141]"
     ],
     "per_record_consensus": {
       "A": {
         "consensus": false,
         "discrepancies": [
-          "Cloudflare returned different results: [23.32.152.108 23.32.152.110]",
+          "Quad9 returned different results: [23.214.22.229 23.214.22.235]",
+          "Cloudflare returned different results: [23.214.22.228 23.214.22.229]",
           "DNS4EU returned different results: [23.47.144.140 23.47.144.141]"
         ],
-        "resolver_count": 4
+        "resolver_count": 5,
+        "top_votes": 2
       },
       "MX": {
         "consensus": true,
         "discrepancies": null,
-        "resolver_count": 4
+        "resolver_count": 5,
+        "top_votes": 5
       },
       "NS": {
         "consensus": true,
         "discrepancies": null,
-        "resolver_count": 4
+        "resolver_count": 5,
+        "top_votes": 5
       },
       "TXT": {
         "consensus": true,
         "discrepancies": null,
-        "resolver_count": 4
+        "resolver_count": 5,
+        "top_votes": 5
       }
     },
     "resolvers_queried": 5
@@ -2727,9 +2797,43 @@
       "verdict": "none"
     },
     "probe": {
+      "multi_probe": [
+        {
+          "elapsed": 4.012,
+          "probe_host": "measure-us-east.dnsvantage.com",
+          "probe_id": "probe-01",
+          "probe_label": "US-East (Virginia)",
+          "status": "skipped"
+        },
+        {
+          "elapsed": 4.014,
+          "probe_host": "measure-sg.dnsvantage.com",
+          "probe_id": "probe-03",
+          "probe_label": "APAC (Singapore)",
+          "status": "skipped"
+        },
+        {
+          "elapsed": null,
+          "probe_host": null,
+          "probe_id": "probe-02",
+          "probe_label": "EU (Paris)",
+          "status": "skipped"
+        }
+      ],
       "observations": [],
-      "probe_method": "skip",
-      "reason": "SMTP probe skipped \u2014 outbound TCP port 25 is blocked upstream. This is standard for all major cloud platforms (AWS, GCP, Azure, Replit) and most residential ISPs as an anti-spam measure. Transport security is assessed via DNS policy records above, which is the standards-aligned primary method per NIST SP 800-177 Rev. 1.",
+      "probe_consensus": {
+        "agreement": "no_data",
+        "all_tls": 0,
+        "no_tls": 0,
+        "observed": 0,
+        "partial_tls": 0,
+        "total_probes": 3
+      },
+      "probe_count": 3,
+      "probe_method": "multi_remote",
+      "reason": "Remote probe failed (connection failed \u2014 probe may be offline) and local port 25 is blocked. Transport security is assessed via DNS policy records per NIST SP 800-177 Rev. 1.",
+      "remote_attempted": true,
+      "remote_error": "connection failed \u2014 probe may be offline",
       "status": "skipped"
     },
     "servers": [],

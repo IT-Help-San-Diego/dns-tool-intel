@@ -24,5 +24,13 @@
       "whitehouse.gov"
     ],
     "reason": "The 2026-07-31 captures of these four pinned defect-era DNSSEC measurements (pre-#336 validating-path key lookups; also captured through an un-ldflagged build stamping _tool_version 'dev'). Recaptured through production v26.51.0-108 after the warm-cache consensus fix (#447+#448), cross-checked against live protocol (DS keytag 2371 alg 13 in parent, DNSKEYs present, AD set, for all four). Each fixture file's _tool_version identifies its producing instrument; the four non-refreshed fixtures retain their 2026-07-31 captures."
+  },
+  "partial_refresh_2": {
+    "at": "2026-08-18T06:28:00Z",
+    "tool_version": "26.51.0-116-gd9ee700d9",
+    "domains": [
+      "cia.gov"
+    ],
+    "reason": "cia.gov was the one genuinely stale file among the four 2026-07-31 retentions: its defect-era capture reported an unsigned posture while the zone is signed and validating (measured live: 4 DS / 3 DNSKEY at the parent, AD set). Recaptured through production v26.51.0-116 (analysis 18447), cross-checked against live protocol first-hand. After this refresh the remaining 2026-07-31 captures are google.com, red.com, and thisdoesnotexist-xz9q.com — google.com and red.com re-verified unsigned live (0 DS / 0 DNSKEY, 2026-08-18), so their frozen unsigned posture is correct, and the NXDOMAIN control has no DNSSEC surface to go stale."
   }
 }
