@@ -163,6 +163,12 @@ in report provenance. The permission covers DNS measurements; a materially
 different use (bulk redistribution, a competing measurement service) needs a
 fresh ask.
 
+The RIPE Atlas logo is stored ready for that attribution at
+`static/img/ripe-atlas-logo.png` (transparent web PNG) with the source vector
+at `static/img/ripe-atlas-logo.eps`, mirrored in `go-server/static/img/`.
+Source: RIPE NCC logo download page (ripe.net/about-us/press-centre/); use the
+logo alongside "RIPE Atlas" text, never as a claim of RIPE NCC endorsement.
+
 ## Questions
 
 For licensing inquiries or commercial arrangements, contact: licensing@it-help.tech
