@@ -141,6 +141,28 @@ Rules:
 
 When citing DNS Tool externally, prefer the concept DOI unless a specific version is required.
 
+## Third-Party Data & Service Permissions
+
+External permissions the project holds, recorded here so the obligation ships
+with the code that eventually exercises it.
+
+### RIPE Atlas (RIPE NCC)
+
+**Commercial use of RIPE Atlas DNS measurements in DNS Tool is permitted.**
+Requested via RIPE NCC support ticket **#1087914** (filed 2026-08-13,
+"Commercial-use permission request — RIPE Atlas DNS measurements (DNS Tool)"),
+escalated to the Atlas team 2026-08-14, and resolved as Atlas ticket **AT-351**
+on 2026-08-18 by Johan ter Beest (RIPE Atlas Engineer): "This use is totally
+fine," with the request to give attribution to RIPE Atlas where applicable.
+
+**Standing obligation:** as of 2026-08-18 the codebase contains no RIPE Atlas
+integration — this record deliberately predates it. Whoever lands Atlas
+measurements or probe data in the product MUST ship attribution to RIPE Atlas
+in the same change: on every UI surface where Atlas-derived data appears, and
+in report provenance. The permission covers DNS measurements; a materially
+different use (bulk redistribution, a competing measurement service) needs a
+fresh ask.
+
 ## Questions
 
 For licensing inquiries or commercial arrangements, contact: licensing@it-help.tech
