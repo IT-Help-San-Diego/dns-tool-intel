@@ -1,0 +1,52 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: DNS Tool
+Upstream-Contact: IT Help San Diego Inc. <licensing@it-help.tech>
+Source: https://github.com/IT-Help-San-Diego/dns-tool-intel
+
+# Broad entries first — dep5 applies the LAST matching Files stanza, so
+# specific overrides must come after the broad defaults.
+
+# Platform source — BUSL-1.1. The Additional Use Grant (LICENSE lines 10-45)
+# permits production use that is not a Competitive Offering and expressly
+# permits research, education, testing, CI, and personal use.
+Files: go-server/**/*.go go-server/**/*.sql go-server/**/*.py go-server/**/*.sh go-server/**/*.mod go-server/**/*.sum
+Copyright: 2024-2026 IT Help San Diego Inc.
+License: BUSL-1.1
+
+# Templates and static assets (first-party; vendor file overridden below).
+Files: go-server/templates/** go-server/static/** go-server/tools/**
+Copyright: 2024-2026 IT Help San Diego Inc.
+License: BUSL-1.1
+
+# All documentation, research briefs, diagrams, data, and assets.
+Files: docs/**
+Copyright: 2024-2026 IT Help San Diego Inc.
+License: BUSL-1.1
+
+# Build, deploy, CI, and evaluation trees.
+Files: deploy/** .github/** security/** golden_rules/** squirrelscan/** gsd/** remediation/** epistemic_ledger/** evolution/** dns-eval/** tests/** templates/** static/** src/** packages/** scripts/** configs/**
+Copyright: 2024-2026 IT Help San Diego Inc.
+License: BUSL-1.1
+
+# Top-level project files.
+Files: *.md *.sh *.json *.yml *.yaml *.toml *.py *.ts *.nix *.cff Dockerfile* Makefile NOTICE .env.example .gitignore .dockerignore .replit .replitignore .semgrepignore go.mod go.sum uv.lock
+Copyright: 2024-2026 IT Help San Diego Inc.
+License: BUSL-1.1
+
+# Science documents — CC BY 4.0, effective immediately ("The Science Is Free
+# Now" split, LICENSING.md).
+Files: docs/dns-tool-methodology.* docs/philosophical-foundations.* docs/owl-semaphore-mathematical-foundations.*
+Copyright: 2024-2026 IT Help San Diego Inc.
+License: CC-BY-4.0
+
+# Third-party reference material — US Government publications and purchased
+# standards retained for citation; IT Help San Diego Inc. claims no copyright.
+# See LICENSES/LicenseRef-ThirdPartyReference.txt.
+Files: go-server/static/references/** docs/standards/**
+Copyright: See each document's front matter.
+License: LicenseRef-ThirdPartyReference
+
+# Vendor: Bootstrap v5.3.0 (MIT), carries its own inline header comment.
+Files: go-server/static/js/bootstrap.bundle.min.js
+Copyright: 2011-2023 The Bootstrap Authors
+License: MIT
