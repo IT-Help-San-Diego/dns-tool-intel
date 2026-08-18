@@ -25,6 +25,9 @@ type ResolverConfig struct {
         Name string
         IP   string
         DoH  string
+        // Port overrides the default DNS port (53) for this resolver. Empty means
+        // the default. Test seam: mock servers bind ephemeral ports.
+        Port string
 }
 
 // S1313 suppressed: these are well-known public DNS resolver IPs — intentional
@@ -948,74 +951,113 @@ func witnessResolver(state string, resolverAD map[string]string, resolvers []Res
         return nil
 }
 
+// adVote is one resolver's cast vote in the AD sweep, or "unmeasured" when it
+// could not cast one (error, budget expiry) — never absent, so the fold can
+// never silently shrink the denominator.
+type adVote struct {
+        name string
+        vote string
+}
+
+// adVoteFor runs a single resolver's AD probe and posts its vote. Extracted
+// from CheckDNSSECADFlag to keep each function under the complexity ratchet:
+// the vote logic is one decision chain, the sweep is one fan-out.
+func (c *Client) adVoteFor(ctx context.Context, res ResolverConfig, domain string, votes chan<- adVote) {
+        fqdn := dnsutil.Fqdn(domain)
+        msg := dns.NewMsg(fqdn, dns.TypeA)
+        msg.RecursionDesired = true
+        msg.UDPSize, msg.Security = 4096, true
+
+        dnsClient := newDNSClient(3 * time.Second)
+        port := res.Port
+        if port == "" {
+                port = dnsPort
+        }
+        addr := net.JoinHostPort(res.IP, port)
+
+        resp, _, err := dnsClient.Exchange(ctx, msg, protoUDP, addr)
+        if err != nil {
+                if isNXDomain(resp) {
+                        votes <- adVote{res.Name, "nxdomain"}
+                        return
+                }
+                slog.Debug("AD flag check failed", mapKeyResolver, res.IP, mapKeyError, err)
+                votes <- adVote{res.Name, "unmeasured"}
+                return
+        }
+
+        if resp.Rcode == dns.RcodeNameError {
+                votes <- adVote{res.Name, "nxdomain"}
+                return
+        }
+
+        // SERVFAIL is ambiguous: RFC 4033 §5 signals "bogus" via RCODE=2,
+        // but SERVFAIL is ALSO plain transport failure, resolver overload,
+        // or upstream trouble — it is not, by itself, a measurement of
+        // validation failure. Cross-check with CD=1: if the resolver
+        // answers with checking disabled, the SERVFAIL was genuine
+        // validation rejection (a bogus vote). If CD=1 also fails, the
+        // failure is transport and this resolver casts no vote at all.
+        if resp.Rcode == dns.RcodeServerFailure {
+                if c.cdConfirmedBogus(ctx, addr, fqdn) {
+                        votes <- adVote{res.Name, "bogus"}
+                } else {
+                        votes <- adVote{res.Name, "unmeasured"}
+                }
+                return
+        }
+
+        if resp.Rcode != dns.RcodeSuccess {
+                slog.Debug("AD flag check non-success RCODE", mapKeyResolver, res.IP, "rcode", resp.Rcode)
+                votes <- adVote{res.Name, "unmeasured"}
+                return
+        }
+
+        if len(resp.Answer) == 0 {
+                msg2 := dns.NewMsg(fqdn, dns.TypeSOA)
+                msg2.RecursionDesired = true
+                msg2.UDPSize, msg2.Security = 4096, true
+                r2, _, err2 := dnsClient.Exchange(ctx, msg2, protoUDP, addr)
+                if err2 == nil {
+                        resp = r2
+                }
+        }
+
+        if resp.AuthenticatedData {
+                votes <- adVote{res.Name, "secure"}
+        } else {
+                votes <- adVote{res.Name, "ad_absent"}
+        }
+}
+
 func (c *Client) CheckDNSSECADFlag(ctx context.Context, domain string) ADFlagResult {
         result := ADFlagResult{ResolverAD: make(map[string]string)}
 
         var secure, adAbsent, bogus int
 
+        // Parallel sweep — the same fan-out used everywhere else in this client.
+        // The serial loop this replaced was the positional-failure class: a slow
+        // resolver at position 1 consumed the envelope (5 × 3s = 15s worst case
+        // inside a 15s nested budget), resolvers 4 and 5 never ran, and their
+        // absence folded as consensus instead of as unmeasured. Each resolver now
+        // runs concurrently with its own 3s deadline, so every resolver always
+        // gets to vote, and a vote it could not cast (error, budget expiry) is
+        // recorded as "unmeasured" rather than silently shrinking the denominator.
+        votes := make(chan adVote, len(c.resolvers))
         for _, r := range c.resolvers {
-                fqdn := dnsutil.Fqdn(domain)
-                msg := dns.NewMsg(fqdn, dns.TypeA)
-                msg.RecursionDesired = true
-                msg.UDPSize, msg.Security = 4096, true
+                go c.adVoteFor(ctx, r, domain, votes)
+        }
 
-                dnsClient := newDNSClient(3 * time.Second)
-
-                resp, _, err := dnsClient.Exchange(ctx, msg, protoUDP, net.JoinHostPort(r.IP, dnsPort))
-                if err != nil {
-                        if isNXDomain(resp) {
-                                result.ResolverAD[r.Name] = "nxdomain"
-                                continue
-                        }
-                        slog.Debug("AD flag check failed", mapKeyResolver, r.IP, mapKeyError, err)
-                        result.ResolverAD[r.Name] = "unmeasured"
-                        continue
-                }
-
-                if resp.Rcode == dns.RcodeNameError {
-                        result.ResolverAD[r.Name] = "nxdomain"
-                        continue
-                }
-
-                // SERVFAIL is ambiguous: RFC 4033 §5 signals "bogus" via RCODE=2,
-                // but SERVFAIL is ALSO plain transport failure, resolver overload,
-                // or upstream trouble — it is not, by itself, a measurement of
-                // validation failure. Cross-check with CD=1: if the resolver
-                // answers with checking disabled, the SERVFAIL was genuine
-                // validation rejection (a bogus vote). If CD=1 also fails, the
-                // failure is transport and this resolver casts no vote at all.
-                if resp.Rcode == dns.RcodeServerFailure {
-                        if c.cdConfirmedBogus(ctx, net.JoinHostPort(r.IP, dnsPort), fqdn) {
-                                result.ResolverAD[r.Name] = "bogus"
-                                bogus++
-                        } else {
-                                result.ResolverAD[r.Name] = "unmeasured"
-                        }
-                        continue
-                }
-
-                if resp.Rcode != dns.RcodeSuccess {
-                        slog.Debug("AD flag check non-success RCODE", mapKeyResolver, r.IP, "rcode", resp.Rcode)
-                        result.ResolverAD[r.Name] = "unmeasured"
-                        continue
-                }
-
-                if len(resp.Answer) == 0 {
-                        msg2 := dns.NewMsg(fqdn, dns.TypeSOA)
-                        msg2.RecursionDesired = true
-                        msg2.UDPSize, msg2.Security = 4096, true
-                        r2, _, err2 := dnsClient.Exchange(ctx, msg2, protoUDP, net.JoinHostPort(r.IP, dnsPort))
-                        if err2 == nil {
-                                resp = r2
-                        }
-                }
-
-                if resp.AuthenticatedData {
-                        result.ResolverAD[r.Name] = "secure"
+        for range c.resolvers {
+                vote := <-votes
+                result.ResolverAD[vote.name] = vote.vote
+                switch vote.vote {
+                case "secure":
                         secure++
-                } else {
-                        result.ResolverAD[r.Name] = "ad_absent"
+                case "ad_absent":
                         adAbsent++
+                case "bogus":
+                        bogus++
                 }
         }
 
