@@ -379,7 +379,7 @@ func (a *Analyzer) AnalyzeDNSInfrastructure(domain string, results map[string]an
                 // The orchestrator attaches the DNSSEC result under the canonical
                 // "dnssec_analysis" key; the bare "dnssec" key is only present in older
                 // callers/unit fixtures. Read the canonical key FIRST — reading only
-                // "dnssec" left explains_no_dnssec silently always-false in production,
+                // "dnssec" left enterprise_dns_recognized silently always-false in production,
                 // killing the recognized-enterprise-provider signal the top-level
                 // verdict note and the ICSAE fix classifier both rely on. RFC 4035 §5.
                 dnssec, _ := results["dnssec_analysis"].(map[string]any)
@@ -398,7 +398,7 @@ func (a *Analyzer) AnalyzeDNSInfrastructure(domain string, results map[string]an
                         "provider_features":  im.provider.Features,
                         "is_government":      false,
                         "alt_security_items": altItems,
-                        "explains_no_dnssec": explainsDNSSEC,
+                        "enterprise_dns_recognized": explainsDNSSEC,
                         "assessment":         "Enterprise-grade DNS infrastructure",
                 }
         }

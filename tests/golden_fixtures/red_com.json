@@ -1779,7 +1779,7 @@
       "CAA records configured"
     ],
     "assessment": "Enterprise-grade DNS infrastructure",
-    "explains_no_dnssec": true,
+    "enterprise_dns_recognized": true,
     "is_government": false,
     "provider": "Amazon Route 53",
     "provider_features": [

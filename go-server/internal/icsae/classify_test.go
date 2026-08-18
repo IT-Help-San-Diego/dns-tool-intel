@@ -243,7 +243,7 @@ func TestClassifyFromResultsEnterpriseDeliberateDNSSECExcluded(t *testing.T) {
 }
 
 func TestClassifyFromResultsThirdPartyEnterpriseExplainsNoDNSSEC(t *testing.T) {
-        // Recognised third-party enterprise provider (explains_no_dnssec=true) with an
+        // Recognised third-party enterprise provider (enterprise_dns_recognized=true) with an
         // authoritatively unsigned zone → deliberate by_design via the OTHER signal,
         // even without p=reject and without an enterprise NS pattern.
         fr := map[string]any{
@@ -252,7 +252,7 @@ func TestClassifyFromResultsThirdPartyEnterpriseExplainsNoDNSSEC(t *testing.T) {
                         "passed":        []interface{}{},
                 },
                 "dnssec_analysis":    map[string]any{"dnssec_state": "absent_confirmed"},
-                "dns_infrastructure": map[string]any{"explains_no_dnssec": true},
+                "dns_infrastructure": map[string]any{"enterprise_dns_recognized": true},
         }
         fc, ok := ClassifyFromResults(fr)
         if !ok {
@@ -361,7 +361,7 @@ func TestClassifyFromResultsNonEnterpriseUnsignedDNSSECStaysRealFix(t *testing.T
                 },
                 "dnssec_analysis":        map[string]any{"dnssec_state": "absent_confirmed"},
                 "ns_delegation_analysis": map[string]any{"enterprise_pattern": "managed"},
-                "dns_infrastructure":     map[string]any{"explains_no_dnssec": false},
+                "dns_infrastructure":     map[string]any{"enterprise_dns_recognized": false},
         }
         fc, ok := ClassifyFromResults(fr)
         if !ok {

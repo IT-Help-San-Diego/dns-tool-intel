@@ -3211,7 +3211,6 @@
         let ABSENCE_IS_GAP = { spf: 1, dmarc: 1, dkim: 1, dnssec: 1, caa: 1 };
 
         // Which nodes reached their state by being ABSENT rather than by a
-        // measured warning. reconcileDNSSECAbsence needs that distinction: an
         // unsigned zone and a BROKEN DNSSEC chain both surface as amber, and
         // only the first can be a deliberate architectural choice.
         let _absentThisScan = {};
@@ -3239,19 +3238,6 @@
         // DANE is deliberately not consulted: DANE REQUIRES DNSSEC, so
         // DANE-absent is entailed by DNSSEC-absent and counting it would
         // report one fact twice.
-        function reconcileDNSSECAbsence(verdicts) {
-            if (!verdicts || !_absentThisScan.dnssec) return;
-            if (verdicts.dnssec !== 'warning') return;
-            if (verdicts.mtasts === 'success') {
-                verdicts.dnssec = 'indeterminate';
-                // The architectural-choice flip carries the ring with it —
-                // a solid amber ring beside an indeterminate verdict would
-                // be a fresh contradiction. How this case renders under the
-                // two-channel grammar (measured absence + measured
-                // substitute) is an open Science ruling; until then the
-                // legacy dashed render stands.
-                if (scanState.verdictRings) delete scanState.verdictRings.dnssec;
-            }
         }
 
         function canonicalVerdict(nodeId, status) {
@@ -4033,7 +4019,6 @@
                 chip.textContent = vp.label;
                 scanEls.chips.appendChild(chip);
             }
-            reconcileDNSSECAbsence(scanState.verdicts);
         }
 
         function scanAddLink(href, text, title) {
@@ -4427,7 +4412,6 @@
                     scanState.verdictRings.dnssec = replaySpec;
                     scanState.verdicts.dnssec = ringSpecCanon(replaySpec);
                 }
-                reconcileDNSSECAbsence(scanState.verdicts);
                 scanState.verdictAt = Date.now();
             }
             scanLoadVerdicts(d.analysis_id || REPLAY.id, null);

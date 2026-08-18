@@ -551,9 +551,9 @@
                             {{if mapGetBool "deliberate_monitoring" $posture}}
                             <small class="text-info d-block mt-1">{{mapGetStr "deliberate_monitoring_note" $posture}}</small>
                             {{end}}
-                            {{/* Surface the enterprise-DNS recognition (already shown in the deep DNSSEC section) at the top-level verdict, so operators running dedicated / multi-provider / recognized enterprise DNS are not framed like a small operator who simply forgot to enable DNSSEC. Mirrors the vetted gating at #section-dnssec: $dns_infra.explains_no_dnssec (recognized provider) OR $ns.enterprise_pattern (dedicated/mixed/multi-provider). Only fires when DNSSEC is actually absent. */}}
+                            {{/* Surface the enterprise-DNS recognition (already shown in the deep DNSSEC section) at the top-level verdict, so operators running dedicated / multi-provider / recognized enterprise DNS are not framed like a small operator who simply forgot to enable DNSSEC. Mirrors the vetted gating at #section-dnssec: $dns_infra.enterprise_dns_recognized (recognized provider) OR $ns.enterprise_pattern (dedicated/mixed/multi-provider). Only fires when DNSSEC is actually absent. */}}
                             {{$entPattern := mapGetStr "enterprise_pattern" $ns}}
-                            {{$entProviderRecognized := and $dns_infra (mapGetBool "explains_no_dnssec" $dns_infra)}}
+                            {{$entProviderRecognized := and $dns_infra (mapGetBool "enterprise_dns_recognized" $dns_infra)}}
                             {{$dnssecAbsent := false}}
                             {{range $p := $postureAbsent}}{{if eq $p "DNSSEC"}}{{$dnssecAbsent = true}}{{end}}{{end}}
                             {{if and $dnssecAbsent (or $entProviderRecognized (eq $entPattern "dedicated") (eq $entPattern "mixed") (eq $entPattern "multi-provider"))}}
@@ -574,7 +574,7 @@
                             <a href="#findings-summary" class="d-block text-info text-decoration-none small mb-1">{{icon "eye" "me-2"}}{{$mon}}</a>
                             {{end}}
                             {{if mapGetBool "dkim_inconclusive" $posture}}
-                            <a href="/topology?domain={{.AsciiDomain | urlquery}}&amp;dkim=1" class="d-block text-info text-decoration-none small mb-1">{{icon "key" "me-2"}}DKIM inconclusive &mdash; provide your selector to verify</a>
+                            <a href="/topology?domain={{.AsciiDomain | urlquery}}&amp;dkim=1" class="d-block text-info text-decoration-none small mb-1">{{icon "key" "me-2"}}DKIM not found with 81 default selectors &mdash; provide a selector to verify (find it in the s= tag of any DKIM-Signature header)</a>
                             {{end}}
                         </div>
                         {{end}}
@@ -4884,7 +4884,7 @@
                                     </div>
                                 {{else}}
                                     {{$enterpriseDNSPattern := mapGetStr "enterprise_pattern" $ns}}
-                                    {{if and $dns_infra (mapGetBool "explains_no_dnssec" $dns_infra)}}
+                                    {{if and $dns_infra (mapGetBool "enterprise_dns_recognized" $dns_infra)}}
                                     <div class="small text-info mb-2">
                                         {{icon "shield-alt" "me-1"}}
                                         <strong>Alternative Security:</strong> {{mapGetStr "provider" $dns_infra}} provides enterprise-grade DNS with DDoS protection and monitoring.

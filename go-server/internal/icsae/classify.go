@@ -258,7 +258,7 @@ func ClassifyFromEval(ev Result, fr map[string]any) FixClassification {
 //     NEVER forgiven: broken DNSSEC stays a real fix, and we never assert a
 //     deliberate choice from a failed measurement (Zero Fabrication). RFC 4035 §5.
 //  2. The operator is recognised as enterprise infrastructure by EITHER signal:
-//     dns_infrastructure.explains_no_dnssec (recognised third-party enterprise
+//     dns_infrastructure.enterprise_dns_recognized (recognised third-party enterprise
 //     provider) OR ns_delegation_analysis.enterprise_pattern ∈ {dedicated, mixed,
 //     multi-provider} (self-hosted / multi-provider enterprise NS, e.g. Apple).
 //     "managed" is excluded: a small operator fully on one managed DNS host that
@@ -268,7 +268,7 @@ func enterpriseDeliberateUnsignedDNSSEC(fr map[string]any) bool {
         if getString(getMap(fr, "dnssec_analysis"), "dnssec_state") != "absent_confirmed" {
                 return false
         }
-        if getBoolDefault(getMap(fr, "dns_infrastructure"), "explains_no_dnssec", false) {
+        if getBoolDefault(getMap(fr, "dns_infrastructure"), "enterprise_dns_recognized", false) {
                 return true
         }
         switch getString(getMap(fr, "ns_delegation_analysis"), "enterprise_pattern") {

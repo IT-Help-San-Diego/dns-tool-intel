@@ -1019,7 +1019,7 @@
       "DNSSEC validated"
     ],
     "assessment": "Enterprise-grade DNS infrastructure",
-    "explains_no_dnssec": false,
+    "enterprise_dns_recognized": false,
     "is_government": false,
     "provider": "Akamai Edge DNS",
     "provider_features": [
