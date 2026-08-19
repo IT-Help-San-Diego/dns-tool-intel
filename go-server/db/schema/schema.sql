@@ -471,7 +471,7 @@ CREATE TABLE public.findings (
     CONSTRAINT findings_kind_check CHECK ((kind = ANY (ARRAY['defect'::text, 'weakness'::text, 'incident'::text, 'compliance_gap'::text, 'claim_integrity'::text, 'design_debt'::text]))),
     CONSTRAINT findings_priority_check CHECK (((priority >= 0) AND (priority <= 3))),
     CONSTRAINT findings_severity_check CHECK (((severity >= 0) AND (severity <= 4))),
-    CONSTRAINT findings_status_check CHECK ((status = ANY (ARRAY['DETAINED'::text, 'VERIFIED'::text, 'UNDER_INTERROGATION'::text, 'CONTAINED'::text, 'RENDERED'::text, 'REGRESSED'::text, 'EXTRADITED'::text, 'DISMISSED'::text]))),
+    CONSTRAINT findings_status_check CHECK ((status = ANY (ARRAY['OPEN'::text, 'VERIFIED'::text, 'UNDER_ANALYSIS'::text, 'CONTAINED'::text, 'RESOLVED'::text, 'REGRESSED'::text, 'REFERRED'::text, 'DISMISSED'::text]))),
     CONSTRAINT findings_visibility_check CHECK ((visibility = ANY (ARRAY['internal'::text, 'edge_case'::text, 'common'::text, 'critical_path'::text, 'conference_demo'::text])))
 );
 
@@ -1772,6 +1772,27 @@ CREATE INDEX ix_ct_cache_expires ON public.ct_subdomain_cache USING btree (expir
 --
 
 CREATE INDEX ix_ct_cache_fetched ON public.ct_subdomain_cache USING btree (fetched_at DESC);
+
+
+--
+-- Name: ix_da_dnssec_chain_of_trust; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_da_dnssec_chain_of_trust ON public.domain_analyses USING btree ((((full_results -> 'dnssec_analysis'::text) ->> 'chain_of_trust'::text)));
+
+
+--
+-- Name: ix_da_dnssec_state; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_da_dnssec_state ON public.domain_analyses USING btree ((((full_results -> 'dnssec_analysis'::text) ->> 'dnssec_state'::text)));
+
+
+--
+-- Name: ix_da_request_source; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_da_request_source ON public.domain_analyses USING btree (((full_results ->> '_request_source'::text)));
 
 
 --

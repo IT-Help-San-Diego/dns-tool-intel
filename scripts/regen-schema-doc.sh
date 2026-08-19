@@ -48,8 +48,15 @@ docker cp "$MIGRATIONS_DIR" "$CONTAINER:/migrations" >/dev/null
 docker exec "$CONTAINER" sh -c '
   set -e
   for f in $(ls /migrations/*.sql | sort); do
-    psql -U postgres -d schemadoc -v ON_ERROR_STOP=1 -q -f "$f" >/dev/null
-    echo "    applied $(basename "$f")"
+    # Apply the Up section ONLY. The real migrator is goose (goose.UpContext),
+    # which never executes anything after "-- +goose Down". Feeding the whole
+    # file to psql runs the Down section too, so any migration with a live
+    # Down was created-then-reverted inside this disposable database — 017'"'"'s
+    # Down re-installed the retired findings_status_check vocabulary into
+    # every dump, and a table added with a Down section would vanish from the
+    # documentation entirely. The dump must document what goose builds.
+    sed -n "/^-- +goose Down/q;p" "$f" | psql -U postgres -d schemadoc -v ON_ERROR_STOP=1 -q >/dev/null
+    echo "    applied $(basename "$f") (Up section)"
   done'
 
 echo "==> dumping schema"
