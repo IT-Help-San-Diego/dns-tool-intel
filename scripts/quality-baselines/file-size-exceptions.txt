@@ -2,21 +2,13 @@ go-server/cmd/probe/main.go
 go-server/cmd/server/main.go
 go-server/internal/analyzer/dkim.go
 go-server/internal/analyzer/emailheader.go
-<<<<<<< Updated upstream
-=======
 go-server/internal/analyzer/infrastructure_impl.go
->>>>>>> Stashed changes
 go-server/internal/analyzer/orchestrator.go
 go-server/internal/analyzer/posture.go
 go-server/internal/analyzer/remediation.go
 go-server/internal/analyzer/smtp_transport.go
-<<<<<<< Updated upstream
-go-server/internal/dbq/domain_analyses.sql.go
-go-server/internal/dnsclient/client.go
-=======
 go-server/internal/analyzer/subdomains.go
 go-server/internal/dbq/domain_analyses.sql.go
 go-server/internal/dnsclient/client.go
 go-server/internal/handlers/agentpkg/agent.go
->>>>>>> Stashed changes
 go-server/internal/templates/funcs.go
