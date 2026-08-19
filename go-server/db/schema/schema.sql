@@ -471,9 +471,44 @@ CREATE TABLE public.findings (
     CONSTRAINT findings_kind_check CHECK ((kind = ANY (ARRAY['defect'::text, 'weakness'::text, 'incident'::text, 'compliance_gap'::text, 'claim_integrity'::text, 'design_debt'::text]))),
     CONSTRAINT findings_priority_check CHECK (((priority >= 0) AND (priority <= 3))),
     CONSTRAINT findings_severity_check CHECK (((severity >= 0) AND (severity <= 4))),
-    CONSTRAINT findings_status_check CHECK ((status = ANY (ARRAY['DETAINED'::text, 'VERIFIED'::text, 'UNDER_INTERROGATION'::text, 'CONTAINED'::text, 'RENDERED'::text, 'REGRESSED'::text, 'EXTRADITED'::text, 'DISMISSED'::text]))),
+    CONSTRAINT findings_status_check CHECK ((status = ANY (ARRAY['OPEN'::text, 'VERIFIED'::text, 'UNDER_ANALYSIS'::text, 'CONTAINED'::text, 'RESOLVED'::text, 'REGRESSED'::text, 'REFERRED'::text, 'DISMISSED'::text]))),
     CONSTRAINT findings_visibility_check CHECK ((visibility = ANY (ARRAY['internal'::text, 'edge_case'::text, 'common'::text, 'critical_path'::text, 'conference_demo'::text])))
 );
+
+
+--
+-- Name: flux_observations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.flux_observations (
+    id integer NOT NULL,
+    analysis_id integer NOT NULL,
+    domain character varying(255) NOT NULL,
+    observed_at timestamp without time zone DEFAULT now() NOT NULL,
+    asn_set text[] DEFAULT '{}'::text[] NOT NULL,
+    ttl integer,
+    created_at timestamp without time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: flux_observations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.flux_observations_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: flux_observations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.flux_observations_id_seq OWNED BY public.flux_observations.id;
 
 
 --
@@ -1109,6 +1144,13 @@ ALTER TABLE ONLY public.drift_notifications ALTER COLUMN id SET DEFAULT nextval(
 
 
 --
+-- Name: flux_observations id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.flux_observations ALTER COLUMN id SET DEFAULT nextval('public.flux_observations_id_seq'::regclass);
+
+
+--
 -- Name: ice_maturity id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1348,6 +1390,14 @@ ALTER TABLE ONLY public.findings
 
 ALTER TABLE ONLY public.findings
     ADD CONSTRAINT findings_public_id_key UNIQUE (public_id);
+
+
+--
+-- Name: flux_observations flux_observations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.flux_observations
+    ADD CONSTRAINT flux_observations_pkey PRIMARY KEY (id);
 
 
 --
@@ -1775,6 +1825,27 @@ CREATE INDEX ix_ct_cache_fetched ON public.ct_subdomain_cache USING btree (fetch
 
 
 --
+-- Name: ix_da_dnssec_chain_of_trust; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_da_dnssec_chain_of_trust ON public.domain_analyses USING btree ((((full_results -> 'dnssec_analysis'::text) ->> 'chain_of_trust'::text)));
+
+
+--
+-- Name: ix_da_dnssec_state; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_da_dnssec_state ON public.domain_analyses USING btree ((((full_results -> 'dnssec_analysis'::text) ->> 'dnssec_state'::text)));
+
+
+--
+-- Name: ix_da_request_source; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_da_request_source ON public.domain_analyses USING btree (((full_results ->> '_request_source'::text)));
+
+
+--
 -- Name: ix_domain_analyses_ascii_domain; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1863,6 +1934,27 @@ CREATE INDEX ix_drift_notifications_event ON public.drift_notifications USING bt
 --
 
 CREATE INDEX ix_drift_notifications_status ON public.drift_notifications USING btree (status) WHERE ((status)::text = 'pending'::text);
+
+
+--
+-- Name: ix_flux_obs_asn_set; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_flux_obs_asn_set ON public.flux_observations USING gin (asn_set);
+
+
+--
+-- Name: ix_flux_obs_domain; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_flux_obs_domain ON public.flux_observations USING btree (domain);
+
+
+--
+-- Name: ix_flux_obs_observed_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_flux_obs_observed_at ON public.flux_observations USING btree (observed_at);
 
 
 --
@@ -2055,6 +2147,14 @@ ALTER TABLE ONLY public.findings
 
 ALTER TABLE ONLY public.findings
     ADD CONSTRAINT findings_regression_of_fkey FOREIGN KEY (regression_of) REFERENCES public.findings(id);
+
+
+--
+-- Name: flux_observations flux_observations_analysis_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.flux_observations
+    ADD CONSTRAINT flux_observations_analysis_id_fkey FOREIGN KEY (analysis_id) REFERENCES public.domain_analyses(id) ON DELETE CASCADE;
 
 
 --
