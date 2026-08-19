@@ -21,7 +21,7 @@
 
 ## Low Priority
 - **Custom OAuth**: Uses hand-rolled OAuth 2.0 + PKCE instead of established libraries. Functional but higher maintenance burden.
-- **Go Version**: `go.mod` specifies `go 1.25.5` — ensure this aligns with target deployment environments.
+- **Go Version**: `go.mod` specifies `go 1.26.6` — ensure this aligns with target deployment environments.
 
 ## Documentation Gaps
 - **Internal docs (gsd/)**: Internal breadcrumbs and documentation need systematic update.

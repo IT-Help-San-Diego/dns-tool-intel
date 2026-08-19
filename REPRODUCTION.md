@@ -17,7 +17,7 @@ Each entry states what was verified **and what was not**.
 | Archive | `IT-Help-San-Diego/dns-tool-intel-v26.50.05.zip` (173,482,750 bytes) |
 | SHA-256 | `e8f198f68defb9d75a65ea6d485c0fc0703cbacd7c40b8a71fad3f5962656222` |
 | Extracted root | `IT-Help-San-Diego-dns-tool-intel-e2b0b31` |
-| Toolchain | go1.25.11 darwin/arm64 |
+| Toolchain | go1.26.6 darwin/arm64 |
 | Tester | Claude Science (agent), commissioned by the author |
 
 ### Result: builds cleanly
@@ -50,7 +50,7 @@ $ ./server --version
 DNS Tool dev
   commit:     dev
   built:      unknown
-  go:         go1.25.11
+  go:         go1.26.6
   platform:   darwin/arm64
 
 Built without version injection (plain `go build`).
@@ -163,7 +163,7 @@ maintenance-page behaviour — none of which appeared in the handoff.
 | Test | Result |
 |---|---|
 | `docker build` from the PR head | PASS, first attempt; asset paths correct |
-| `docker run --rm <image> --version` | PASS, exit 0, `go1.25.12 linux/amd64` |
+| `docker run --rm <image> --version` | PASS, exit 0, `go1.26.6 linux/amd64` |
 | Run with no `DATABASE_URL` | FAIL — exits 1 at `config.go:72` |
 | Run with `DATABASE_URL` only | exits 1 — `SESSION_SECRET environment variable is required` |
 | Both set, database unreachable | degraded mode engages after 5 retries (~15 s) |
@@ -291,7 +291,7 @@ evidence:
 1. `./server --version` did not exist despite `BUILD.md` documenting it — fixed.
 2. `BUILD.md` said `cd dns-tool` after cloning `dns-tool-intel` — fixed.
 3. `BUILD.md` never mentioned `DATABASE_URL` or degraded mode — documented.
-4. `BUILD.md` said "Go 1.25+" while `go.mod` requires ≥ 1.25.12 — corrected.
+4. `BUILD.md` said "Go 1.25+" while `go.mod` requires ≥ 1.26.6 — corrected.
 5. `.zenodo.json` claimed all `*_oss.go` build-tag stubs are included; the
    archive contains zero. **Resolved — the claim was stale, not the archive
    incomplete.** Git history shows `_oss.go` files did exist (added in the

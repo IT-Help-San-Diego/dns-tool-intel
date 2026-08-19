@@ -70,7 +70,7 @@ Domain input
   code: every claim carries confidence + provenance, never bare assertion.
 - `go-server/internal/middleware/`, `logging/`, `dbq/` (DB queries),
   `zoneparse/`, `citation/` — cross-cutting infrastructure.
-- `module dnstool`, **Go 1.25.5**.
+- `module dnstool`, **Go 1.26.6**.
 
 ## Non-Go surfaces
 

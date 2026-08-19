@@ -13,7 +13,7 @@ Import from GitHub `main`. This import carries the deposit republication (four d
 
 1. **`REPLIT_DEV_BANNER`** — an env var, intentionally set per environment. Do not delete it globally; but verify it is NOT set to `1` in the *published deployment* (the startup guard `assertDeploymentEnvironment` fails the boot if it is, because it widens script-src/connect-src/frame-src with the dev-banner wildcard in production).
 2. **A security header that is deliberately absent** — intentional, documented. Do not add it.
-3. **The pinned Go toolchain** (`GOTOOLCHAIN=go1.25.12` in `build.sh`) — pinned for three CVEs (GO-2026-4340/-4337 TLS, GO-2026-4341 net/url). Do not bump or downgrade; it must match every workflow `go-version:` in lockstep.
+3. **The pinned Go toolchain** (`GOTOOLCHAIN=go1.26.6` in `build.sh`) — pinned for the cumulative Go stdlib CVEs (originally GO-2026-4340/-4337 TLS + GO-2026-4341 net/url; now also the html/template, crypto/tls, net/http, net/url, encoding/xml, encoding/asn1 fixes through go1.26.6). Do not downgrade; it must match every workflow `go-version:` in lockstep.
 4. **Two OPPOSITE build-cache paths** — workspace-relative caches in the default build (persistence), `/tmp` in the `--deploy` branch only (8 GiB image cap). Never unify them; the difference is deliberate.
 5. **A header-keyed CSP directive** — keyed on `X-Forwarded-Proto=https` (edge sets it, local doesn't). Do not hardcode it.
 

@@ -17,7 +17,7 @@
 
 # ---------- build ----------
 # Pinned to the go.mod minimum. Bump both together.
-FROM golang:1.25.12-bookworm AS build
+FROM golang:1.26.6-bookworm AS build
 
 WORKDIR /src
 
