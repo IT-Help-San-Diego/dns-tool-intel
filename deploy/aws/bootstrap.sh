@@ -111,14 +111,14 @@ echo "  CHECK: PR merged to main; binary built from a checkout that includes it"
 
 # ---------------------------------------------------------------------------
 # STEP 6 — Provision the box via deploy/provision-ec2.sh (merged #262, on main),
-# install Go 1.25.12 explicitly, build via build.sh --deploy.
+# install Go 1.26.6 explicitly, build via build.sh --deploy.
 # provision-ec2.sh (root, once) creates: service user, /opt/dnstool{,-stage,/logs},
 # /etc/dnstool/env template (CLOUD_DEPLOYMENT=1 preset), sudoers rule, installs+
 # enables deploy/dnstool.service. Then deploys ship via deploy/deploy-aws.sh
 # (stages at /opt/dnstool-stage, verifies --version + /healthz body "status":"ok").
 # ---------------------------------------------------------------------------
-echo "== STEP 6: deploy/provision-ec2.sh + Go 1.25.12 + build.sh --deploy =="
-GO_VERSION="1.25.12"
+echo "== STEP 6: deploy/provision-ec2.sh + Go 1.26.6 + build.sh --deploy =="
+GO_VERSION="1.26.6"
 echo "  Provision the fresh box (root, once) — from the merged #262 script on main:"
 echo "    sudo bash /opt/dnstool/deploy/provision-ec2.sh"
 echo "    # creates service user, /opt/dnstool{,-stage,/logs}, /etc/dnstool/env (CLOUD_DEPLOYMENT=1),"

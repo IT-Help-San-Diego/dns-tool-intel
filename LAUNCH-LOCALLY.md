@@ -55,7 +55,7 @@ docker run --rm dns-tool-test 2>&1 | head -30
 
 ## B. Native binary — no Docker needed
 
-Your Go must be **1.25.12 or newer** (`go version` to check; `go.mod` refuses
+Your Go must be **1.26.6 or newer** (`go version` to check; `go.mod` refuses
 older).
 
 ```bash

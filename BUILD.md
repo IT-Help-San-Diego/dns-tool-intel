@@ -85,7 +85,7 @@ that term actually means in this codebase.
 
 ### Prerequisites
 
-- **Go 1.25.12 or newer** — [https://go.dev/dl/](https://go.dev/dl/)
+- **Go 1.26.6 or newer** — [https://go.dev/dl/](https://go.dev/dl/)
   (the exact minimum is in `go.mod`; older toolchains refuse to build)
 - **Git**
 
@@ -126,7 +126,7 @@ Expected output:
 DNS Tool 26.50.344
   commit:     a1b2c3d
   built:      2026-07-26T09:14:00Z
-  go:         go1.25.12
+  go:         go1.26.6
   platform:   linux/amd64
 ```
 

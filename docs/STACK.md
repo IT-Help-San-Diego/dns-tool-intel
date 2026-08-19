@@ -3,7 +3,7 @@
 ## Languages
 | Language | Role | Version |
 |----------|------|---------|
-| Go | Backend server, DNS analysis, API | 1.25.5 |
+| Go | Backend server, DNS analysis, API | 1.26.6 |
 | JavaScript/TypeScript | Frontend logic, E2E tests, automation scripts | ES2022+ |
 | SQL | Database schema, queries (PostgreSQL) | PostgreSQL 16 |
 | Python | Audit scripts, PDF generation | 3.x |
