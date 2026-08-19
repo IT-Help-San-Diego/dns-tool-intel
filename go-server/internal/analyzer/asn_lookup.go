@@ -62,12 +62,11 @@ func (a *Analyzer) LookupASN(ctx context.Context, results map[string]any) map[st
 	if len(uniqueASNs) == 1 {
 		for _, info := range uniqueASNs {
 			asn, _ := info[mapKeyASN].(string)
-			if _, isCDN := wellKnownASNames[asn]; isCDN {
-				name := wellKnownASNames[asn]
+			if name, isProxy := proxyEdgeASNs[asn]; isProxy {
 				result["cdn_proxied"] = true
 				result["cdn_asn"] = fmt.Sprintf("AS%s %s", asn, name)
 				result["flux_observable"] = false
-				result["flux_observable_reason"] = fmt.Sprintf("CDN-proxied: all observed addresses share a single CDN ASN (AS%s %s); origin rotation is structurally unobservable via DNS", asn, name)
+				result["flux_observable_reason"] = fmt.Sprintf("reverse-proxied: all observed addresses share a single reverse-proxy ASN (AS%s %s); origin rotation is structurally unobservable via DNS", asn, name)
 				// Second measurement: reverse-DNS on the first IP to
 				// distinguish shared CDN infrastructure from potentially
 				// dedicated enterprise IPs. A PTR pointing to the CDN
@@ -86,6 +85,16 @@ func (a *Analyzer) LookupASN(ctx context.Context, results map[string]any) map[st
 						}
 					}
 				}
+				break
+			}
+			if name, isSharedCloud := sharedCloudASNs[asn]; isSharedCloud {
+				// NOT cdn_proxied: the domain may sit on a bare VM in this shared
+				// ASN rather than behind the CDN edge. Only the flux verdict is
+				// unobservable (we cannot tell edge from origin at ASN
+				// granularity) — and the reason says exactly that.
+				result["cdn_asn"] = fmt.Sprintf("AS%s %s", asn, name)
+				result["flux_observable"] = false
+				result["flux_observable_reason"] = fmt.Sprintf("shared-cloud ASN: AS%s %s fronts both CDN edges and direct VM origins; at ASN granularity the origin is not distinguishable", asn, name)
 				break
 			}
 		}
@@ -182,6 +191,42 @@ func parseTeamCymruResponse(info map[string]any, record string) {
 }
 
 const asnAmazon = "Amazon.com, Inc."
+
+// proxyEdgeASNs — true reverse proxies: the resolved IP is an edge node, the
+// subject's origin is structurally hidden behind it. This is a CLASSIFICATION
+// (the reverse-proxy property), distinct from wellKnownASNames, which is a
+// display-name dictionary and must stay cosmetic. Defect fixed 2026-08-19: the
+// gate previously borrowed wellKnownASNames as the classifier, so any ASN with
+// a display name (Comcast, AT&T, Verizon, DigitalOcean, ...) was wrongly
+// reported "CDN-proxied, flux not observable" when its IP is plainly the origin.
+var proxyEdgeASNs = map[string]string{
+	"13335":  "Cloudflare, Inc.",
+	"209242": "Cloudflare London, LLC",
+	"20940":  "Akamai International B.V.",
+	"16625":  "Akamai Technologies, Inc.",
+	"32787":  "Prolexic Technologies, Inc. (Akamai)",
+	"54113":  "Fastly, Inc.",
+	"394536": "Sucuri Inc.",
+	"30148":  "Sucuri Inc.",
+	"19551":  "Imperva, Inc.",
+	"394699": "KeyCDN",
+}
+
+// sharedCloudASNs — one ASN fronts BOTH proxy edges and direct VM origins
+// (Amazon CloudFront+EC2, Google GFE+GCE, Microsoft Azure Front Door+VM). At
+// ASN granularity the resolved IP could be either, so flux is not observable
+// for a DIFFERENT reason than a reverse proxy. Prefix-level feeds shrink but do
+// not eliminate this ambiguity, so it is a permanent bucket, not a stopgap.
+var sharedCloudASNs = map[string]string{
+	"16509":  asnAmazon,
+	"14618":  asnAmazon,
+	"38895":  asnAmazon,
+	"16510":  asnAmazon,
+	"36183":  asnAmazon,
+	"15169":  "Google LLC",
+	"396982": "Google LLC",
+	"8075":   "Microsoft Corporation",
+}
 
 var wellKnownASNames = map[string]string{
 	"13335":  "Cloudflare, Inc.",

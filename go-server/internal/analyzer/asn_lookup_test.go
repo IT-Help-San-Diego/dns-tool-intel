@@ -317,3 +317,38 @@ func TestFilterEmpty(t *testing.T) {
 		})
 	}
 }
+
+func TestASNClassification(t *testing.T) {
+	// proxyEdgeASNs must contain true reverse proxies ONLY — the resolved IP
+	// is an edge node, the origin is structurally hidden. This pins the 2026-08-19
+	// fix: the gate previously borrowed wellKnownASNames (a display-name dict) as
+	// the classifier, so origin/ISP ASNs were wrongly reported CDN-proxied.
+	for _, asn := range []string{"13335", "20940", "54113", "19551", "394699", "30148"} {
+		if _, ok := proxyEdgeASNs[asn]; !ok {
+			t.Errorf("proxyEdgeASNs missing true proxy ASN %s", asn)
+		}
+	}
+	// sharedCloudASNs: one ASN fronts both edges and origins.
+	for _, asn := range []string{"16509", "15169", "8075", "396982", "36183"} {
+		if _, ok := sharedCloudASNs[asn]; !ok {
+			t.Errorf("sharedCloudASNs missing shared-cloud ASN %s", asn)
+		}
+	}
+	// The defect regression: origin/ISP ASNs must NOT be in either
+	// classification list. Their IPs are the real origin and flux IS observable.
+	for _, asn := range []string{"14061", "24940", "16276", "7922", "7018", "701", "3356", "174"} {
+		if _, ok := proxyEdgeASNs[asn]; ok {
+			t.Errorf("proxyEdgeASNs wrongly contains origin/ISP ASN %s", asn)
+		}
+		if _, ok := sharedCloudASNs[asn]; ok {
+			t.Errorf("sharedCloudASNs wrongly contains origin/ISP ASN %s", asn)
+		}
+	}
+	// The two classification tables must not overlap — an ASN is either a
+	// reverse proxy or a shared cloud, never both.
+	for asn := range proxyEdgeASNs {
+		if _, ok := sharedCloudASNs[asn]; ok {
+			t.Errorf("ASN %s is in BOTH proxyEdgeASNs and sharedCloudASNs", asn)
+		}
+	}
+}
