@@ -11,6 +11,19 @@ an instrument that never emitted that key. A hand-edited fixture is a proxy
 measurement, and these fixtures are the acceptance instrument for the whole
 Rust spike, so the provenance must be healed to genuinely-captured bytes.
 
+**The decisive test (one command, no trust in the reasoning required):** at the
+stamped commit, the producer could not have emitted the key —
+
+```bash
+git grep -c explains_no_dnssec d9ee700d9 -- go-server/internal/analyzer/infrastructure_impl.go   # → 2
+git grep -c enterprise_dns_recognized d9ee700d9 -- go-server/internal/analyzer/infrastructure_impl.go  # → 0 (no match)
+```
+
+On `origin/main` the counts are the exact inverse (0 / 2). The stamp and the
+content contradict each other in the source tree: `26.51.0-116-gd9ee700d9`
+emits only the old key, yet all 7 files stamped with it carry the new key.
+That is a proof of hand-editing, not an inference from timing.
+
 ## The 7 files (all under `tests/golden_fixtures/`)
 
 - cia_gov.json
