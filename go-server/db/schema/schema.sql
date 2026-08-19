@@ -477,6 +477,41 @@ CREATE TABLE public.findings (
 
 
 --
+-- Name: flux_observations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.flux_observations (
+    id integer NOT NULL,
+    analysis_id integer NOT NULL,
+    domain character varying(255) NOT NULL,
+    observed_at timestamp without time zone DEFAULT now() NOT NULL,
+    asn_set text[] DEFAULT '{}'::text[] NOT NULL,
+    ttl integer,
+    created_at timestamp without time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: flux_observations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.flux_observations_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: flux_observations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.flux_observations_id_seq OWNED BY public.flux_observations.id;
+
+
+--
 -- Name: ice_maturity; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1109,6 +1144,13 @@ ALTER TABLE ONLY public.drift_notifications ALTER COLUMN id SET DEFAULT nextval(
 
 
 --
+-- Name: flux_observations id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.flux_observations ALTER COLUMN id SET DEFAULT nextval('public.flux_observations_id_seq'::regclass);
+
+
+--
 -- Name: ice_maturity id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1348,6 +1390,14 @@ ALTER TABLE ONLY public.findings
 
 ALTER TABLE ONLY public.findings
     ADD CONSTRAINT findings_public_id_key UNIQUE (public_id);
+
+
+--
+-- Name: flux_observations flux_observations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.flux_observations
+    ADD CONSTRAINT flux_observations_pkey PRIMARY KEY (id);
 
 
 --
@@ -1887,6 +1937,27 @@ CREATE INDEX ix_drift_notifications_status ON public.drift_notifications USING b
 
 
 --
+-- Name: ix_flux_obs_asn_set; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_flux_obs_asn_set ON public.flux_observations USING gin (asn_set);
+
+
+--
+-- Name: ix_flux_obs_domain; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_flux_obs_domain ON public.flux_observations USING btree (domain);
+
+
+--
+-- Name: ix_flux_obs_observed_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_flux_obs_observed_at ON public.flux_observations USING btree (observed_at);
+
+
+--
 -- Name: ix_ice_regressions_protocol; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2076,6 +2147,14 @@ ALTER TABLE ONLY public.findings
 
 ALTER TABLE ONLY public.findings
     ADD CONSTRAINT findings_regression_of_fkey FOREIGN KEY (regression_of) REFERENCES public.findings(id);
+
+
+--
+-- Name: flux_observations flux_observations_analysis_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.flux_observations
+    ADD CONSTRAINT flux_observations_analysis_id_fkey FOREIGN KEY (analysis_id) REFERENCES public.domain_analyses(id) ON DELETE CASCADE;
 
 
 --
