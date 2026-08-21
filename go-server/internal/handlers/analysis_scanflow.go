@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -302,6 +303,17 @@ func (h *AnalysisHandler) Analyze(c *gin.Context) {
 	analyzeData["CovertMode"] = isCovertMode(mode)
 	analyzeData["ReportMode"] = mode
 
+	// A definitive non-existent domain is not a report — it is a terminal
+	// state. Render the dedicated, unmissable page instead of a sparse report
+	// whose only signal is a buried banner (Carey 2026-08-21: a user who typed
+	// a misspelled domain concluded the tool was broken because the 1-second
+	// "scan" produced no report).
+	if ds, _ := results["domain_status"].(string); ds == "undelegated" {
+		analyzeData["Suggestions"] = analyzer.SuggestDomainCorrections(ctx, h.Analyzer.DNS, inp.asciiDomain, 3)
+		c.HTML(http.StatusOK, "domain_not_exist.html", analyzeData)
+		return
+	}
+
 	c.HTML(http.StatusOK, reportModeTemplate(mode), analyzeData)
 }
 
@@ -577,6 +589,12 @@ func (h *AnalysisHandler) runAsyncScan(token, traceID string, sp *scanProgress, 
 	if analysisID > 0 {
 		redirectURL := fmt.Sprintf("/analysis/%d", analysisID)
 		sp.MarkComplete(analysisID, redirectURL)
+	} else if ds, _ := results["domain_status"].(string); ds == "undelegated" {
+		// A definitive non-existent domain is never persisted (analysisID 0),
+		// so the old code fell through without ever marking the scan complete
+		// and the client's progress poll hung. Route to the dedicated page
+		// instead (Carey 2026-08-21).
+		sp.MarkComplete(0, "/domain-not-found?domain="+url.QueryEscape(inp.asciiDomain))
 	} else {
 		sp.MarkComplete(0, "")
 	}

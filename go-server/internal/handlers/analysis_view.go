@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -73,6 +74,37 @@ func reportModeTemplate(mode string) string {
 
 func isCovertMode(mode string) bool {
 	return mode == "C" || mode == "CZ" || mode == "EC"
+}
+
+// DomainNotFound renders the dedicated, unmissable "domain does not exist"
+// page for a name that came back as an authoritative NXDOMAIN (undelegated).
+// Before this, a user who typed a misspelled domain got a ~1-second "scan"
+// whose only signal was a banner buried in an otherwise-empty report, and
+// concluded the tool itself was broken. The page re-verifies the name before
+// asserting non-existence (so a direct GET with a real domain can never show a
+// false "does not exist"), then offers best-effort "did you mean" corrections.
+func (h *AnalysisHandler) DomainNotFound(c *gin.Context) {
+	domain := strings.ToLower(strings.TrimSpace(c.Query("domain")))
+	if domain == "" {
+		c.Redirect(http.StatusFound, "/")
+		return
+	}
+	// Re-verify before asserting absence: the page must not claim a domain is
+	// gone if it now resolves (a mid-propagation registration, or a direct GET
+	// carrying a real name). ProbeExists is the same cheap existence signal the
+	// scan path uses, so this cannot drift from the scan's own verdict.
+	if exists, _ := h.Analyzer.DNS.ProbeExists(c.Request.Context(), domain); exists {
+		c.Redirect(http.StatusFound, "/topology?domain="+url.QueryEscape(domain))
+		return
+	}
+	data := NewTemplateData(c, h.Config, "")
+	data["Domain"] = domain
+	data["AsciiDomain"] = domain
+	data["Suggestions"] = analyzer.SuggestDomainCorrections(c.Request.Context(), h.Analyzer.DNS, domain, 3)
+	// A not-found page is a negative; never let it be shared/edge-cached (the
+	// domain could register a moment later).
+	c.Header("Cache-Control", "no-store")
+	c.HTML(http.StatusOK, "domain_not_exist.html", data)
 }
 
 func (h *AnalysisHandler) ViewAnalysisStatic(c *gin.Context) {

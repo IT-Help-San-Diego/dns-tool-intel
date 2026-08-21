@@ -615,6 +615,7 @@ func registerAnalysisRoutes(d routeDeps, analysis *handlers.AnalysisHandler, his
 	// returning 404 on HEAD makes them treat the URL as dead.
 	d.Router.HEAD("/analyze", analysis.Analyze)
 	d.Router.POST("/analyze", middleware.AnalyzeRateLimit(d.RateLimiter), analysis.Analyze)
+	d.Router.GET("/domain-not-found", analysis.DomainNotFound)
 	d.Router.GET("/api/scan/progress/:token", handlers.ScanProgressHandler(analysis.ProgressStore))
 	d.Router.GET("/history", d.HeavyShed, history.History)
 	d.Router.GET("/cloud/history", d.HeavyShed, cloudHistory.CloudHistory)

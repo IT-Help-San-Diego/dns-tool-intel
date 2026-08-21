@@ -23,7 +23,7 @@ func TestParseEmbeddedTemplates(t *testing.T) {
 	}
 	// Boot-critical templates the router renders unconditionally; a rename
 	// here should be a deliberate act that updates this list.
-	for _, name := range []string{"index.html", "_head.html", "_nav.html", "_footer.html", "history.html", "topology.html"} {
+	for _, name := range []string{"index.html", "_head.html", "_nav.html", "_footer.html", "history.html", "topology.html", "domain_not_exist.html"} {
 		if tmpl.Lookup(name) == nil {
 			t.Errorf("embedded set is missing %s", name)
 		}
