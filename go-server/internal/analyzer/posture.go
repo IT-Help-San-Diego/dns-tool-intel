@@ -395,6 +395,21 @@ func detectProbableNoMail(results map[string]any) bool {
 	if len(mxAny) > 0 {
 		return false
 	}
+	// A domain with no MX is NOT automatically "no-mail". Absence of MX is a
+	// *receive-side* fact; a domain can send mail without publishing an MX at
+	// the apex (whitehouse.gov is the canonical case: no MX record, but a full
+	// SPF with multiple includes + DMARC reject). If the SPF record declares
+	// authorized senders — any include, a/mx/ptr/exists mechanism, or an IP
+	// directive — the domain demonstrably sends mail, so "probable no-mail"
+	// must NOT fire. Only a domain whose SPF is absent, indeterminate, or the
+	// bare `-all` lockdown (no senders) is a candidate for the no-mail path.
+	if spf, ok := results[mapKeySpfAnalysis].(map[string]any); ok {
+		if state, _ := spf[mapKeySpfState].(string); state == spfStatePresent {
+			if intent, _ := spf["no_mail_intent"].(bool); !intent {
+				return false
+			}
+		}
+	}
 	return true
 }
 
