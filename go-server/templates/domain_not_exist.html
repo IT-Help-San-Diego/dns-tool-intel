@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    {{template "head" .}}
+    {{template "head_css" .}}
+    <title>Domain does not exist — {{.Domain}} — DNS Tool</title>
+    <meta name="robots" content="noindex, nofollow">
+</head>
+<body>
+    {{template "nav" .}}
+    <main id="main-content" class="container mt-4 mb-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card border-info mb-4">
+                    <div class="card-body text-center py-5">
+                        <div class="mb-4">
+                            {{icon "question-circle" "icon-4x text-accent-gold opacity-75"}}
+                        </div>
+                        <h1 class="h2 mb-2">
+                            <span class="badge bg-info-subtle text-info border border-info px-4 py-2">
+                                {{icon "globe-americas" "me-2"}}Domain does not exist
+                            </span>
+                        </h1>
+                        <p class="lead text-muted mb-4">
+                            <code class="text-info">{{.Domain}}</code> is not registered or has no DNS records.
+                        </p>
+                        <div class="row justify-content-center">
+                            <div class="col-lg-8">
+                                <div class="alert alert-info border-info mb-0 text-light u-bg-info-15">
+                                    <p class="alert-heading mb-2 text-info fw-semibold">What This Means</p>
+                                    <ul class="text-start mb-0 small">
+                                        <li>No authoritative DNS data is available for this domain.</li>
+                                        <li>Security posture cannot be evaluated without DNS records.</li>
+                                        <li>The domain may never have been registered, or may have expired.</li>
+                                        <li><strong>Check the spelling</strong> — a single typo is the most common cause. The correct name may be suggested below.</li>
+                                        <li>If this is your domain, confirm it is active with your registrar.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{if .Suggestions}}
+                        <div class="mt-4">
+                            <p class="text-muted mb-2">{{icon "lightbulb" "me-1"}}Did you mean&hellip;</p>
+                            <div class="d-flex flex-wrap justify-content-center gap-2">
+                                {{range .Suggestions}}
+                                <a href="/topology?domain={{.}}" class="btn btn-outline-info">{{icon "search" "me-1"}}{{.}}</a>
+                                {{end}}
+                            </div>
+                        </div>
+                        {{end}}
+
+                        <div class="mt-4">
+                            <a href="/" class="btn btn-primary btn-lg">
+                                {{icon "search" "me-2"}}Try Another Domain
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    {{template "footer" .}}
+    {{template "scripts" .}}
+</body>
+</html>
