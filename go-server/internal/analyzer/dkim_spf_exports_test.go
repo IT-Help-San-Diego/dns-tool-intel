@@ -1025,6 +1025,34 @@ func TestDetectProbableNoMail_Boost(t *testing.T) {
                         t.Error("should not be no-mail with mx_records")
                 }
         })
+        t.Run("no_mx_but_spf_with_senders_is_not_no_mail", func(t *testing.T) {
+                // whitehouse.gov: no MX at the apex, but a full SPF with includes
+                // — a mail-SENDING domain. Must NOT be classified no-mail, or the
+                // remediation engine wrongly recommends "Lock Down SPF" (-all).
+                result := detectProbableNoMail(map[string]any{
+                        "basic_records": map[string]any{},
+                        "spf_analysis": map[string]any{
+                                mapKeySpfState: spfStatePresent,
+                                "no_mail_intent": false,
+                        },
+                })
+                if result {
+                        t.Error("domain with no MX but a real SPF (senders) is NOT no-mail")
+                }
+        })
+        t.Run("no_mx_and_spf_dash_all_is_no_mail", func(t *testing.T) {
+                // A bare `v=spf1 -all` with no MX IS the no-mail lockdown pattern.
+                result := detectProbableNoMail(map[string]any{
+                        "basic_records": map[string]any{},
+                        "spf_analysis": map[string]any{
+                                mapKeySpfState: spfStatePresent,
+                                "no_mail_intent": true,
+                        },
+                })
+                if !result {
+                        t.Error("SPF -all lockdown with no MX should be no-mail")
+                }
+        })
 }
 
 func TestIsMissingRecord_Boost(t *testing.T) {
