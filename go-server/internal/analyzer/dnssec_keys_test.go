@@ -282,17 +282,17 @@ func TestCollectMapKeys_CB9(t *testing.T) {
 }
 
 func TestBuildCAAMessage_CB9(t *testing.T) {
-	msg := buildCAAMessage([]string{"Let's Encrypt"}, nil, false)
+	msg := buildCAAMessage([]string{"Let's Encrypt"}, nil, false, false, false)
 	if msg == "" {
 		t.Error("buildCAAMessage() empty")
 	}
 
-	msg2 := buildCAAMessage([]string{"DigiCert"}, []string{"DigiCert"}, true)
+	msg2 := buildCAAMessage([]string{"DigiCert"}, []string{"DigiCert"}, true, false, false)
 	if msg2 == "" {
 		t.Error("buildCAAMessage() with wildcard empty")
 	}
 
-	msg3 := buildCAAMessage(nil, nil, true)
+	msg3 := buildCAAMessage(nil, nil, true, false, false)
 	if msg3 == "" {
 		t.Error("buildCAAMessage() empty issuers with wildcard")
 	}
