@@ -90,7 +90,7 @@ func ExportParseCAARecords(records []string) ([]string, []string, bool, bool) {
 }
 
 func ExportBuildCAAMessage(issuers, wildcardIssuers []string, hasWildcard bool) string {
-        return buildCAAMessage(issuers, wildcardIssuers, hasWildcard)
+        return buildCAAMessage(issuers, wildcardIssuers, hasWildcard, false, false)
 }
 
 func ExportFilterSTSRecords(records []string) []string {

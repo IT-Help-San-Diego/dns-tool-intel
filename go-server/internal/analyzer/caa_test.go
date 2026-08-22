@@ -1,6 +1,7 @@
 package analyzer
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -104,10 +105,50 @@ func TestBuildCAAMessage(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			msg := buildCAAMessage(tt.issuers, tt.wildcard, tt.hasWild)
+			msg := buildCAAMessage(tt.issuers, tt.wildcard, tt.hasWild, false, false)
 			if msg == "" {
 				t.Error("expected non-empty message")
 			}
 		})
+	}
+}
+
+// TestCAASemicolonSentinel pins RFC 8659 §4.2/§4.3: an `issue ";"` means "no
+// CA may issue" (fully restricted), NOT a CA literally named `;`. Same for
+// `issuewild ";"` = no wildcard certificate. This was a live false verdict on
+// the production analyzer: identifyCAIssuer's fallback returned `;` and the
+// parser invented an issuer named `;`.
+func TestCAASemicolonSentinel(t *testing.T) {
+	// issue ";" -> fullyRestricted, zero issuers.
+	p1 := parseCAARecords([]string{`0 issue ";"`})
+	if !p1.fullyRestricted {
+		t.Errorf(`issue ";" should set fullyRestricted`)
+	}
+	if len(p1.issueSet) != 0 {
+		t.Errorf(`issue ";" invented issuers %v — should be zero`, collectMapKeys(p1.issueSet))
+	}
+
+	// issuewild ";" -> wildcardFullyRestricted, zero wildcard issuers.
+	p2 := parseCAARecords([]string{`0 issuewild ";"`})
+	if !p2.wildcardFullyRestricted {
+		t.Errorf(`issuewild ";" should set wildcardFullyRestricted`)
+	}
+	if len(p2.issuewildSet) != 0 {
+		t.Errorf(`issuewild ";" invented wildcard issuers %v — should be zero`, collectMapKeys(p2.issuewildSet))
+	}
+
+	// The message must say "no CA may issue", not "specific CAs authorized".
+	msg := buildCAAMessage(nil, nil, false, true, false)
+	if !strings.Contains(msg, "no CA may issue") {
+		t.Errorf(`fullyRestricted message = %q, want "no CA may issue"`, msg)
+	}
+
+	// Negative control: a named issuer is NOT fully restricted.
+	p3 := parseCAARecords([]string{`0 issue "letsencrypt.org"`})
+	if p3.fullyRestricted {
+		t.Errorf("named issuer should not set fullyRestricted")
+	}
+	if len(p3.issueSet) != 1 {
+		t.Errorf("named issuer should populate issueSet, got %v", collectMapKeys(p3.issueSet))
 	}
 }
