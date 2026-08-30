@@ -125,6 +125,55 @@ func buildCAAMessage(issuers, wildcardIssuers []string, hasWildcard bool, fullyR
 
 func (a *Analyzer) AnalyzeCAA(ctx context.Context, domain string) map[string]any {
 	records, lookupStatus := a.resolveWithStatus(ctx, "CAA", domain)
+	caaSource := domain
+
+	// RFC 8659 §3: "The search for a CAA RRset climbs the DNS name tree from
+	// the specified label up to, but not including, the DNS root '.' until a
+	// CAA RRset is found." A CA checking pq.example.com with no CAA there
+	// MUST consult example.com (then com) before concluding issuance is
+	// unrestricted. An exact-name-only lookup therefore reports "no CAA -
+	// any CA can issue" on a subdomain whose parent DOES restrict issuance -
+	// a false negative about the real issuance policy (Replit-era defect,
+	// exact-name lookup only since c84dc95f9; same inheritance class as the
+	// DMARC org-domain fallback one protocol over, RFC 7489 §6.6.3).
+	//
+	// Climb only on CONFIRMED absence at each label: an indeterminate lookup
+	// anywhere in the chain means the climb's conclusion cannot be trusted
+	// (the skipped label might hold the policy), so we stop and report
+	// indeterminate rather than fabricate an "unrestricted" verdict.
+	// The climb stops below the public suffix: a CAA RRset published inside
+	// the registry's suffix zone is the registry's policy, not the
+	// domain's; measuring it as the domain's issuance policy would
+	// misattribute. (CAs do climb through it per RFC 8659; for THIS
+	// instrument the domain-operator boundary is the honest scope.)
+	if len(records) == 0 && !isIndeterminateLookup(lookupStatus) {
+		org, orgIndeterminate := orgDomain(domain)
+		if !orgIndeterminate && org != strings.ToLower(strings.TrimRight(domain, ".")) {
+			labels := strings.Split(strings.TrimRight(strings.ToLower(domain), "."), ".")
+			orgLabels := strings.Split(org, ".")
+			// walk parents from one label above the query name down to org
+			for i := 1; i <= len(labels)-len(orgLabels); i++ {
+				parent := strings.Join(labels[i:], ".")
+				pRecords, pStatus := a.resolveWithStatus(ctx, "CAA", parent)
+				if isIndeterminateLookup(pStatus) {
+					return map[string]any{
+						"status":       statusIndeterminate,
+						"message":      fmt.Sprintf("No CAA at %s; the RFC 8659 §3 tree climb could not be completed (%s lookup indeterminate) — issuance policy cannot be determined.", domain, parent),
+						"records":      []string{},
+						"issuers":      []string{},
+						"has_wildcard": false,
+						"has_iodef":    false,
+						mapKeyCaaState: triStateIndeterminate,
+					}
+				}
+				if len(pRecords) > 0 {
+					records = pRecords
+					caaSource = parent
+					break
+				}
+			}
+		}
+	}
 
 	if len(records) == 0 {
 		if isIndeterminateLookup(lookupStatus) {
@@ -153,8 +202,11 @@ func (a *Analyzer) AnalyzeCAA(ctx context.Context, domain string) map[string]any
 	issuers := collectMapKeys(parsed.issueSet)
 	wildcardIssuers := collectMapKeys(parsed.issuewildSet)
 	message := buildCAAMessage(issuers, wildcardIssuers, parsed.hasWildcard, parsed.fullyRestricted, parsed.wildcardFullyRestricted)
+	if caaSource != domain {
+		message = fmt.Sprintf("Covered by parent-zone CAA (RFC 8659 §3 tree climb): %s publishes the issuance policy applying to %s. %s", caaSource, domain, message)
+	}
 
-	return map[string]any{
+	result := map[string]any{
 		mapKeyCaaState:     triStatePresent,
 		"status":           "success",
 		"message":          message,
@@ -165,4 +217,9 @@ func (a *Analyzer) AnalyzeCAA(ctx context.Context, domain string) map[string]any
 		"has_iodef":        parsed.hasIodef,
 		"mpic_note":        "Since September 2025, all public CAs must verify domain control from multiple geographic locations (Multi-Perspective Issuance Corroboration, CA/B Forum Ballot SC-067). CAA records are now checked from multiple network perspectives before certificate issuance.",
 	}
+	if caaSource != domain {
+		result["caa_source"] = caaSource
+		result["inherited"] = true
+	}
+	return result
 }
