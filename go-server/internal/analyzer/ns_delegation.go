@@ -181,7 +181,12 @@ type nsClassification struct {
 
 func classifyNameservers(nameservers []string, domainBase string) nsClassification {
         c := nsClassification{providers: map[string]int{}}
-        for _, ns := range nameservers {
+        for _, rawNS := range nameservers {
+                // Nameserver names arrive both dotted (wire form,
+                // "ns.example.com.") and trimmed (presentation form) depending
+                // on the calling path; normalize once, here, so the suffix
+                // test below is not dot-sensitive.
+                ns := strings.TrimRight(rawNS, ".")
                 // Self-hosted nameservers (within the analyzed domain's OWN registrable
                 // domain) are the strongest signal of organization-operated DNS and take
                 // precedence over third-party provider-name matching. e.g. ns1.google.com
@@ -220,6 +225,21 @@ func determineEnterprisePattern(c nsClassification, total int, domainBase string
         }
         if c.dedicated == total {
                 result[mapKeyEnterprisePattern] = "dedicated"
+                if total == 1 {
+                        // One nameserver is a single point of failure; the
+                        // instrument must not dress it up as an enterprise
+                        // pattern (RFC 2182 §5 recommends at least two
+                        // nameservers on separate networks). Report the
+                        // dedication fact and the resilience gap together.
+                        result[mapKeyEnterpriseLabel] = "Dedicated DNS (Single Nameserver)"
+                        result[mapKeyEnterpriseDetail] = fmt.Sprintf(
+                                "The single nameserver is %s-branded (organization-operated). "+
+                                        "One nameserver is a single point of failure: RFC 2182 §5 recommends "+
+                                        "at least two, on separate networks. A resolution outage or a "+
+                                        "reachability failure at this one host takes the zone offline.",
+                                domainBase)
+                        return result
+                }
                 result[mapKeyEnterpriseLabel] = "Enterprise DNS (Dedicated Infrastructure)"
                 result[mapKeyEnterpriseDetail] = fmt.Sprintf(
                         "All %d nameservers are %s-branded, indicating organization-operated DNS infrastructure. "+
