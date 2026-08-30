@@ -376,6 +376,16 @@ func mapGetInt(key string, m map[string]interface{}) int {
         }
 }
 
+// mapGetIntExact renders a number from a JSON-round-tripped map without
+// float64 artifacts. json.Unmarshal into map[string]interface{} converts
+// every JSON number to float64, so a uint32 SOA serial 2026083011 renders
+// as 2.026083011e+09 through the default pipeline. This helper coerces the
+// same way mapGetInt does but formats as a plain integer string.
+func mapGetIntExact(key string, m map[string]interface{}) string {
+        n := mapGetInt(key, m)
+        return strconv.FormatInt(int64(n), 10)
+}
+
 func mapGetFloat(key string, m map[string]interface{}) float64 {
         if m == nil {
                 return 0
@@ -485,6 +495,7 @@ func mapFuncs() template.FuncMap {
                 "mapGet":      mapGet,
                 "mapGetStr":   mapGetStr,
                 "mapGetInt":   mapGetInt,
+                "mapGetIntExact": mapGetIntExact,
                 "mapGetFloat": mapGetFloat,
                 "mapGetBool":  mapGetBool,
                 "mapGetMap":   mapGetMap,

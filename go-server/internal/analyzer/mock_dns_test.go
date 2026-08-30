@@ -334,6 +334,13 @@ func (m *MockDNSClient) ExchangeContext(ctx context.Context, msg *dns.Msg) (*dns
         return resp, nil
 }
 
+// ExchangeContextToResolver mocks the addressed exchange the same way the
+// recursive one is mocked: no per-resolver map is needed unless a test
+// targets it, so it mirrors ExchangeContext's default behavior.
+func (m *MockDNSClient) ExchangeContextToResolver(ctx context.Context, msg *dns.Msg, _ string) (*dns.Msg, error) {
+        return m.ExchangeContext(ctx, msg)
+}
+
 func (m *MockDNSClient) ValidateResolverConsensus(_ context.Context, domain string) map[string]any {
         m.mu.Lock()
         defer m.mu.Unlock()

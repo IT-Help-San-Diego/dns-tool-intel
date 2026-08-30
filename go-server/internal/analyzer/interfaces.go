@@ -23,6 +23,7 @@ type DNSQuerier interface {
         QueryWithTTLFromResolver(ctx context.Context, recordType, domain, resolverIP string) dnsclient.RecordWithTTL
         CheckDNSSECADFlag(ctx context.Context, domain string) dnsclient.ADFlagResult
         ExchangeContext(ctx context.Context, msg *dns.Msg) (*dns.Msg, error)
+        ExchangeContextToResolver(ctx context.Context, msg *dns.Msg, resolverIP string) (*dns.Msg, error)
         ValidateResolverConsensus(ctx context.Context, domain string) map[string]any
         ProbeExists(ctx context.Context, domain string) (exists bool, cname string)
 }

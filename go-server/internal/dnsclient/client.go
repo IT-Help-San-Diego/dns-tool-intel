@@ -1138,6 +1138,16 @@ func (c *Client) ExchangeContext(ctx context.Context, msg *dns.Msg) (*dns.Msg, e
         return c.exchangeWithFallback(ctx, msg, resolverAddr)
 }
 
+// ExchangeContextToResolver runs the same UDP-with-TCP-fallback exchange as
+// ExchangeContext, but against an explicitly named resolver IP. Delegation
+// consistency needs this to interrogate a specific PARENT zone server, whose
+// answers are referrals (delegation data in the authority section) rather
+// than recursive answers.
+func (c *Client) ExchangeContextToResolver(ctx context.Context, msg *dns.Msg, resolverIP string) (*dns.Msg, error) {
+        resolverAddr := net.JoinHostPort(resolverIP, dnsPort)
+        return c.exchangeWithFallback(ctx, msg, resolverAddr)
+}
+
 func (c *Client) exchangeWithFallback(ctx context.Context, msg *dns.Msg, resolverAddr string) (*dns.Msg, error) {
         client := newDNSClient(c.timeout)
         r, _, err := client.Exchange(ctx, msg, protoUDP, resolverAddr)

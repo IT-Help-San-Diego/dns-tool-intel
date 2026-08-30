@@ -132,6 +132,9 @@ func (s *blockingDNSStub) ExchangeContext(ctx context.Context, msg *dns.Msg) (*d
 	reply.Question = msg.Question
 	return reply, nil
 }
+func (s *blockingDNSStub) ExchangeContextToResolver(ctx context.Context, msg *dns.Msg, _ string) (*dns.Msg, error) {
+	return s.ExchangeContext(ctx, msg)
+}
 
 func (s *blockingDNSStub) ValidateResolverConsensus(ctx context.Context, domain string) map[string]any {
 	s.gate(ctx)
