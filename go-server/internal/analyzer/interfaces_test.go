@@ -44,6 +44,10 @@ func (q *testDNSQuerier) CheckDNSSECADFlag(context.Context, string) dnsclient.AD
 func (q *testDNSQuerier) ExchangeContext(context.Context, *dns.Msg) (*dns.Msg, error) {
         return nil, nil
 }
+
+func (q *testDNSQuerier) ExchangeContextToResolver(context.Context, *dns.Msg, string) (*dns.Msg, error) {
+        return nil, nil
+}
 func (q *testDNSQuerier) ValidateResolverConsensus(context.Context, string) map[string]any {
         return nil
 }

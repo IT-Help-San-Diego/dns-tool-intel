@@ -3802,7 +3802,7 @@
                             <div class="col-md-6 mb-3 section-col-divider">
                                 <p class="d-flex align-items-center">
                                     {{icon "clock" "me-2"}}NS TTL Comparison
-                                    <span class="badge bg-{{if mapGetBool "match" $ttl}}success{{else}}warning text-dark{{end}} ms-2">{{if mapGetBool "match" $ttl}}Match{{else}}Drift{{end}}</span>
+                                    <span class="badge bg-{{if mapGetBool "match" $ttl}}success{{else if mapGetBool "not_measured" $ttl}}secondary{{else}}warning text-dark{{end}} ms-2">{{if mapGetBool "match" $ttl}}Match{{else if mapGetBool "not_measured" $ttl}}Not Measured{{else}}Drift{{end}}</span>
                                 </p>
                                 <div class="small text-muted">
                                     {{if mapGetInt "parent_ttl" $ttl}}<span>Parent TTL: <strong>{{mapGetInt "parent_ttl" $ttl}}s</strong></span>{{end}}
@@ -3827,7 +3827,7 @@
                                 {{if $serials}}
                                 <div class="small text-muted">
                                     {{range $ns, $serial := $serials}}
-                                    <div><code>{{$ns}}</code>: <strong>{{$serial}}</strong></div>
+                                    <div><code>{{$ns}}</code>: <strong>{{mapGetIntExact $ns $serials}}</strong></div>
                                     {{end}}
                                 </div>
                                 {{end}}

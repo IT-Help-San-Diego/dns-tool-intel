@@ -69,11 +69,14 @@ type GlueAnalysis struct {
 }
 
 type TTLComparison struct {
-	ParentTTL *uint32  `json:"parent_ttl"`
-	ChildTTL  *uint32  `json:"child_ttl"`
-	Match     bool     `json:"match"`
-	DriftSecs int64    `json:"drift_secs"`
-	Issues    []string `json:"issues"`
+	// NotMeasured marks the comparison as never performed: one side could
+	// not be read, so no verdict (match OR drift) is emitted.
+	NotMeasured bool
+	ParentTTL   *uint32  `json:"parent_ttl"`
+	ChildTTL    *uint32  `json:"child_ttl"`
+	Match       bool     `json:"match"`
+	DriftSecs   int64    `json:"drift_secs"`
+	Issues      []string `json:"issues"`
 }
 
 type SOAConsistency struct {
@@ -279,7 +282,11 @@ func CompareTTLs(parentTTL, childTTL *uint32) TTLComparison {
 	}
 
 	if parentTTL == nil || childTTL == nil {
+		// A comparison needs both sides read. Missing input is NOT drift:
+		// surface it as not-measured so the template renders an honest
+		// indeterminate instead of a failed-match badge.
 		result.Match = false
+		result.NotMeasured = true
 		if parentTTL == nil && childTTL == nil {
 			result.Issues = append(result.Issues, "Could not retrieve NS TTL from either parent or child")
 		} else if parentTTL == nil {
@@ -336,10 +343,17 @@ func CheckSOAConsistency(serials map[string]uint32) SOAConsistency {
 	return result
 }
 
+// queryDSForDelegation fetches the parent-side DS RRset for the delegation.
+// The parent nameserver answers a DS query for a delegated child with a
+// REFERRAL, not an answer-section RRset: Route 53 (and most signed parents)
+// place the child's DS in the AUTHORITY section alongside the NS referral.
+// Reading only resp.Answer returned zero DS records for perfectly healthy
+// delegations — the classic exact-section-only defect (see the CAA #478
+// class). Records are collected from both Answer and Authority sections.
 func (a *Analyzer) queryDSForDelegation(ctx context.Context, domain string) []DSRecord {
 	fqdn := dnsutil.Fqdn(domain)
 	msg := dns.NewMsg(fqdn, dns.TypeDS)
-	msg.RecursionDesired = true
+	msg.RecursionDesired = false
 
 	resp, err := a.DNS.ExchangeContext(ctx, msg)
 	if err != nil || resp == nil {
@@ -352,13 +366,32 @@ func (a *Analyzer) queryDSForDelegation(ctx context.Context, domain string) []DS
 			records = append(records, parseDSRecordTyped(ds))
 		}
 	}
+	for _, rr := range resp.Ns {
+		if ds, ok := rr.(*dns.DS); ok {
+			records = append(records, parseDSRecordTyped(ds))
+		}
+	}
 	return records
 }
 
+// queryDNSKEYForDelegation fetches the child's DNSKEY RRset. Post-quantum
+// keys make this RRset large (a single ML-DSA-44 DNSKEY is ~1312 bytes of
+// RDATA; dual-signed zones run past 9KB), so the UDP answer is truncated
+// (TC set) and the full RRset only arrives over TCP retry. Without EDNS0
+// advertised, many servers answer legacy 512-byte payloads — the effective
+// truncation threshold is lower than the 1232-byte EDNS0 norm, and a naive
+// UDP-only exchange returns a PARTIAL RRset that reads as "DNSKEY records
+// missing at child". Both fixes here: advertise EDNS0 with a 1232-byte
+// buffer, and let the fallback helper retry over TCP when truncated.
 func (a *Analyzer) queryDNSKEYForDelegation(ctx context.Context, domain string) []DNSKEYRecord {
 	fqdn := dnsutil.Fqdn(domain)
 	msg := dns.NewMsg(fqdn, dns.TypeDNSKEY)
 	msg.RecursionDesired = true
+
+	// EDNS0 (house pattern from dnsclient): advertise a modern buffer so
+	// servers send the full RRset without legacy 512-byte downsizing; the
+	// exchange helper retries over TCP when the answer is still truncated.
+	msg.UDPSize, msg.Security = 4096, true
 
 	resp, err := a.DNS.ExchangeContext(ctx, msg)
 	if err != nil || resp == nil {
@@ -431,8 +464,32 @@ func (a *Analyzer) fetchNSTTLFromParent(ctx context.Context, domain string) *uin
 		return nil
 	}
 
-	result := a.DNS.QueryWithTTLFromResolver(ctx, "NS", domain, parentIPs[0])
-	return result.TTL
+	// A parent nameserver answers an NS query for a delegated CHILD with a
+	// referral: the delegation NS RRset rides in the AUTHORITY section, not
+	// the answer. QueryWithTTLFromResolver reads the answer section only, so
+	// healthy delegations read "no TTL from parent". Query the referral
+	// shape and take the TTL from the authority-section NS records.
+	msg := dns.NewMsg(dnsutil.Fqdn(domain), dns.TypeNS)
+	msg.RecursionDesired = false
+	msg.UDPSize, msg.Security = 4096, true
+
+	resp, err := a.DNS.ExchangeContextToResolver(ctx, msg, parentIPs[0])
+	if err != nil || resp == nil {
+		return nil
+	}
+	for _, rr := range resp.Ns {
+		if ns, ok := rr.(*dns.NS); ok && ns.Header().TTL > 0 {
+			ttl := ns.Header().TTL
+			return &ttl
+		}
+	}
+	for _, rr := range resp.Answer {
+		if ns, ok := rr.(*dns.NS); ok {
+			ttl := ns.Header().TTL
+			return &ttl
+		}
+	}
+	return nil
 }
 
 func (a *Analyzer) fetchNSTTLFromChild(ctx context.Context, domain string) *uint32 {
@@ -628,9 +685,10 @@ func glueAnalysisToMap(val GlueAnalysis) map[string]any {
 
 func ttlComparisonToMap(val TTLComparison) map[string]any {
 	m := map[string]any{
-		"match":      val.Match,
-		"drift_secs": val.DriftSecs,
-		mapKeyIssues: val.Issues,
+		"match":        val.Match,
+		"drift_secs":   val.DriftSecs,
+		"not_measured": val.NotMeasured,
+		mapKeyIssues:   val.Issues,
 	}
 	if val.ParentTTL != nil {
 		m["parent_ttl"] = *val.ParentTTL

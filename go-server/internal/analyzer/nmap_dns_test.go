@@ -49,6 +49,10 @@ func (m *mockDNSForNmap) CheckDNSSECADFlag(context.Context, string) dnsclient.AD
 func (m *mockDNSForNmap) ExchangeContext(context.Context, *dns.Msg) (*dns.Msg, error) {
         return nil, nil
 }
+
+func (m *mockDNSForNmap) ExchangeContextToResolver(context.Context, *dns.Msg, string) (*dns.Msg, error) {
+        return nil, nil
+}
 func (m *mockDNSForNmap) ValidateResolverConsensus(context.Context, string) map[string]any {
         return nil
 }
