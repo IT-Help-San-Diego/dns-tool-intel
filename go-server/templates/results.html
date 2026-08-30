@@ -3783,8 +3783,8 @@
                                             <tr>
                                                 <td><code>{{mapGetStr "ns" $g}}</code></td>
                                                 <td>{{if mapGetBool "in_bailiwick" $g}}{{icon "check" "text-success"}}{{else}}<span class="text-muted">No</span>{{end}}</td>
-                                                <td>{{if mapGetBool "has_ipv4_glue" $g}}{{icon "check" "text-success"}}{{else if mapGetBool "in_bailiwick" $g}}{{icon "times" "text-warning"}}{{else}}<span class="text-muted">N/A</span>{{end}}</td>
-                                                <td>{{if mapGetBool "has_ipv6_glue" $g}}{{icon "check" "text-success"}}{{else if mapGetBool "in_bailiwick" $g}}{{icon "times" "text-warning"}}{{else}}<span class="text-muted">N/A</span>{{end}}</td>
+                                                <td>{{if mapGetBool "has_ipv4_glue" $g}}{{icon "check" "text-success"}}{{else if mapGetBool "in_bailiwick" $g}}{{icon "times" "text-warning"}}{{else}}<span class="text-muted" title="Out-of-bailiwick nameservers do not require glue records — their addresses resolve by normal recursion (RFC 1034 §4.3.1).">Not required</span>{{end}}</td>
+                                                <td>{{if mapGetBool "has_ipv6_glue" $g}}{{icon "check" "text-success"}}{{else if mapGetBool "in_bailiwick" $g}}{{icon "times" "text-warning"}}{{else}}<span class="text-muted" title="Out-of-bailiwick nameservers do not require glue records — their addresses resolve by normal recursion (RFC 1034 §4.3.1).">Not required</span>{{end}}</td>
                                                 <td>{{if mapGetBool "complete" $g}}<span class="badge bg-success">OK</span>{{else if mapGetBool "in_bailiwick" $g}}<span class="badge bg-warning text-dark">Missing</span>{{else}}<span class="badge bg-secondary">External</span>{{end}}</td>
                                             </tr>
                                             {{end}}
