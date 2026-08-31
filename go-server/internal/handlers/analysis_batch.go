@@ -92,36 +92,16 @@ func (h *AnalysisHandler) AnalyzeBatch(c *gin.Context) {
 		BatchID:    batchID,
 		Label:      req.Label,
 		Total:      len(req.Domains),
-		PerDomain:  make([]batchDomainResult, 0, len(req.Domains)),
 		KeyLabel:   keyLabel,
 		BatchStamp: "v=batch1",
 	}
 
 	// Normalize + validate every domain UP FRONT (reject the batch-mixing shape
 	// where some domains queue and others fail validation only at scan time).
-	valid := make([]string, 0, len(req.Domains))
-	for _, d := range req.Domains {
-		d = strings.TrimSpace(d)
-		if d == "" {
-			continue
-		}
-		normalized, _, _ := dnsclient.NormalizeDomainInput(d)
-		if normalized == "" {
-			normalized = d
-		}
-		if !dnsclient.ValidateDomain(normalized) && !analyzer.IsWeb3Input(normalized) {
-			resp.PerDomain = append(resp.PerDomain, batchDomainResult{Domain: d, Error: "invalid domain"})
-			resp.Failed++
-			continue
-		}
-		ascii, err := dnsclient.DomainToASCII(normalized)
-		if err != nil {
-			ascii = normalized
-		}
-		valid = append(valid, ascii)
-		resp.PerDomain = append(resp.PerDomain, batchDomainResult{Domain: ascii, Queued: true})
-		resp.Queued++
-	}
+	valid, perDomain, queued, failed := normalizeBatchDomains(req.Domains)
+	resp.PerDomain = perDomain
+	resp.Queued = queued
+	resp.Failed = failed
 
 	// Per-scan charging (the 30-scans/min per-key invariant, mechanical):
 	// the route middleware charged 1 request token before the body was
@@ -164,6 +144,39 @@ func (h *AnalysisHandler) AnalyzeBatch(c *gin.Context) {
 	if h.Analyzer != nil {
 		go h.runBatchScans(batchID, valid, req, keyID)
 	}
+}
+
+// normalizeBatchDomains trims, normalizes, and validates every submitted domain
+// UP FRONT so the batch never mixes queued and validate-at-scan-time failures.
+// Returns the ASCII-ready valid list to scan, the per-domain result rows (both
+// queued and rejected), and the queued/failed counts. Extracted from
+// AnalyzeBatch to keep that handler under the cyclomatic-complexity ratchet.
+func normalizeBatchDomains(domains []string) (valid []string, perDomain []batchDomainResult, queued, failed int) {
+	valid = make([]string, 0, len(domains))
+	perDomain = make([]batchDomainResult, 0, len(domains))
+	for _, d := range domains {
+		d = strings.TrimSpace(d)
+		if d == "" {
+			continue
+		}
+		normalized, _, _ := dnsclient.NormalizeDomainInput(d)
+		if normalized == "" {
+			normalized = d
+		}
+		if !dnsclient.ValidateDomain(normalized) && !analyzer.IsWeb3Input(normalized) {
+			perDomain = append(perDomain, batchDomainResult{Domain: d, Error: "invalid domain"})
+			failed++
+			continue
+		}
+		ascii, err := dnsclient.DomainToASCII(normalized)
+		if err != nil {
+			ascii = normalized
+		}
+		valid = append(valid, ascii)
+		perDomain = append(perDomain, batchDomainResult{Domain: ascii, Queued: true})
+		queued++
+	}
+	return valid, perDomain, queued, failed
 }
 
 // runBatchScans executes the queued domains through the standard analyzer.
