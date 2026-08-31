@@ -1215,7 +1215,45 @@ func (c *Client) QuerySpecificResolver(ctx context.Context, recordType, domain, 
                         results = append(results, s)
                 }
         }
+        // A parent server answers a delegated child's name with a REFERRAL:
+        // the requested glue (the in-bailiwick nameserver's A/AAAA) rides in
+        // the ADDITIONAL section (r.Extra), not the answer. Answer-first
+        // stays canonical for authoritative answers; Extra adds what a
+        // referral carries — the exact-section class caught three times in
+        // the delegation checker (Answer-only reads of referral-shaped data).
+        for _, rr := range r.Extra {
+                if dnsRrTypeMatches(rr, qtype) {
+                        s := rrToString(rr)
+                        if s != "" {
+                                results = append(results, s)
+                        }
+                }
+        }
         return results, nil
+}
+
+// dnsRrTypeMatches reports whether rr's concrete type equals the query
+// type — the fork's Header carries no type field, so the type switch is the
+// discriminator.
+func dnsRrTypeMatches(rr dns.RR, qtype uint16) bool {
+        switch rr.(type) {
+        case *dns.A:
+                return qtype == dns.TypeA
+        case *dns.AAAA:
+                return qtype == dns.TypeAAAA
+        case *dns.NS:
+                return qtype == dns.TypeNS
+        case *dns.TXT:
+                return qtype == dns.TypeTXT
+        case *dns.MX:
+                return qtype == dns.TypeMX
+        case *dns.DS:
+                return qtype == dns.TypeDS
+        case *dns.DNSKEY:
+                return qtype == dns.TypeDNSKEY
+        default:
+                return false
+        }
 }
 
 // QuerySpecificResolverAuth queries a single resolver with recursion disabled and
