@@ -5,7 +5,6 @@ package middleware
 
 import (
 	"crypto/sha256"
-	"crypto/subtle"
 	"encoding/hex"
 	"fmt"
 	"net/http"
@@ -21,8 +20,12 @@ import (
 //
 // On success the handler can read the key row via the context keys
 // ("scan_key_id", "scan_key_label"). On failure: 401 with the reason.
-// Constant-time compare on the hash (subtle.ConstantTimeCompare) so
-// key probing cannot timing-attack its way in.
+//
+// Timing: the raw key is sha256'd BEFORE the lookup, so the only equality
+// over attacker-influenced bytes runs on the fixed-length hash via the DB
+// index — a timing channel on the raw key does not exist. (An earlier
+// draft carried a ConstantTimeCompare of the hash WITH ITSELF here — a
+// no-op that read as a gate in two reviews; deliberately removed.)
 type ScanKeyLookup interface {
 	// LookupScanKey returns (id, label, ok) for a NON-REVOKED key whose
 	// sha256(key) matches. Implementations must be read-only.
@@ -53,7 +56,6 @@ func ScanAPIKeyAuth(lookup ScanKeyLookup) gin.HandlerFunc {
 			})
 			return
 		}
-		_ = subtle.ConstantTimeCompare([]byte(hash), []byte(hash)) // documented shape; the lookup above is the gate
 		c.Set("scan_key_id", id)
 		c.Set("scan_key_label", label)
 		c.Next()
@@ -61,9 +63,12 @@ func ScanAPIKeyAuth(lookup ScanKeyLookup) gin.HandlerFunc {
 }
 
 // ScanKeyRateLimit is the batch endpoint's keyed bucket — per-KEY, not
-// per-IP (the whole point of authorized automation). N scans/min per key,
-// conservative default; 429 + Retry-After on breach (honest and retryable,
-// the automation-no-blocker rule).
+// per-IP (the whole point of authorized automation). It charges ONE
+// request token here (bounding request floods, unparseable bodies
+// included); the batch handler charges the remaining scan tokens after
+// validation, so a batch's total charge equals its scan count and the
+// per-key scans/min invariant holds mechanically. 429 + Retry-After on
+// breach (honest and retryable, the automation-no-blocker rule).
 type ScanKeyRateLimiter interface {
 	AllowKey(keyID int32, scans int) (ok bool, retryAfterSeconds int)
 }

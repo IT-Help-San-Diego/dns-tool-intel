@@ -18,6 +18,7 @@ import (
 
 	"dnstool/go-server/internal/analyzer"
 	"dnstool/go-server/internal/dnsclient"
+	"dnstool/go-server/internal/middleware"
 	"dnstool/go-server/internal/scanner"
 )
 
@@ -61,8 +62,10 @@ type batchScanResponse struct {
 	BatchStamp string              `json:"_batch_stamp"`
 }
 
-// AnalyzeBatch is the POST /api/batch handler. Rate limiting happens at the
-// route layer (keyed bucket); auth at the middleware layer (ScanAPIKeyAuth).
+// AnalyzeBatch is the POST /api/batch handler. Auth happens at the
+// middleware layer (ScanAPIKeyAuth); rate limiting is split — the route
+// middleware charges the 1 request token, this handler charges the
+// remaining scan tokens post-validation (total == scan count).
 func (h *AnalysisHandler) AnalyzeBatch(c *gin.Context) {
 	keyID := c.GetInt32("scan_key_id")
 	keyLabel := c.GetString("scan_key_label")
@@ -118,6 +121,35 @@ func (h *AnalysisHandler) AnalyzeBatch(c *gin.Context) {
 		valid = append(valid, ascii)
 		resp.PerDomain = append(resp.PerDomain, batchDomainResult{Domain: ascii, Queued: true})
 		resp.Queued++
+	}
+
+	// Per-scan charging (the 30-scans/min per-key invariant, mechanical):
+	// the route middleware charged 1 request token before the body was
+	// readable; charge the remaining queued-1 here so the batch's total
+	// equals its scan count. A batch that cannot EVER fit the window
+	// (queued > cap) gets a permanent refusal with the split instruction —
+	// never retry advice that cannot come true. Nil charger = enqueue-only
+	// contract-test mode, mirroring nil Analyzer.
+	if resp.Queued > middleware.KeyScanCapPerMinute {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": fmt.Sprintf(
+				"batch of %d scans exceeds the per-key rate cap (%d/min): split into batches of at most %d",
+				resp.Queued, middleware.KeyScanCapPerMinute, middleware.KeyScanCapPerMinute),
+		})
+		return
+	}
+	if h.ScanCharger != nil && resp.Queued > 1 {
+		if ok, retry := h.ScanCharger.AllowKey(keyID, resp.Queued-1); !ok {
+			if retry < 0 {
+				retry = 60
+			}
+			c.Header("Retry-After", fmt.Sprintf("%d", retry))
+			c.JSON(http.StatusTooManyRequests, gin.H{
+				"error":       "batch rate limit exceeded for this key",
+				"retry_after": retry,
+			})
+			return
+		}
 	}
 
 	// 202: the batch is ACCEPTED; scans run server-side after the response.

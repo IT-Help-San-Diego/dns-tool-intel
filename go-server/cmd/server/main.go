@@ -569,6 +569,9 @@ func registerRoutes(d routeDeps) {
 	historyHandler := handlers.NewHistoryHandler(d.DB, d.Cfg)
 	cloudHistoryHandler := handlers.NewCloudHistoryHandler(d.DB, d.Cfg)
 	analysisHandler := handlers.NewAnalysisHandler(d.DB, d.Cfg, d.Analyzer, d.HistoryCache)
+	// Batch per-scan charging shares the same bucket as the route
+	// middleware — one limiter, two charge points, total == scan count.
+	analysisHandler.ScanCharger = d.RateLimiter
 	statsHandler := handlers.NewStatsHandler(d.DB, d.Cfg)
 	compareHandler := handlers.NewCompareHandler(d.DB, d.Cfg)
 	exportHandler := handlers.NewExportHandler(d.DB)
