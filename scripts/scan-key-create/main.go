@@ -25,7 +25,7 @@ func main() {
 	label := flag.String("label", "", "human description for the key (required)")
 	flag.Parse()
 	if *label == "" {
-		fmt.Fprintln(os.Stderr, "usage: scan-key-create -label " < description > "")
+		fmt.Fprintln(os.Stderr, "usage: scan-key-create -label <description>")
 		os.Exit(1)
 	}
 	raw := make([]byte, 32)
