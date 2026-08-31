@@ -18,6 +18,7 @@ import (
 
 	"dnstool/go-server/internal/analyzer"
 	"dnstool/go-server/internal/dnsclient"
+	"dnstool/go-server/internal/middleware"
 	"dnstool/go-server/internal/scanner"
 )
 
@@ -61,8 +62,10 @@ type batchScanResponse struct {
 	BatchStamp string              `json:"_batch_stamp"`
 }
 
-// AnalyzeBatch is the POST /api/batch handler. Rate limiting happens at the
-// route layer (keyed bucket); auth at the middleware layer (ScanAPIKeyAuth).
+// AnalyzeBatch is the POST /api/batch handler. Auth happens at the
+// middleware layer (ScanAPIKeyAuth); rate limiting is split — the route
+// middleware charges the 1 request token, this handler charges the
+// remaining scan tokens post-validation (total == scan count).
 func (h *AnalysisHandler) AnalyzeBatch(c *gin.Context) {
 	keyID := c.GetInt32("scan_key_id")
 	keyLabel := c.GetString("scan_key_label")
@@ -89,35 +92,44 @@ func (h *AnalysisHandler) AnalyzeBatch(c *gin.Context) {
 		BatchID:    batchID,
 		Label:      req.Label,
 		Total:      len(req.Domains),
-		PerDomain:  make([]batchDomainResult, 0, len(req.Domains)),
 		KeyLabel:   keyLabel,
 		BatchStamp: "v=batch1",
 	}
 
 	// Normalize + validate every domain UP FRONT (reject the batch-mixing shape
 	// where some domains queue and others fail validation only at scan time).
-	valid := make([]string, 0, len(req.Domains))
-	for _, d := range req.Domains {
-		d = strings.TrimSpace(d)
-		if d == "" {
-			continue
+	valid, perDomain, queued, failed := normalizeBatchDomains(req.Domains)
+	resp.PerDomain = perDomain
+	resp.Queued = queued
+	resp.Failed = failed
+
+	// Per-scan charging (the 30-scans/min per-key invariant, mechanical):
+	// the route middleware charged 1 request token before the body was
+	// readable; charge the remaining queued-1 here so the batch's total
+	// equals its scan count. A batch that cannot EVER fit the window
+	// (queued > cap) gets a permanent refusal with the split instruction —
+	// never retry advice that cannot come true. Nil charger = enqueue-only
+	// contract-test mode, mirroring nil Analyzer.
+	if resp.Queued > middleware.KeyScanCapPerMinute {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": fmt.Sprintf(
+				"batch of %d scans exceeds the per-key rate cap (%d/min): split into batches of at most %d",
+				resp.Queued, middleware.KeyScanCapPerMinute, middleware.KeyScanCapPerMinute),
+		})
+		return
+	}
+	if h.ScanCharger != nil && resp.Queued > 1 {
+		if ok, retry := h.ScanCharger.AllowKey(keyID, resp.Queued-1); !ok {
+			if retry < 0 {
+				retry = 60
+			}
+			c.Header("Retry-After", fmt.Sprintf("%d", retry))
+			c.JSON(http.StatusTooManyRequests, gin.H{
+				"error":       "batch rate limit exceeded for this key",
+				"retry_after": retry,
+			})
+			return
 		}
-		normalized, _, _ := dnsclient.NormalizeDomainInput(d)
-		if normalized == "" {
-			normalized = d
-		}
-		if !dnsclient.ValidateDomain(normalized) && !analyzer.IsWeb3Input(normalized) {
-			resp.PerDomain = append(resp.PerDomain, batchDomainResult{Domain: d, Error: "invalid domain"})
-			resp.Failed++
-			continue
-		}
-		ascii, err := dnsclient.DomainToASCII(normalized)
-		if err != nil {
-			ascii = normalized
-		}
-		valid = append(valid, ascii)
-		resp.PerDomain = append(resp.PerDomain, batchDomainResult{Domain: ascii, Queued: true})
-		resp.Queued++
 	}
 
 	// 202: the batch is ACCEPTED; scans run server-side after the response.
@@ -132,6 +144,39 @@ func (h *AnalysisHandler) AnalyzeBatch(c *gin.Context) {
 	if h.Analyzer != nil {
 		go h.runBatchScans(batchID, valid, req, keyID)
 	}
+}
+
+// normalizeBatchDomains trims, normalizes, and validates every submitted domain
+// UP FRONT so the batch never mixes queued and validate-at-scan-time failures.
+// Returns the ASCII-ready valid list to scan, the per-domain result rows (both
+// queued and rejected), and the queued/failed counts. Extracted from
+// AnalyzeBatch to keep that handler under the cyclomatic-complexity ratchet.
+func normalizeBatchDomains(domains []string) (valid []string, perDomain []batchDomainResult, queued, failed int) {
+	valid = make([]string, 0, len(domains))
+	perDomain = make([]batchDomainResult, 0, len(domains))
+	for _, d := range domains {
+		d = strings.TrimSpace(d)
+		if d == "" {
+			continue
+		}
+		normalized, _, _ := dnsclient.NormalizeDomainInput(d)
+		if normalized == "" {
+			normalized = d
+		}
+		if !dnsclient.ValidateDomain(normalized) && !analyzer.IsWeb3Input(normalized) {
+			perDomain = append(perDomain, batchDomainResult{Domain: d, Error: "invalid domain"})
+			failed++
+			continue
+		}
+		ascii, err := dnsclient.DomainToASCII(normalized)
+		if err != nil {
+			ascii = normalized
+		}
+		valid = append(valid, ascii)
+		perDomain = append(perDomain, batchDomainResult{Domain: ascii, Queued: true})
+		queued++
+	}
+	return valid, perDomain, queued, failed
 }
 
 // runBatchScans executes the queued domains through the standard analyzer.

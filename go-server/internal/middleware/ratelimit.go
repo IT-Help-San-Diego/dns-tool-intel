@@ -310,16 +310,35 @@ func safeRefererPath(c *gin.Context) string {
 	return u.Path
 }
 
+// KeyScanCapPerMinute is the per-key scan budget: the invariant is SCANS
+// per minute, not requests — a leaked key must not be able to hammer the
+// fleet through big batches. Handlers that pre-validate batch sizes
+// reference this same constant so the refusal boundary cannot drift from
+// the bucket that enforces it.
+const KeyScanCapPerMinute = 30
+
 // AllowKey is the batch-endpoint keyed bucket: a per-KEY sliding window,
 // separate from the per-IP domain limiter (authorized automation is keyed,
 // not IP-shaped). Key namespace "scankey:<id>" never collides with IPs.
-// Batch cap: 30 scans/min per key — generous for a battery (8 domains),
-// tight enough that a leaked key cannot hammer the fleet.
+//
+// Charging model: the route middleware charges 1 token per request; the
+// batch handler charges the remaining scan tokens after validation — a
+// batch's total charge equals its scan count. Generous for a battery
+// (8-14 domains), tight enough that a leaked key cannot hammer the fleet.
+//
+// A single call asking for more than the whole cap can NEVER succeed;
+// it returns (false, -1) so the caller refuses permanently ("split the
+// batch") instead of issuing retry advice that would never come true.
 func (l *InMemoryRateLimiter) AllowKey(keyID int32, scans int) (bool, int) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	const window = time.Minute
-	const cap = 30
+	if scans <= 0 {
+		return true, 0
+	}
+	if scans > KeyScanCapPerMinute {
+		return false, -1
+	}
 	now := time.Now()
 	key := fmt.Sprintf("scankey:%d", keyID)
 	entries := l.requests[key]
@@ -329,9 +348,12 @@ func (l *InMemoryRateLimiter) AllowKey(keyID int32, scans int) (bool, int) {
 			keep = append(keep, e)
 		}
 	}
-	if len(keep)+scans > cap {
+	if len(keep)+scans > KeyScanCapPerMinute {
 		l.requests[key] = keep
-		// Retry when the oldest entry leaves the window.
+		// scans <= cap here, so overflow implies len(keep) >= 1 and the
+		// keep[0] read is safe: retry when the oldest entry leaves the
+		// window. (Without the scans > cap guard above, an oversize call
+		// on an EMPTY window would index keep[0] out of range.)
 		age := now.Unix() - int64(keep[0].timestamp)
 		retry := int(int64(window/time.Second)-age) + 1
 		if retry < 1 {

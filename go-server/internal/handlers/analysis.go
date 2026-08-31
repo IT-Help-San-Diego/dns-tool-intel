@@ -10,6 +10,7 @@ import (
 	"dnstool/go-server/internal/dbq"
 	"dnstool/go-server/internal/icae"
 	"dnstool/go-server/internal/icuae"
+	"dnstool/go-server/internal/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -48,6 +49,11 @@ type AnalysisHandler struct {
 	ProgressStore   *ProgressStore
 	analysisStore   AnalysisStore
 	statsExec       StatsExecer
+	// ScanCharger charges the per-key scan tokens for batch requests
+	// (the route middleware charges only the 1 request token; the batch
+	// handler charges the rest so total charge == scan count). Nil means
+	// enqueue-only contract-test mode, mirroring nil Analyzer.
+	ScanCharger middleware.ScanKeyRateLimiter
 }
 
 func (h *AnalysisHandler) store() AnalysisStore {

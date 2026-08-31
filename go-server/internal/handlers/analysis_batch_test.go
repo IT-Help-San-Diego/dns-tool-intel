@@ -5,6 +5,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -164,5 +165,102 @@ func TestNewBatchID_UniqueAndShaped(t *testing.T) {
 	}
 	if !strings.HasPrefix(a, "b_") {
 		t.Errorf("batch id shape: %s", a)
+	}
+}
+
+// --- per-scan charging contract (the 30-scans/min per-key invariant) ---
+
+type stubScanCharger struct {
+	gotKey   int32
+	gotScans int
+	calls    int
+	ok       bool
+	retry    int
+}
+
+func (s *stubScanCharger) AllowKey(keyID int32, scans int) (bool, int) {
+	s.gotKey, s.gotScans = keyID, scans
+	s.calls++
+	return s.ok, s.retry
+}
+
+func newChargingRouter(charger *stubScanCharger) *gin.Engine {
+	gin.SetMode(gin.TestMode)
+	r := gin.New()
+	h := &AnalysisHandler{}
+	if charger != nil {
+		h.ScanCharger = charger
+	}
+	r.POST("/api/batch", func(c *gin.Context) {
+		c.Set("scan_key_id", int32(42))
+		c.Set("scan_key_label", "test-key")
+	}, h.AnalyzeBatch)
+	return r
+}
+
+func postBatchDomains(t *testing.T, r *gin.Engine, n int) *httptest.ResponseRecorder {
+	t.Helper()
+	domains := make([]string, 0, n)
+	for i := 0; i < n; i++ {
+		domains = append(domains, fmt.Sprintf("host%03d.example.com", i))
+	}
+	body, err := json.Marshal(map[string]any{"domains": domains})
+	if err != nil {
+		t.Fatal(err)
+	}
+	req := httptest.NewRequest(http.MethodPost, "/api/batch", strings.NewReader(string(body)))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	return w
+}
+
+func TestAnalyzeBatchOverScanCapRefusesPermanently(t *testing.T) {
+	charger := &stubScanCharger{ok: true}
+	r := newChargingRouter(charger)
+	w := postBatchDomains(t, r, 31)
+	if w.Code != http.StatusBadRequest {
+		t.Fatalf("31-scan batch can never fit the window: want 400, got %d (%s)", w.Code, w.Body.String())
+	}
+	if !strings.Contains(w.Body.String(), "split into batches") {
+		t.Fatalf("permanent refusal must carry the split instruction: %s", w.Body.String())
+	}
+	if charger.calls != 0 {
+		t.Fatalf("pre-check must refuse before charging; charger called %d times", charger.calls)
+	}
+}
+
+func TestAnalyzeBatchChargesQueuedMinusOne(t *testing.T) {
+	charger := &stubScanCharger{ok: true}
+	r := newChargingRouter(charger)
+	w := postBatchDomains(t, r, 5)
+	if w.Code != http.StatusAccepted {
+		t.Fatalf("want 202, got %d (%s)", w.Code, w.Body.String())
+	}
+	// The route middleware charged 1 request token; the handler charges the
+	// remaining queued-1 so total charge == scan count.
+	if charger.calls != 1 || charger.gotKey != 42 || charger.gotScans != 4 {
+		t.Fatalf("want one AllowKey(42, 4) charge, got calls=%d key=%d scans=%d",
+			charger.calls, charger.gotKey, charger.gotScans)
+	}
+}
+
+func TestAnalyzeBatchChargerRefusalIs429WithRetryAfter(t *testing.T) {
+	charger := &stubScanCharger{ok: false, retry: 17}
+	r := newChargingRouter(charger)
+	w := postBatchDomains(t, r, 5)
+	if w.Code != http.StatusTooManyRequests {
+		t.Fatalf("charger refusal must 429, got %d (%s)", w.Code, w.Body.String())
+	}
+	if got := w.Header().Get("Retry-After"); got != "17" {
+		t.Fatalf("Retry-After must carry the bucket's advice, got %q", got)
+	}
+}
+
+func TestAnalyzeBatchNilChargerStaysEnqueueOnlyCompatible(t *testing.T) {
+	r := newChargingRouter(nil)
+	w := postBatchDomains(t, r, 5)
+	if w.Code != http.StatusAccepted {
+		t.Fatalf("nil charger (contract-test mode) must still 202, got %d (%s)", w.Code, w.Body.String())
 	}
 }
