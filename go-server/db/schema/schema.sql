@@ -835,6 +835,41 @@ CREATE TABLE public.priority_domains (
 
 
 --
+-- Name: scan_api_keys; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.scan_api_keys (
+    id integer NOT NULL,
+    label text NOT NULL,
+    key_hash text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    last_used_at timestamp with time zone,
+    use_count integer DEFAULT 0 NOT NULL,
+    revoked_at timestamp with time zone
+);
+
+
+--
+-- Name: scan_api_keys_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.scan_api_keys_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: scan_api_keys_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.scan_api_keys_id_seq OWNED BY public.scan_api_keys.id;
+
+
+--
 -- Name: scan_phase_telemetry; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1207,6 +1242,13 @@ ALTER TABLE ONLY public.notification_endpoints ALTER COLUMN id SET DEFAULT nextv
 
 
 --
+-- Name: scan_api_keys id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.scan_api_keys ALTER COLUMN id SET DEFAULT nextval('public.scan_api_keys_id_seq'::regclass);
+
+
+--
 -- Name: scan_phase_telemetry id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1494,6 +1536,22 @@ ALTER TABLE ONLY public.observations
 
 ALTER TABLE ONLY public.priority_domains
     ADD CONSTRAINT priority_domains_pkey PRIMARY KEY (domain);
+
+
+--
+-- Name: scan_api_keys scan_api_keys_key_hash_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.scan_api_keys
+    ADD CONSTRAINT scan_api_keys_key_hash_key UNIQUE (key_hash);
+
+
+--
+-- Name: scan_api_keys scan_api_keys_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.scan_api_keys
+    ADD CONSTRAINT scan_api_keys_pkey PRIMARY KEY (id);
 
 
 --
@@ -2004,6 +2062,13 @@ CREATE INDEX ix_ice_test_runs_version ON public.ice_test_runs USING btree (app_v
 --
 
 CREATE INDEX ix_notification_endpoints_user ON public.notification_endpoints USING btree (user_id);
+
+
+--
+-- Name: ix_scan_api_keys_hash; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_scan_api_keys_hash ON public.scan_api_keys USING btree (key_hash) WHERE (revoked_at IS NULL);
 
 
 --
