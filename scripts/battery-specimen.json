@@ -1,0 +1,13 @@
+{
+  "label": "specimen-battery",
+  "domains": [
+    "pq.resolutionscope.com",
+    "pq2.resolutionscope.com",
+    "pq-dualds.resolutionscope.com",
+    "dane.resolutionscope.com",
+    "mx.dane.resolutionscope.com",
+    "dane-rx.resolutionscope.com",
+    "pqns.resolutionscope.com",
+    "nlnetlabs.nl"
+  ]
+}

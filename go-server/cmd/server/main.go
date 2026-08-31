@@ -615,6 +615,15 @@ func registerAnalysisRoutes(d routeDeps, analysis *handlers.AnalysisHandler, his
 	// returning 404 on HEAD makes them treat the URL as dead.
 	d.Router.HEAD("/analyze", analysis.Analyze)
 	d.Router.POST("/analyze", middleware.AnalyzeRateLimit(d.RateLimiter), analysis.Analyze)
+	// Batch scans (design docs/DESIGN-batch-scans-api-keys-20260831.md):
+	// API-key-gated enqueue over the standard scan path. Keys are
+	// operator-issued (scan_api_keys table, migration 025); the middleware
+	// is read-only lookup + constant-time hash compare. The keyed rate
+	// bucket lives in middleware.ScanKeyRateLimit.
+	d.Router.POST("/api/batch",
+		middleware.ScanAPIKeyAuth(d.DB),
+		middleware.ScanKeyRateLimit(d.RateLimiter),
+		analysis.AnalyzeBatch)
 	d.Router.GET("/domain-not-found", analysis.DomainNotFound)
 	d.Router.GET("/api/scan/progress/:token", handlers.ScanProgressHandler(analysis.ProgressStore))
 	d.Router.GET("/history", d.HeavyShed, history.History)
