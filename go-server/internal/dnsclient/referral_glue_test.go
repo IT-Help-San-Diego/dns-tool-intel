@@ -5,9 +5,11 @@ package dnsclient
 
 import (
 	"net/netip"
+	"strings"
 	"testing"
 
 	"codeberg.org/miekg/dns"
+	"codeberg.org/miekg/dns/dnsutil"
 	"codeberg.org/miekg/dns/rdata"
 )
 
@@ -86,5 +88,64 @@ func TestDnsRrTypeMatches_Matrix(t *testing.T) {
 	}
 	if dnsRrTypeMatches(aaaa, dns.TypeA) {
 		t.Error("AAAA must NOT match TypeA")
+	}
+}
+
+// CC's multi-glue control: a referral's ADDITIONAL carries glue for EVERY
+// in-bailiwick nameserver. The name filter must return ONLY the queried
+// host's address — without it, ns2's address contaminates ns1's glue list.
+func TestQuerySpecificResolver_MultiGlueReferralReturnsOnlyQueriedName(t *testing.T) {
+	ns1 := &dns.A{
+		Hdr: dns.Header{Name: "ns1.child.example.com.", TTL: 3600, Class: dns.ClassINET},
+		A:   rdata.A{Addr: mustAddr("192.0.2.1")},
+	}
+	ns2 := &dns.A{
+		Hdr: dns.Header{Name: "ns2.child.example.com.", TTL: 3600, Class: dns.ClassINET},
+		A:   rdata.A{Addr: mustAddr("192.0.2.2")},
+	}
+	resp := new(dns.Msg)
+	// The referral shape: BOTH nameservers' glue rides Extra together.
+	resp.Extra = append(resp.Extra, ns1, ns2)
+
+	fqdn := dnsutil.Fqdn("ns1.child.example.com")
+	// The client's exact section logic: Answer-first, Extra type+name filtered.
+	var results []string
+	for _, rr := range resp.Answer {
+		if s := rrToString(rr); s != "" {
+			results = append(results, s)
+		}
+	}
+	fqdnLower := strings.ToLower(fqdn)
+	for _, rr := range resp.Extra {
+		if dnsRrTypeMatches(rr, dns.TypeA) &&
+			strings.EqualFold(rr.Header().Name, fqdnLower) {
+			if s := rrToString(rr); s != "" {
+				results = append(results, s)
+			}
+		}
+	}
+	if len(results) != 1 {
+		t.Fatalf("multi-glue referral: got %d results, want exactly 1 (only the queried name)", len(results))
+	}
+	if strings.Contains(strings.Join(results, " "), "192.0.2.2") {
+		t.Error("ns2's address leaked into ns1's glue — the name filter is not filtering")
+	}
+	if !strings.Contains(results[0], "192.0.2.1") {
+		t.Errorf("ns1's address missing: %v", results)
+	}
+
+	// Symmetric: querying ns2 returns ns2 only.
+	fqdn2 := strings.ToLower(dnsutil.Fqdn("ns2.child.example.com"))
+	var results2 []string
+	for _, rr := range resp.Extra {
+		if dnsRrTypeMatches(rr, dns.TypeA) &&
+			strings.EqualFold(rr.Header().Name, fqdn2) {
+			if s := rrToString(rr); s != "" {
+				results2 = append(results2, s)
+			}
+		}
+	}
+	if len(results2) != 1 || !strings.Contains(results2[0], "192.0.2.2") {
+		t.Errorf("ns2 query wrong: %v", results2)
 	}
 }

@@ -1222,8 +1222,17 @@ func (c *Client) QuerySpecificResolver(ctx context.Context, recordType, domain, 
 	// stays canonical for authoritative answers; Extra adds what a
 	// referral carries — the exact-section class caught three times in
 	// the delegation checker (Answer-only reads of referral-shaped data).
+	//
+	// NAME filter (CC review, 4th section-family member — "right section,
+	// unchecked name"): a referral's ADDITIONAL carries glue for EVERY
+	// in-bailiwick nameserver at once, so a type-only filter would
+	// attribute ns2's address to ns1. Match the record's owner name
+	// against the queried FQDN (the fork's Header carries Name even
+	// though it carries no RrType).
+	fqdnLower := strings.ToLower(fqdn)
 	for _, rr := range r.Extra {
-		if dnsRrTypeMatches(rr, qtype) {
+		if dnsRrTypeMatches(rr, qtype) &&
+			strings.EqualFold(rr.Header().Name, fqdnLower) {
 			s := rrToString(rr)
 			if s != "" {
 				results = append(results, s)
