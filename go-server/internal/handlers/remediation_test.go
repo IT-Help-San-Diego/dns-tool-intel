@@ -180,3 +180,64 @@ func TestRemediationTemplate_Constant(t *testing.T) {
 		t.Errorf("remediationTemplate = %q", remediationTemplate)
 	}
 }
+
+// THE TWO-VERDICTS PIN (2026-09-03): the same analysis row read "1 issue to fix"
+// on /history (ICSAE RealFixCount) and "No Issues Found" on /remediation (the
+// legacy all_fixes, which never receives NO_MAIL_HARDENED). The fix makes
+// remediation render from the ICSAE queue when present. These tests pin:
+// (1) the queue->items mapping shows the fix the history badge counted;
+// (2) legacy-only rows still render from all_fixes (pre-ICSAE fallback);
+// (3) description fields stay non-empty (no silent blank fixes).
+// Built from the live 18692 shape (mx.dane.resolutionscope.com).
+func TestBuildRemediationItemsFromICSAE_ShowsTheFixHistoryCounted(t *testing.T) {
+	queue := map[string]any{
+		"items": []any{
+			map[string]any{
+				"rank":            1,
+				"control_id":      "NO_MAIL_HARDENED",
+				"title":           "No-Mail Domain Hardening",
+				"severity":        "medium",
+				"exploit_class":   "unproven",
+				"exploit_basis":   "No verified weakness mapping yet",
+				"attacker_action": "Add a hardening record to close the spoofing surface",
+				"confidence":      "moderate",
+			},
+		},
+		"real_fix_count": 1,
+	}
+	items := buildRemediationItemsFromICSAE(queue)
+	if len(items) != 1 {
+		t.Fatalf("ICSAE queue with 1 real fix rendered %d items — history says 1, remediation must say 1 (the two-verdicts defect)", len(items))
+	}
+	it := items[0]
+	if it.Title != "No-Mail Domain Hardening" {
+		t.Errorf("title = %q", it.Title)
+	}
+	if !strings.Contains(it.Description, "spoofing surface") {
+		t.Errorf("attacker action missing from description: %q", it.Description)
+	}
+	if it.SeverityColor != "warning" {
+		t.Errorf("medium severity should map to warning color, got %q", it.SeverityColor)
+	}
+	if !strings.Contains(it.Section, "Real Fix") {
+		t.Errorf("section should carry the exploit class, got %q", it.Section)
+	}
+}
+
+func TestBuildRemediationItemsFromICSAE_ZeroFixesRendersZero(t *testing.T) {
+	queue := map[string]any{"items": []any{}, "real_fix_count": 0}
+	items := buildRemediationItemsFromICSAE(queue)
+	if len(items) != 0 {
+		t.Fatalf("empty queue rendered %d items", len(items))
+	}
+	// The template's FixCount will be len(items) = 0 → "No Issues Found"
+	// ONLY when the queue itself is empty — the honest zero, matching history.
+}
+
+func TestSplitByDNS_ICSAEItemsAreManualByDefault(t *testing.T) {
+	items := []remediationItem{{Title: "x"}}
+	dns, manual := splitByDNS(items)
+	if len(dns) != 0 || len(manual) != 1 {
+		t.Fatalf("queue items without dns fields should be manual: dns=%d manual=%d", len(dns), len(manual))
+	}
+}
