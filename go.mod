@@ -9,7 +9,7 @@ require (
 	github.com/gin-gonic/gin v1.12.0
 	github.com/goccy/go-yaml v1.19.2
 	github.com/google/uuid v1.6.0
-	github.com/jackc/pgx/v5 v5.10.0
+	github.com/jackc/pgx/v5 v5.11.0
 	github.com/kettek/apng v0.0.0-20250827064933-2bb5f5fcf253
 	github.com/pressly/goose/v3 v3.27.3
 	golang.org/x/crypto v0.54.0
