@@ -4,7 +4,7 @@ go 1.26.6
 
 require (
 	codeberg.org/miekg/dns v0.6.90
-	github.com/axiomhq/hyperloglog v0.2.6
+	github.com/axiomhq/hyperloglog v0.3.0
 	github.com/gin-contrib/gzip v1.2.6
 	github.com/gin-gonic/gin v1.12.0
 	github.com/goccy/go-yaml v1.19.2
