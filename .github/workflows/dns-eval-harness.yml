@@ -19,7 +19,7 @@ jobs:
   harness:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Tri-state harness regression + drift net
         run: python3 dns-eval/Mappings/test_harness.py
       # The Go engine's parity test (TestCrossCheckPython) reads COMMITTED
