@@ -12,9 +12,9 @@ require (
 	github.com/jackc/pgx/v5 v5.10.0
 	github.com/kettek/apng v0.0.0-20250827064933-2bb5f5fcf253
 	github.com/pressly/goose/v3 v3.27.3
-	golang.org/x/crypto v0.54.0
-	golang.org/x/net v0.57.0
-	golang.org/x/text v0.40.0
+	golang.org/x/crypto v0.58.0
+	golang.org/x/net v0.60.0
+	golang.org/x/text v0.43.0
 	gonum.org/v1/gonum v0.17.0
 )
 
@@ -50,7 +50,7 @@ require (
 	go.mongodb.org/mongo-driver/v2 v2.5.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/arch v0.22.0 // indirect
-	golang.org/x/sync v0.22.0 // indirect
-	golang.org/x/sys v0.47.0 // indirect
+	golang.org/x/sync v0.24.0 // indirect
+	golang.org/x/sys v0.49.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 )
